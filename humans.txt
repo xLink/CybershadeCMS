@@ -1,0 +1,20 @@
+/* MAIN */
+Develop & Main Design: The Cybershade Core Team
+Twitter: @CybershadeCMS
+Site: http://cybershade.org/
+
+/* SITE */
+Last update: 11/07/2011
+Doctype: HTML5
+Tools: Sublime, Photoshop
+
+/* SPECIAL THANKS */
+/* Core Developers */
+Developer: Daniel Aldridge  
+
+Developer: Richard Clifford
+
+Developer: Daniel Noel-Davies
+
+  
+And, of course, all humanstxt.org team!

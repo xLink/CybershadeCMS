@@ -1,0 +1,61 @@
+
+.debug, div[class^="debug"] {
+    width: 100%;
+    overflow: auto;
+    margin: 0px 0px 10px 0px;
+    background: #2D2828;
+    color: #c6c6c6;
+    font-family: Verdana;
+    border: 1px solid #cccccc;
+    padding: 5px;
+    font-size: 10px;
+    line-height: 12px;
+    display: block;
+    max-width: 1000px;
+}
+
+    div[class^="debug"] div{
+        display: block;
+    }
+
+    div[class^="debug"] span{ }
+
+        div[class^="debug"] span.toggle{
+            cursor: hand;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        div[class^="debug"] span.label{
+            padding: 2px;
+            font-size: 10px;
+        }
+        div[class^="debug"] span.ident{
+            color: #c9c9c9;
+        }
+
+    div[class^="debug"] ul li{
+        display: block;
+    }
+    div[class^="debug"] ul li:hover{
+    }
+    
+    div[class^="debug"] .row{
+        display: block;
+        margin: 0;
+    }    
+
+	div[class^="debug"] div.header{
+		background-color: #0E5B72;
+        color: white;
+        padding: 3px 5px;
+        font-size: 12px;
+        margin: 0 0 5px;
+	}
+
+
+ul, ul ul {
+    list-style-type: none;
+    color: #a6a6a6;
+    margin: 0 10px;
+}

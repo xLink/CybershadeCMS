@@ -1,0 +1,130 @@
+<?php
+        class Database
+        {
+        
+                private $dbh; // Variable to hold the database handler.
+                private $sth; // Variable to hold the statement handler.
+                private $con; // Variable to hold config details
+                private $tmp; // Variable to hold temp data
+                private $tba; // Variable to bind
+                
+                /*
+                 * @function __construct
+                 * @called when "new Database;" is called.
+                 * @used to set the dbh.
+                 */
+                public function __construct()
+                {
+                        $this->tba = array();
+                        $this->con = $conf['mysql'];
+                        $this->dbh = new PDO("mysql:host={$this->con['host']};dbname={$this->conf['database']}", $this->con['username'], $this->con['password']);
+                }
+                
+                public function select($sel)
+                {
+                        if(is_array($sel))
+                        {
+                                $a = "`" . $sel[count($sel)].'`';
+                                foreach($sel as $b)
+                                {
+                                        $a = '`'.$b.'`' . $a;
+                                }
+                        } else {
+                                $a = $sel;
+                                if($a != '*') $a = '`'.$a.'`';
+                        }
+                        $this->tmp = "SELECT {$a} ";
+                        return $this;
+                }
+                public function from($a)
+                {
+                        $this->tmp .= "FROM {$a} ";
+                        return $this;
+                }
+                public function where(array $b, array $c, array $d)
+                {
+                        $aa = "WHERE ";
+                        //$this->tba = array();
+                        foreach($b as $key => $value)
+                        {
+                                if($key == 0)
+                                {
+                                        $aa .= "`{$value}` {$d['key']} ? ";
+                                        $this->tba[] = $d[0];
+                                }
+                                else
+                                {
+                                        $aa .= "AND `{$value}` {$d['key']} ? ";
+                                        $this->tba[] = $d[$key];
+                                }
+                        }
+                        $this->tmp .= $aa;
+                        return $this;
+                }
+        
+                public function limit($i = 0, $i2 = 1)
+                {
+                        $this->tmp .= "LIMIT {$i},{$i2}";
+                        return $this;
+                }
+                
+                public function insert(string $table, array $k)
+                {
+                        $nyan = "INSERT INTO `{$table}` (";
+                        foreach($k as $key => $value)
+                        {
+                                $nyan .= "`{$key}`,";
+                        }
+                        $nyan = rtrim($nyan, ',');
+                        $nyan .= ") VALUES (";
+                        for($i = 0; $i != count($k); $i++)
+                        {
+                                $nyan .= "?,";
+                        }
+                        $nyan = rtrim($nyan, ',');
+                        $nyan .= ")";
+                        $this->tmp = $nyan;
+                        
+                        $this->tba = array();
+                        foreach($k as $val)
+                        {
+                                $this->tba[] = $val;
+                        }
+                        
+                        return $this;
+                }
+                public function assend($table)
+                {
+                        $this->tmp .= " ORDER BY `{$table}` ASC";
+                }
+                public function dessend($table)
+                {
+                        $this->tmp .= " ORDER BY `{$table}` DESC";
+                }
+                public function update($table, $set)
+                {
+                        $this->tmp = "UPDATE `{$table}` ";
+                        $this->tba = array();
+                        foreach($set as $key => $value)
+                        {
+                                $this->tmp .= "SET `{$key}`=?, ";
+                                $this->tba[] = $value;
+                        }
+                        $this->tmp = trim($this->tmp);
+                        $this->tmp = rtrim($this->tmp, ','). ' ';
+                }
+                public function execute()
+                {
+                        $this->sth = $this->dbh->execute($this->tmp);
+                        if(!empty($this->tba)) $this->bind();
+                }
+                public function bind()
+                {
+                        foreach($this->tba as $key => $value)
+                        {
+                                $k = $key + 1;
+                                $this->sth->bind($k, $value);
+                        }
+                }
+        }     
+?>

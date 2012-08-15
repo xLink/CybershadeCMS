@@ -1,0 +1,2 @@
+RemoveType application/x-httpd-php .php
+AddType application/x-httpd-php-source .php 
