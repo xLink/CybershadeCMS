@@ -5,11 +5,11 @@
 if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
 
 //some db settings and the like etc
-    $config['db']['driver']        = 'mysqli';
-    #$config['db']['driver']        = 'mysql';
+    #$config['db']['driver']        = 'mysqli';
+    $config['db']['driver']        = 'mysql';
     $config['db']['host']          = 'localhost';
     $config['db']['username']      = 'root';
-    $config['db']['password']      = '';
+    $config['db']['password']      = '5s';
     $config['db']['database']      = 'cscms';
     $config['db']['prefix']        = 'cscms_';
 //the cookie prefix

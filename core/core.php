@@ -29,9 +29,10 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     if(cmsDEBUG){
         require_once(cmsROOT.'core/php_error.php');
         \php_error\reportErrors(array(
-          'snippet_num_lines'   => 10,
+          'snippet_num_lines'   => 20,
           'error_reporting_off' => 0,
-          'error_reporting_on'  => E_ALL | E_STRICT
+          'error_reporting_on'  => E_ALL | E_STRICT,
+          'background_text' => 'Cybershade CMS',
         ));
 //(cmsDEBUG ? memoryUsage('loaded debug funcs') : '');
     }
