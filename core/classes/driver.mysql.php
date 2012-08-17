@@ -69,7 +69,7 @@ class driver_mysql extends core_SQL implements base_SQL{
         }
 
             //we havent got a resource we need to bomb out now
-            if($this->DBH == false) {
+            if($this->DBH === false) {
                 trigger_error('Cannot connect to the database - verify username and password.<br />', E_USER_ERROR);
                 return false;
             }
@@ -115,21 +115,30 @@ class driver_mysql extends core_SQL implements base_SQL{
     public function prepare() {
 
     }
+
     private function autoPrepare($clause) {
 
     }
 
     public function query($query, $args=array(), $log=false) {
+        $this->freeResult();
 
+        if(isset($this->queries[md5($query)])){
+            echo dump($query);
+            $this->results = $this->queries[md5($query)];
+            return $this->queries[md5($query)];
+        }
+
+
+        $this->results = mysql_query($query, $this->DBH) or $this->recordMessage(mysql_error(), 'WARNING');
+        $this->queries[md5($query)] = $this->results;
+        
+        return $this->results;
     }
 
-    public function results($query) {
-        if($query === false){
-            return false;
-        }
-        
+    public function results() {       
         $results = array();
-        while ($row = $query->fetch_array(MYSQLI_ASSOC)) {
+        while ($row = mysql_fetch_array($this->results)) {
             $results[] = $row;
         }
         return $results;
@@ -149,6 +158,7 @@ class driver_mysql extends core_SQL implements base_SQL{
     public function prefix($mode='') {
 
     }
+
     public function addPrefix($mode, $prefix) {
 
     }

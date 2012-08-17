@@ -6,6 +6,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class core_SQL extends coreObj implements base_SQL{
 
+    public  $queries        = array();
     public  $dbSettings     = array();
     public  $DBH            = false;
     public  $failed         = false,
@@ -57,7 +58,7 @@ echo dump($c, 'SQL Class Loaded');
 
     public function __destruct() {
 
-        $this->index($this->DBH, $this->dbSettings['database']);
+        $this->index($this->dbSettings['database']);
         return $this->disconnect();
     }
 
@@ -93,7 +94,7 @@ echo dump($c, 'SQL Class Loaded');
     }
 
     public function getError(){
-        
+
         trigger_error('Error: Override this function from within the SQL Driver. Class Loaded: '.$this->getClassName(), E_USER_ERROR);
         return false;
     }
@@ -105,10 +106,12 @@ echo dump($c, 'SQL Class Loaded');
      * @param $link     Instance Link
      * @param $db       Database to run repair / optimize & flush on.
      */ 
-    public function index($link, $db){
+    public function index($db){
 
-        $query = $link->query('SHOW TABLES');
-        $results = $this->results($query);
+        $query = $this->query('SHOW TABLES');
+        $results = $this->results();
+            if(!count($results)){ return false; }
+
         foreach($results as $key => $value) {
             if (isset($value['Tables_in_'.$db])) {
                 $this->query('REPAIR TABLE '.$value['Tables_in_'.$db]);
@@ -116,6 +119,8 @@ echo dump($c, 'SQL Class Loaded');
                 $this->query('FLUSH TABLE '.$value['Tables_in_'.$db]);
             }
         }
+
+        return true;
     }
 
 
