@@ -5,7 +5,12 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-//Start loading the CMS
+/**
+   //
+   //-- START!
+   //
+**/
+
     $START_CMS_LOAD = microtime(true); $START_RAM_USE = memory_get_usage();
     $cmsROOT = (isset($cmsROOT) && !empty($cmsROOT) ? $cmsROOT : '');
 
@@ -87,9 +92,11 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 //(cmsDEBUG ? memoryUsage('default timezone') : '');
 
-//
-// --Classes Setup
-//
+/**
+  //
+  //-- Classes Setup
+  //
+**/
     require_once(cmsROOT.'core/classes/class.core.php');
 
 //(cmsDEBUG ? memoryUsage('loaded base class') : '');

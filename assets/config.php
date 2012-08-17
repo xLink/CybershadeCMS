@@ -9,7 +9,7 @@ if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
     $config['db']['driver']        = 'mysql';
     $config['db']['host']          = 'localhost';
     $config['db']['username']      = 'root';
-    $config['db']['password']      = '5s';
+    $config['db']['password']      = '';
     $config['db']['database']      = 'cscms';
     $config['db']['prefix']        = 'cscms_';
 //the cookie prefix
