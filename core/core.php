@@ -37,7 +37,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
           'snippet_num_lines'   => 20,
           'error_reporting_off' => 0,
           'error_reporting_on'  => E_ALL | E_STRICT,
-          'background_text' => 'Cybershade CMS',
+          'background_text'     => 'Cybershade CMS',
         ));
 //(cmsDEBUG ? memoryUsage('loaded debug funcs') : '');
     }
@@ -107,7 +107,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         coreObj::addClassDirs(cmsROOT.'core/lib/*/class.*.php');
         $dirs = coreObj::addClassDirs(cmsROOT.'modules/*/class.*.php');
 
-// echo dump($dirs, 'Loading Classes From', 'orange');
+// echo dump($dirs, 'Loading Classes From', 'orange');exit;
 //(cmsDEBUG ? memoryUsage('autoloader dirs') : '');
 
     spl_autoload_extensions('.php');

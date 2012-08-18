@@ -4,14 +4,17 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class core_SQL extends coreObj implements base_SQL{
+class core_SQL extends coreObj{
 
     public  $queries        = array();
     public  $dbSettings     = array();
-    public  $DBH            = false;
-    public  $failed         = false,
-            $debug          = false,
-            $logging        = false;
+    public  $DBH            = false,        // database handler
+            $results        = false,        // results holder for the query
+            $failed         = false,        // if something failed, this is where to check
+            $debug          = false,        // debug switch
+            $query          = false,        // last query ran
+            $prefix         = array(),      // holds all the prefixes
+            $logging        = false;        // is logging enabled?
 
 
     /**
@@ -25,7 +28,7 @@ class core_SQL extends coreObj implements base_SQL{
      *
      * @return      bool
      */
-    public function __construct($options) {
+    public function __construct($options){
         $this->dbSettings = array(
             'driver'     => doArgs('driver',        '',      $options),
             'host'       => doArgs('host',          '',      $options),
@@ -56,75 +59,68 @@ echo dump($c, 'SQL Class Loaded');
         return false;
     }
 
-    public function __destruct() {
+    public function __destruct(){
 
         $this->index($this->dbSettings['database']);
         return $this->disconnect();
     }
 
-    public function __clone() {
+    public function __clone(){
 
         trigger_error('Error: Cloning prohibited.', E_USER_ERROR);
         return false;
     }
 
-    public function __wakeup() {
+    public function __wakeup(){
 
         trigger_error('Error: Deserialization of singleton prohibited...', E_USER_ERROR);
         return false;
     }
 
-
-    public function connect(){
-
-        trigger_error('Error: Override this function from within the SQL Driver. Class Loaded: '.$this->getClassName(), E_USER_ERROR);
-        return false;
+    /**
+     * This Method will be called if there is no suitable override in the driver.
+     * 
+     * @param   string $method
+     * @param   array  $args
+     */ 
+    public function __call($method, $args){
+        $a = array(
+            'Class Name'    => $this->getClassName(),
+            'Method Called' => $method,
+            'Method Args'   => $args,
+        );
+        trigger_error('Error: Method dosen\'t exist, Override this function from within the SQL Driver.'.dump($a), E_USER_ERROR);
     }
-
-    public function disconnect(){
-
-        trigger_error('Error: Override this function from within the SQL Driver. Class Loaded: '.$this->getClassName(), E_USER_ERROR);
-        return false;
-    }
-
-    public function selectDB($db){
-
-        trigger_error('Error: Override this function from within the SQL Driver. Class Loaded: '.$this->getClassName(), E_USER_ERROR);
-        return false;
-    }
-
-    public function getError(){
-
-        trigger_error('Error: Override this function from within the SQL Driver. Class Loaded: '.$this->getClassName(), E_USER_ERROR);
-        return false;
-    }
-
 
     /**
-     * Executed when instance is destroyed to make sure tables are in tip-top shape!
+     * Replaces all avalible prefixes with the Table Prefix 
      * 
-     * @param $link     Instance Link
-     * @param $db       Database to run repair / optimize & flush on.
+     * @param   string $query
+     * 
+     * @return  string $query
      */ 
-    public function index($db){
+    public function _replacePrefix($query){
+        if(!count($this->prefix) || !is_array($this->prefix)){ return $query; }
 
-        $query = $this->query('SHOW TABLES');
-        $results = $this->results();
-            if(!count($results)){ return false; }
+        return str_replace(array_keys($this->prefix), array_values($this->prefix), $query);
+    }
 
-        foreach($results as $key => $value) {
-            if (isset($value['Tables_in_'.$db])) {
-                $this->query('REPAIR TABLE '.$value['Tables_in_'.$db]);
-                $this->query('OPTIMIZE TABLE '.$value['Tables_in_'.$db]);
-                $this->query('FLUSH TABLE '.$value['Tables_in_'.$db]);
-            }
-        }
+    /**
+     * Adds a table prefix to the list.
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @param   string $prefix
+     * 
+     * @return  bool
+     */ 
+    public function registerPrefix($prefix, $replace){
+        if(array_key_exists($prefix, $this->prefix)){ return false; }
+
+        $this->prefix[$prefix] = $replace;
 
         return true;
     }
-
-
-
 
 }
 
@@ -158,7 +154,7 @@ interface base_SQL{
   //
 **/
 
-    //public function escape($string);
+    public function escape($string);
 
     //public function results($query);
     //public function affectedRows();

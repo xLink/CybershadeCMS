@@ -17,7 +17,17 @@ class coreObj {
                     $_classes    = array(), 
                     $_instances  = array();
 
-
+    /**    
+     * Adds a directory to be scanned for classes to be loaded
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
+     *
+     * @param   string  $dir
+     *
+     * @return  array
+     */
     public static function addClassDirs($dir){
         if(empty($dir) || !is_string($dir)){ 
             return false; 
@@ -28,9 +38,20 @@ class coreObj {
         return self::$classDirs;
     }
 
+    /**    
+     * Function for Autoloading Classes
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
+     *
+     * @param   string  $class      Class to load
+     *
+     * @return  bool
+     */
     public static function loadClass($class) {
-        // echo dump($class, 'LOADING', 'pink');
-        if(empty(self::$classDirs)){ die(); }
+        //echo dump($class, 'LOADING', 'pink');
+        if(empty(self::$classDirs)){ trigger_error('Error: No Directories to scan for class.', E_USER_ERROR); }
 
         //only use the last part of the class name if it has an underscore
         if(strpos($class, '_') !== false){
@@ -51,6 +72,7 @@ class coreObj {
             }
         }
 
+        trigger_error('Error: No File found for this Class.'.dump($dirs, $class), E_USER_ERROR);
         return false;
     }
 
