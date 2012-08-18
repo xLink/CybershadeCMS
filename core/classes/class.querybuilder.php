@@ -46,24 +46,27 @@ class queryBuilder extends coreObj{
         return $this;
     }
 
-        public function insertInto($table){
-            $this->setQueryType('insert');
-            $this->_tables[] = $table;
-            return $this;
-        }
+    public function insertInto($table){
+        $this->setQueryType('insert');
+        $this->_tables[] = $table;
+        
+        return $this;
+    }
 
-        public function deleteFrom($table){
-            $this->setQueryType('delete');
-            $args = $this->_getArgs(func_get_args());
-            $this->_tables = $args;
-            return $this;
-        }
+    public function deleteFrom($table){
+        $this->setQueryType('delete');
+        $args = $this->_getArgs(func_get_args());
+        $this->_tables = $args;
 
-        public function update($table){
-            $this->setQueryType('update');
-            $this->_tables = array($table);
-            return $this;
-        }
+        return $this;
+    }
+
+    public function update($table){
+        $this->setQueryType('update');
+        $this->_tables = array($table);
+
+        return $this;
+    }
 
 /**
   //
@@ -94,16 +97,16 @@ class queryBuilder extends coreObj{
             return $this;
         }
 
-    public function where($cond1, $operand, $cond2){
-        return $this->_addWhereOn($cond1, $operand, $cond2, '', 'where');
+    public function where($where){
+        return $this->_addWhereOn(func_get_args(), '', 'where');
     }
 
-        public function andWhere($cond1, $operand, $cond2){
-            return $this->_addWhereOn($cond1, $operand, $cond2, 'AND', 'where');
+        public function andWhere($where){
+            return $this->_addWhereOn(func_get_args(), 'AND', 'where');
         }
 
-        public function orWhere($cond1, $operand, $cond2){
-            return $this->_addWhereOn($cond1, $operand, $cond2, 'OR', 'where');
+        public function orWhere($where){
+            return $this->_addWhereOn(func_get_args(), 'OR', 'where');
         }
 
     public function join($table){
@@ -130,16 +133,16 @@ class queryBuilder extends coreObj{
             return $this;
         }
         
-    public function on($c1, $operand, $c2){
-        return $this->_addWhereOn($c1, $operand, $c2, '', 'on');
+    public function on($on){
+        return $this->_addWhereOn(func_get_args(), '', 'on');
     }
         
-        public function andOn($c1, $operand, $c2){
-            return $this->_addWhereOn($c1, $operand, $c2, 'AND', 'on');
+        public function andOn($on){
+            return $this->_addWhereOn(func_get_args(), 'AND', 'on');
         }
         
-        public function orOn($c1, $operand, $c2){
-            return $this->_addWhereOn($c1, $operand, $c2, 'AND', 'on');
+        public function orOn($on){
+            return $this->_addWhereOn(func_get_args(), 'AND', 'on');
         }
 
     public function args(){
@@ -337,11 +340,17 @@ class queryBuilder extends coreObj{
                 $field = explode('.', $field);
 
                 if(count($field) == 1){
-                    $_fields[] = sprintf('`%s`', $field[0]);
+                    $field = current($field);
+
+                    if(strtoupper(substr($field, 0, 5)) == 'COUNT'){ 
+                        $_fields[] = $field;
+                    }else{
+                        $_fields[] = sprintf('`%s`', $field);
+                    }
                     continue;
                 }
 
-                if(!is_number($key)){
+                if(!is_number($key) && count($field) == 2){
                     $_fields[] = sprintf('%s.`%s` as `%s`', $field[0], $field[1], $key);
                 }else{
                     $_fields[] = sprintf('%s.`%s`', $field[0], $field[1]);
@@ -360,7 +369,7 @@ class queryBuilder extends coreObj{
                 if(isset($key) && !empty($key)){
                     $_tables[] = sprintf('`%s` as %s', $table, $key);
                 }else{
-                    $_tables[] = $table;
+                    $_tables[] = sprintf('`%s`', $table);
                 }
             }
             return implode(', ', $_tables);
@@ -448,16 +457,37 @@ class queryBuilder extends coreObj{
   //
 **/
 
-    private function _addWhereOn($cond1, $operand, $cond2, $type, $property){
-        $operand = strtoupper($operand);
+    private function _NormalizeArgs($args){
+        if(is_string($args[0])){
+            $args = current($args);
+            $args = explode(' ', $args);
+        }
+        if(!is_string($args) && !is_array($args)){
+            trigger_error('Error: $args == '.gettype($args).'; Not of type String || Array', E_USER_ERROR);
+        }
+
+        return $args;
+    }
+
+    private function _addWhereOn($cond, $type, $property){
+echo dump($cond, count($cond));
+        $cond = $this->_getArgs($cond);
+echo dump($cond, count($cond));
+        $cond = $this->_NormalizeArgs($cond);
+echo dump($cond, count($cond));
+//exit;
+        //if(count($cond) != 3){ trigger_error(dump($cond, count($cond)).'Error: Not enough args for Clause. '.count($cond), E_USER_ERROR); }
+
+echo dump($cond, count($cond));
+        $operand = strtoupper($cond[1]);
         if(!in_array($operand, array('=', '>', '<', '<>', '!=', '<=', '>=', 'LIKE', 'IN'))){
-            trigger_error('Unsupported operand:'.$operand, E_USER_ERROR);
+            trigger_error('Error: Unsupported operand:'.$operand, E_USER_ERROR);
         }
         $this->{'_'.$property}[] = array(
-            'cond1'   => $cond1,
-            'cond2'   => $cond2,
+            'cond1'   => $cond[0],
+            'cond2'   => $cond[2],
             'operand' => $operand,
-            'type'    => $type
+            'type'    => $type,
         );
         return $this;
     }

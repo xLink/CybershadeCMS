@@ -116,7 +116,7 @@ class driver_mysql extends core_SQL implements base_SQL{
         }
     }
 
-    public function query($query, $args=array(), $log=false){
+    public function query($query){
         $this->freeResult();
 
         // if $query is true, then throw us into QueryBuilder Mode :D
@@ -138,9 +138,22 @@ class driver_mysql extends core_SQL implements base_SQL{
     }
 
     public function results(){
-        if($this->results === false){ return false; }
+        if(!is_resource($this->results) || $this->results === false){ return false; }
 
-        return mysql_fetch_assoc($this->results);
+
+        if($this->affectedRows() == 0){
+            return false;
+        }
+
+        if($this->affectedRows() != 1){
+            $results = array();
+            while($row = mysql_fetch_assoc($this->results)){
+                $results[] = $row;
+            }
+            return $results;
+        }
+
+        return array(mysql_fetch_assoc($this->results));
     }
 
     public function affectedRows(){
@@ -155,17 +168,20 @@ class driver_mysql extends core_SQL implements base_SQL{
 **/
 
     public function index($db){
-
         $query = $this->query('SHOW TABLES');
         $results = $this->results($query);
-            if(!count($results)){ return false; }
+            if(!count($results) || $results === false){ return false; }
+            $this->freeResult();
 
         foreach($results as $key => $value) {
             if (!isset($value['Tables_in_'.$db])){ continue; }
 
             $this->query('REPAIR TABLE '.$value['Tables_in_'.$db]);
+                $this->freeResult();
             $this->query('OPTIMIZE TABLE '.$value['Tables_in_'.$db]);
+                $this->freeResult();
             $this->query('FLUSH TABLE '.$value['Tables_in_'.$db]);
+                $this->freeResult();
         }
 
         return true;
@@ -175,43 +191,63 @@ class driver_mysql extends core_SQL implements base_SQL{
         $this->query($query);
 
         if(is_resource($this->results)){
-            $table = array();
-            while($line = mysql_fetch_assoc($this->results)){
-                $table[] = $line;
-            }
-            mysql_free_result($this->results);
-            unset($this->results);
-            return $table;
+            $line = $this->results();
+            $this->freeResult();
+            return $line;
         }
 
         return false;
     }
 
+    public function getLine($query){
+        if(!is_string($query)){ return false; }
+
+        if(strpos($query, 'LIMIT 1') === false){
+            $query = $query.' LIMIT 1;';
+        }
+
+        return $this->getTable($query);
+    }
+
+    public function getValue($table, $field, $clause=null){
+        //generate query
+        $query = $this->query(true)
+                        ->select($field)
+                        ->from($table);
+
+        if(!is_empty($clause)){
+            $query = $query->where($clause);
+        }
+
+        //build the query
+        $query = $query->build();
+
+        //run the query
+        $this->query($query);
+        $line = $this->results();
+        $this->freeResult();
+
+        //and then return the results
+        return $line[0][$field];
+    }
+
+    public function getCount($table, $clause=null){
+        return $this->getValue($table, 'COUNT(*)', $clause);
+    }
+
     public function getColumns($table){
-    }
-
-
-    public function getInfo($table, $clause=null, $log=false){
 
     }
 
-    public function getValue($table, $field, $clause=null, $log=false){
+    public function insertRow($table, $array){
 
     }
 
-    public function getLine($query, $args=array(), $log=false){
+    public function updateRow($table, $array, $clause){
 
     }
 
-    public function insertRow($table, $array, $log=false){
-
-    }
-
-    public function updateRow($table, $array, $clause, $log=false){
-
-    }
-
-    public function deleteRow($table, $clause, $log=false){
+    public function deleteRow($table, $clause){
 
     }
 

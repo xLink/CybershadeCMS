@@ -108,7 +108,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
     }
 
 
-    public function query($query, $args=array(), $log=false){
+    public function query($query, $args=array()){
         $this->freeResult();
 
         // if $query is true, then throw us into QueryBuilder Mode :D
@@ -156,13 +156,17 @@ class driver_mysqli extends core_SQL implements base_SQL{
         $query = $this->query('SHOW TABLES');
         $results = $this->results($query);
             if(!count($results)){ return false; }
+            $this->freeResult();
 
         foreach($results as $key => $value) {
             if (!isset($value['Tables_in_'.$db])){ continue; }
 
             $this->query('REPAIR TABLE '.$value['Tables_in_'.$db]);
+                $this->freeResult();
             $this->query('OPTIMIZE TABLE '.$value['Tables_in_'.$db]);
+                $this->freeResult();
             $this->query('FLUSH TABLE '.$value['Tables_in_'.$db]);
+                $this->freeResult();
         }
 
         return true;
@@ -184,15 +188,15 @@ class driver_mysqli extends core_SQL implements base_SQL{
         return false;
     }
 
-    public function getInfo($table, $clause=null, $log=false){
+    public function getLine($table, $clause=null, $args=array()){
 
     }
 
-    public function getValue($table, $field, $clause=null, $log=false){
+    public function getValue($table, $field, $clause=null){
 
     }
 
-    public function getLine($query, $args=array(), $log=false){
+    public function getCount($table, $clause=null){
 
     }
 
@@ -200,15 +204,15 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
     }
 
-    public function insertRow($table, $array, $log=false){
+    public function insertRow($table, $array){
 
     }
 
-    public function updateRow($table, $array, $clause, $log=false){
+    public function updateRow($table, $array, $clause){
 
     }
 
-    public function deleteRow($table, $clause, $log=false){
+    public function deleteRow($table, $clause){
 
     }
 

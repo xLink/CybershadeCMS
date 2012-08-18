@@ -84,12 +84,12 @@ echo dump($c, 'SQL Class Loaded');
      * @param   array  $args
      */ 
     public function __call($method, $args){
-        $a = array(
+        $debug = array(
             'Class Name'    => $this->getClassName(),
             'Method Called' => $method,
             'Method Args'   => $args,
         );
-        trigger_error('Error: Method dosen\'t exist, Override this function from within the SQL Driver.'.dump($a), E_USER_ERROR);
+        trigger_error('Error: Method dosen\'t exist, Override this function from within the SQL Driver.'.dump($debug), E_USER_ERROR);
     }
 
     /**
