@@ -49,7 +49,7 @@ class queryBuilder extends coreObj{
     public function insertInto($table){
         $this->setQueryType('insert');
         $this->_tables[] = $table;
-        
+
         return $this;
     }
 
@@ -79,7 +79,7 @@ class queryBuilder extends coreObj{
             trigger_error('Error: Only SELECT operators.', E_USER_ERROR);
         }
 
-        $this->_tables = $this->_getArgs(func_get_args());
+        $this->_tables = $this->_buildTables($tables);
 
         return $this;
     }
@@ -254,20 +254,16 @@ class queryBuilder extends coreObj{
 **/
     public function build(){
         $statement = array();
-        $this->_buildOperator($statement);
-        $this->{'_build'.$this->queryType}($statement);
-        
-        $this->_buildJoin($statement);
 
-        $this->_buildWhereOn($statement, 'where');
+            $this->_buildOperator($statement);
+            $this->{'_build'.$this->queryType}($statement);
+            $this->_buildJoin($statement);
+            $this->_buildWhereOn($statement, 'where');
+            $this->_buildGroupBy($statement);
+            $this->_buildOrderBy($statement);
+            $this->_buildLimit($statement);
 
-        $this->_buildGroupBy($statement);
-
-        $this->_buildOrderBy($statement);
-
-        $this->_buildLimit($statement);
-
-        $statement = implode(' ', $statement);
+            $statement = implode(' ', $statement);
 
         return $statement;
     }
@@ -342,7 +338,8 @@ class queryBuilder extends coreObj{
                 if(count($field) == 1){
                     $field = current($field);
 
-                    if(strtoupper(substr($field, 0, 5)) == 'COUNT'){ 
+                    if(strtoupper(substr($field, 0, 5)) == 'COUNT' ||
+                        $field == '*'){ 
                         $_fields[] = $field;
                     }else{
                         $_fields[] = sprintf('`%s`', $field);
@@ -351,7 +348,7 @@ class queryBuilder extends coreObj{
                 }
 
                 if(!is_number($key) && count($field) == 2){
-                    $_fields[] = sprintf('%s.`%s` as `%s`', $field[0], $field[1], $key);
+                    $_fields[] = sprintf('%s.`%s` as %s', $field[0], $field[1], $key);
                 }else{
                     $_fields[] = sprintf('%s.`%s`', $field[0], $field[1]);
                 }
@@ -363,9 +360,26 @@ class queryBuilder extends coreObj{
         private function _buildTables($tables){
             $_tables = array();
 
-            if(!is_array($tables)){ return sprintf('`%s`', $table); }
+            if(is_string($tables)){
+                if(strpos($tables, ' ') === false){
+                    $tables = array($tables);
+                }else{
+                    $tables = explode(' ', $tables);
+                    $tables = array($tables[2] => $tables[0]);
+                }
+            }
 
             foreach($tables as $key => $table){
+                $table = str_replace('`', '', $table);
+
+                //check if were querying another db
+                $tbl = explode('.', $table);
+                if(count($tbl) == 2){
+                    $_tables[] = sprintf('%s.`%s`', $tbl[0], $tbl[1]);
+                    continue;
+                }
+
+
                 if(isset($key) && !empty($key)){
                     $_tables[] = sprintf('`%s` as %s', $table, $key);
                 }else{
@@ -458,7 +472,7 @@ class queryBuilder extends coreObj{
 **/
 
     private function _NormalizeArgs($args){
-        if(is_string($args[0])){
+        if(count($args) == 1 && is_string($args[0])){
             $args = current($args);
             $args = explode(' ', $args);
         }
@@ -470,15 +484,11 @@ class queryBuilder extends coreObj{
     }
 
     private function _addWhereOn($cond, $type, $property){
-echo dump($cond, count($cond));
         $cond = $this->_getArgs($cond);
-echo dump($cond, count($cond));
         $cond = $this->_NormalizeArgs($cond);
-echo dump($cond, count($cond));
-//exit;
-        //if(count($cond) != 3){ trigger_error(dump($cond, count($cond)).'Error: Not enough args for Clause. '.count($cond), E_USER_ERROR); }
 
-echo dump($cond, count($cond));
+        if(count($cond) != 3){ trigger_error(dump($cond, count($cond)).'Error: Not enough args for Clause. '.count($cond), E_USER_ERROR); }
+
         $operand = strtoupper($cond[1]);
         if(!in_array($operand, array('=', '>', '<', '<>', '!=', '<=', '>=', 'LIKE', 'IN'))){
             trigger_error('Error: Unsupported operand:'.$operand, E_USER_ERROR);

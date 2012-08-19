@@ -205,15 +205,19 @@ class coreObj {
 //
 //--SQL
 //
-    public static function getDBO(){
+    public static function getDBO($driver=null){
         global $errorTPL;
-        
-        // echo dump($a, 'New DBO!', 'red');
-        if(!isset(self::$_classes['database'])){
+
+        if(!isset(self::$_classes['database_'.$driver])){
             $options = self::config('db');
 
-            $name = 'driver_'.$options['driver'];
-            if(!class_exists($name)){ die(); }
+            $name = $options['driver'];
+
+            //see if we have an override
+            $driver = strtolower($driver);
+            if(in_array($driver, array('mysql', 'mysqli'))){
+                $name = $driver;
+            } $name = 'driver_'.$name;
 
             $options['persistant'] = true;
             $options['debug']      = (LOCALHOST && cmsDEBUG ? true : false);
@@ -236,10 +240,10 @@ class coreObj {
                     )
                 );
             }
-            self::$_classes['database'] = $objSQL;
+            self::$_classes['database_'.$name] = $objSQL;
         }
 
-        return self::$_classes['database'];
+        return self::$_classes['database_'.$name];
     }
 
     public static function getSession(){

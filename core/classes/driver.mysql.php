@@ -25,11 +25,12 @@ class driver_mysql extends core_SQL implements base_SQL{
      * @return      bool
      */
     public static function getInstance($options=array()){
-        if (!isset(self::$_instances['database'])){
-            $c = __CLASS__;
-            self::$_instances['database'] = new self($options);
+        $c = __CLASS__;
+
+        if (!isset(self::$_instances['database_'.$c])){
+            self::$_instances['database_'.$c] = new self($options);
         }
-        return self::$_instances['database'];
+        return self::$_instances['database_'.$c];
     }
 
 /**
@@ -117,22 +118,14 @@ class driver_mysql extends core_SQL implements base_SQL{
     }
 
     public function query($query){
-        $this->freeResult();
-
         // if $query is true, then throw us into QueryBuilder Mode :D
         if($query === true){ return new queryBuilder(); }
 
-        //if we already have this query cached then lets roll
-        if(isset($this->queries[md5($query)])){
-            $this->results = $this->queries[md5($query)];
-            return $this->queries[md5($query)];
-        }
-
-        $this->_query = $this->_replacePrefix($query);
+        //apply the prefix swapping mech
+        $query = $this->_query = $this->_replacePrefix($query);
 
         //exec the query and cache it
-        $this->results = mysql_query($this->_query, $this->DBH) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
-        $this->queries[md5($query)] = $this->results;
+        $this->results = mysql_query($query, $this->DBH) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
         
         return $this->results;
     }
@@ -159,122 +152,6 @@ class driver_mysql extends core_SQL implements base_SQL{
     public function affectedRows(){
         return mysql_affected_rows($this->DBH);
     }
-
-
-/**
-  //
-  //-- Extra Functionality
-  //
-**/
-
-    public function index($db){
-        $query = $this->query('SHOW TABLES');
-        $results = $this->results($query);
-            if(!count($results) || $results === false){ return false; }
-            $this->freeResult();
-
-        foreach($results as $key => $value) {
-            if (!isset($value['Tables_in_'.$db])){ continue; }
-
-            $this->query('REPAIR TABLE '.$value['Tables_in_'.$db]);
-                $this->freeResult();
-            $this->query('OPTIMIZE TABLE '.$value['Tables_in_'.$db]);
-                $this->freeResult();
-            $this->query('FLUSH TABLE '.$value['Tables_in_'.$db]);
-                $this->freeResult();
-        }
-
-        return true;
-    }
-
-    public function getTable($query){
-        $this->query($query);
-
-        if(is_resource($this->results)){
-            $line = $this->results();
-            $this->freeResult();
-            return $line;
-        }
-
-        return false;
-    }
-
-    public function getLine($query){
-        if(!is_string($query)){ return false; }
-
-        if(strpos($query, 'LIMIT 1') === false){
-            $query = $query.' LIMIT 1;';
-        }
-
-        return $this->getTable($query);
-    }
-
-    public function getValue($table, $field, $clause=null){
-        //generate query
-        $query = $this->query(true)
-                        ->select($field)
-                        ->from($table);
-
-        if(!is_empty($clause)){
-            $query = $query->where($clause);
-        }
-
-        //build the query
-        $query = $query->build();
-
-        //run the query
-        $this->query($query);
-        $line = $this->results();
-        $this->freeResult();
-
-        //and then return the results
-        return $line[0][$field];
-    }
-
-    public function getCount($table, $clause=null){
-        return $this->getValue($table, 'COUNT(*)', $clause);
-    }
-
-    public function getColumns($table){
-
-    }
-
-    public function insertRow($table, $array){
-
-    }
-
-    public function updateRow($table, $array, $clause){
-
-    }
-
-    public function deleteRow($table, $clause){
-
-    }
-
-    public function getAI($table){
-
-    }
-
-    public function recordMessage($message, $mode=false){
-
-    }
-
-    public function recordLog($query, $log){
-
-    }
-
-    public function recordError($message, $fileInfo){
-
-    }
-
-
-
-
-
-
-
-
-
 
 }
 

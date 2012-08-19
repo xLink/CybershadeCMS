@@ -12,7 +12,7 @@ class core_SQL extends coreObj{
             $results        = false,        // results holder for the query
             $failed         = false,        // if something failed, this is where to check
             $debug          = false,        // debug switch
-            $query          = false,        // last query ran
+            $_query         = false,        // last query ran
             $prefix         = array(),      // holds all the prefixes
             $logging        = false;        // is logging enabled?
 
@@ -52,9 +52,6 @@ class core_SQL extends coreObj{
         if($this->dbSettings['driver'] == 'mysql' && ( !class_exists('driver_mysql', false) || !function_exists('mysql_connect') )){
             trigger_error('Error: You have selected to use MySQL, the interface for this Driver dosen\'t exist.', E_USER_ERROR);
         }
-
-$c = $this->getClassName();
-echo dump($c, 'SQL Class Loaded');
 
         return false;
     }
@@ -120,6 +117,144 @@ echo dump($c, 'SQL Class Loaded');
         $this->prefix[$prefix] = $replace;
 
         return true;
+    }
+
+/**
+  //
+  //-- Extra Functionality
+  //
+**/
+
+
+    public function index($db){
+        $query = $this->query('SHOW TABLES');
+        $results = $this->results($query);
+            if(!count($results) || $results === false){ return false; }
+            $this->freeResult();
+
+        foreach($results as $key => $value) {
+            if (!isset($value['Tables_in_'.$db])){ continue; }
+
+            $this->query('REPAIR TABLE '.$value['Tables_in_'.$db]);
+                $this->freeResult();
+            $this->query('OPTIMIZE TABLE '.$value['Tables_in_'.$db]);
+                $this->freeResult();
+            $this->query('FLUSH TABLE '.$value['Tables_in_'.$db]);
+                $this->freeResult();
+        }
+
+        return true;
+    }
+
+    public function getRows($query){
+        $this->query($query);
+            if(!$this->affectedRows()){ 
+                return false; 
+            }
+
+        $line = $this->results();
+        $this->freeResult();
+        return $line;
+    }
+
+    public function getRow($query){
+        if(!is_string($query)){ return false; }
+
+        if(strpos($query, 'LIMIT 1') === false){
+            $query = $query.' LIMIT 1';
+        }
+
+        return $this->getRows($query);
+    }
+
+    public function getValue($table, $field, $clause=null){
+        //generate query
+        $query = $this->query(true)
+                        ->select($field)
+                        ->from($table);
+
+            if(!is_empty($clause)){
+                $query = $query->where($clause);
+            }
+
+        //build the query
+        $query = $query->build();
+
+        //run the query
+        $this->query($query);
+            if(!$this->affectedRows()){
+                return false;
+            }
+
+        $line = $this->results();
+        $this->freeResult();
+
+        //and then return the results
+        $field = (is_array($field) ? array_values($field) : array($field));
+        return $line[0][end($field)];
+    }
+
+    public function getCount($table, $clause=null){
+        return $this->getValue($table, 'COUNT(*)', $clause);
+    }
+
+    public function getColumnInfo($table){
+        $query = 'SHOW COLUMNS FROM `%s`';
+
+        $this->query(sprintf($query, $table));
+            if(!$this->affectedRows()){ 
+                return false; 
+            }
+
+        $cols = $this->results();
+
+        $this->freeResult();
+        return $cols;
+    }
+
+    public function getColumnData($table, $data){
+        $cols = $this->getColumnInfo($table);
+            if(!$cols){
+                return false;
+            }
+
+        $names = array();
+        foreach($cols as $col){
+            $names[] = $col[$data];
+        }
+
+        return $names;
+    }
+
+    public function insertRow($table, $array){
+
+    }
+
+    public function updateRow($table, $array, $clause){
+
+    }
+
+    public function deleteRow($table, $clause){
+
+    }
+
+    public function getAutoIncrement($table){
+        $query = $this->query(true)
+                    ->select('AUTO_INCREMENT')
+                    ->from('information_schema.TABLES')
+                        ->where('TABLE_NAME LIKE #__config')
+                            ->andWhere('TABLE_SCHEMA = %s')
+                    ->build();
+        $this->query(sprintf($query, $this->config('db', 'database')));
+            if(!$this->affectedRows()){ 
+                return false; 
+            }
+
+        $line = $this->results();
+        $line = end($line);
+
+        $this->freeResult();
+        return $line['AUTO_INCREMENT'];
     }
 
 }

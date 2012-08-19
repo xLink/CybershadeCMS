@@ -25,11 +25,12 @@ class driver_mysqli extends core_SQL implements base_SQL{
      * @return      bool
      */
     public static function getInstance($options=array()){
-        if (!isset(self::$_instances['database'])){
-            $c = __CLASS__;
-            self::$_instances['database'] = new self($options);
+        $c = __CLASS__;
+
+        if (!isset(self::$_instances['database_'.$c])){
+            self::$_instances['database_'.$c] = new self($options);
         }
-        return self::$_instances['database'];
+        return self::$_instances['database_'.$c];
     }
 
 /**
@@ -108,23 +109,26 @@ class driver_mysqli extends core_SQL implements base_SQL{
     }
 
 
-    public function query($query, $args=array()){
-        $this->freeResult();
-
+    public function query($query){
         // if $query is true, then throw us into QueryBuilder Mode :D
         if($query === true){ return new queryBuilder(); }
 
-        //if we already have this query cached then lets roll
-        if(isset($this->queries[md5($query)])){
-            $this->results = $this->queries[md5($query)];
-            return $this->queries[md5($query)];
+        $debug['query_start'] = microtime(true);
+        if($this->debug){
+            $backtrace = debug_backtrace();
+            $callee = $backtrace[1];
+
+            $debug['method']        = $callee['function'];
+            $debug['args']          = json_encode($callee['args']);
+            $debug['file']          = $callee['file'];
+            $debug['line']          = $callee['line'];
+            $debug['affected_rows'] = $this->affectedRows();
         }
 
-        $this->_query = $this->_replacePrefix($query);
-
+        //apply the prefix swapping mech
+        $query = $this->_query = $this->_replacePrefix($query);
         //exec the query and cache it
         $this->results = $this->DBH->query($this->_query) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
-        $this->queries[md5($query)] = $this->results;
 
         return $this->results;
     }
@@ -144,112 +148,6 @@ class driver_mysqli extends core_SQL implements base_SQL{
         return $this->DBH->affected_rows;
     }
     
-
-/**
-  //
-  //-- Extra Functionality
-  //
-**/
-
-    public function index($db){
-
-        $query = $this->query('SHOW TABLES');
-        $results = $this->results($query);
-            if(!count($results)){ return false; }
-            $this->freeResult();
-
-        foreach($results as $key => $value) {
-            if (!isset($value['Tables_in_'.$db])){ continue; }
-
-            $this->query('REPAIR TABLE '.$value['Tables_in_'.$db]);
-                $this->freeResult();
-            $this->query('OPTIMIZE TABLE '.$value['Tables_in_'.$db]);
-                $this->freeResult();
-            $this->query('FLUSH TABLE '.$value['Tables_in_'.$db]);
-                $this->freeResult();
-        }
-
-        return true;
-    }
-
-    public function getTable($query){
-        $this->query($query);
-
-        if($this->results){
-            $table = array();
-            while($line = $this->results->fetch_assoc()){
-                $table[] = $line;
-            }
-            $this->results->free_result();
-            unset($this->results);
-            return $table;
-        }
-
-        return false;
-    }
-
-    public function getLine($table, $clause=null, $args=array()){
-
-    }
-
-    public function getValue($table, $field, $clause=null){
-
-    }
-
-    public function getCount($table, $clause=null){
-
-    }
-
-    public function getColumns($table){
-
-    }
-
-    public function insertRow($table, $array){
-
-    }
-
-    public function updateRow($table, $array, $clause){
-
-    }
-
-    public function deleteRow($table, $clause){
-
-    }
-
-    public function getAI($table){
-
-    }
-
-    public function recordMessage($message, $mode=false){
-
-    }
-
-    public function recordLog($query, $log){
-
-    }
-
-    public function recordError($message, $fileInfo){
-
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 ?>
