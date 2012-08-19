@@ -5,7 +5,7 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 /**
-* MySQL Driver support for the SQLBase
+* MySQLi Driver support for the SQLBase
 *
 * @version      1.0
 * @since        1.0.0
@@ -114,7 +114,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
         if($query === true){ return new queryBuilder(); }
 
         $debug['query_start'] = microtime(true);
-        if($this->debug){
+        if($this->dbSettings['debug']){
             $backtrace = debug_backtrace();
             $callee = $backtrace[1];
 

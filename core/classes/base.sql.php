@@ -62,13 +62,13 @@ class core_SQL extends coreObj{
         return $this->disconnect();
     }
 
-    public function __clone(){
+    final public function __clone(){
 
         trigger_error('Error: Cloning prohibited.', E_USER_ERROR);
         return false;
     }
 
-    public function __wakeup(){
+    final public function __wakeup(){
 
         trigger_error('Error: Deserialization of singleton prohibited...', E_USER_ERROR);
         return false;
@@ -80,7 +80,7 @@ class core_SQL extends coreObj{
      * @param   string $method
      * @param   array  $args
      */ 
-    public function __call($method, $args){
+    final public function __call($method, $args){
         $debug = array(
             'Class Name'    => $this->getClassName(),
             'Method Called' => $method,
@@ -96,7 +96,7 @@ class core_SQL extends coreObj{
      * 
      * @return  string $query
      */ 
-    public function _replacePrefix($query){
+    final public function _replacePrefix($query){
         if(!count($this->prefix) || !is_array($this->prefix)){ return $query; }
 
         return str_replace(array_keys($this->prefix), array_values($this->prefix), $query);
@@ -111,7 +111,7 @@ class core_SQL extends coreObj{
      * 
      * @return  bool
      */ 
-    public function registerPrefix($prefix, $replace){
+    final public function registerPrefix($prefix, $replace){
         if(array_key_exists($prefix, $this->prefix)){ return false; }
 
         $this->prefix[$prefix] = $replace;
@@ -124,7 +124,11 @@ class core_SQL extends coreObj{
   //-- Extra Functionality
   //
 **/
+    public function getDebug(){
+        if(!$this->dbSettings['debug']){ return false; }
 
+        return $this->debug;
+    }
 
     public function index($db){
         $query = $this->query('SHOW TABLES');
@@ -226,18 +230,6 @@ class core_SQL extends coreObj{
         return $names;
     }
 
-    public function insertRow($table, $array){
-
-    }
-
-    public function updateRow($table, $array, $clause){
-
-    }
-
-    public function deleteRow($table, $clause){
-
-    }
-
     public function getAutoIncrement($table){
         $query = $this->query(true)
                     ->select('AUTO_INCREMENT')
@@ -272,33 +264,16 @@ interface base_SQL{
 
     public static function getInstance($options=array());
 
-/**
-  //
-  //-- Connection Functionality
-  //
-**/
-
     public function selectDB($db);
     public function connect();
     public function disconnect();
     public function getError();
 
-/**
-  //
-  //-- Core Functionality
-  //
-**/
-
     public function escape($string);
-
-    //public function results($query);
-    //public function affectedRows();
-/**
-  //
-  //-- Extra Functionality
-  //
-**/
-
+    public function freeResult();
+    public function query($query);
+    public function results();
+    public function affectedRows();
 }
 
 ?>
