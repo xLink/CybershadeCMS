@@ -1,8 +1,8 @@
 <?php
 /*======================================================================*\
-||              Cybershade CMS - Your CMS, Your Way                     ||
+||                 Cybershade CMS - Your CMS, Your Way                  ||
 \*======================================================================*/
-if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
+defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 /**
 * Handles the plugin system for the CMS
@@ -12,8 +12,8 @@ if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
 * @author      xLink
 */
 class plugins extends coreObj{
-    private $dontBother = false;
-    private $hooks = array();
+    private $dontBother     = false,
+            $hooks          = array();
 
     /**
      * Get plugin list from the database, and attempt to load them in
@@ -28,11 +28,13 @@ class plugins extends coreObj{
      */
     public function loadHooks($plugin){
         if($this->dontBother == true){ return false; }
+        $objSQL = self::getDBO();
 
         //make sure we didnt get an empty var...
         if(!is_array($plugin) || is_empty($plugin)){
             //if we did try and get a fresh copy from the db
-            $plugin = $this->objSQL->getTable('SELECT * FROM `$Pplugins`');
+            $query = $objSQL->queryBuilder()->select('*')->from('#__plugins')->build();
+            $plugin = $objSQL->fetchAll($query);
 
             if(!is_array($plugin) || is_empty($plugin)){
                 $this->dontBother = true;

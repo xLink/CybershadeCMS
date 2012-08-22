@@ -53,7 +53,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
         //make sure the file is readable, if so require it
         if(!is_readable($file)){
-            die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to read the configuration file, please ensure correct owner privledges are given.'));
+            die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to read the configuration file, please ensure correct privileges are given.'));
         }else{ require_once($file); }
 
 (cmsDEBUG ? memoryUsage('loaded config') : '');
@@ -127,10 +127,11 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
         $cacheWritable = (is_writable($cachePath) ? true : false);
 
-    $objSQL     = coreObj::getDBO();
+    $objSQL      = coreObj::getDBO();
     #$objSession = coreObj::getSession();
-    $objHooks   = new plugins;
-    $objTPL     = new template;
+    //$objHooks    = plugins::getInstance();
+    //$objTPL      = template::getInstance();
+    $objPage     = page::getInstance();
 
 // $a = $objModule->moduleExists('core');
 // echo dump($a, 'module exists');

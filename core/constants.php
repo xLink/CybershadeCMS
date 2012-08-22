@@ -7,9 +7,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 // Misc 
 
     define('CSCMS', true);
-    define('cmsVERSION', '1.0.0');
-    define('cmsVERSIONID', '10000');
-    define('DS', DIRECTORY_SEPARATOR);
+    define('CMS_VERSION', '1.0.0');
+    define('CMS_VERSION_ID', '10000');
+    define('DS', (substr(PHP_OS, 0, 3)=='WIN' ? '/' : '\\'));
 
     if(!defined('cmsDEBUG')){
         define('cmsDEBUG', false);

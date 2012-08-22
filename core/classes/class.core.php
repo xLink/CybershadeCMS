@@ -87,8 +87,7 @@ class coreObj {
      * @param   string  $var
      * @param   mixed   $value
      */
-    public function setVar($var, $value){
-        
+    public function setVar($var, $value){        
         $this->$var = $value;
     }
 
@@ -123,8 +122,40 @@ class coreObj {
      * @return  mixed
      */
     public function getVar($var){
+        if(isset($this->$var) && !empty($this->$var)){
+            return $this->$var;
+        }
 
-        return (isset($this->$var) ? $this->$var : false);
+        return false;
+    }
+
+    /**
+     * Returns a normalized array of arguments from the function
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
+     *
+     * @param   array  This should be func_get_args();
+     *
+     * @return  array
+     */
+    public function _getArgs($args){
+        $argsCnt = count($args);
+        if(!$argsCnt){ return array(); }
+
+        if($argsCnt == 1){
+            if(!is_array($args[0])){ return array($args[0]); }
+
+            return $args[0];
+        }else{
+            $return = array();
+            foreach($args as $arg){ $return[] = $arg; }
+
+            return $return;
+        }
+
+        return array();
     }
 
     /**

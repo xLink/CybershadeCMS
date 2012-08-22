@@ -8,11 +8,11 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Used to determine the base path of the CMS installation;
      *
-     * @version     1.2
-     * @since       1.0.0
-     * @author      Jesus
+     * @version 1.2
+     * @since   1.0.0
+     * @author  Jesus
      *
-     * @return      string
+     * @return  string
      */
     function root(){
         $path = str_replace('\\', '/', __FILE__);
@@ -32,16 +32,16 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Determines whether to set
      *
-     * @version     1.2
-     * @since       1.0.0
-     * @author      xLink
+     * @version 1.2
+     * @since   1.0.0
+     * @author  xLink
      *
-     * @param       string  $key            Which key to check for
-     * @param       string  $default        A default value to use if our checks fail
-     * @param       array   $args           An array to check against
-     * @param       mixed   $callback       Can be name of a func that returns a bool value or an anonymous function
+     * @param   string  $key            Which key to check for
+     * @param   string  $default        A default value to use if our checks fail
+     * @param   array   $args           An array to check against
+     * @param   mixed   $callback       Can be name of a func that returns a bool value or an anonymous function
      *
-     * @return      string
+     * @return  string
      */
     function doArgs($key, $default, $args, $callback=null){
         $extra = true; //set this to true so the end result will work
@@ -74,15 +74,15 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * Run a function recursivly through an array
      * http://www.php.net/manual/en/function.array-walk-recursive.php#99639
      *
-     * @author      bradbeattie [at] gmail [dot] com
-     * @version     1.0
-     * @since       1.0.0
+     * @author  bradbeattie [at] gmail [dot] com
+     * @version 1.0
+     * @since   1.0.0
      *
-     * @param       array   $array
-     * @param       string  $function Callback
-     * @param       array   $parameters
+     * @param   array   $array
+     * @param   string  $function Callback
+     * @param   array   $parameters
      *
-     * @return      string
+     * @return  string
      */
     function recursiveArray(&$array, $function, $parameters = array()) {
         $reference_function = function(&$value, $key, $userdata) {
@@ -116,9 +116,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Borrowed function from phpbb3 to get contents of a file on remote server
      *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      PHPBB Team
+     * @version 1.0
+     * @since   1.0.0
+     * @author  PHPBB Team
      */
     function get_remote_file($host, $directory, $filename, &$errstr, &$errno, $port=80, $timeout=10) {
         global $objCore;
@@ -168,14 +168,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Handles Notifications for CMS Modules.
      *
-     * @version     2.0
-     * @since       0.8.0
-     * @author      xLink
+     * @version 2.0
+     * @since   0.8.0
+     * @author  xLink
      *
-     * @param       string  $to
-     * @param       string  $module
-     * @param       int     $setting
-     * @param       array   $content
+     * @param   string  $to
+     * @param   string  $module
+     * @param   int     $setting
+     * @param   array   $content
      *
      */
     function doNotification($to, $module, $setting, $content=array()){
@@ -231,14 +231,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Sends an email to the target.
      *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      xLink
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
      *
-     * @param       string  $emailVar
-     * @param       array   $vars
+     * @param   string  $emailVar
+     * @param   array   $vars
      *
-     * @return      string
+     * @return  string
      */
     function parseEmail($emailVar, $vars){
         global $objCore;
@@ -257,14 +257,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Sends an email to the target.
      *
-     * @version     2.5
-     * @since       1.0.0
-     * @author      xLink
+     * @version 2.5
+     * @since   1.0.0
+     * @author  xLink
      *
-     * @param       string  $to
-     * @param       string  $emailVar
-     * @param       array   $vars
-     * @param       bool    $dontDie
+     * @param   string  $to
+     * @param   string  $emailVar
+     * @param   array   $vars
+     * @param   bool    $dontDie
      */
     function sendEmail($to, $emailVar, $vars=array(), $dontDie=false){
         global $objCore;
@@ -289,17 +289,17 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Sends an email to the intended target
      *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      xLink
-     * @access      private
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
+     * @access  private
      *
-     * @param       string  $to
-     * @param       string  $from
-     * @param       string  $subject
-     * @param       string  $message
+     * @param   string  $to
+     * @param   string  $from
+     * @param   string  $subject
+     * @param   string  $message
      *
-     * @return      bool
+     * @return  bool
      */
     function _mailer($to, $from, $subject, $message){
         $server = $_SERVER['HTTP_HOST'];
@@ -327,12 +327,12 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Returns a list of all directories and files
      *
-     * @version     1.0
-     * @since       1.0.0
+     * @version 1.0
+     * @since   1.0.0
      *
-     * @param       string     $path
+     * @param   string     $path
      *
-     * @return      array
+     * @return  array
      */
     function getFiles($path) {
         $files = array();
@@ -377,12 +377,12 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Attempts to figure out what browser the string is relating to
      *
-     * @version     2.0
-     * @since       1.0.0
+     * @version 2.0
+     * @since   1.0.0
      *
-     * @param       string     $useragent
+     * @param   string     $useragent
      *
-     * @return      string
+     * @return  string
      */
     function getBrowser($useragent){
         // BE CAREFUL WHEN MODIFYING AS THE ORDER DOES MATTER!
@@ -443,11 +443,11 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Central place to call the cache calls from.
      *
-     * @version     1.0
-     * @since       1.0.0
+     * @version 1.0
+     * @since   1.0.0
      *
-     * @param       string      $file
-     * @param       var         $new_file
+     * @param   string      $file
+     * @param   var         $new_file
      */
     function newCache($file, &$new_file){
         global $objCore;
@@ -503,13 +503,13 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Configures the Menu system and outputs the requested version
      *
-     * @version     3.5
-     * @since       1.0.0
+     * @version 3.5
+     * @since   1.0.0
      *
-     * @param       string $module
-     * @param       string $page_id
+     * @param   string $module
+     * @param   string $page_id
      *
-     * @return      bool
+     * @return  bool
      */
     function show_menu($module, $page_id='default'){
         global $config, $objCore;
@@ -643,13 +643,13 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Parse an .ini string into a useable array
      *
-     * @version     1.0
-     * @since       1.0.0
+     * @version 1.0
+     * @since   1.0.0
      *
-     * @param       string      $string
-     * @param       bool        $processSelections
+     * @param   string      $string
+     * @param   bool        $processSelections
      *
-     * @return      string
+     * @return  string
      */
     function parseMenuParams($str, $processSections=false){
         $lines  = explode("\n", $str);
@@ -687,15 +687,15 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Set a cookie, this cookie shouldnt be accessable via scripting languages such as JS.
      *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      xLink
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
      *
-     * @param       string  $name
-     * @param       string  $value
-     * @param       int     $expire
+     * @param   string  $name
+     * @param   string  $value
+     * @param   int     $expire
      *
-     * @return      bool
+     * @return  bool
      */
     function set_cookie($name, $value, $expire){
         //if cookie got set, then temp set it in PHP so its accessable before the next page reload
@@ -721,13 +721,13 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Returns a language var ready to be used on the page.
      *
-     * @version     2.0
-     * @since       1.0.0
+     * @version 2.0
+     * @since   1.0.0
      *
-     * @param       string     $langVar
-     * @param       ...
+     * @param   string     $langVar
+     * @param   ...
      *
-     * @return      string
+     * @return  string
      */
     function langVar(){
         global $_lang;
@@ -755,12 +755,12 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Adds a language file to the global language array
      *
-     * @version     1.2
-     * @since       1.0.0
+     * @version 1.2
+     * @since   1.0.0
      *
-     * @param       string     $file
+     * @param   string     $file
      *
-     * @return      bool
+     * @return  bool
      */
     function translateFile($file){
         global $_lang;
@@ -781,14 +781,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * Verifies an IP against a IPv4 range.
      *         127.0.0.1 would verify against 127.0.0.* but not *.*.*.2
      *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      Jesus
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Jesus
      *
-     * @param       string  $range      Range to check the IP against
-     * @param       string  $ip         IP to check
+     * @param   string  $range      Range to check the IP against
+     * @param   string  $ip         IP to check
      *
-     * @return      bool
+     * @return  bool
      */
     function checkIPRange($range, $ip){
         $range = explode('.', $range);
@@ -841,14 +841,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Parses content for viewing in browser.
      *
-     * @version     1.0
-     * @since       1.0.0
+     * @version 1.0
+     * @since   1.0.0
      *
-     * @param       string  $content
-     * @param       bool    $echoContent
-     * @param       bool    $showSmilies
+     * @param   string  $content
+     * @param   bool    $echoContent
+     * @param   bool    $showSmilies
      *
-     * @return      string
+     * @return  string
      */
     function contentParse($content, $echoContent=false, $showSmilies=true){
         //load a new instance up
@@ -872,17 +872,19 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Handles securing input/output
      *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      xLink
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
      *
-     * @param       string  $string
-     * @param       string  $mode
+     * @param   string  $string
+     * @param   string  $mode
      *
-     * @return      string
+     * @return  string
      */
-    function secureMe($string, $mode='html') {
-        switch(strtolower($mode)) {
+    function secureMe($string, $mode='html'){
+        $objSQL = coreObj::getDBO();
+
+        switch(strtolower($mode)){
             case 'html':
                 $string = htmlspecialchars_decode($string);
                 $string = htmlspecialchars($string);
@@ -894,7 +896,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
             case 'sql':
             case 'mres':
-                $string = mysql_real_escape_string($string);
+                $string = $objSQL->escape($string);
             break;
 
             case 'langvar':
@@ -913,8 +915,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
                     $string = preg_replace('/[^a-zA-Z0-9-_]/', '', $string);
                 }
             break;
-
-            default: break;
         }
 
         return $string;
@@ -923,12 +923,12 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Turns a string SEO Friendly
      *
-     * @version     1.0
-     * @since       1.0.0
+     * @version 1.0
+     * @since   1.0.0
      *
-     * @param       string    $text
+     * @param   string    $text
      *
-     * @return      string
+     * @return  string
      */
     function seo($text){
         static $search, $replace;
@@ -964,13 +964,13 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Checks to see if the string is empty, checks against null, empty array and false
      *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      xLink
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
      *
-     * @param       string    $var
+     * @param   string    $var
      *
-     * @return      bool
+     * @return  bool
      */
     function is_empty($var) {
         if(is_null($var) || empty($var) || (is_string($var) && trim($var)=='')){ return true; }
@@ -983,13 +983,13 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Checks to see if the string is a number (0-9 only)
      *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      xLink
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
      *
-     * @param       string     $number
+     * @param   string     $number
      *
-     * @return      bool
+     * @return  bool
      */
     function is_number($number) {
         return (ctype_digit((string)$number) ? true : false);
@@ -998,14 +998,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Retreives part of a string
      *
-     * @version     1.0
-     * @since       1.0.0
+     * @version 1.0
+     * @since   1.0.0
      *
-     * @param       string     $begin
-     * @param       string     $end
-     * @param       string     $contents
+     * @param   string     $begin
+     * @param   string     $end
+     * @param   string     $contents
      *
-     * @return      string
+     * @return  string
      */
     function inBetween($begin, $end, $contents) {
         $pos1 = strpos($contents, $begin);
@@ -1023,15 +1023,15 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Cuts down a string to the specified length
      *
-     * @version     1.1
-     * @since       0.7.0
-     * @author      xLink
+     * @version 1.1
+     * @since   0.7.0
+     * @author  xLink
      *
-     * @param       string      $text
-     * @param       int         $numb
-     * @param       bool        $whiteSpace
+     * @param   string      $text
+     * @param   int         $numb
+     * @param   bool        $whiteSpace
      *
-     * @return      string
+     * @return  string
      */
     function truncate($text, $numb=80, $whiteSpace=true) {
         //check to make sure $text is longer than $numb first
@@ -1054,12 +1054,12 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Generates a random code
      *
-     * @version     2.0
-     * @since       0.6.0
+     * @version 2.0
+     * @since   0.6.0
      *
-     * @param       int         $maxLength
+     * @param   int         $maxLength
      *
-     * @return      string
+     * @return  string
      */
     function randCode($maxLength=6){
         $password = NULL;
@@ -1075,8 +1075,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Uses the BBCode Class to verify image
      *
-     * @version     3.0
-     * @since       1.0.0
+     * @version 3.0
+     * @since   1.0.0
      */
     function doImage($content) {
         global $objBBCode;
@@ -1104,9 +1104,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Custom error handler for the cms.
      *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      xLink
+     * @version 1.0
+     * @since   1.0.0
+     * @author  xLink
      */
     function cmsError(){
         $args = func_get_args();
@@ -1130,7 +1130,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Displays a formatted error on screen.
      *
-     * @version    3.0
+     * @version 3.0
      * @since   1.0.0
      */
     function msg($msg_type, $message, $tplVar=NULL, $title=NULL){
@@ -1153,11 +1153,11 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
 
         $objTPL->assign_vars(array(
-            'L_MSG_TYPE'    => (is_empty($title) ? langVar('MSG_'.strtoupper($msg_type)) : $title),
-            'L_MSG'         => $message,
-            'IMG'           => isset($img) && !is_empty($img) ? '<img src="'.$img.'" style="height: 48px; width: 48px;">' : '',
-            'ALIGN'         => 'left',
-            'TYPE'          => $type,
+            'L_MSG_TYPE' => (is_empty($title) ? langVar('MSG_'.strtoupper($msg_type)) : $title),
+            'L_MSG'      => $message,
+            'IMG'        => isset($img) && !is_empty($img) ? '<img src="'.$img.'" style="height: 48px; width: 48px;">' : '',
+            'ALIGN'      => 'left',
+            'TYPE'       => $type,
         ));
 
         if($tplVar===NULL){
@@ -1174,16 +1174,16 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Displays a confirmation messagebox.
      *
-     * @version    1.0
+     * @version 1.0
      * @since   1.0.0
-     * @author     xLink
+     * @author  xLink
      *
-     * @param     string $type
-     * @param     string $msg
-     * @param     string $title
-     * @param     string $tplVar
+     * @param   string $type
+     * @param   string $msg
+     * @param   string $title
+     * @param   string $tplVar
      *
-     * @return     bool
+     * @return  bool
      */
     function confirmMsg($type, $msg, $title=NULL, $tplVar=NULL){
         global $objPage, $objForm, $objUser;
@@ -1237,7 +1237,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Shows a message and then exit the current page with a footer.
      *
-     * @version    2.0         Updated to work with 0.8 structure
+     * @version 2.0         Updated to work with 0.8 structure
      * @since   0.6.0
      */
     function msgDie($msg_type, $message, $line=null, $file=null, $query=null, $footer=true){
@@ -1264,14 +1264,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
 
         $objTPL->assign_vars(array(
-            'L_MSG_TYPE'    => langVar('MSG_'.strtoupper($msg_type)),
-            'L_MSG'            => $message,
-            'QUERY'            => $query,
-            'LINE'            => 'Line: '.$line,
-            'FILE'            => 'File: '.$file,
-            'IMG'           => isset($img) && !is_empty($img) ? '<img src="'.$img.'" style="height: 48px; width: 48px;">' : '',
-            'ALIGN'         => 'center',
-            'TYPE'          => $type,
+            'L_MSG_TYPE' => langVar('MSG_'.strtoupper($msg_type)),
+            'L_MSG'      => $message,
+            'QUERY'      => $query,
+            'LINE'       => 'Line: '.$line,
+            'FILE'       => 'File: '.$file,
+            'IMG'        => isset($img) && !is_empty($img) ? '<img src="'.$img.'" style="height: 48px; width: 48px;">' : '',
+            'ALIGN'      => 'center',
+            'TYPE'       => $type,
         ));
 
         $gen_time = '0';
@@ -1286,8 +1286,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Displays the header with an error.
      *
-     * @version    1.0
-     * @since   0.8.0
+     * @version  1.0
+     * @since    0.8.0
      */
     function hmsgDie($type, $msg){
         global $objPage;
@@ -1309,14 +1309,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Grab File Extension, Language and GeSHi Information
      *
-     * @version    1.0
+     * @version 1.0
      * @since   1.0.0
-     * @author     xLink
+     * @author  xLink
      *
-     * @param    string    $ext
-     * @param    string     $return
+     * @param   string $ext
+     * @param   string $return
      *
-     * @return     array
+     * @return  array
      */
     function grabLangInfo($ext, $return='ALL'){
         $lang = (isset($ext) && $ext !== NULL) ? strtolower($ext) : 'text';

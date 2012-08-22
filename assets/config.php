@@ -5,7 +5,7 @@
 if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
 
 //some db settings and the like etc
-    $config['db']['driver']        = 'pdoMysql';
+    $config['db']['driver']        = 'mysqli';
     #$config['db']['driver']        = 'mysql';
     $config['db']['host']          = 'localhost';
     $config['db']['username']      = 'root';

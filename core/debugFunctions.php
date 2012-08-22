@@ -18,7 +18,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      *
      * @return      string
      */
-    function dump(&$var, $info = false, $color='', $specialFX=true) {
+    function dump(&$var, $info = false, $color='', $specialFX=false) {
         global $objPage;
         if (file_exists('debug')) { return; }
         $scope = false;
@@ -28,8 +28,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         $specialFX = ($specialFX!==false ? true : false);
 
         if(is_object($objPage) && $specialFX){
-            $objPage->addJSFile('scripts/tree.js');
-            $objPage->addCSSFile('images/debug.css');
+            $objPage->addJSFile('assets/javascript/tree.js');
+            $objPage->addCSSFile('assets/styles/debug.css');
         }else{
             static $run;
             if(!isset($run) || $run != true){

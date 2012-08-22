@@ -5,12 +5,12 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 /**
-* SQL Query Builder
-*
-* @version      1.0
-* @since        1.0.0
-* @author       xLink
-*/
+ * SQL Query Builder
+ *
+ * @version      1.0
+ * @since        1.0.0
+ * @author       xLink
+ */
 class queryBuilder extends coreObj{
 
     private $queryType = '';
@@ -500,24 +500,6 @@ class queryBuilder extends coreObj{
             'type'    => $type,
         );
         return $this;
-    }
-
-    private function _getArgs($args){
-        $argsCnt = count($args);
-        if(!$argsCnt){ return array(); }
-
-        if($argsCnt == 1){
-            if(!is_array($args[0])){ return array($args[0]); }
-
-            return $args[0];
-        }else{
-            $return = array();
-            foreach($args as $arg){ $return[] = $arg; }
-
-            return $return;
-        }
-
-        return array();
     }
 
     protected function _sanitizeValue($val) {

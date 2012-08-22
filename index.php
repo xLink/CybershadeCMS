@@ -6,10 +6,11 @@ define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 include_once('core/core.php');
 
-$a = $objSQL->getDebug();
-echo dump($a, 'SQL Debug');
+$objPage->addCSSFile('/'.root().'assets/styles/default.css', 'text/css');
 
- $a = memoryUsage();
- echo dump($a, 'Exec Info');
-
+$objPage->addCSSFile(array(
+    'src'  => '/'.root().'assets/styles/default.css', 
+    'type' => 'text/css',
+    'rel'  => 'stylesheet',
+));
 ?>
