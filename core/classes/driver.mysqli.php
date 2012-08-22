@@ -72,6 +72,8 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
         $this->registerPrefix('#__', $this->dbSettings['prefix']);
 
+        $this->query('SET GLOBAL innodb_flush_log_at_trx_commit = 2;');
+        
         //and carry on
         return true;
     }
@@ -87,7 +89,10 @@ class driver_mysqli extends core_SQL implements base_SQL{
     }
 
     public function getError(){
-        return mysqli_error($this->DBH);
+        if(mysql_errno($this->DBH) != 0){
+            return sprintf(' (%d) %s ', mysqli_errno($this->DBH), mysqli_error($this->DBH));
+        }
+        return false;
     }
 
 /**
@@ -110,26 +115,31 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
 
     public function query($query){
-        // if $query is true, then throw us into QueryBuilder Mode :D
-        if($query === true){ return new queryBuilder(); }
-
         $debug['query_start'] = microtime(true);
-        if($this->dbSettings['debug']){
-            $backtrace = debug_backtrace();
-            $callee = $backtrace[1];
-
-            $debug['method']        = $callee['function'];
-            $debug['args']          = json_encode($callee['args']);
-            $debug['file']          = $callee['file'];
-            $debug['line']          = $callee['line'];
-            $debug['affected_rows'] = $this->affectedRows();
-        }
 
         //apply the prefix swapping mech
         $query = $this->_query = $this->_replacePrefix($query);
         //exec the query and cache it
         $this->results = $this->DBH->query($this->_query) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
 
+
+        if($this->dbSettings['debug']){
+            $backtrace = debug_backtrace();
+            $callee = next($backtrace);
+
+            $debug['query']         = $query;
+            $debug['method']        = $callee['function'];
+            $debug['args']          = json_encode($callee['args']);
+            $debug['file']          = $callee['file'];
+            $debug['line']          = $callee['line'];
+            $debug['affected_rows'] = $this->affectedRows();
+            $debug['query_end']     = microtime(true);
+            $debug['time_taken']    = substr(($debug['query_end'] - $debug['query_start']), 0, 7);
+            
+            $this->totalTime        += $debug['time_taken'];
+            $debug['total_time']    = $this->totalTime;
+        }
+        $this->debug[] = $debug;
         return $this->results;
     }
 

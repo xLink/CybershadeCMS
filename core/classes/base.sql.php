@@ -14,6 +14,7 @@ class core_SQL extends coreObj{
             $debug          = false,        // debug switch
             $_query         = false,        // last query ran
             $prefix         = array(),      // holds all the prefixes
+            $totalTime      = 0,            // running tally of query time
             $logging        = false;        // is logging enabled?
 
 
@@ -130,6 +131,10 @@ class core_SQL extends coreObj{
         return $this->debug;
     }
 
+    public function queryBuilder(){
+        return new queryBuilder();
+    }
+    
     public function index($db){
         $query = $this->query('SHOW TABLES');
         $results = $this->results($query);
@@ -150,7 +155,7 @@ class core_SQL extends coreObj{
         return true;
     }
 
-    public function getRows($query){
+    public function fetchAllfetchAll($query){
         $this->query($query);
             if(!$this->affectedRows()){ 
                 return false; 
@@ -161,17 +166,17 @@ class core_SQL extends coreObj{
         return $line;
     }
 
-    public function getRow($query){
+    public function fetchLine($query){
         if(!is_string($query)){ return false; }
 
         if(strpos($query, 'LIMIT 1') === false){
             $query = $query.' LIMIT 1';
         }
 
-        return $this->getRows($query);
+        return $this->fetchAllfetchAll($query);
     }
 
-    public function getValue($table, $field, $clause=null){
+    public function fetchValue($table, $field, $clause=null){
         //generate query
         $query = $this->query(true)
                         ->select($field)
@@ -198,11 +203,11 @@ class core_SQL extends coreObj{
         return $line[0][end($field)];
     }
 
-    public function getCount($table, $clause=null){
-        return $this->getValue($table, 'COUNT(*)', $clause);
+    public function fetchCount($table, $clause=null){
+        return $this->fetchValue($table, 'COUNT(*)', $clause);
     }
 
-    public function getColumnInfo($table){
+    public function fetchColumnInfo($table){
         $query = 'SHOW COLUMNS FROM `%s`';
 
         $this->query(sprintf($query, $table));
@@ -216,8 +221,8 @@ class core_SQL extends coreObj{
         return $cols;
     }
 
-    public function getColumnData($table, $data){
-        $cols = $this->getColumnInfo($table);
+    public function fetchColumnData($table, $data){
+        $cols = $this->fetchColumnInfo($table);
             if(!$cols){
                 return false;
             }
@@ -230,7 +235,7 @@ class core_SQL extends coreObj{
         return $names;
     }
 
-    public function getAutoIncrement($table){
+    public function fetchAutoIncrement($table){
         $query = $this->query(true)
                     ->select('AUTO_INCREMENT')
                     ->from('information_schema.TABLES')

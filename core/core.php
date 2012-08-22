@@ -22,14 +22,12 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
     error_reporting(LOCALHOST ? E_ALL & ~E_NOTICE | E_STRICT : 0);
 
-//(cmsDEBUG ? memoryUsage('constants & error_reporting') : '');
-
     $file = cmsROOT.'core/debugFunctions.php';
         if(!is_readable($file) || !cmsDEBUG){
             function dump(){} function getExecInfo(){} function memoryUsage(){}
         }else{ require_once($file); }
 
-//(cmsDEBUG ? memoryUsage('loaded debug funcs') : '');
+(cmsDEBUG ? memoryUsage('loaded debug funcs') : '');
 
     if(cmsDEBUG){
         require_once(cmsROOT.'core/php_error.php');
@@ -39,7 +37,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
           'error_reporting_on'  => E_ALL | E_STRICT,
           'background_text'     => 'Cybershade CMS',
         ));
-//(cmsDEBUG ? memoryUsage('loaded debug funcs') : '');
+(cmsDEBUG ? memoryUsage('loaded debug funcs') : '');
     }
 
 
@@ -58,7 +56,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to read the configuration file, please ensure correct owner privledges are given.'));
         }else{ require_once($file); }
 
-//(cmsDEBUG ? memoryUsage('loaded config') : '');
+(cmsDEBUG ? memoryUsage('loaded config') : '');
 
     //make sure we are running a compatible PHP Version
     if(PHP_VERSION_ID < '50300'){
@@ -71,11 +69,11 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to locate/read the baseFunctions file.'));
         }else{ require_once($file); }
 
-//(cmsDEBUG ? memoryUsage('version check & basefunctions') : '');
+(cmsDEBUG ? memoryUsage('version check & basefunctions') : '');
 
     //kill magic quotes completely
     if(get_magic_quotes_gpc()!==false){
-//(cmsDEBUG ? memoryUsage('anti magic quotes') : '');
+(cmsDEBUG ? memoryUsage('anti magic quotes') : '');
         
         //strip all the global arrays
         recursiveArray($_POST,    'stripslashes');
@@ -90,7 +88,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         date_default_timezone_set('Europe/London'); 
     }
 
-//(cmsDEBUG ? memoryUsage('default timezone') : '');
+(cmsDEBUG ? memoryUsage('default timezone') : '');
 
 /**
   //
@@ -99,7 +97,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 **/
     require_once(cmsROOT.'core/classes/class.core.php');
 
-//(cmsDEBUG ? memoryUsage('loaded base class') : '');
+(cmsDEBUG ? memoryUsage('loaded base class') : '');
 
     // AUTOLOADER, I Choose You!
         //directories to use for the autoloading, these get glob'd over after
@@ -108,12 +106,12 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         $dirs = coreObj::addClassDirs(cmsROOT.'modules/*/class.*.php');
 
 // echo dump($dirs, 'Loading Classes From', 'orange');exit;
-//(cmsDEBUG ? memoryUsage('autoloader dirs') : '');
+(cmsDEBUG ? memoryUsage('autoloader dirs') : '');
 
     spl_autoload_extensions('.php');
     spl_autoload_register(array('coreObj', 'loadClass'));
 
-//(cmsDEBUG ? memoryUsage('autoloader registration') : '');
+(cmsDEBUG ? memoryUsage('autoloader registration') : '');
 
 // $a = get_included_files();
 // echo dump($a, 'Core - Loaded Files', 'orange');
@@ -140,7 +138,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 // $a = get_included_files();
 // echo dump($a, 'Core - Loaded Files', 'orange');
 
-//(cmsDEBUG ? memoryUsage('everything else') : '');
+(cmsDEBUG ? memoryUsage('everything else') : '');
 //
 
 // $a = memoryUsage();

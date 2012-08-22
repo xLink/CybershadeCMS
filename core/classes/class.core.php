@@ -60,6 +60,7 @@ class coreObj {
         }
         $class = strtolower($class);
 
+        //loop thru the dirs, trying to match the class with the file
         $dirs = self::$classDirs;
         foreach($dirs as $dir => $files){
             if(!count($files)){ continue; }
@@ -152,6 +153,11 @@ class coreObj {
             return $config[$array];
         }
 
+        //make sure we have soemthing before trying to throw it out
+        if(!in_array($array, array_keys($config))){
+            return false;
+        }
+
         return doArgs($setting, $default, $config[$array]);
     }
 
@@ -210,6 +216,7 @@ class coreObj {
 
         if(!isset(self::$_classes['database_'.$driver])){
             $options = self::config('db');
+                if(!$options){ trigger_error('Error: Could not obtain values from teh configuration file. Please ensure it is present.', E_USER_ERROR); }
 
             $name = $options['driver'];
 
@@ -220,12 +227,12 @@ class coreObj {
             } $name = 'driver_'.$name;
 
             $options['persistant'] = true;
-            $options['debug']      = (LOCALHOST && cmsDEBUG ? true : false);
+            $options['debug']      = (cmsDEBUG ? true : false);
             $options['logging']    = is_file(cmsROOT.'cache/ALLOW_LOGGING');
 
             $objSQL = $name::getInstance($options);
                 if($objSQL === false){
-                    if (!headers_sent()){
+                    if(!headers_sent()){
                         header('HTTP/1.1 500 Internal Server Error');
                     }
                     hmsgDie('FAIL', 'Error: No DB Avaliable');
