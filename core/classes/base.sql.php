@@ -134,7 +134,7 @@ class core_SQL extends coreObj{
     public function queryBuilder(){
         return new queryBuilder();
     }
-    
+
     public function index($db){
         $query = $this->query('SHOW TABLES');
         $results = $this->results($query);
@@ -155,7 +155,7 @@ class core_SQL extends coreObj{
         return true;
     }
 
-    public function fetchAllfetchAll($query){
+    public function fetchAll($query){
         $this->query($query);
             if(!$this->affectedRows()){ 
                 return false; 
@@ -173,12 +173,12 @@ class core_SQL extends coreObj{
             $query = $query.' LIMIT 1';
         }
 
-        return $this->fetchAllfetchAll($query);
+        return $this->fetchAll($query);
     }
 
     public function fetchValue($table, $field, $clause=null){
         //generate query
-        $query = $this->query(true)
+        $query = $this->queryBuilder()
                         ->select($field)
                         ->from($table);
 
@@ -236,12 +236,13 @@ class core_SQL extends coreObj{
     }
 
     public function fetchAutoIncrement($table){
-        $query = $this->query(true)
+        $query = $this->queryBuilder()
                     ->select('AUTO_INCREMENT')
                     ->from('information_schema.TABLES')
                         ->where('TABLE_NAME LIKE #__config')
                             ->andWhere('TABLE_SCHEMA = %s')
                     ->build();
+                    
         $this->query(sprintf($query, $this->config('db', 'database')));
             if(!$this->affectedRows()){ 
                 return false; 
