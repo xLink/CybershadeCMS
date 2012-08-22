@@ -7,5 +7,9 @@ define('cmsDEBUG', true);
 include_once('core/core.php');
 
 $a = $objSQL->getDebug();
-echo dump($a);
+echo dump($a, 'SQL Debug');
+
+ $a = memoryUsage();
+ echo dump($a, 'Exec Info');
+
 ?>

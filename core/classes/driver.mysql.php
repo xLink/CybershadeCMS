@@ -93,6 +93,7 @@ class driver_mysql extends core_SQL implements base_SQL{
 
         $this->registerPrefix('#__', $this->dbSettings['prefix']);
 
+        $this->query('SET CHARACTER SET utf8;');
         $this->query('SET GLOBAL innodb_flush_log_at_trx_commit = 2;');
 
         //and carry on

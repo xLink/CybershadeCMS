@@ -58,8 +58,6 @@ class core_SQL extends coreObj{
     }
 
     public function __destruct(){
-
-        $this->index($this->dbSettings['database']);
         return $this->disconnect();
     }
 

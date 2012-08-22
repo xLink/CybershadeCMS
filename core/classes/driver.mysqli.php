@@ -72,6 +72,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
         $this->registerPrefix('#__', $this->dbSettings['prefix']);
 
+        $this->query('SET CHARACTER SET utf8;');
         $this->query('SET GLOBAL innodb_flush_log_at_trx_commit = 2;');
         
         //and carry on
@@ -120,7 +121,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
         //apply the prefix swapping mech
         $query = $this->_query = $this->_replacePrefix($query);
         //exec the query and cache it
-        $this->results = $this->DBH->query($this->_query) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
+        $this->results = $this->DBH->query($query) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
 
 
         if($this->dbSettings['debug']){
