@@ -63,7 +63,7 @@ class template extends coreObj{
     }
 
     function isHandle($handle) {
-        return $this->files[$handle] === null ? false : true;
+        return !isset($this->files[$handle]) ? false : true;
     }
 
     function reset_block_vars($arrVar) {
@@ -112,11 +112,15 @@ class template extends coreObj{
     public function parse($handle, $echo=true) {
         $code = '';
 
+        if(!$this->isHandle($handle)){ 
+            trigger_error('"'.$handle.'" is not a valid file handle.');
+        }
+        
         if($this->use_cache) {
             $code = $this->get_cached_code($handle);
         } else {
             if(!$this->loadfile($handle)) {
-                msgDie('FAIL', 'parse(): Couldn\'t load template file for handle '.$handle.' @ Line '.__line__);
+               trigger_error('parse(): Couldn\'t load template file for handle "'.$handle.'"');
             }
             // actually compile the template now.
             if(!isset($this->compiled_code[$handle]) || empty($this->compiled_code[$handle])) {
@@ -138,11 +142,11 @@ class template extends coreObj{
 
     public function parseString($handle, $string, $echo=true){
         if(is_empty($handle) || is_empty($string)){
-            hmsgDie('FAIL', 'Error: Invalid arguments passed to parseString())');
+            trigger_error('Error: Invalid arguments passed to parseString())');
         }
 
         if(isset($this->uncompiled_code[$handle])){
-            hmsgDie('FAIL', 'Error: Code Handle already set for '.$handle);
+            trigger_error('Error: Code Handle already set for '.$handle);
         }
 
         $this->uncompiled_code[$handle] = $string;
@@ -303,25 +307,16 @@ class template extends coreObj{
         // check to see if its a remote template
         $from_http = 0;
         $fname = $filename;
-        $filename = str_replace(array('../'), array('/'), $filename);
-        if(strtolower(substr($filename, 0, 4)) == 'http'){ $from_http = 1; }
+        if(strtolower( substr( $filename, 0 ,4 )) == 'http'){
+            $from_http = 1;
+        }
 
-        if(!$from_http) {
+        if(!$from_http){
             // Check if it's an absolute or relative path.
-            if(substr($filename, 0, 1) != '/') {
+            if(substr($filename, 0, 1) != '/'){
                 // this allows loading of a template by url
-                $filename = realpath(cmsROOT.$filename);
-                if($filename === false) {
-                	$a = func_get_args();
-                    trigger_error('We have encountered a problem with the page you are currently using. '.dump($a));
-                }
-
-                $dirsep = (stristr(PHP_OS, 'WIN') ? '\\' : '/');
-                $explode = explode($dirsep, $filename);
-                $cexplode = count($explode);
-                $file_name = $explode[$cexplode - 3].$dirsep.$explode[$cexplode - 1];
+                $filename = realpath($this->root.'/'.$filename);
             }
-
 
         }
 

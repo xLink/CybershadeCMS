@@ -19,12 +19,13 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      * @return      string
      */
     function dump(&$var, $info = false, $color='', $specialFX=false) {
-        global $objPage;
         if (file_exists('debug')) { return; }
-        $scope = false;
-        $prefix = 'unique';
-        $suffix = 'value';
-        $return = null;
+
+        $objPage   = coreObj::getPage();
+        $scope     = false;
+        $prefix    = 'unique';
+        $suffix    = 'value';
+        $return    = null;
         $specialFX = ($specialFX!==false ? true : false);
 
         if(is_object($objPage) && $specialFX){

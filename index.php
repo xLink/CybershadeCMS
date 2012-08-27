@@ -7,7 +7,10 @@ define('cmsDEBUG', true);
 include_once('core/core.php');
 
 $objPage->setTheme();
-$objPage->siteHeader();
+
+$objPage->setTitle('Test');
+
+$objPage->showHeader();
 
 
 ?>

@@ -18,7 +18,6 @@ class page extends coreObj{
 
     public function __construct(){
         $this->options['simpleTPL'] = false;
-        $this->options['pageTitle'] = '';
     }
 
 /**
@@ -61,7 +60,8 @@ class page extends coreObj{
      * @param   array  $title
      */
     public function setTitle($title){
-        $this->setOptions('pageTitle', secureMe($title)); 
+        $objTPL = self::getTPL();
+        $objTPL->assign_var('PAGE_TITLE', secureMe($title));
     }
 
     /**
@@ -167,13 +167,13 @@ class page extends coreObj{
      * @since   1.0
      * @author  xLink
      *
-     * @param   array   Containing the array, either with or without keys.
+     * @param   array           Containing the array, either with or without keys.
      * -------------------------------
      * @param   string  $src    The path of the file
      * @param   string  $type   The type of the file, text/css || text/less
      * @param   string  $rel    Usually stylesheet
      *
-     * @return  string
+     * @return  bool
      */
     public function addCSSFile(){
         $args = $this->_getArgs(func_get_args());
@@ -199,6 +199,33 @@ class page extends coreObj{
         return true;
     }
 
+        /**
+         * Builds the CSS Files & SubStyles.
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  xLink
+         *
+         * @return  string
+         */
+        public function buildCSS(){
+            if(!count($this->cssFiles)){ return false; }
+
+            $_tag = "\n".'<link%s />';
+            $_arg  = ' %s="%s"';
+
+            $return = null;
+            foreach($this->cssFiles as $args){
+                $tag = null;
+                foreach($args as $k => $v){
+                    $tag .= sprintf($_arg, $k, $v);
+                }
+                $return .= sprintf($_tag, $tag);
+            }
+
+            return $return;
+        }
+
     /**
      * Adds a JS file to the list.
      *
@@ -206,36 +233,79 @@ class page extends coreObj{
      * @since   1.0
      * @author  xLink
      *
-     * @param   array   Containing the array, either with or without keys.
+     * @param   array               Containing the array, either with or without keys.
      * -------------------------------
-     * @param   string  $src    The path of the file
-     * @param   string  $type   The type of the file, text/javascript
+     * @param   string  $src        The path of the file
+     * @param   string  $position   The position of the JS File - Header || Footer
      *
-     * @return  string
+     * @return  bool
      */
     public function addJSFile(){
         $args = $this->_getArgs(func_get_args());
 
         $arg = func_get_arg(0);
+        $position = strtolower($args[1]);
 
         $js = $args;
         if(!is_array($arg) || !array_key_exists('src', $args)){
             $js = array(
                 'src'  => doArgs(0, false, $args),
-                'type' => doArgs(1, 'text/javascript', $args),
             );
         }
 
         if(!isset($js['src'])){ return false; }
 
         $file = explode(DS, $js['src']);
-            if(array_key_exists(end($file), $this->jsFiles)){ return false; }
+            if(isset($this->jsFiles[$position]) && array_key_exists(end($file), $this->jsFiles[$position])){ 
+                return false; 
+            }
 
-        $this->jsFiles[end($file)] = $js;
+        $this->jsFiles[$position][end($file)] = $js;
 
         return true;
     }
 
+        /**
+         * Builds the JS Files & SubScripts.
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  xLink
+         *
+         * @return  string
+         */
+        public function buildJS($mode){
+            if(!count($this->jsFiles[$mode])){ return false; }
+
+            $_tag = "\n".'<script%s></script>';
+            $_arg  = ' %s="%s"';
+
+            $return = null;
+            foreach($this->jsFiles[$mode] as $args){
+                $tag = null;
+                foreach($args as $k => $v){
+                    $tag .= sprintf($_arg, $k, $v);
+                }
+                $return .= sprintf($_tag, $tag);
+            }
+
+            return $return;
+        }
+
+    /**
+     * Adds a Meta Tag to the list.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   array               Containing the array, either with or without keys.
+     * -------------------------------
+     * @param   string  $argKey     
+     * @param   string  $argValue   
+     *
+     * @return  bool
+     */
     public function addMeta(){
         $args = $this->_getArgs(func_get_args());
 
@@ -251,27 +321,35 @@ class page extends coreObj{
         return true;
     }
 
+        /**
+         * Builds the Meta Tags.
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  xLink
+         *
+         * @return  string
+         */
         public function buildMeta(){
-            echo dump($this->metaTags, 'this->metaTags');
             if(!count($this->metaTags)){ return false; }
 
-            $meta = '<meta%s/>'."\n";
-            $arg  = ' %s="%s"';
+            $_tag = "\n".'<meta%s />';
+            $_arg = ' %s="%s"';
 
             $return = null;
             foreach($this->metaTags as $args){
                 $tag = null;
                 foreach($args as $k => $v){
-                    $tag .= sprintf($arg, $k, $v);
+                    $tag .= sprintf($_arg, $k, $v);
                 }
-                $return .= sprintf($meta, $tag);
+                $return .= sprintf($_tag, $tag);
             }
 
             return $return;
         }
 
 
-    public function siteHeader(){
+    public function showHeader(){
         if($this->getOptions('completed')){ return; }
 
         $objTPL     = self::getTPL();
@@ -282,8 +360,9 @@ class page extends coreObj{
 
         //see if we are gonna get the simple one or the full blown one
         $header = ($simple ? 'simple_header.tpl' : 'site_header.tpl');
+        $header = ('simple_header.tpl');
 
-        $objTPL->set_filenames(array( 'site_header' => self::$THEME_ROOT . $header ));
+        $objTPL->set_filenames(array( 'siteHeader' => self::$THEME_ROOT . $header ));
 
 /**
   //
@@ -310,27 +389,71 @@ class page extends coreObj{
                 'keywords'      => $this->config('site', 'keywords', ''),
                 //'copyright'     => langVar('L_SITE_COPYRIGHT', $this->config('site', 'title'), $this->config('cms', 'name'), CMS_VERSION),
                 'generator'     => $this->config('cms',  'name').' v'.CMS_VERSION,
-                'ROBOTS'        => 'INDEX, FOLLOW',
-                'GOOGLEBOT'     => 'INDEX, FOLLOW',
 
                 'user_id'       => -1,
                 'root'          => '/'.root(),
                 'url'           => $this->config('global', 'url', ''),
+
+                'ROBOTS'        => 'INDEX, FOLLOW',
+                'GOOGLEBOT'     => 'INDEX, FOLLOW',
             );
 
-            foreach($metaArray as $k => $v){
-                $this->addMeta(array(
-                    'name'    => $k,
-                    'content' => $v,
-                ));
+                foreach($metaArray as $k => $v){
+                    $this->addMeta(array(
+                        'name'    => $k,
+                        'content' => $v,
+                    ));
+                }
+                unset($metaArray);
+         $objTPL->assign_var('_META', $this->buildMeta());
+
+/**
+  //
+  //-- CSS
+  //
+**/
+        $cssDir = '/'.root().'assets/styles';
+
+        $this->addCSSFile($cssDir.'/framework-min.css', 'text/css');
+        $this->addCSSFile($cssDir.'/extras-min.css', 'text/css');
+        
+        //throw a hook here, so they have the ability to do...whatever
+        $cssFiles = array();
+        $objPlugins->hook('CMSPage_cssFiles', $cssFiles);
+
+            if(count($cssFiles)){
+                foreach($cssFiles as $file){
+                    $this->addCSSFile($file);
+                }
             }
 
-        $objTPL->assign_var('_META', $this->buildMeta());
+         $objTPL->assign_var('_CSS', $this->buildCSS());
+/**
+  //
+  //-- JS
+  //
+**/
+        $cssDir = '/'.root().'assets/javascript';
+
+        $this->addJSFile($cssDir.'/framework-min.js', 'header');
+        $this->addJSFile($cssDir.'/extras-min.js', 'footer');
         
+        //throw a hook here, so they have the ability to do...whatever
+        $jsFiles = array();
+        $objPlugins->hook('CMSPage_jsFiles', $jsFiles);
+
+
+        $objTPL->assign_var('_JS_HEADER', $this->buildJS('header'));
+        $objTPL->assign_var('_JS_FOOTER', $this->buildJS('footer'));
+
+
+        $objTPL->parse('siteHeader');
+
+        $this->setOptions('completed', 1);
     }  
 
-    private function siteFooter(){
-
+    private function showFooter(){
+        if(!$this->getOptions('completed')){ return; }
 
     }   
 }

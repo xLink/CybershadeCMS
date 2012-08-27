@@ -3,10 +3,11 @@
 <head>
 {_META}
 <title>{PAGE_TITLE} || {SITE_TITLE}</title>
-{_JS_HEADER}
 {_CSS}
+{_JS_HEADER}
 <link rel="stylesheet" href="/{THEME_ROOT}style.css" type="text/css" />
 
 </head>
 
-<body>
+<body class="{PAGE_CLASS}">
+
