@@ -12,6 +12,7 @@ class page extends coreObj{
             $cssFiles   = array(),
             $jsCode     = array(),
             $cssCode    = array(),
+            $metaTags   = array(),
             $options    = array(),
             $acpMode    = false;
 
@@ -33,18 +34,60 @@ class page extends coreObj{
         return true;
     }
 
+    /**
+     * Returns the options.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   array  $title
+     */
     public function getOptions($key){
-        if(!empty($this->options) && array_key_exists($this->options, $key)){
+        if(!empty($this->options) && array_key_exists($key, $this->options)){
             return $this->options[$key];
         }
 
         return false;
     }
 
+    /**
+     * Sets the pages title.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   array  $title
+     */
     public function setTitle($title){
         $this->setOptions('pageTitle', secureMe($title)); 
     }
 
+    /**
+     * Sets the Theme mode to simple, or not.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   bool    $simple  If true, then page is in simple mode, else FULL BLOWN!
+     */
+    public function setSimpleMode($simple){
+        $this->setOptions('mode', ((bool)$simple===true ? true : false));
+    }
+
+    /**
+     * Defines what menu set to use on this page.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   string  $moduleName     Name of the module
+     * @param   string  $page_id        Page ID 
+     * 
+     */
     public function setMenu($moduleName, $page_id='default'){
         $this->setOptions('moduleMenu',  array(
             'module'  => $moduleName, 
@@ -52,19 +95,93 @@ class page extends coreObj{
         ));
     }
 
-    public function addBreadcrumbs(array $value){
-        $options = (is_array($this->getOptions('breadcrumbs')) ? $this->getOptions('breadcrumbs') : array());
-        $this->setOptions('breadcrumbs', array_merge($options, $value));
+    /**
+     * Sets the Theme for this page to use
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   string  $theme
+     * 
+     * @return  bool 
+     */
+    public function setTheme($theme=null){
+        if(is_empty($theme)){
+            $theme = $this->config('site', 'theme');
+        }
+
+        /* user override here */
+
+        //check see if the theme dir is present & readable
+        if(!is_dir(cmsROOT.'themes/'.$theme.'/')/* || !is_readable(cmsROOT.'themes/'.$theme.'/cfg.php')*/){
+            return false;
+        }
+
+        //and then set the vars
+        self::$THEME      = $theme;
+        self::$THEME_ROOT = cmsROOT.'themes/'.$theme.'/';
+
+        return true;
     }
 
+    /**
+     * Adds a breadcrumb to the list.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   array  $value   An array with 2 elements, [text] && [link]
+     * 
+     * @return  bool
+     */
+    public function addBreadcrumbs(array $value){
+        $options = (is_array($this->getOptions('breadcrumbs')) ? $this->getOptions('breadcrumbs') : array());
+            if(empty($options)){ return false; }
 
+        $this->setOptions('breadcrumbs', array_merge($options, $value));
+
+        return true;
+    }
+
+        /**
+         * Builds the breadcrumb list for the template.
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  xLink
+         *
+         * @param   array  $value   An array with 2 elements, [text] && [link]
+         * 
+         * @return  bool
+         */
+        private function buildBreadrumbs(){
+
+        }
+
+    /**
+     * Adds a CSS file to the list.
+     *
+     * @version 2.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   array   Containing the array, either with or without keys.
+     * -------------------------------
+     * @param   string  $src    The path of the file
+     * @param   string  $type   The type of the file, text/css || text/less
+     * @param   string  $rel    Usually stylesheet
+     *
+     * @return  string
+     */
     public function addCSSFile(){
         $args = $this->_getArgs(func_get_args());
 
         $arg = func_get_arg(0);
-        if(is_array($arg)){
-            $css = $args;
-        }else{
+
+        $css = $args;
+        if(!is_array($arg) || !array_key_exists('src', $args)){
             $css = array(
                 'src'  => doArgs(0, false, $args),
                 'type' => doArgs(1, 'text/css', $args),
@@ -72,7 +189,7 @@ class page extends coreObj{
             );
         }
 
-        if($css['src'] === false){ return false; }
+        if(!isset($css['src'])){ return false; }
 
         $file = explode(DS, $css['src']);
             if(array_key_exists(end($file), $this->cssFiles)){ return false; }
@@ -81,8 +198,141 @@ class page extends coreObj{
 
         return true;
     }
+
+    /**
+     * Adds a JS file to the list.
+     *
+     * @version 2.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   array   Containing the array, either with or without keys.
+     * -------------------------------
+     * @param   string  $src    The path of the file
+     * @param   string  $type   The type of the file, text/javascript
+     *
+     * @return  string
+     */
     public function addJSFile(){
+        $args = $this->_getArgs(func_get_args());
+
+        $arg = func_get_arg(0);
+
+        $js = $args;
+        if(!is_array($arg) || !array_key_exists('src', $args)){
+            $js = array(
+                'src'  => doArgs(0, false, $args),
+                'type' => doArgs(1, 'text/javascript', $args),
+            );
+        }
+
+        if(!isset($js['src'])){ return false; }
+
+        $file = explode(DS, $js['src']);
+            if(array_key_exists(end($file), $this->jsFiles)){ return false; }
+
+        $this->jsFiles[end($file)] = $js;
+
+        return true;
     }
+
+    public function addMeta(){
+        $args = $this->_getArgs(func_get_args());
+
+        $key = (isset($args['name']) ? md5(strtolower($args['name'])) : md5(strtolower(json_encode($args))));
+
+        $arg = func_get_arg(0);
+        if(!is_array($arg)){
+            $args = array($args[0] => $args[1]);
+        }
+
+        $this->metaTags[$key] = $args;
+
+        return true;
+    }
+
+        public function buildMeta(){
+            echo dump($this->metaTags, 'this->metaTags');
+            if(!count($this->metaTags)){ return false; }
+
+            $meta = '<meta%s/>'."\n";
+            $arg  = ' %s="%s"';
+
+            $return = null;
+            foreach($this->metaTags as $args){
+                $tag = null;
+                foreach($args as $k => $v){
+                    $tag .= sprintf($arg, $k, $v);
+                }
+                $return .= sprintf($meta, $tag);
+            }
+
+            return $return;
+        }
+
+
+    public function siteHeader(){
+        if($this->getOptions('completed')){ return; }
+
+        $objTPL     = self::getTPL();
+        $objPlugins = self::getPlugins();
+
+        //run a check on simple
+        $simple = ($this->getOptions('mode') ? true : false);
+
+        //see if we are gonna get the simple one or the full blown one
+        $header = ($simple ? 'simple_header.tpl' : 'site_header.tpl');
+
+        $objTPL->set_filenames(array( 'site_header' => self::$THEME_ROOT . $header ));
+
+/**
+  //
+  //-- Meta Tags
+  //
+**/
+        $this->addMeta('charset', 'utf-8');
+        $this->addMeta(array(
+            'http-equiv' => 'content-language',
+            'content'    => $this->config('site', 'language'),
+        ));
+
+        if($this->config('site', 'no-zoom', true)){
+            $this->addMeta(array(
+                'name'    => 'viewport',
+                'content' => 'width=device-width, initial-scale=1',
+            ));
+        }
+
+            //this array holds the most common 
+            $metaArray = array(
+                'author'        => $this->config('cms',  'name', 'Cybershade CMS'),
+                'description'   => $this->config('site', 'description', ''),
+                'keywords'      => $this->config('site', 'keywords', ''),
+                //'copyright'     => langVar('L_SITE_COPYRIGHT', $this->config('site', 'title'), $this->config('cms', 'name'), CMS_VERSION),
+                'generator'     => $this->config('cms',  'name').' v'.CMS_VERSION,
+                'ROBOTS'        => 'INDEX, FOLLOW',
+                'GOOGLEBOT'     => 'INDEX, FOLLOW',
+
+                'user_id'       => -1,
+                'root'          => '/'.root(),
+                'url'           => $this->config('global', 'url', ''),
+            );
+
+            foreach($metaArray as $k => $v){
+                $this->addMeta(array(
+                    'name'    => $k,
+                    'content' => $v,
+                ));
+            }
+
+        $objTPL->assign_var('_META', $this->buildMeta());
+        
+    }  
+
+    private function siteFooter(){
+
+
+    }   
 }
 
 ?>

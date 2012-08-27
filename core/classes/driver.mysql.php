@@ -22,15 +22,16 @@ class driver_mysql extends core_SQL implements base_SQL{
      *
      * @param       array    $config
      *
-     * @return      bool
+     * @return      array
      */
-    public static function getInstance($options=array()){
+    public static function getInstance($name=null, $options=array()){
         $c = __CLASS__;
 
-        if (!isset(self::$_instances['database_'.$c])){
-            self::$_instances['database_'.$c] = new self($options);
+        if (!isset(self::$_classes['database'][$c])){
+            self::$_instances['database'][$c] = new self($options);
         }
-        return self::$_instances['database_'.$c];
+
+        return self::$_instances['database'][$c];
     }
 
 /**

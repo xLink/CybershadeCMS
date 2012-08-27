@@ -22,9 +22,9 @@ if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
     
 //some default settings, incase the cms dies before getting
 //the chance to populate the config array.
-    $config['cms']['name']         = 'CyberShade CMS';
+    $config['cms']['name']         = 'Cybershade CMS';
     $config['cms']['version']      = 'N/A';
-    $config['site']['title']       = 'CyberShade CMS';
+    $config['site']['title']       = 'Cybershade CMS';
     $config['site']['theme']       = 'default';
     $config['site']['language']    = 'en';
 

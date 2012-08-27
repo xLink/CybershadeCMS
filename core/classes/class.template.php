@@ -21,7 +21,7 @@ class template extends coreObj{
     // $this->_tpldata[block.][iteration#][child.][iteration#][child2.][iteration#][variablename] == value
     // if it's a root-level variable, it'll be like this:
     // $this->_tpldata[.][0][varname] == value
-    private $_tpldata = array();
+    public $_tpldata = array();
 
     // Hash of filenames for each template handle.
     public $files = array();
@@ -41,7 +41,7 @@ class template extends coreObj{
 
     public $__eval;
 
-    function __construct($args=array()) {
+    function __construct($name='', $args=array()) {
         $args = array(
             'useCache' => doArgs('useCache', false, $args),
             'cacheDir' => doArgs('cacheDir', '', $args),
@@ -49,7 +49,7 @@ class template extends coreObj{
         );
 
         if(!$this->set_rootdir($args['root'])) {
-            msgDie('FAIL', 'Unable to find template root directory: '. $args['root'] .' @ Line '.__LINE__);
+        	trigger_error('Error: Unable to find template root directory', E_USER_ERROR);
         }
 
         $this->use_cache = $args['useCache'];
@@ -304,7 +304,6 @@ class template extends coreObj{
         $from_http = 0;
         $fname = $filename;
         $filename = str_replace(array('../'), array('/'), $filename);
-        $extra_info = IS_ADMIN ? '<br /><br />Error: Template "'.$filename.'" not found.' : '';
         if(strtolower(substr($filename, 0, 4)) == 'http'){ $from_http = 1; }
 
         if(!$from_http) {
@@ -313,7 +312,8 @@ class template extends coreObj{
                 // this allows loading of a template by url
                 $filename = realpath(cmsROOT.$filename);
                 if($filename === false) {
-                    die('We have encountered a problem with the page you are currently using. '.$extra_info);
+                	$a = func_get_args();
+                    trigger_error('We have encountered a problem with the page you are currently using. '.dump($a));
                 }
 
                 $dirsep = (stristr(PHP_OS, 'WIN') ? '\\' : '/');
@@ -322,33 +322,7 @@ class template extends coreObj{
                 $file_name = $explode[$cexplode - 3].$dirsep.$explode[$cexplode - 1];
             }
 
-            //play with tempalte overrides
-            if(!isset($this->override[$handle]) || $this->override[$handle] === true) {
-                $file_name = (isset($file_name) ? $file_name : $filename);
-                $files = array();
 
-                //module/
-                $file[] = cmsROOT.'template/'.$this->tpl.'/template/'.$explode[$cexplode - 6].'/'.$explode[$cexplode - 2].'/'.$explode[$cexplode - 1];
-
-                //module/admin/
-                $file[] = cmsROOT.'template/'.$this->tpl.'/template/'.$explode[$cexplode - 4].'/'.$explode[$cexplode - 2].'/'.$explode[$cexplode - 1];
-
-                //core/admin/
-                $file[] = 'template/'.$this->tpl.'/template/'.$file_name;
-
-                foreach($file as $f) {
-                    if(file_exists($f)){ return realpath($f); }
-                }
-            }
-
-            if(!file_exists($filename)) {
-                if(!file_exists(cmsROOT.'template/default/'.$fname)) {
-                    msgDie('FAIL', 'We have encountered a problem with the page you are currently using. '.
-                                    'A notification has been sent to the administration who will try and fix the problem as soon as possible. '.$extra_info);
-                } else {
-                    return realpath(cmsROOT.'template/default/'.$fname);
-                }
-            }
         }
 
         return $filename;

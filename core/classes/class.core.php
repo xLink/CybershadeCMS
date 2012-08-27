@@ -17,6 +17,7 @@ class coreObj {
                     $_classes    = array(), 
                     $_instances  = array();
 
+
     /**    
      * Adds a directory to be scanned for classes to be loaded
      *
@@ -51,7 +52,9 @@ class coreObj {
      */
     public static function loadClass($class) {
         //echo dump($class, 'LOADING', 'pink');
-        if(empty(self::$classDirs)){ trigger_error('Error: No Directories to scan for class.', E_USER_ERROR); }
+        if(empty(self::$classDirs)){ 
+            trigger_error('Error: No Directories to scan for class.', E_USER_ERROR); 
+        }
 
         //only use the last part of the class name if it has an underscore
         if(strpos($class, '_') !== false){
@@ -184,7 +187,7 @@ class coreObj {
             return $config[$array];
         }
 
-        //make sure we have soemthing before trying to throw it out
+        //make sure we have something before trying to throw it out
         if(!in_array($array, array_keys($config))){
             return false;
         }
@@ -193,23 +196,24 @@ class coreObj {
     }
 
     /**
+     * Returns or spawns a new instance of this class.
      * 
      * @version 1.0
      * @since   1.0
-     * 
+     * @author  xLink
      *
      * @param   string      $prefix  Prefix used to distinguish objects.
+     *
+     * @return  new object
      */
-    public static function getInstance($prefix=''){
+    private static function getInstance($name, $options=array()){
 
-        if(!is_string($prefix)){ $prefix = md5($prefix); }
-
-        if (!isset(self::$_instances[$prefix]) || empty(self::$_instances[$prefix])){
+        if (!isset(self::$_classes[$name]) || empty(self::$_classes[$name])){
             $class = self::getStaticClassName();
-            self::$_instances[$prefix] = new $class($prefix);
+            self::$_classes[$name] = new $class($name, $options);
         }
 
-        return self::$_instances[$prefix];
+        return self::$_classes[$name];
     }
 
     /**
@@ -245,7 +249,7 @@ class coreObj {
     public static function getDBO($driver=null){
         global $errorTPL;
 
-        if(!isset(self::$_classes['database_'.$driver])){
+        if(!isset(self::$_classes['database'][$driver])){
             $options = self::config('db');
                 if(!$options){ trigger_error('Error: Could not obtain values from teh configuration file. Please ensure it is present.', E_USER_ERROR); }
 
@@ -261,7 +265,7 @@ class coreObj {
             $options['debug']      = (cmsDEBUG ? true : false);
             $options['logging']    = is_file(cmsROOT.'cache/ALLOW_LOGGING');
 
-            $objSQL = $name::getInstance($options);
+            $objSQL = new $name($options);
                 if($objSQL === false){
                     if(!headers_sent()){
                         header('HTTP/1.1 500 Internal Server Error');
@@ -278,34 +282,52 @@ class coreObj {
                     )
                 );
             }
-            self::$_classes['database_'.$name] = $objSQL;
+            self::$_classes['database'][$name] = $objSQL;
         }
 
-        return self::$_classes['database_'.$name];
+        return self::$_classes['database'][$name];
     }
 
-    public static function getSession(){
-        $options = array();
-        if(!isset(self::$_classes['session'])){
-            self::$_classes['session'] = self::createSession($options);
+    public static function getTPL(){
+        global $errorTPL;
+
+        if(!isset(self::$_classes['tpl'])){
+
+            $cachePath = cmsROOT.'cache/template/';
+            if(is_dir($cachePath) && !is_writable($cachePath)){ 
+                @chmod($cachePath, 0775); 
+            }
+
+            if(!is_writable($cachePath)){
+                trigger_error('Could not set CHMOD permissions on "<i>'.$cachePath.'</i>" set to 775 to continue.', E_USER_ERROR);
+            }
+
+            $cacheWritable = (is_writable($cachePath) ? true : false);
+
+            template::getInstance('tpl', array(
+                'useCache' => $cacheWritable,
+                'cacheDir' => $cachePath,
+                'root'     => '.',
+            ));
         }
 
-        return self::$_classes['session'];
+        return self::$_classes['tpl'];
     }
 
-    protected static function createSession($options = array()){
-        // // Get the editor configuration setting
-        // $handler = self::config('session', 'session_handler', 'none');
+    public static function getPlugins(){
+        if(!isset(self::$_classes['plugins'])){
+            plugins::getInstance('plugins');
+        }
 
-        // // Config time is in minutes
-        // $options['expire'] = (self::config('session', 'lifetime')) ? self::config('session', 'lifetime') * 60 : 900;
+        return self::$_classes['plugins'];
+    }
 
-        $objSession = session::getInstance($handler, $options);
-        // if ($objSession->getState() == 'expired'){
-        //     $objSession->restart();
-        // }
+    public static function getPage(){
+        if(!isset(self::$_classes['page'])){
+            page::getInstance('page');
+        }
 
-        return $objSession;
+        return self::$_classes['page'];
     }
 
 

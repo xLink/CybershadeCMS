@@ -30,7 +30,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     }
 
     /**
-     * Determines whether to set
+     * Tests $args for $key, if it is not a valid key, then return $default.
+     * Extra checks can be called in by $callback, either a function name, or a closure.
      *
      * @version 1.2
      * @since   1.0.0

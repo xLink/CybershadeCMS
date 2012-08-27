@@ -116,22 +116,13 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 // $a = get_included_files();
 // echo dump($a, 'Core - Loaded Files', 'orange');
 
-    $objCore  = new coreObj;
-
-        //cache setup
-        $cachePath = cmsROOT.'cache/';
-        if(is_dir($cachePath) && !is_writable($cachePath)){ @chmod($cachePath, 0775); }
-        if(!is_writable($cachePath)){
-            msgDie('FAIL', sprintf($errorTPL, 'Fatal Error', 'Could not set CHMOD permissions on "<i>cache/</i>" set to 775 to continue.'));
-        }
-
-        $cacheWritable = (is_writable($cachePath) ? true : false);
+    $objCore     = new coreObj;
 
     $objSQL      = coreObj::getDBO();
     #$objSession = coreObj::getSession();
-    //$objHooks    = plugins::getInstance();
-    //$objTPL      = template::getInstance();
-    $objPage     = page::getInstance();
+    $objPlugin   = coreObj::getPlugins();
+    $objTPL      = coreObj::getTPL();
+    $objPage     = coreObj::getPage();
 
 // $a = $objModule->moduleExists('core');
 // echo dump($a, 'module exists');
