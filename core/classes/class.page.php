@@ -191,10 +191,11 @@ class page extends coreObj{
 
         if(!isset($css['src'])){ return false; }
 
-        $file = explode(DS, $css['src']);
-            if(array_key_exists(end($file), $this->cssFiles)){ return false; }
+        $file = str_replace(DS, '-', $css['src']);
+        $file = md5($file);
+            if(array_key_exists($file, $this->cssFiles)){ return false; }
 
-        $this->cssFiles[end($file)] = $css;
+        $this->cssFiles[$file] = $css;
 
         return true;
     }
@@ -255,12 +256,13 @@ class page extends coreObj{
 
         if(!isset($js['src'])){ return false; }
 
-        $file = explode(DS, $js['src']);
-            if(isset($this->jsFiles[$position]) && array_key_exists(end($file), $this->jsFiles[$position])){ 
+        $file = str_replace(DS, '-', $js['src']);
+        $file = md5($file);
+            if(isset($this->jsFiles[$position]) && array_key_exists($file, $this->jsFiles[$position])){ 
                 return false; 
             }
 
-        $this->jsFiles[$position][end($file)] = $js;
+        $this->jsFiles[$position][$file] = $js;
 
         return true;
     }
