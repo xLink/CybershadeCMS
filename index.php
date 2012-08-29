@@ -10,8 +10,9 @@ $objPage->setTheme();
 
 $objPage->setTitle('Test');
 
+$objPage->buildPage();
 $objPage->showHeader();
 echo 'rawr';
 $objPage->showFooter();
-echo dump($objTPL);
+
 ?>

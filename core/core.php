@@ -29,7 +29,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 (cmsDEBUG ? memoryUsage('loaded debug funcs') : '');
 
-    if(cmsDEBUG){
+    if(cmsDEBUG && false){
         require_once(cmsROOT.'core/php_error.php');
         \php_error\reportErrors(array(
           'snippet_num_lines'   => 20,
@@ -123,8 +123,6 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objPlugin   = coreObj::getPlugins();
     $objTPL      = coreObj::getTPL();
     $objPage     = coreObj::getPage();
-
-echo dump(coreObj::$_classes['tpl']);
 
 // $a = $objModule->moduleExists('core');
 // echo dump($a, 'module exists');

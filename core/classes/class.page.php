@@ -26,7 +26,7 @@ class page extends coreObj{
   //    
 **/
     public function setOptions($key, $value){
-        if(!empty($key) || !empty($value)){ return false; }
+        if(is_empty($key) || is_empty($value)){ return false; }
 
         $this->options[$key] = $value;
 
@@ -43,7 +43,7 @@ class page extends coreObj{
      * @param   array  $title
      */
     public function getOptions($key){
-        if(!empty($this->options) && array_key_exists($key, $this->options)){
+        if(!is_empty($this->options) && array_key_exists($key, $this->options)){
             return $this->options[$key];
         }
 
@@ -496,8 +496,6 @@ class page extends coreObj{
     }  
 
     public function showFooter(){
-        $a = $this->options;
-        echo dump($a);
         if(!$this->getOptions('completed')){ return; }
 
         $objTPL     = self::getTPL();

@@ -292,8 +292,6 @@ class coreObj {
         global $errorTPL;
 
         if(!isset(coreObj::$_classes['tpl'])){
-            $a = debug_backtrace();
-            echo dump($a, 'TPL not initd, spawning new.');
             $cachePath = cmsROOT.'cache/template/';
             if(is_dir($cachePath) && !is_writable($cachePath)){ 
                 @chmod($cachePath, 0775); 
