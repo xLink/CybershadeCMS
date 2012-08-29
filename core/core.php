@@ -124,6 +124,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objTPL      = coreObj::getTPL();
     $objPage     = coreObj::getPage();
 
+echo dump(coreObj::$_classes['tpl']);
+
 // $a = $objModule->moduleExists('core');
 // echo dump($a, 'module exists');
 

@@ -208,12 +208,12 @@ class coreObj {
      */
     private static function getInstance($name, $options=array()){
 
-        if (!isset(self::$_classes[$name]) || empty(self::$_classes[$name])){
+        if (!isset(coreObj::$_classes[$name]) || empty(coreObj::$_classes[$name])){
             $class = self::getStaticClassName();
-            self::$_classes[$name] = new $class($name, $options);
+            coreObj::$_classes[$name] = new $class($name, $options);
         }
 
-        return self::$_classes[$name];
+        return coreObj::$_classes[$name];
     }
 
     /**
@@ -249,7 +249,7 @@ class coreObj {
     public static function getDBO($driver=null){
         global $errorTPL;
 
-        if(!isset(self::$_classes['database'][$driver])){
+        if(!isset(coreObj::$_classes['database'][$driver])){
             $options = self::config('db');
                 if(!$options){ trigger_error('Error: Could not obtain values from teh configuration file. Please ensure it is present.', E_USER_ERROR); }
 
@@ -282,17 +282,18 @@ class coreObj {
                     )
                 );
             }
-            self::$_classes['database'][$name] = $objSQL;
+            coreObj::$_classes['database'][$name] = $objSQL;
         }
 
-        return self::$_classes['database'][$name];
+        return coreObj::$_classes['database'][$name];
     }
 
     public static function getTPL(){
         global $errorTPL;
 
-        if(!isset(self::$_classes['tpl'])){
-
+        if(!isset(coreObj::$_classes['tpl'])){
+            $a = debug_backtrace();
+            echo dump($a, 'TPL not initd, spawning new.');
             $cachePath = cmsROOT.'cache/template/';
             if(is_dir($cachePath) && !is_writable($cachePath)){ 
                 @chmod($cachePath, 0775); 
@@ -311,23 +312,23 @@ class coreObj {
             ));
         }
 
-        return self::$_classes['tpl'];
+        return coreObj::$_classes['tpl'];
     }
 
     public static function getPlugins(){
-        if(!isset(self::$_classes['plugins'])){
+        if(!isset(coreObj::$_classes['plugins'])){
             plugins::getInstance('plugins');
         }
 
-        return self::$_classes['plugins'];
+        return coreObj::$_classes['plugins'];
     }
 
     public static function getPage(){
-        if(!isset(self::$_classes['page'])){
+        if(!isset(coreObj::$_classes['page'])){
             page::getInstance('page');
         }
 
-        return self::$_classes['page'];
+        return coreObj::$_classes['page'];
     }
 
 

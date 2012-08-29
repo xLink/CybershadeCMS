@@ -267,6 +267,32 @@ class page extends coreObj{
         return true;
     }
 
+    /**
+     * Adds a JS Code to be loaded.
+     *
+     * @version 2.0
+     * @since   1.0
+     * @author  xLink
+     *
+     * @param   string  $code
+     *
+     * @return  bool
+     */
+    public function addJSCode($code){
+        if(empty($code)){ return false; }
+
+        $code = str_replace(DS, '-', $code);
+        $code = md5($code);
+
+            if(isset($this->jsCode) && array_key_exists($code, $this->jsCode)){ 
+                return false; 
+            }
+
+        $this->jsCode[$code] = $js;
+
+        return true;
+    }
+
         /**
          * Builds the JS Files & SubScripts.
          *
@@ -277,18 +303,29 @@ class page extends coreObj{
          * @return  string
          */
         public function buildJS($mode){
-            if(!count($this->jsFiles[$mode])){ return false; }
+            if(!count($this->jsFiles[$mode]) && !count($this->jsCode[$mode])){ return false; }
 
-            $_tag = "\n".'<script%s></script>';
+            $_tag = "\n".'<script%s>%s</script>';
             $_arg  = ' %s="%s"';
 
             $return = null;
-            foreach($this->jsFiles[$mode] as $args){
-                $tag = null;
-                foreach($args as $k => $v){
-                    $tag .= sprintf($_arg, $k, $v);
+
+            //do the files
+            if(!empty($this->jsFiles[$mode])){
+                foreach($this->jsFiles[$mode] as $args){
+                    $tag = null;
+                    foreach($args as $k => $v){
+                        $tag .= sprintf($_arg, $k, $v);
+                    }
+                    $return .= sprintf($_tag, $tag, '');
                 }
-                $return .= sprintf($_tag, $tag);
+            }
+
+            // & if we are in footer mode, do the js code too 
+            if($mode=='footer' && !empty($this->jsCode)){
+                foreach($this->jsCode as $args){
+                    $return .= sprintf($_tag, '', $code);
+                }
             }
 
             return $return;
@@ -350,21 +387,9 @@ class page extends coreObj{
             return $return;
         }
 
-
-    public function showHeader(){
-        if($this->getOptions('completed')){ return; }
-
+    public function buildPage(){
         $objTPL     = self::getTPL();
         $objPlugins = self::getPlugins();
-
-        //run a check on simple
-        $simple = ($this->getOptions('mode') ? true : false);
-
-        //see if we are gonna get the simple one or the full blown one
-        $header = ($simple ? 'simple_header.tpl' : 'site_header.tpl');
-        $header = ('simple_header.tpl');
-
-        $objTPL->set_filenames(array( 'siteHeader' => self::$THEME_ROOT . $header ));
 
 /**
   //
@@ -447,6 +472,22 @@ class page extends coreObj{
 
         $objTPL->assign_var('_JS_HEADER', $this->buildJS('header'));
         $objTPL->assign_var('_JS_FOOTER', $this->buildJS('footer'));
+    }
+
+    public function showHeader(){
+        if($this->getOptions('completed')){ return; }
+
+        $objTPL     = self::getTPL();
+
+        //run a check on simple
+        $simple = ($this->getOptions('mode') ? true : false);
+
+        //see if we are gonna get the simple one or the full blown one
+        $header = ($simple ? 'simple_header.tpl' : 'site_header.tpl');
+        // $header = ('simple_header.tpl');
+
+        $objTPL->set_filenames(array( 'siteHeader' => self::$THEME_ROOT . $header ));
+
 
 
         $objTPL->parse('siteHeader');
@@ -454,9 +495,25 @@ class page extends coreObj{
         $this->setOptions('completed', 1);
     }  
 
-    private function showFooter(){
+    public function showFooter(){
+        $a = $this->options;
+        echo dump($a);
         if(!$this->getOptions('completed')){ return; }
 
+        $objTPL     = self::getTPL();
+
+        //run a check on simple
+        $simple = ($this->getOptions('mode') ? true : false);
+
+        //see if we are gonna get the simple one or the full blown one
+        $footer = ($simple ? 'simple_footer.tpl' : 'site_footer.tpl');
+        // $footer = ('simple_footer.tpl');
+
+        $objTPL->set_filenames(array( 'siteFooter' => self::$THEME_ROOT . $footer ));
+
+
+
+        $objTPL->parse('siteFooter');
     }   
 }
 

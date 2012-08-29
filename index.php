@@ -11,6 +11,7 @@ $objPage->setTheme();
 $objPage->setTitle('Test');
 
 $objPage->showHeader();
-
-
+echo 'rawr';
+$objPage->showFooter();
+echo dump($objTPL);
 ?>
