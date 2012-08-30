@@ -69,16 +69,7 @@ class driver_mysql extends core_SQL implements base_SQL{
 
         // if we have persistent enabled, we'll try that first
         if($this->dbSettings['persistent'] === true){
-
-            // Updated to not surpress errors
-            $pConnect = mysql_pconnect($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password']);
-
-            if( !$pConnect ){
-                trigger_error('Cannot create a persistant connection to the database', E_USER_ERROR);
-            }
-
-            $this->DBH = $pConnect;
-
+            $this->DBH = @mysql_pconnect($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password']);
             if($this->DBH === false){
                 $this->dbSettings['persistent'] = false;
             }
