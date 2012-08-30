@@ -12,7 +12,7 @@ $objPage->setTitle('Test');
 
 $objPage->buildPage();
 $objPage->showHeader();
-echo 'rawr';
-$objPage->showFooter();
 
+
+$objPage->showFooter();
 ?>

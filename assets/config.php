@@ -25,7 +25,7 @@ if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
     $config['cms']['name']         = 'Cybershade CMS';
     $config['cms']['version']      = 'N/A';
     $config['site']['title']       = 'Cybershade CMS';
-    $config['site']['theme']       = 'default';
+    $config['site']['theme']       = 'cybershade';
     $config['site']['language']    = 'en';
 
 ?>

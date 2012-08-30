@@ -49,7 +49,7 @@ $min_allowDebugFlag = false;
  * For best performance, specify your temp directory here. Otherwise Minify
  * will have to load extra code to guess. Some examples below:
  */
-$min_cachePath = '../../../cache/media/';
+$min_cachePath = $cmsROOT.'cache/media/';
 //$min_cachePath = '/tmp';
 //$min_cachePath = preg_replace('/^\\d+;/', '', session_save_path());
 /**

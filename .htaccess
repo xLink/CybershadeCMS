@@ -1,0 +1,38 @@
+Options -Indexes -MultiViews
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    <IfModule mod_env.c>
+        setEnv REWRITE 1
+    </IfModule>
+
+##Kill recursive redirects
+RewriteCond %{ENV:REDIRECT_STATUS} 200
+RewriteRule .* - [L]
+
+##Make sure we get 1 version of the domain only
+#RewriteCond %{HTTP_HOST} ^cybershade.org
+#RewriteRule (.*) http://www.cybershade.org/$1 [R=301,L]
+
+##minifing techniques
+RewriteRule ^assets/styles/([^.]*)-min.css              core/lib/min/index.php?g=$1&t=css [QSA,L]
+RewriteRule ^assets/javascript/([^.]*)-min.js           core/lib/min/index.php?g=$1&t=js [QSA,L]
+RewriteRule ^themes/([^/]*)/(.*)-min.css                core/lib/min/index.php?b=themes/$1&f=$2 [QSA,L]
+RewriteRule ^themes/([^/]*)/(.*)-min.js                 core/lib/min/index.php?b=themes/$1&f=$2 [QSA,L]
+RewriteRule ^modules/([^/]*)/styles/([^.]*)-min.css     core/lib/min/index.php?b=modules/$1/styles&f=$2.css [QSA,L]
+RewriteRule ^modules/([^/]*)/scripts/([^.]*)-min.js     core/lib/min/index.php?b=modules/$1/scripts&f=$2.js [QSA,L]
+
+##control panels
+#RewriteRule ^(admin|mod|user)/([^/]*)/([^.]*)(.*)       control.php?__mode=$1&__module=$2&__action=$3&__extra=$4 [QSA,L]
+#RewriteRule ^(admin|mod|user)($|/)                      control.php?__mode=$1 [QSA,L]
+
+##extra module bits
+RewriteRule ^modules/([^/]*)/([^.]*)(.*)                modules.php?__module=$1&__action=$2&__extra=$3 [QSA,L]
+RewriteRule ^modules($|/)                               modules.php [QSA,L]
+
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/x-javascript text/css text/html text/xml
+</IfModule>

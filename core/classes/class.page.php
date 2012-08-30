@@ -95,6 +95,45 @@ class page extends coreObj{
         ));
     }
 
+        /**
+         * 
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  xLink
+         *
+         */
+        public function buildMenu(){
+            $objTPL = self::getTPL();
+
+            $noMenu = (defined('NO_MENU') && NO_MENU ? true : false);
+
+            $menu = $this->getOptions('moduleMenu');
+            if($menu['module'] === false){ $noMenu = true; }
+
+            //we cant do nothin without any blocks
+            if(!$noMenu && !is_empty($config['menu_blocks'])){
+                //if it got set to null, or wasnt set atall, default to the core menu
+                if(!isset($menu['module']) || is_empty($menu['module'])){ 
+                    $menu['module'] = 'core';
+                }
+                if(!isset($menu['page_id']) || is_empty($menu['page_id'])){ 
+                    $menu['page_id'] = 'default';
+                }
+
+                //then do the output
+                $menuSetup = show_menu($menu['module'], $menu['page_id']);
+                if($menuSetup){
+                    $objTPL->assign_block_vars('menu', array());
+                }
+            }else{
+                //if we cant show menu, may aswell set the no_menu block
+                $objTPL->assign_block_vars('no_menu', array());
+            }
+
+        }
+
+
     /**
      * Sets the Theme for this page to use
      *
@@ -169,7 +208,7 @@ class page extends coreObj{
      *
      * @param   array           Containing the array, either with or without keys.
      * -------------------------------
-     * @param   string  $src    The path of the file
+     * @param   string  $href   The path of the file
      * @param   string  $type   The type of the file, text/css || text/less
      * @param   string  $rel    Usually stylesheet
      *
@@ -181,17 +220,17 @@ class page extends coreObj{
         $arg = func_get_arg(0);
 
         $css = $args;
-        if(!is_array($arg) || !array_key_exists('src', $args)){
+        if(!is_array($arg) || !array_key_exists('href', $args)){
             $css = array(
-                'src'  => doArgs(0, false, $args),
+                'href'  => doArgs(0, false, $args),
                 'type' => doArgs(1, 'text/css', $args),
                 'rel'  => doArgs(2, 'stylesheet', $args),
             );
         }
 
-        if(!isset($css['src'])){ return false; }
+        if(!isset($css['href'])){ return false; }
 
-        $file = str_replace(DS, '-', $css['src']);
+        $file = str_replace(DS, '-', $css['href']);
         $file = md5($file);
             if(array_key_exists($file, $this->cssFiles)){ return false; }
 
@@ -432,7 +471,6 @@ class page extends coreObj{
                     ));
                 }
                 unset($metaArray);
-         $objTPL->assign_var('_META', $this->buildMeta());
 
 /**
   //
@@ -442,7 +480,7 @@ class page extends coreObj{
         $cssDir = '/'.root().'assets/styles';
 
         $this->addCSSFile($cssDir.'/framework-min.css', 'text/css');
-        $this->addCSSFile($cssDir.'/extras-min.css', 'text/css');
+        #$this->addCSSFile($cssDir.'/extras-min.css', 'text/css');
         
         //throw a hook here, so they have the ability to do...whatever
         $cssFiles = array();
@@ -454,7 +492,6 @@ class page extends coreObj{
                 }
             }
 
-         $objTPL->assign_var('_CSS', $this->buildCSS());
 /**
   //
   //-- JS
@@ -464,12 +501,23 @@ class page extends coreObj{
 
         $this->addJSFile($cssDir.'/framework-min.js', 'header');
         $this->addJSFile($cssDir.'/extras-min.js', 'footer');
-        
+
         //throw a hook here, so they have the ability to do...whatever
         $jsFiles = array();
         $objPlugins->hook('CMSPage_jsFiles', $jsFiles);
 
 
+
+
+        $themeConfig = self::$THEME_ROOT.'theme.php';
+        if(is_readable($themeConfig)){ 
+            include_once($themeConfig); 
+        }
+
+        $this->buildMenu();
+
+        $objTPL->assign_var('_META', $this->buildMeta());
+        $objTPL->assign_var('_CSS', $this->buildCSS());
         $objTPL->assign_var('_JS_HEADER', $this->buildJS('header'));
         $objTPL->assign_var('_JS_FOOTER', $this->buildJS('footer'));
     }
