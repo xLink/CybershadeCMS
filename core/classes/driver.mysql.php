@@ -69,7 +69,16 @@ class driver_mysql extends core_SQL implements base_SQL{
 
         // if we have persistent enabled, we'll try that first
         if($this->dbSettings['persistent'] === true){
-            $this->DBH = @mysql_pconnect($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password']);
+
+            // Updated to not surpress errors
+            $pConnect = mysql_pconnect($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password']);
+
+            if( !$pConnect ){
+                trigger_error('Cannot create a persistant connection to the database', E_USER_ERROR);
+            }
+
+            $this->DBH = $pConnect;
+
             if($this->DBH === false){
                 $this->dbSettings['persistent'] = false;
             }
@@ -120,7 +129,7 @@ class driver_mysql extends core_SQL implements base_SQL{
     }
 
     /**
-     * Error Handler for 
+     * Error Handler for
      *
      * @version     1.0
      * @since       1.0.0
@@ -160,7 +169,7 @@ class driver_mysql extends core_SQL implements base_SQL{
 
         //exec the query and cache it
         $this->results = mysql_query($query, $this->DBH) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
-        
+
 
         if($this->dbSettings['debug']){
             $backtrace = debug_backtrace();
@@ -174,7 +183,7 @@ class driver_mysql extends core_SQL implements base_SQL{
             $debug['affected_rows'] = $this->affectedRows();
             $debug['query_end']     = microtime(true);
             $debug['time_taken']    = substr(($debug['query_end'] - $debug['query_start']), 0, 7);
-            
+
             $this->totalTime        += $debug['time_taken'];
             $debug['total_time']    = $this->totalTime;
         }
