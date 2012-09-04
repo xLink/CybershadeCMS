@@ -51,9 +51,9 @@
     <div class="row">
 
         <aside class="span4">
-            <section>
+            <div class="menu">
                 <header>Main Menu</header>
-                <article>
+                <section>
                     <ul class="nav nav-list">
                         <li class="nav-header">List header</li>
                         <li class="active"><a href="#">Home</a></li>
@@ -65,12 +65,12 @@
                         <li class="divider"></li>
                         <li><a href="#">Help</a></li>
                     </ul>
-                </article>
-            </section>
+                </section>
+            </div>
 
-            <section>
+            <div class="menu">
                 <header>Main Menu (no-padding)</header>
-                <article class="no-padding">
+                <section class="no-padding">
                     <ul class="nav nav-list">
                         <li class="nav-header">List header</li>
                         <li class="active"><a href="#">Home</a></li>
@@ -82,24 +82,20 @@
                         <li class="divider"></li>
                         <li><a href="#">Help</a></li>
                     </ul>
-                </article>
-            </section>
+                </section>
+            </div>
 
-            <section>
+            <div class="menu">
                 <header>Latest Posts</header>
-                <article>
+                <section>
 
-                </article>
-            </section>
+                </section>
+            </div>
         </aside>
 
-        <section class="span8">
-            <header>News</header>
-            <article>
-                <header>New Cybershade.Org Theme!</header>
-
-            </article>
-        </section>
+        <div id="pageContent" class="span8">
+            {THEME_TESTER}
+        </div>
     </div>
 </section>
 
