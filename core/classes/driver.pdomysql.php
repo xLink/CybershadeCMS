@@ -7,8 +7,6 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class PDOMySQL extends core_SQL implements base_SQL{
 
-    public $DBH;
-
     public static function getInstance($name = null, $options = array() ) {
         $c = __CLASS__;
 
