@@ -1,0 +1,1 @@
+lessc theme.less theme.css -compress
