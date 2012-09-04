@@ -21,31 +21,91 @@
         </div>
     </div>
 
-        <div id="nav" class="navbar"><div class="navbar-inner">
-            <div class="container">
+    <div id="nav" class="navbar"><div class="navbar-inner">
+        <div class="container">
             <ul class="nav">
-                <li class="active"><a href="#">Home</a></li>
+                <li><a href="#">Home</a></li>
                 <li><a href="#">Link</a></li>
                 <li><a href="#">Link</a></li>
                 <li class="dropdown">
-                <a data-toggle="dropdown" class="dropdown-toggle" href="#">Dropdown <b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                    <li><a href="#">Action</a></li>
-                    <li><a href="#">Another action</a></li>
-                    <li><a href="#">Something else here</a></li>
-                    <li class="divider"></li>
-                    <li class="nav-header">Nav header</li>
-                    <li><a href="#">Separated link</a></li>
-                    <li><a href="#">One more separated link</a></li>
-                </ul>
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Dropdown <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li class="nav-header">Nav header</li>
+                        <li><a href="#">Separated link</a></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
                 </li>
             </ul>
-            </div>
-        </div></div>
+
+        </div>
+    </div></div>
+
 
 </header>
 
+<section class="container">
+    <div class="row">
 
+        <aside class="span4">
+            <section>
+                <header>Main Menu</header>
+                <article>
+                    <ul class="nav nav-list">
+                        <li class="nav-header">List header</li>
+                        <li class="active"><a href="#">Home</a></li>
+                        <li><a href="#">Library</a></li>
+                        <li><a href="#">Applications</a></li>
+                        <li class="nav-header">Another list header</li>
+                        <li><a href="#">Profile</a></li>
+                        <li><a href="#">Settings</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Help</a></li>
+                    </ul>
+                </article>
+            </section>
+
+            <section>
+                <header>Main Menu (no-padding)</header>
+                <article class="no-padding">
+                    <ul class="nav nav-list">
+                        <li class="nav-header">List header</li>
+                        <li class="active"><a href="#">Home</a></li>
+                        <li><a href="#">Library</a></li>
+                        <li><a href="#">Applications</a></li>
+                        <li class="nav-header">Another list header</li>
+                        <li><a href="#">Profile</a></li>
+                        <li><a href="#">Settings</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Help</a></li>
+                    </ul>
+                </article>
+            </section>
+
+            <section>
+                <header>Latest Posts</header>
+                <article>
+
+                </article>
+            </section>
+        </aside>
+
+        <section class="span8">
+            <header>News</header>
+            <article>
+                <header>New Cybershade.Org Theme!</header>
+
+            </article>
+        </section>
+    </div>
+</section>
+
+<footer>
+
+</footer>
 
 {_JS_FOOTER}
 </body>

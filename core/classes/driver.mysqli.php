@@ -12,7 +12,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 * @author       xLink
 */
 class driver_mysqli extends core_SQL implements base_SQL{
-            
+
     /**
      * Returns or Sets up Instance for this class.
      *
@@ -75,7 +75,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
         $this->query('SET CHARACTER SET utf8;');
         $this->query('SET GLOBAL innodb_flush_log_at_trx_commit = 2;');
-        
+
         //and carry on
         return true;
     }
@@ -91,8 +91,8 @@ class driver_mysqli extends core_SQL implements base_SQL{
     }
 
     public function getError(){
-        if(mysql_errno($this->DBH) != 0){
-            return sprintf(' (%d) %s ', mysqli_errno($this->DBH), mysqli_error($this->DBH));
+        if($this->DBH->errno != 0){
+            return sprintf(' (%d) %s ', $this->DBH->errno, $this->DBH->error);
         }
         return false;
     }
@@ -108,7 +108,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
     }
 
     public function freeResult(){
-        
+
         if(isset($this->results) && is_resource($this->results)){
             $this->results->close();
             unset($this->results);
@@ -137,7 +137,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
             $debug['affected_rows'] = $this->affectedRows();
             $debug['query_end']     = microtime(true);
             $debug['time_taken']    = substr(($debug['query_end'] - $debug['query_start']), 0, 7);
-            
+
             $this->totalTime        += $debug['time_taken'];
             $debug['total_time']    = $this->totalTime;
         }
@@ -159,7 +159,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
     public function affectedRows(){
         return $this->DBH->affected_rows;
     }
-    
+
 }
 
 ?>
