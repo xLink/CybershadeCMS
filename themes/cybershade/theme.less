@@ -7,17 +7,6 @@ body{
     color: #2d2d2d;
     background: #FFFFFF url('images/body_pattern.png') repeat;
 
-    .well, .breadcrumb, input,
-    input[type="file"], select,
-    textarea, .progress, code, pre {
-      -moz-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
-      -webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
-      -o-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
-      box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
-      background: #202020;
-      background-color: rgba(0, 0, 0, 0.3);
-    }
-
     > header{
         height: 300px;
         border-bottom: 1px solid #000;
@@ -161,7 +150,44 @@ body{
                         }
                     }
                 }
-          }
+            }
+        }
+
+        div#shoutbox{
+            border: 1px solid #0a0a0a;
+            .box-shadow(0 4px 2px rgba(0, 0, 0, 0.2));
+            .border-radius(5px);
+            margin: 0 auto;
+            padding: 0;
+
+            header{
+                #gradient > .vertical(#212121, #191919);
+                padding: 10px;
+                font-size: 12px;
+                color: white;
+                .border-top-radius(5px);
+            }
+            section{
+                //#gradient > .vertical(#080808, #191919);
+                .border-bottom-radius(5px);
+                background-color: #080808;
+
+                div{
+                    div{
+                        overflow-x: hidden;
+                        overflow-y: auto;
+                        height: 100px;
+                    }
+
+                }
+                ul{
+                    list-style-type: none;
+
+                    li{
+                        color: white;
+                    }
+                }
+            }
         }
     }
 
@@ -175,6 +201,8 @@ body{
                 font-size: 15px;
                 margin-top: 15px;
                 margin-bottom: 5px;
+
+                top: 1px;
 
                 #gradient > .vertical(#212121, #191919);
             }
@@ -197,13 +225,21 @@ body{
                 float: left;
 
                 div.menu{
+                    padding: 0;
+                    margin-top: 10px;
 
                     header{
 
                     }
 
                     section{
+                        header{
+                            margin: 0;
+                            padding: 8px;
+                            .box-shadow(none);
+                            .border-radius(5px);
 
+                        }
                     }
 
                 }
@@ -258,7 +294,6 @@ body{
 }
 
 /** Normal Elements **/
-
 
 
 
