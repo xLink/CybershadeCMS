@@ -1,6 +1,6 @@
 
 //add the CMS header to prototype's ajax requests, we can tell if its coming from this lib
-Ajax.Base.prototype.initialize = Ajax.Base.prototype.initialize.wrap(
+/*Ajax.Base.prototype.initialize = Ajax.Base.prototype.initialize.wrap(
     function (callOriginal, options) {
         var headers = options.requestHeaders || {};
         headers["X-CMS-IS"] = 'CybershadeCMS';
@@ -8,3 +8,4 @@ Ajax.Base.prototype.initialize = Ajax.Base.prototype.initialize.wrap(
         return callOriginal(options);
     }
 );
+*/

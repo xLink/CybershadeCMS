@@ -47,34 +47,66 @@
     <div class="container">
         <div id="shoutbox">
             <header class="row">
-                <div class="span2">Users Online</div>
-                <div class="span7">Community Chat</div>
-                <div class="span2">Post Your Message</div>
+                <div class="span2">Users Only</div>
+                <div class="span7">Community Activity</div>
+                <div class="span2">You!</div>
             </header>
             <section class="row">
-                <div class="span2">
+                <div id="userlist" class="span2">
                     <ul class="nav nav-list">
-                        <li><i class="fam-bullet-blue"></i> xLink</li>
-                        <li><i class="fam-bullet-black"></i> Jesus</li>
-                        <li><i class="fam-bullet-red"></i> Darkmantis</li>
-                        <li><i class="fam-bullet-blue"></i> xLink</li>
-                        <li><i class="fam-bullet-black"></i> Darkmantis</li>
-                        <li><i class="fam-bullet-blue"></i> xLink</li>
-                        <li><i class="fam-bullet-black"></i> Jesus</li>
-                        <li><i class="fam-bullet-blue"></i> xLink</li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-red"></i> xLink</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-black"></i> Darkmantis</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-blue"></i> Jesus</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-red"></i> xLink</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-black"></i> Darkmantis</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-blue"></i> Jesus</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-red"></i> xLink</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-black"></i> Darkmantis</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-blue"></i> Jesus</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-red"></i> xLink</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-black"></i> Darkmantis</div>
+                        </li>
+                        <li>
+                            <div class="username"> <i class="fam-bullet-blue"></i> Jesus</div>
+                        </li>
                     </ul>
                 </div>
 
-                <div class="span7">
-
+                <div id="activity" class="span7">
+                    <div class="activity">
+                        <div class="username"> <i class="fam-bullet-red"></i> xLink </div>
+                    </div>
                 </div>
 
-                <div class="span3">
+                <div id="userblock" class="span2">
 
                 </div>
             </section>
         </div>
     </div>
+
+    <div class="clearfix"></div>
 </header>
 
 <section class="container">

@@ -21,9 +21,9 @@ class page extends coreObj{
     }
 
 /**
-  //    
-  //-- Setup Functions    
-  //    
+  //
+  //-- Setup Functions
+  //
 **/
     public function setOptions($key, $value){
         if(is_empty($key) || is_empty($value)){ return false; }
@@ -85,18 +85,18 @@ class page extends coreObj{
      * @author  xLink
      *
      * @param   string  $moduleName     Name of the module
-     * @param   string  $page_id        Page ID 
-     * 
+     * @param   string  $page_id        Page ID
+     *
      */
     public function setMenu($moduleName, $page_id='default'){
         $this->setOptions('moduleMenu',  array(
-            'module'  => $moduleName, 
+            'module'  => $moduleName,
             'page_id' => $page_id,
         ));
     }
 
         /**
-         * 
+         *
          *
          * @version 1.0
          * @since   1.0
@@ -114,10 +114,10 @@ class page extends coreObj{
             //we cant do nothin without any blocks
             if(!$noMenu && !is_empty($config['menu_blocks'])){
                 //if it got set to null, or wasnt set atall, default to the core menu
-                if(!isset($menu['module']) || is_empty($menu['module'])){ 
+                if(!isset($menu['module']) || is_empty($menu['module'])){
                     $menu['module'] = 'core';
                 }
-                if(!isset($menu['page_id']) || is_empty($menu['page_id'])){ 
+                if(!isset($menu['page_id']) || is_empty($menu['page_id'])){
                     $menu['page_id'] = 'default';
                 }
 
@@ -142,8 +142,8 @@ class page extends coreObj{
      * @author  xLink
      *
      * @param   string  $theme
-     * 
-     * @return  bool 
+     *
+     * @return  bool
      */
     public function setTheme($theme=null){
         if(is_empty($theme)){
@@ -172,7 +172,7 @@ class page extends coreObj{
      * @author  xLink
      *
      * @param   array  $value   An array with 2 elements, [text] && [link]
-     * 
+     *
      * @return  bool
      */
     public function addBreadcrumbs(array $value){
@@ -192,7 +192,7 @@ class page extends coreObj{
          * @author  xLink
          *
          * @param   array  $value   An array with 2 elements, [text] && [link]
-         * 
+         *
          * @return  bool
          */
         private function buildBreadrumbs(){
@@ -297,8 +297,8 @@ class page extends coreObj{
 
         $file = str_replace(DS, '-', $js['src']);
         $file = md5($file);
-            if(isset($this->jsFiles[$position]) && array_key_exists($file, $this->jsFiles[$position])){ 
-                return false; 
+            if(isset($this->jsFiles[$position]) && array_key_exists($file, $this->jsFiles[$position])){
+                return false;
             }
 
         $this->jsFiles[$position][$file] = $js;
@@ -323,8 +323,8 @@ class page extends coreObj{
         $code = str_replace(DS, '-', $code);
         $code = md5($code);
 
-            if(isset($this->jsCode) && array_key_exists($code, $this->jsCode)){ 
-                return false; 
+            if(isset($this->jsCode) && array_key_exists($code, $this->jsCode)){
+                return false;
             }
 
         $this->jsCode[$code] = $js;
@@ -360,7 +360,7 @@ class page extends coreObj{
                 }
             }
 
-            // & if we are in footer mode, do the js code too 
+            // & if we are in footer mode, do the js code too
             if($mode=='footer' && !empty($this->jsCode)){
                 foreach($this->jsCode as $args){
                     $return .= sprintf($_tag, '', $code);
@@ -379,8 +379,8 @@ class page extends coreObj{
      *
      * @param   array               Containing the array, either with or without keys.
      * -------------------------------
-     * @param   string  $argKey     
-     * @param   string  $argValue   
+     * @param   string  $argKey
+     * @param   string  $argValue
      *
      * @return  bool
      */
@@ -448,7 +448,7 @@ class page extends coreObj{
             ));
         }
 
-            //this array holds the most common 
+            //this array holds the most common
             $metaArray = array(
                 'author'        => $this->config('cms',  'name', 'Cybershade CMS'),
                 'description'   => $this->config('site', 'description', ''),
@@ -481,7 +481,7 @@ class page extends coreObj{
 
         $this->addCSSFile($cssDir.'/framework-min.css', 'text/css');
         #$this->addCSSFile($cssDir.'/extras-min.css', 'text/css');
-        
+
         //throw a hook here, so they have the ability to do...whatever
         $cssFiles = array();
         $objPlugins->hook('CMSPage_cssFiles', $cssFiles);
@@ -499,7 +499,7 @@ class page extends coreObj{
 **/
         $cssDir = '/'.root().'assets/javascript';
 
-        $this->addJSFile($cssDir.'/framework-min.js', 'header');
+        $this->addJSFile($cssDir.'/framework-min.js', 'footer');
         $this->addJSFile($cssDir.'/extras-min.js', 'footer');
 
         //throw a hook here, so they have the ability to do...whatever
@@ -510,8 +510,8 @@ class page extends coreObj{
 
 
         $themeConfig = self::$THEME_ROOT.'theme.php';
-        if(is_readable($themeConfig)){ 
-            include_once($themeConfig); 
+        if(is_readable($themeConfig)){
+            include_once($themeConfig);
         }
 
         $this->buildMenu();
@@ -541,7 +541,7 @@ class page extends coreObj{
         $objTPL->parse('siteHeader');
 
         $this->setOptions('completed', 1);
-    }  
+    }
 
     public function showFooter(){
         if(!$this->getOptions('completed')){ return; }
@@ -560,7 +560,7 @@ class page extends coreObj{
 
 
         $objTPL->parse('siteFooter');
-    }   
+    }
 }
 
 ?>

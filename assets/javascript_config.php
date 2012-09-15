@@ -1,21 +1,16 @@
 <?php
 $scripts = array();
 $scripts['framework'] = array(
-    'prefixfree.min.js', 
-    'prototype.js', 
-    'builder.scripty.js', 
-    'effects.scripty.js', 
-    'dragdrop.scripty.js', 
-    'controls.scripty.js', 
-    'slider.scripty.js', 
-    'modernizr.js', 
-    'chosen.proto.js',
+    'prefixfree.min.js',
+    'mootools-core.js',
+    'mootools-more.js',
+    'modernizr.js',
 );
 $scripts['extras'] = array(
-    'php.min.js', 
-    'bootstrap.js', 
+    'php.min.js',
+    'bootstrap.mootools.js',
 
-    //'growl.js', 
+    //'growl.js',
 
     'core.js',
     //'app.js',
