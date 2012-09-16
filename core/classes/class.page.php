@@ -248,7 +248,7 @@ class page extends coreObj{
          *
          * @return  string
          */
-        public function buildCSS(){
+        private function buildCSS(){
             if(!count($this->cssFiles)){ return false; }
 
             $_tag = "\n".'<link%s />';
@@ -284,7 +284,7 @@ class page extends coreObj{
         $args = $this->_getArgs(func_get_args());
 
         $arg = func_get_arg(0);
-        $position = strtolower($args[1]);
+        $position = in_array($args[1], array('header', 'footer')) ? strtolower($args[1]) : 'footer';
 
         $js = $args;
         if(!is_array($arg) || !array_key_exists('src', $args)){
@@ -341,7 +341,7 @@ class page extends coreObj{
          *
          * @return  string
          */
-        public function buildJS($mode){
+        private function buildJS($mode){
             if(!count($this->jsFiles[$mode]) && !count($this->jsCode[$mode])){ return false; }
 
             $_tag = "\n".'<script%s>%s</script>';
@@ -408,7 +408,7 @@ class page extends coreObj{
          *
          * @return  string
          */
-        public function buildMeta(){
+        private function buildMeta(){
             if(!count($this->metaTags)){ return false; }
 
             $_tag = "\n".'<meta%s />';
