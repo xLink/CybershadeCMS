@@ -9,7 +9,7 @@ include_once('core/core.php');
 $objRoute = coreObj::getRoute();
 
 	include_once('forumInstaller.php');
-$objRoute->addRoute(array('index' => array(
+$objRoute->addRoute( md5( 'hai2u' ), array('index' => array(
 	'/forum',
 	array(
 		'module' => 'forum', 

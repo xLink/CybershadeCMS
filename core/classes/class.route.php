@@ -44,7 +44,7 @@ class route extends coreObj{
      *
      * @return  void
      */
-    public function addRoute( string $module, array $route ) {
+    public function addRoute( $module, array $route ) {
 
         $values = array();
         $objSQL = coreObj::getDBO();
@@ -61,14 +61,14 @@ class route extends coreObj{
         // INSERT INTO #__routes (id, module, pattern) VALUES ()
     }
 
-    public function addRoutes( string $module, array $routes ) {
+    public function addRoutes( $module, array $routes ) {
         if( empty( $routes ) )
         {
             return false;
         }
 
         foreach ( $routes as $name => $route ) {
-            $this->addRoute( array( $name => $route ) );
+            $this->addRoute( $module, array( $name => $route ) );
         }
     }
 
