@@ -9,7 +9,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 *
 * @version     1.2
 * @since       1.0.0
-* @author      xLink
+* @author      Daniel Aldridge
 */
 class plugins extends coreObj{
     private $dontBother     = false,
@@ -20,7 +20,7 @@ class plugins extends coreObj{
      *
      * @version    1.1
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   array $plugin
      *
@@ -65,7 +65,7 @@ class plugins extends coreObj{
      *
      * @version    1.0
      * @since     1.0.0
-     * @author     xLink
+     * @author     Daniel Aldridge
      *
      * @param     string     $hook
      * @param     string     $args
@@ -123,7 +123,7 @@ class plugins extends coreObj{
      *
      * @version    1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string     $hook
      * @param   string  $callback
@@ -138,7 +138,7 @@ class plugins extends coreObj{
      *
      * @version    1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string     $hook
      * @param   string  $callback

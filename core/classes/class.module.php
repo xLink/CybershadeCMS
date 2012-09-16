@@ -9,7 +9,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  *
  * @version 2.0
  * @since   1.0.0
- * @author  xLink
+ * @author  Daniel Aldridge
  */
 class Module extends coreObj{
     public $modConf = array();
@@ -45,10 +45,10 @@ class Module extends coreObj{
      * Check if the request is a media type, & output it if it is
      *
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      */
     public function route(){
-        
+
         //specify some deafult actions
         if(preg_match('/images\/(.*?)/i', str_replace($this->modConf['extra'], '', $this->modConf['action']))) {
 

@@ -24,7 +24,7 @@ class core_SQL extends coreObj{
      *
      * @version     1.0
      * @since       1.0.0
-     * @author      xLink
+     * @author      Daniel Aldridge
      *
      * @param       array    $config
      *
@@ -262,7 +262,7 @@ class core_SQL extends coreObj{
  *
  * @version     1.0
  * @since       1.0.0
- * @author      xLink
+ * @author      Daniel Aldridge
  */
 interface base_SQL{
 

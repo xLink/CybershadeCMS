@@ -9,7 +9,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  *
  * @version      1.0
  * @since        1.0.0
- * @author       xLink
+ * @author       Daniel Aldridge
  */
 class mysql_queryBuilder extends coreObj{
 

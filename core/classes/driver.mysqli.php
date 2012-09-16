@@ -9,7 +9,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 *
 * @version      1.0
 * @since        1.0.0
-* @author       xLink
+* @author       Daniel Aldridge
 */
 class driver_mysqli extends core_SQL implements base_SQL{
 
@@ -18,7 +18,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
      *
      * @version     1.0
      * @since       1.0.0
-     * @author      xLink
+     * @author      Daniel Aldridge
      *
      * @param       array    $config
      *

@@ -9,7 +9,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  *
  * @version     1.0
  * @since       1.0.0
- * @author      xLink
+ * @author      Daniel Aldridge
  */
 class coreObj {
 
@@ -23,7 +23,7 @@ class coreObj {
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string  $dir
      *
@@ -44,7 +44,7 @@ class coreObj {
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string  $class      Class to load
      *
@@ -85,7 +85,7 @@ class coreObj {
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string  $var
      * @param   mixed   $value
@@ -99,7 +99,7 @@ class coreObj {
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   array $array
      */
@@ -118,7 +118,7 @@ class coreObj {
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string  $var
      *
@@ -137,7 +137,7 @@ class coreObj {
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   array  This should be func_get_args();
      *
@@ -166,7 +166,7 @@ class coreObj {
      *
      * @version 1.2
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string  $array
      * @param   string  $setting
@@ -200,7 +200,7 @@ class coreObj {
      *
      * @version 1.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string      $prefix  Prefix used to distinguish objects.
      *
@@ -221,7 +221,7 @@ class coreObj {
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @return  string
      */
@@ -234,7 +234,7 @@ class coreObj {
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @return  string
      */
