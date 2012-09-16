@@ -294,17 +294,15 @@ class coreObj {
         if(!isset(coreObj::$_classes['tpl'])){
             $cachePath = cmsROOT.'cache/template/';
             if(is_dir($cachePath) && !is_writable($cachePath)){
-                @chmod($cachePath, 0775);
+                @chmod($cachePath, 0755);
             }
 
             if(!is_writable($cachePath)){
                 trigger_error('Could not set CHMOD permissions on "<i>'.$cachePath.'</i>" set to 775 to continue.', E_USER_ERROR);
             }
 
-            $cacheWritable = (is_writable($cachePath) ? true : false);
-
             template::getInstance('tpl', array(
-                'useCache' => $cacheWritable,
+                'useCache' => (is_writable($cachePath) ? true : false),
                 'cacheDir' => $cachePath,
                 'root'     => '.',
             ));
@@ -331,7 +329,21 @@ class coreObj {
 
     public static function getCache(){
         if(!isset(coreObj::$_classes['cache'])){
-            cache::getInstance('cache');
+
+            //cache setup
+            $cachePath = cmsROOT.'cache/';
+            if(is_dir($cachePath) && !is_writable($cachePath)){
+                @chmod($cachePath, 0755);
+            }
+
+            if(!is_writable($cachePath)){
+                trigger_error('Could not set CHMOD permissions on "<i>'.$cachePath.'</i>" set to 775 to continue.', E_USER_ERROR);
+            }
+
+            cache::getInstance('cache', array(
+                'useCache' => (is_writable($cachePath) ? true : false),
+                'cacheDir' => $cachePath,
+            ));
         }
 
         return coreObj::$_classes['cache'];

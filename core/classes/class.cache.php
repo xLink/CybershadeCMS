@@ -12,7 +12,8 @@ class cache extends coreObj{
            $fileTpl     = '';
 
     public function __construct($name='', $args=array()){
-        echo dump($args);
+        $a = func_get_args();
+        echo dump($a);
         $this->setVars(array(
             'cacheToggle' => doArgs('useCache', false, $args),
             'cacheDir'    => doArgs('cacheDir', '', $args),

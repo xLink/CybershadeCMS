@@ -12,7 +12,7 @@ $objRoute = coreObj::getRoute();
 $objRoute->addRoute(array('index' => array(
 	'/forum',
 	array(
-		'module' => 'forum', 
+		'module' => 'forum',
 		'method' => 'viewIndex',
 	)
 )));
