@@ -349,6 +349,13 @@ class coreObj {
         return coreObj::$_classes['cache'];
     }
 
+    public static function getRoute(){
+        if(!isset(coreObj::$_classes['route'])){
+            route::getInstance('route');
+        }
+
+        return coreObj::$_classes['route'];
+    }
 
 }
 

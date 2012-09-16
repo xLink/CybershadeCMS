@@ -34,7 +34,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         }else{
             static $run;
             if(!isset($run) || $run != true){
-                echo '<link rel="stylesheet" type="text/css" href="assets/styles/debug.css" />'."\n";
+                echo '<link rel="stylesheet" type="text/css" href="/' . root() . 'assets/styles/debug.css" />'."\n";
             }
             $run = true;
         }
