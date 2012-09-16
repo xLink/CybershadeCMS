@@ -15,6 +15,10 @@ RewriteRule .* - [L]
 #RewriteCond %{HTTP_HOST} ^cybershade.org
 #RewriteRule (.*) http://www.cybershade.org/$1 [R=301,L]
 
+RewriteCond %{REQUEST_FILENAME} -f [NC,OR]
+RewriteCond %{REQUEST_FILENAME} -d [NC] 
+RewriteRule .* - [L]
+
 ##minifing techniques
 RewriteRule ^assets/styles/([^.]*)-min.css              core/lib/min/index.php?g=$1&t=css [QSA,L]
 RewriteRule ^assets/javascript/([^.]*)-min.js           core/lib/min/index.php?g=$1&t=js [QSA,L]
@@ -30,6 +34,8 @@ RewriteRule ^modules/([^/]*)/scripts/([^.]*)-min.js     core/lib/min/index.php?b
 ##extra module bits
 RewriteRule ^modules/([^/]*)/([^.]*)(.*)                modules.php?__module=$1&__action=$2&__extra=$3 [QSA,L]
 RewriteRule ^modules($|/)                               modules.php [QSA,L]
+
+RewriteRule .* control.php?l=$1 [L]
 
 </IfModule>
 
