@@ -11,21 +11,21 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  * @since        1.0.0
  * @author       xLink
  */
-class queryBuilder extends coreObj{
+class mysql_queryBuilder extends coreObj{
 
     private $queryType = '';
     private $_fields   = array();
     private $_values   = array();
     private $_tables   = array();
-    
+
     private $_join     = '';
     private $_using    = '';
     private $_on       = array();
-    
+
     private $_where    = array();
     private $_limit    = 0;
     private $_offset   = 0;
-    
+
     private $_orderBy  = array();
     private $_order    = 'ASC';
     private $_groupBy  = array();
@@ -114,33 +114,33 @@ class queryBuilder extends coreObj{
 
         return $this;
     }
-        
+
         public function leftJoin($table){
             $this->_join = sprintf('LEFT JOIN %s', $this->_buildTables($table));
 
             return $this;
         }
-        
+
         public function rightJoin($table){
             $this->_join = sprintf('RIGHT JOIN %s', $this->_buildTables($table));
 
             return $this;
         }
-        
+
         public function using($field){
             $this->_using = $field;
 
             return $this;
         }
-        
+
     public function on($on){
         return $this->_addWhereOn(func_get_args(), '', 'on');
     }
-        
+
         public function andOn($on){
             return $this->_addWhereOn(func_get_args(), 'AND', 'on');
         }
-        
+
         public function orOn($on){
             return $this->_addWhereOn(func_get_args(), 'AND', 'on');
         }
@@ -267,7 +267,7 @@ class queryBuilder extends coreObj{
 
         return $statement;
     }
-        
+
         private function _buildJoin(&$statement){
             if(!$this->_join){ return; }
 
@@ -339,7 +339,7 @@ class queryBuilder extends coreObj{
                     $field = current($field);
 
                     if(strtoupper(substr($field, 0, 5)) == 'COUNT' ||
-                        $field == '*'){ 
+                        $field == '*'){
                         $_fields[] = $field;
                     }else{
                         $_fields[] = sprintf('`%s`', $field);
@@ -504,11 +504,11 @@ class queryBuilder extends coreObj{
 
     protected function _sanitizeValue($val) {
         if(is_number($val)){
-            return $val; 
+            return $val;
         }
         if(in_array($val, array('NULL', 'true', 'false', null))){
             return $val;
-        } 
+        }
 
         return '"' . $val . '"';
     }

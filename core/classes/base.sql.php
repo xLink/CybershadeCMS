@@ -7,6 +7,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class core_SQL extends coreObj{
 
     public  $queries        = array();
+    public  $driver         = '';
     public  $dbSettings     = array();
     public  $DBH            = false,        // database handler
             $results        = false,        // results holder for the query
@@ -29,7 +30,8 @@ class core_SQL extends coreObj{
      *
      * @return      bool
      */
-    public function __construct($options){
+    public function __construct($name=null, $options){
+        $this->driver = @end(explode('_', $this->getClassName()));
         $this->dbSettings = array(
             'driver'     => doArgs('driver',        '',      $options),
             'host'       => doArgs('host',          '',      $options),
@@ -75,10 +77,10 @@ class core_SQL extends coreObj{
 
     /**
      * This Method will be called if there is no suitable override in the driver.
-     * 
+     *
      * @param   string $method
      * @param   array  $args
-     */ 
+     */
     final public function __call($method, $args){
         $debug = array(
             'Class Name'    => $this->getClassName(),
@@ -89,12 +91,12 @@ class core_SQL extends coreObj{
     }
 
     /**
-     * Replaces all avalible prefixes with the Table Prefix 
-     * 
+     * Replaces all avalible prefixes with the Table Prefix
+     *
      * @param   string $query
-     * 
+     *
      * @return  string $query
-     */ 
+     */
     final public function _replacePrefix($query){
         if(!count($this->prefix) || !is_array($this->prefix)){ return $query; }
 
@@ -107,9 +109,9 @@ class core_SQL extends coreObj{
      * @version     1.0
      * @since       1.0.0
      * @param   string $prefix
-     * 
+     *
      * @return  bool
-     */ 
+     */
     final public function registerPrefix($prefix, $replace){
         if(array_key_exists($prefix, $this->prefix)){ return false; }
 
@@ -130,7 +132,7 @@ class core_SQL extends coreObj{
     }
 
     public function queryBuilder(){
-        return new queryBuilder();
+        return new ${strtolower($this->driver).'_queryBuilder'}();
     }
 
     public function index($db){
@@ -155,8 +157,8 @@ class core_SQL extends coreObj{
 
     public function fetchAll($query){
         $this->query($query);
-            if(!$this->affectedRows()){ 
-                return false; 
+            if(!$this->affectedRows()){
+                return false;
             }
 
         $line = $this->results();
@@ -209,8 +211,8 @@ class core_SQL extends coreObj{
         $query = 'SHOW COLUMNS FROM `%s`';
 
         $this->query(sprintf($query, $table));
-            if(!$this->affectedRows()){ 
-                return false; 
+            if(!$this->affectedRows()){
+                return false;
             }
 
         $cols = $this->results();
@@ -240,10 +242,10 @@ class core_SQL extends coreObj{
                         ->where('TABLE_NAME LIKE #__config')
                             ->andWhere('TABLE_SCHEMA = %s')
                     ->build();
-                    
+
         $this->query(sprintf($query, $this->config('db', 'database')));
-            if(!$this->affectedRows()){ 
-                return false; 
+            if(!$this->affectedRows()){
+                return false;
             }
 
         $line = $this->results();
@@ -264,9 +266,9 @@ class core_SQL extends coreObj{
  */
 interface base_SQL{
 
-    public function __construct($config);
+    public function __construct($name, $config);
 
-    public static function getInstance($options=array());
+    public static function getInstance($name=null, $options=array());
 
     public function selectDB($db);
     public function connect();

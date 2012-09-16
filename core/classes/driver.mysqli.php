@@ -28,7 +28,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
         $c = __CLASS__;
 
         if (!isset(self::$_classes['database'][$c])){
-            self::$_instances['database'][$c] = new self($options);
+            self::$_instances['database'][$c] = new self($name, $options);
         }
 
         return self::$_instances['database'][$c];
@@ -102,6 +102,11 @@ class driver_mysqli extends core_SQL implements base_SQL{
   //-- Core Functionality
   //
 **/
+
+    public function queryBuilder(){
+        return new mysql_queryBuilder();
+    }
+
 
     public function escape($string){
         return $this->DBH->real_escape_string($string);

@@ -13,12 +13,12 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class coreObj {
 
-    public static  $classDirs   = array(), 
-                    $_classes    = array(), 
+    public static  $classDirs   = array(),
+                    $_classes    = array(),
                     $_instances  = array();
 
 
-    /**    
+    /**
      * Adds a directory to be scanned for classes to be loaded
      *
      * @version 1.0
@@ -30,8 +30,8 @@ class coreObj {
      * @return  array
      */
     public static function addClassDirs($dir){
-        if(empty($dir) || !is_string($dir)){ 
-            return false; 
+        if(empty($dir) || !is_string($dir)){
+            return false;
         }
 
         self::$classDirs[$dir] = glob($dir);
@@ -39,7 +39,7 @@ class coreObj {
         return self::$classDirs;
     }
 
-    /**    
+    /**
      * Function for Autoloading Classes
      *
      * @version 1.0
@@ -52,8 +52,8 @@ class coreObj {
      */
     public static function loadClass($class) {
         //echo dump($class, 'LOADING', 'pink');
-        if(empty(self::$classDirs)){ 
-            trigger_error('Error: No Directories to scan for class.', E_USER_ERROR); 
+        if(empty(self::$classDirs)){
+            trigger_error('Error: No Directories to scan for class.', E_USER_ERROR);
         }
 
         //only use the last part of the class name if it has an underscore
@@ -68,7 +68,7 @@ class coreObj {
         foreach($dirs as $dir => $files){
             if(!count($files)){ continue; }
             foreach($files as $file){
-                if(strpos($file, $class)!==false){ 
+                if(strpos($file, $class)!==false){
                     include_once($file);
                     // echo dump($file, 'LOADED FILE', 'pink');
                     return true;
@@ -80,7 +80,7 @@ class coreObj {
         return false;
     }
 
-    /**    
+    /**
      * Sets a variable with a value
      *
      * @version 1.0
@@ -90,7 +90,7 @@ class coreObj {
      * @param   string  $var
      * @param   mixed   $value
      */
-    public function setVar($var, $value){        
+    public function setVar($var, $value){
         $this->$var = $value;
     }
 
@@ -178,8 +178,8 @@ class coreObj {
         global $config;
 
         //if no arguments were passed, throw it all out
-        if(!func_num_args()){ 
-            return $config; 
+        if(!func_num_args()){
+            return $config;
         }
 
         //if just an array key was passed and it exists, throw that out
@@ -197,7 +197,7 @@ class coreObj {
 
     /**
      * Returns or spawns a new instance of this class.
-     * 
+     *
      * @version 1.0
      * @since   1.0
      * @author  xLink
@@ -265,7 +265,7 @@ class coreObj {
             $options['debug']      = (cmsDEBUG ? true : false);
             $options['logging']    = is_file(cmsROOT.'cache/ALLOW_LOGGING');
 
-            $objSQL = new $name($options);
+            $objSQL = new $name($driver, $options);
                 if($objSQL === false){
                     if(!headers_sent()){
                         header('HTTP/1.1 500 Internal Server Error');
@@ -274,8 +274,8 @@ class coreObj {
                 }
 
             if(!$objSQL->connect()){
-                msgDie('FAIL', 
-                    sprintf($errorTPL, 'Fatal Error', 
+                msgDie('FAIL',
+                    sprintf($errorTPL, 'Fatal Error',
                         'Connecting to SQL failed. '.
                             $objSQL->getVar('errorMsg').
                             (cmsDEBUG ? '<br />'.$objSQL->getError() : NULL)
@@ -293,8 +293,8 @@ class coreObj {
 
         if(!isset(coreObj::$_classes['tpl'])){
             $cachePath = cmsROOT.'cache/template/';
-            if(is_dir($cachePath) && !is_writable($cachePath)){ 
-                @chmod($cachePath, 0775); 
+            if(is_dir($cachePath) && !is_writable($cachePath)){
+                @chmod($cachePath, 0775);
             }
 
             if(!is_writable($cachePath)){
@@ -327,6 +327,14 @@ class coreObj {
         }
 
         return coreObj::$_classes['page'];
+    }
+
+    public static function getCache(){
+        if(!isset(coreObj::$_classes['cache'])){
+            cache::getInstance('cache');
+        }
+
+        return coreObj::$_classes['cache'];
     }
 
 

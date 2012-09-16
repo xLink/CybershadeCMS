@@ -28,7 +28,7 @@ class driver_mysql extends core_SQL implements base_SQL{
         $c = __CLASS__;
 
         if (!isset(self::$_classes['database'][$c])){
-            self::$_instances['database'][$c] = new self($options);
+            self::$_instances['database'][$c] = new self($name, $options);
         }
 
         return self::$_instances['database'][$c];
@@ -131,8 +131,8 @@ class driver_mysql extends core_SQL implements base_SQL{
      * @return      bool
      */
     public function getError(){
-            $backtrace = debug_backtrace();
-            $callee = next($backtrace);
+        $backtrace = debug_backtrace();
+        $callee = next($backtrace);
     }
 
 /**

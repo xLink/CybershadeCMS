@@ -74,7 +74,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     //kill magic quotes completely
     if(get_magic_quotes_gpc()!==false){
 (cmsDEBUG ? memoryUsage('anti magic quotes') : '');
-        
+
         //strip all the global arrays
         recursiveArray($_POST,    'stripslashes');
         recursiveArray($_GET,     'stripslashes');
@@ -85,7 +85,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     //set the default timezone
     if(function_exists('date_default_timezone_set')){
         //This gets set to GMT, this is due to CMS handling dates automatically
-        date_default_timezone_set('Europe/London'); 
+        date_default_timezone_set('Europe/London');
     }
 
 (cmsDEBUG ? memoryUsage('default timezone') : '');
@@ -118,6 +118,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
     $objCore     = new coreObj;
 
+    $objCache    = coreObj::getCache();
     $objSQL      = coreObj::getDBO();
     #$objSession = coreObj::getSession();
     $objPlugin   = coreObj::getPlugins();
