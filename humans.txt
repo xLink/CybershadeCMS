@@ -10,11 +10,11 @@ Tools: Sublime, Photoshop
 
 /* SPECIAL THANKS */
 /* Core Developers */
-Developer: Daniel Aldridge  
+Developer: Dan Aldridge
 
 Developer: Richard Clifford
 
 Developer: Daniel Noel-Davies
 
-  
+
 And, of course, all humanstxt.org team!

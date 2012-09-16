@@ -24,7 +24,7 @@ class core_SQL extends coreObj{
      *
      * @version     1.0
      * @since       1.0.0
-     * @author      Daniel Aldridge
+     * @author      Dan Aldridge
      *
      * @param       array    $config
      *
@@ -155,13 +155,13 @@ class core_SQL extends coreObj{
         return true;
     }
 
-    public function fetchAll($query){
+    public function fetchAll($query, $key=false){
         $this->query($query);
             if(!$this->affectedRows()){
                 return false;
             }
 
-        $line = $this->results();
+        $line = $this->results($key);
         $this->freeResult();
         return $line;
     }
@@ -240,10 +240,10 @@ class core_SQL extends coreObj{
                     ->select('AUTO_INCREMENT')
                     ->from('information_schema.TABLES')
                         ->where('TABLE_NAME LIKE #__config')
-                            ->andWhere('TABLE_SCHEMA = %s')
+                            ->andWhere(sprintf('TABLE_SCHEMA = %s', $this->config('db', 'database')))
                     ->build();
 
-        $this->query(sprintf($query, $this->config('db', 'database')));
+        $this->query($query);
             if(!$this->affectedRows()){
                 return false;
             }
@@ -262,7 +262,7 @@ class core_SQL extends coreObj{
  *
  * @version     1.0
  * @since       1.0.0
- * @author      Daniel Aldridge
+ * @author      Dan Aldridge
  */
 interface base_SQL{
 
@@ -278,7 +278,7 @@ interface base_SQL{
     public function escape($string);
     public function freeResult();
     public function query($query);
-    public function results();
+    public function results($key);
     public function affectedRows();
 }
 

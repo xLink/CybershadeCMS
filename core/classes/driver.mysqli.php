@@ -9,7 +9,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 *
 * @version      1.0
 * @since        1.0.0
-* @author       Daniel Aldridge
+* @author       Dan Aldridge
 */
 class driver_mysqli extends core_SQL implements base_SQL{
 
@@ -18,7 +18,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
      *
      * @version     1.0
      * @since       1.0.0
-     * @author      Daniel Aldridge
+     * @author      Dan Aldridge
      *
      * @param       array    $config
      *
@@ -150,12 +150,16 @@ class driver_mysqli extends core_SQL implements base_SQL{
         return $this->results;
     }
 
-    public function results(){
+    public function results($key){
         if($this->results === false){ return false; }
 
         $results = array();
         while ($row = $this->results->fetch_array(MYSQLI_ASSOC)){
-            $results[] = $row;
+            if(!is_empty($key) && array_key_exists($key, $row)){
+                $results[$row[$key]] = $row;
+            }else{
+                $results[] = $row;
+            }
         }
         return $results;
     }

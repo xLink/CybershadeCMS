@@ -9,7 +9,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  *
  * @version 2.0
  * @since   1.0.0
- * @author  Daniel Aldridge
+ * @author  Dan Aldridge
  */
 class Module extends coreObj{
     public $modConf = array();
@@ -45,7 +45,7 @@ class Module extends coreObj{
      * Check if the request is a media type, & output it if it is
      *
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      */
     public function route(){
 

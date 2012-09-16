@@ -8,6 +8,8 @@ include_once('core/core.php');
 
 echo dump($objCache);
 
-
-
+                // $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
+                //     'SELECT * FROM `$Pconfig`', $new_file);
+$objCache->doCache('config');
+$objCache->doCache('routes');
 ?>

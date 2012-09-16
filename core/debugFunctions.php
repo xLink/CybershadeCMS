@@ -9,7 +9,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      *
      * @version     3.0
      * @since       1.0.0
-     * @author      Daniel Aldridge
+     * @author      Dan Aldridge
      *
      * @param       variable    $var
      * @param       string      $info
@@ -74,7 +74,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      * @access      private
      * @version     3.0
      * @since       1.0.0
-     * @author      Daniel Aldridge
+     * @author      Dan Aldridge
      *
      * @param       variable     $var
      * @param       string      $var_name
@@ -171,7 +171,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string     $info
      * @param   string  $nl
@@ -195,7 +195,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      *
      * @version    1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   array     $file
      * @param   string     $info
@@ -223,7 +223,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      *
      * @version     1.0
      * @since       1.0.0
-     * @author      Daniel Aldridge
+     * @author      Dan Aldridge
      *
      * @param       string $info
      * @param       string $nl

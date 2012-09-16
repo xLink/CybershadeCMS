@@ -38,7 +38,7 @@ class page extends coreObj{
      *
      * @version 1.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   array  $title
      */
@@ -55,7 +55,7 @@ class page extends coreObj{
      *
      * @version 1.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   array  $title
      */
@@ -69,7 +69,7 @@ class page extends coreObj{
      *
      * @version 1.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   bool    $simple  If true, then page is in simple mode, else FULL BLOWN!
      */
@@ -82,7 +82,7 @@ class page extends coreObj{
      *
      * @version 1.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string  $moduleName     Name of the module
      * @param   string  $page_id        Page ID
@@ -100,7 +100,7 @@ class page extends coreObj{
          *
          * @version 1.0
          * @since   1.0
-         * @author  xLink
+         * @author  Daniel Aldridge
          *
          */
         public function buildMenu(){
@@ -139,7 +139,7 @@ class page extends coreObj{
      *
      * @version 1.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string  $theme
      *
@@ -169,7 +169,7 @@ class page extends coreObj{
      *
      * @version 1.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   array  $value   An array with 2 elements, [text] && [link]
      *
@@ -189,7 +189,7 @@ class page extends coreObj{
          *
          * @version 1.0
          * @since   1.0
-         * @author  xLink
+         * @author  Daniel Aldridge
          *
          * @param   array  $value   An array with 2 elements, [text] && [link]
          *
@@ -204,7 +204,7 @@ class page extends coreObj{
      *
      * @version 2.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   array           Containing the array, either with or without keys.
      * -------------------------------
@@ -244,7 +244,7 @@ class page extends coreObj{
          *
          * @version 1.0
          * @since   1.0
-         * @author  xLink
+         * @author  Daniel Aldridge
          *
          * @return  string
          */
@@ -271,7 +271,7 @@ class page extends coreObj{
      *
      * @version 2.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   array               Containing the array, either with or without keys.
      * -------------------------------
@@ -311,7 +311,7 @@ class page extends coreObj{
      *
      * @version 2.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   string  $code
      *
@@ -337,7 +337,7 @@ class page extends coreObj{
          *
          * @version 1.0
          * @since   1.0
-         * @author  xLink
+         * @author  Daniel Aldridge
          *
          * @return  string
          */
@@ -375,7 +375,7 @@ class page extends coreObj{
      *
      * @version 1.0
      * @since   1.0
-     * @author  xLink
+     * @author  Daniel Aldridge
      *
      * @param   array               Containing the array, either with or without keys.
      * -------------------------------
@@ -404,7 +404,7 @@ class page extends coreObj{
          *
          * @version 1.0
          * @since   1.0
-         * @author  xLink
+         * @author  Daniel Aldridge
          *
          * @return  string
          */

@@ -35,7 +35,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.2
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string  $key            Which key to check for
      * @param   string  $default        A default value to use if our checks fail
@@ -171,7 +171,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 2.0
      * @since   0.8.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string  $to
      * @param   string  $module
@@ -234,7 +234,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string  $emailVar
      * @param   array   $vars
@@ -260,7 +260,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 2.5
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string  $to
      * @param   string  $emailVar
@@ -292,7 +292,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      * @access  private
      *
      * @param   string  $to
@@ -690,7 +690,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string  $name
      * @param   string  $value
@@ -875,7 +875,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string  $string
      * @param   string  $mode
@@ -967,7 +967,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string    $var
      *
@@ -986,7 +986,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string     $number
      *
@@ -1026,7 +1026,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.1
      * @since   0.7.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string      $text
      * @param   int         $numb
@@ -1107,7 +1107,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      */
     function cmsError(){
         $args = func_get_args();
@@ -1177,7 +1177,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string $type
      * @param   string $msg
@@ -1312,7 +1312,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   string $ext
      * @param   string $return
