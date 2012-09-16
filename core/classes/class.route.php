@@ -45,18 +45,26 @@ class route extends coreObj{
      * @return  void
      */
     public function addRoute( $module, array $route ) {
-
         $values = array();
         $objSQL = coreObj::getDBO();
+        $label = key( $route );
+        $route = $route[$label];
 
-        echo dump( $route );
-
-        return;
+        $values['module'] = $module;
+        $values['label'] = $label;
+        $values['pattern'] = $route[0];
+        $values['arguments'] = json_encode( $route[1] );
+        $values['requirements'] = json_encode( !empty( $route[2] ) ? $route[2] : null );
+        // To Add: Status && Redirection
 
         $query = $objSQL->queryBuilder()
                         ->insertInto('#__routes')
                         ->set($values)
                         ->build();
+
+        echo dump( $query );
+
+        return $objSQL->query( $query );
 
         // INSERT INTO #__routes (id, module, pattern) VALUES ()
     }

@@ -190,19 +190,14 @@ class mysql_queryBuilder extends coreObj{
 
     public function set($field) {
         $args = func_get_args();
-
         if (count($args) == 2) {
             $args = array($args[0] => $args[1]);
         } else {
             $args = $this->_getArgs(func_get_args());
         }
 
-        foreach ($args as $field => $val) {
-            if (!in_array($field, $this->_fields)) {
-                $this->_fields[] = $field;
-                $this->_values[] = $val;
-            }
-        }
+        $this->_fields = array_keys($args);
+        $this->_values = array_values($args);
 
         return $this;
     }
@@ -309,18 +304,17 @@ class mysql_queryBuilder extends coreObj{
         }
 
         private function _buildINSERTFields(&$statement){
-            $statement[] = sprintf('("%s")', implode('", "', $this->_fields));
+            $statement[] = sprintf('(`%s`)', implode('`, `', $this->_fields));
         }
 
         private function _buildINSERTValues(&$statement){
             $values = array();
             foreach($this->_values as $field => $val){
-                foreach($val as &$v){
-                    $v = $this->_sanitizeValue($v);
-                }
-                $values[] = sprintf('(%s)', implode(', ', $val));
+                $val = $this->_sanitizeValue($val);
+
+                $values[] = sprintf('%s', $val);
             }
-            $statement[] = implode(', ', $values);
+            $statement[] = sprintf('(%s)', implode(', ', $values));
         }
 
         private function _buildOperator(&$statement){
@@ -510,7 +504,7 @@ class mysql_queryBuilder extends coreObj{
             return $val;
         }
 
-        return '"' . $val . '"';
+        return '"' . addslashes($val) . '"';
     }
 
     private function setQueryType($queryType){
