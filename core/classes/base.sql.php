@@ -239,7 +239,7 @@ class core_SQL extends coreObj{
         $query = $this->queryBuilder()
                     ->select('AUTO_INCREMENT')
                     ->from('information_schema.TABLES')
-                        ->where('TABLE_NAME LIKE #__config')
+                        ->where(sprintf('TABLE_NAME LIKE "%s"', $table))
                             ->andWhere(sprintf('TABLE_SCHEMA = %s', $this->config('db', 'database')))
                     ->build();
 

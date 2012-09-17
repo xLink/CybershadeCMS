@@ -18,33 +18,29 @@ class PDOMySQL extends core_SQL implements base_SQL{
     }
 
     public function connect(){
-        if( $this->dbSettings['persistent'] === true ){
-            $host = $this->dbSettings['host'];
-            $username = $this->dbSettings['username'];
-            $password = $this->dbSettings['password'];
+        $host = $this->dbSettings['host'];
+        $username = $this->dbSettings['username'];
+        $password = $this->dbSettings['password'];
 
-            $this->DBH = new PDO( 
-                sprintf('mysql:host=%s', $host), 
+        if( $this->dbSettings['persistent'] === true ){
+            $this->DBH = new PDO(
+                sprintf('mysql:host=%s', $host),
                 $username,
                 $password,
                 array( PDO::ATTR_PERSISTENT => true )
             );
 
-            if( $this->DBH->connect_error != null ){
-                trigger_error('Database Connection: Connect Error');
-                return false;
-            }
         } else {
-            $this->DBH = new PDO( 
-                sprintf('mysql:host=%s', $host), 
+            $this->DBH = new PDO(
+                sprintf('mysql:host=%s', $host),
                 $username,
                 $password
-            ); 
+            );
+        }
 
-            if( $this->DBH->connect_error != false ){
-                trigger_error('Database Connection: Connect Error');
-                return false;
-            }
+        if( $this->DBH->connect_error != false ){
+            trigger_error('Database Connection: Connect Error');
+            return false;
         }
 
         if( $this->selectDB($this->dbSettings['database']) === false ){
@@ -56,7 +52,7 @@ class PDOMySQL extends core_SQL implements base_SQL{
 
         $this->query('SET CHARACTER SET utf8;');
         $this->query('SET GLOBAL innodb_flush_log_at_trx_commit = 2;');
-        
+
         return true;
     }
 
@@ -90,7 +86,7 @@ class PDOMySQL extends core_SQL implements base_SQL{
 
 
     public function freeResult(){
-        
+
         if(isset($this->results) && is_resource($this->results)){
             $this->results->close();
             unset($this->results);
@@ -125,7 +121,7 @@ class PDOMySQL extends core_SQL implements base_SQL{
             $debug['affected_rows'] = $this->affectedRows();
             $debug['query_end']     = microtime(true);
             $debug['time_taken']    = substr(($debug['query_end'] - $debug['query_start']), 0, 7);
-            
+
             $this->totalTime        += $debug['time_taken'];
             $debug['total_time']    = $this->totalTime;
         }
@@ -147,6 +143,6 @@ class PDOMySQL extends core_SQL implements base_SQL{
     public function affectedRows(){
         return $this->DBH->affected_rows;
     }
-    
+
 }
 ?>
