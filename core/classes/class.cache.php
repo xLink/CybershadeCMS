@@ -110,21 +110,28 @@ class cache extends coreObj{
      */
     public function doCache($file){
         $objSQL = coreObj::getDBO();
+        $objRoute = coreObj::getRoute();
 
+        $return = false;
         switch($file){
             case 'config':
                 $query = $objSQL->queryBuilder()->select('*')->from('#__config')->build();
                 $this->setup($file, $query);
             break;
             case 'routes':
-                $query = $objSQL->queryBuilder()->select('*')->from('#__routes')->build();
-                $this->setup($file, $query);
+                $x = is_callable( array($objRoute, 'generate_cache') );
+                echo dump( $x );
+                $return = $objRoute->generate_cache();
             break;
 
             case 'statistics':
-                $this->setup($file, null, array(self, 'generate_stats_cache'));
+                $return = $this->generate_stats_cache();
             break;
 
+        }
+
+        if($return !== false){
+            $this->writeFile($file, $return);
         }
     }
 

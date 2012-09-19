@@ -8,8 +8,23 @@ include_once('core/core.php');
 
 $objRoute = coreObj::getRoute();
 
-	include_once('forumInstaller.php');
-	
-$objRoute->addRoutes( md5('hai2u'), $routes );
+include_once('forumInstaller.php');
+
+$currentURL = $_GET['l'];
+
+$routes = array('newReply' => array(
+		'/forum/:cat/:name-:id.html',
+		array(
+			'module' => 'forum', 
+			'method' => 'newReply',
+		), 
+		array(
+			'cat' => '\d+',
+			'id'  => '\d+',
+		),
+	));
+
+$objRoute->setVar( 'routes', $routes );
+$objRoute->processURL( $currentURL );
 
 ?>

@@ -12,4 +12,5 @@ echo dump($objCache);
                 //     'SELECT * FROM `$Pconfig`', $new_file);
 $objCache->doCache('config');
 $objCache->doCache('routes');
+$objCache->doCache('statistics');
 ?>
