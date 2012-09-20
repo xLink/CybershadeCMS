@@ -23,87 +23,130 @@ class route extends coreObj{
 
     }
 
+    /**
+     * Processes the action of a URL based on cached routes
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     *
+     * @param       $url    string  URL to process against the cached routes
+     *
+     * @return      bool  
+     */
     function processURL( $url ) {
         global $routes;
 
-        foreach( $routes as $label => $route )
+        // Append a forward slash to the incoming url if there isn't one
+        //  (Should be solved elsewhere)
+        if( strpos( $url, '/' ) !== 0 )
         {
-            $info = $route[1];
-            $route = $route[0];
-            $usedParams = array();
+            $url = '/' . $url;
+        }
+
+        // @TODO: Once the caching class is sorted, we can get rid of this line
+        require_once( cmsROOT . 'cache/cache_routes.php' );
+
+        foreach( $routes_db as $label => $route ) {
+
+            // Check for a method being set, if it doesn't match, continue
+            if( $route['method'] != 'any' && $route['method'] != $_SERVER['REQUEST_METHOD']) {
+                continue;
+            }
+
+            // Match Absolute URLs
+            if( $route['pattern'] == $url ) {
+                $this->invoke($route);
+                return true;
+            }
+
+            // Store the route's pattern for replacing later on
+            $ourRoute = $route['pattern'];
 
             // Seperate the route and URL into parts
-            $parts_p = explode( '/', $url );
-            $parts_r = explode( '/', $route );
+            $parts_u = explode( '/', $url );
+            $parts_r = explode( '/', $route['pattern'] );
 
             // Filter out empty values, and essentially reset the array keys
-            $parts_p = array_values( array_filter( $parts_p ) );
+            $parts_u = array_values( array_filter( $parts_u ) );
             $parts_r = array_values( array_filter( $parts_r ) );
 
-            // /path/to/forum
-            // /forum/your/:mom
+            // If the route and parts aren't of equal length, insta-dismiss this route
+            if( count( $parts_u ) !== count( $parts_r) ) { continue; }
 
-            // If the route and parts are of equal length
-            if( count( $parts_p ) === count( $parts_r) ) {
+            // Collect all the replacement 'variables' from the route structure into an array
+            $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
+            $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
-                // Let's assume we've found a match
-                $matched = true;
+            // Loop through our replacements (if there are any),
+            //  In the matching, if there is a requirement set, use that,
+            //  else, use our generic alpha-numeric string match that includes SEO friendly chars.
+            foreach( $replacements as $replacement ) {
+                $replaceWith = '[A-Za-z0-9\-\_]+';
 
-                // Loop through each part of the route
-                foreach( $parts_r as $index => $part ) {
-
-                    // If the part doesn't contain something to be replaced, and isn't exact to the route
-                    //      $matched = false; break;
-
-                    // If the part contains something to be replaced
-                    //  and when replaced, matches the URL
-                    //  replace the url and set matched = true
-
-                    // If $matched === true
-                    //      Invoke Module::$Method( $params );
-                    //             call_user_func_array(array($module, $method), $params);
-
-                    ////////////////////////////////////////////
-
-                    if( strpos( $part, ':' ) === false && $part !== $parts_p[$index] ) {
-                        $matched = false;
-                        break;
-
-                    } else if( strpos( $part, ':' ) !== false ){
-                        preg_match_all( '/\:([A-Za-z]+)/', $part, $matches );
-                        $temp = $part;
-
-                        echo dump( $matches[0] );
-
-                        // Loop through the parts we have left (that haven't been replaced)
-                        foreach( $matches[0] as $index => $match )
-                        {
-                            $replacedPart = str_replace( $match, $info[$index], $temp );
-                        }
-                        
-                        // Get the params
-                    }
+                if( !empty( $route['requirements'][$replacement] ) ) {
+                    $replaceWith = $route['requirements'][$replacement];
                 }
-            } // End if for checking the part lengths
-        } // End the foreach loop on the routes
-    }
 
-    public function processRoutes( $routes = array()  ) {
-        if( !is_array( $routes ) || is_empty( $routes ) ) {
-            return array();
-        }
+                $ourRoute = str_replace( ':' . $replacement, '(' . $replaceWith . ')', $ourRoute );
+            }
+
+            // If the route matches the URL, we've got a winner!
+            if( preg_match( '#' . $ourRoute . '#', $url, $params  ) ) {
+
+                $route['arguments'] = array_merge( (array) $route['arguments'], $params);
+                $this->invoke($route);
+                
+                return true;
+            }
+
+        } // End the foreach loop on the routes
+
+        echo '404';
+        // 404, Route not found
+        return;
     }
 
     /**
-     * Adds a route structure into the Database
+     * Invokes the action of a route
      *
-     * @version 1.0
-     * @since   1.0
-     * @author  Daniel Noel-Davies
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
      *
-     * @param   $module     string  
+     * @param       $route  array   Key/Value array of a Route
      *
-     * @return  void
+     * @return      bool
+     */
+    public function invoke($route=array()){
+        if(empty($route)){ 
+            trigger_error('Route passed is null. :/', E_USER_ERROR);
+        }
+
+        // Check if the route is a redirection
+        if( !empty( $route['redirect'] ) ) {
+            // TODO: Add Internal Redirections (Internal, meaning no 301, just different internal processing)
+            header("HTTP/1.1 301 Moved Permanently");
+            header("Location: " . $route['redirect']);
+            return true;
+        }
+
+        // We assume the invoke is a module call, Let's go!
+        // call_user_func_array( array( $module, $method ), $params );
+        echo 'Invoking Module Call';
+    }
+
+    /**
+     * Adds a route to the database
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     *
+     * @param       $module string  ID hash of the module
+     * @param       $route  array   Key/Value array of a Route
+     *
+     * @return      bool  
      */
     public function addRoute( $module, array $route ) {
         $values   = array();
@@ -133,6 +176,18 @@ class route extends coreObj{
         return $result;
     }
 
+    /**
+     * Adds a collection of routes to the database (multi-alias of addRoute)
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     *
+     * @param       $module string  ID hash of the module
+     * @param       $routes array   Key/Value array of the Routes
+     *
+     * @return      bool  
+     */
     public function addRoutes( $module, array $routes ) {
         if( empty( $routes ) )
         {
@@ -144,6 +199,17 @@ class route extends coreObj{
         }
     }
 
+    /**
+     * Completely removes a route from the database
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     *
+     * @param       $id     int     ID of the Route
+     *
+     * @return      bool  
+     */
     public function deleteRoute( $id ) {
         $objSQL   = coreObj::getDBO();
         $objCache = coreObj::getCache();
@@ -160,6 +226,18 @@ class route extends coreObj{
         return $result;
     }
 
+    /**
+     * Toggles a route from being active or inactive
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     *
+     * @param       $id     int     ID of the Route
+     * @param       $status int     New Status of the Route (0=Inactive, 1=Active)
+     *
+     * @return      array  
+     */
     public function toggleRoute( $id, $status = null ) {
 
         $update   = array();
@@ -184,6 +262,20 @@ class route extends coreObj{
         return $result;
     }
 
+    /**
+     * Generates the cache for the routing system, used as a callback in the caching class
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     *
+     * @todo        Use 2 Queries, One to select non-structure url's (without :'s)
+     *                  and one with structure'd url's. The first should be listed
+     *                  before the second, to allow for successful processing and
+     *                  precedence.
+     *
+     * @return      array  
+     */
     public static function generate_cache(){
         $output = array();
         $objSQL = coreObj::getDBO();
@@ -204,6 +296,7 @@ class route extends coreObj{
             $reqs = recursiveArray($reqs, 'stripslashes');
 
             $output[$result['pattern']] = array(
+                'method'        => ( !empty( $result['method'] ) ? $result['method'] : 'any' ),
                 'pattern'       => $result['pattern'],
                 'module'        => $result['module'],
                 'arguments'     => $args,
