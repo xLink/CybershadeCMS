@@ -6,7 +6,7 @@ Site: http://cybershade.org/
 /* SITE */
 Last update: 11/07/2011
 Doctype: HTML5
-Tools: Sublime, Photoshop
+Tools: SublimeText 2, Photoshop
 
 /* SPECIAL THANKS */
 /* Core Developers */
