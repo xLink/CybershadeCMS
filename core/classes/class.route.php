@@ -32,7 +32,7 @@ class route extends coreObj{
      *
      * @param       $url    string  URL to process against the cached routes
      *
-     * @return      bool  
+     * @return      bool
      */
     function processURL( $url ) {
         global $routes;
@@ -96,7 +96,7 @@ class route extends coreObj{
 
                 $route['arguments'] = array_merge( (array) $route['arguments'], $params);
                 $this->invoke($route);
-                
+
                 return true;
             }
 
@@ -119,7 +119,7 @@ class route extends coreObj{
      * @return      bool
      */
     public function invoke($route=array()){
-        if(empty($route)){ 
+        if(empty($route)){
             trigger_error('Route passed is null. :/', E_USER_ERROR);
         }
 
@@ -146,7 +146,7 @@ class route extends coreObj{
      * @param       $module string  ID hash of the module
      * @param       $route  array   Key/Value array of a Route
      *
-     * @return      bool  
+     * @return      bool
      */
     public function addRoute( $module, array $route ) {
         $values   = array();
@@ -186,7 +186,7 @@ class route extends coreObj{
      * @param       $module string  ID hash of the module
      * @param       $routes array   Key/Value array of the Routes
      *
-     * @return      bool  
+     * @return      bool
      */
     public function addRoutes( $module, array $routes ) {
         if( empty( $routes ) )
@@ -208,7 +208,7 @@ class route extends coreObj{
      *
      * @param       $id     int     ID of the Route
      *
-     * @return      bool  
+     * @return      bool
      */
     public function deleteRoute( $id ) {
         $objSQL   = coreObj::getDBO();
@@ -236,7 +236,7 @@ class route extends coreObj{
      * @param       $id     int     ID of the Route
      * @param       $status int     New Status of the Route (0=Inactive, 1=Active)
      *
-     * @return      array  
+     * @return      array
      */
     public function toggleRoute( $id, $status = null ) {
 
@@ -274,7 +274,7 @@ class route extends coreObj{
      *                  before the second, to allow for successful processing and
      *                  precedence.
      *
-     * @return      array  
+     * @return      array
      */
     public static function generate_cache(){
         $output = array();
@@ -289,8 +289,8 @@ class route extends coreObj{
 
         foreach( $results as $result ) {
 
-            $args = (array)( json_decode( $result['arguments'] )    !== null ? json_decode( $result['arguments'] )    : array() );
-            $reqs = (array)( json_decode( $result['requirements'] ) !== null ? json_decode( $result['requirements'] ) : array() );
+            $args = ( json_decode( $result['arguments'], true )    !== null ? json_decode( $result['arguments'], true )    : array() );
+            $reqs = ( json_decode( $result['requirements'], true ) !== null ? json_decode( $result['requirements'], true ) : array() );
 
             $args = recursiveArray($args, 'stripslashes');
             $reqs = recursiveArray($reqs, 'stripslashes');
