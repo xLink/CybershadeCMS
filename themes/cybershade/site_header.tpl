@@ -13,11 +13,20 @@
     <div class="container">
         <div id="topbar">
             <div class="logo"> Cybershade Inc </div>
-            <nav class="pull-right hidden-phone"><ul>
+            <!--nav class="pull-right hidden-phone"><ul>
                   <li><a href="#">Github</a></li>
                   <li><a href="#">Facebook</a></li>
                   <li><a href="#">Twitter</a></li>
-            </ul></nav>
+            </ul></nav-->
+            <div class="pull-right hidden-phone share-wrapper">
+                <div class="share-action socicon-share"></div>
+                <div class="share-container">
+                    <a href="http://facebook.com/CybershadeCMS" class="share-btn tl socicon-facebook"></a>
+                    <a href="http://twitter.com/CybershadeCMS" class="share-btn tr socicon-twitter"></a>
+                    <a href="http://github.com/Cybershade" class="share-btn bl socicon-github"></a>
+                    <a href="contact.php" class="share-btn br socicon-envelope"></a>
+                </div>
+            </div>
         </div>
     </div>
 
