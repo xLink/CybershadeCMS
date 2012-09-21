@@ -44,10 +44,13 @@ class route extends coreObj{
             $url = '/' . $url;
         }
 
-        // @TODO: Once the caching class is sorted, we can get rid of this line
-        require_once( cmsROOT . 'cache/cache_routes.php' );
+        $objCache = coreObj::getCache();
 
-        foreach( $routes_db as $label => $route ) {
+        // @TODO: Once the caching class is sorted, we can get rid of this line
+        //require_once( cmsROOT . 'cache/cache_routes.php' );
+        $routes = $objCache->load('routes');
+
+        foreach( $routes as $label => $route ) {
 
             // Check for a method being set, if it doesn't match, continue
             if( $route['method'] != 'any' && $route['method'] != $_SERVER['REQUEST_METHOD']) {
@@ -92,7 +95,19 @@ class route extends coreObj{
             }
 
             // If the route matches the URL, we've got a winner!
-            if( preg_match( '#' . $ourRoute . '#', $url, $params  ) ) {
+            if( preg_match( '#' . $ourRoute . '#', $url, $matches  ) ) {
+
+                // Remove the URL from the paramaters
+                unset( $matches[0] );
+                $matches = array_values( $matches );
+                $params  = array();
+
+                // Make sure our key/index array is sorted properly
+                foreach( $matches as $index => $value )
+                {
+
+                    $params[ $replacements[$index] ] = $value;
+                }
 
                 $route['arguments'] = array_merge( (array) $route['arguments'], $params);
                 $this->invoke($route);
@@ -119,6 +134,7 @@ class route extends coreObj{
      * @return      bool
      */
     public function invoke($route=array()){
+        echo dump($route);
         if(empty($route)){ 
             trigger_error('Route passed is null. :/', E_USER_ERROR);
         }

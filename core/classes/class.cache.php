@@ -61,6 +61,72 @@ class cache extends coreObj{
         return $result;
     }
 
+    public function load( $file ) {
+        $file = trim($file);
+
+        //make sure we have something to work with
+        if(empty($file)){
+            trigger_error('Error: $file is empty, please give it a value nub, \'\' dosent constiute a value either >.>', E_USER_ERROR);
+        }
+
+        //normalize the var and see if we already have it done
+        $file = strtolower($file);
+        if(isset($this->cacheFiles[$file])){
+            //woo just return now, party later k?
+            return $this->cacheFiles[$file];
+
+        //awwh, now we have to do some work :(
+        }else{
+
+            //generate the filename
+            $path = sprintf($this->getVar('fileTpl'), $file);
+
+            //if its not readable, then ah shit, lets just try and generate it (hopefully theyre trying to generate a sane cache store)
+            if(!is_readable($path)){
+                $cache = $this->doCache($file);
+            }
+
+            //try once again
+            if(!is_readable($path)){
+                //if we get in here, then the cache file still hasnt generated, so mebe folder perms, or query issue?
+
+                if(empty($cache)){
+                    trigger_error('Error: Sorry, we tried everything, your cache file does not wanna load, wtf you trying to do?', E_USER_ERROR);
+                    return false;
+                }
+            }else{
+                include_once($path);
+                $cache = ${$file.'_db'};
+
+            }
+
+            //cache apparently worked this time, lets roll :D
+            $this->cacheFiles[$file] = $cache;
+
+            return $cache;
+        }
+
+        //if we get here for whatever reason, something has fucked up :(
+        return false;
+    }
+
+    
+    public function get($store){
+        //if we have the store loaded, just return
+        if(isset($this->cacheFiles[$store])){
+            return $this->cacheFiles[$store];
+        }
+
+        //try and load the cache, if it failed, we'll just return false
+        if($this->loadCache($store) === false){
+            return false;
+        }
+
+        //give em what theyve always wanted folks, a cache store! :D $$$
+        return $this->cacheFiles[$store];
+    }
+
+
     /**
      * Removes a specific set of cache files
      *
@@ -119,8 +185,6 @@ class cache extends coreObj{
                 $this->setup($file, $query);
             break;
             case 'routes':
-                $x = is_callable( array($objRoute, 'generate_cache') );
-                echo dump( $x );
                 $return = $objRoute->generate_cache();
             break;
 
@@ -129,6 +193,9 @@ class cache extends coreObj{
             break;
 
         }
+
+        // TODO: throw a hook in here, and modify this baby so the hook can add to this switch without modifying the core code... hrm ;x - xLink
+
 
         if($return !== false){
             $this->writeFile($file, $return);
