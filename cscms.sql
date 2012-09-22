@@ -3,18 +3,12 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Sep 22, 2012 at 02:30 PM
+-- Generation Time: Sep 22, 2012 at 12:38 PM
 -- Server version: 5.5.16
 -- PHP Version: 5.3.8
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
 
 --
 -- Database: `cscms`
@@ -46,6 +40,37 @@ INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `cscms_modules`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_modules` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `path` text NOT NULL,
+  `version` varchar(10) NOT NULL,
+  `hash` varchar(32) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `hash` (`hash`),
+  KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_plugins`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_plugins` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `path` varchar(255) DEFAULT NULL,
+  `priority` enum('1','2','3') NOT NULL DEFAULT '1',
+  `enabled` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `cscms_routes`
 --
 
@@ -72,6 +97,24 @@ INSERT INTO `cscms_routes` (`id`, `module`, `label`, `pattern`, `arguments`, `re
 (3, '88b91c187cc01b74e9e7fcc06cc286eb', 'newThread', '/forum/:cat/new_thread.html', '{"module":"forum","method":"newThread"}', '{"cat":"\\\\d+"}', 0, NULL),
 (4, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewThread', '/forum/:cat/:name-:id.html', '{"module":"forum","method":"viewThread"}', '{"cat":"\\\\d+","id":"\\\\d+"}', 0, NULL),
 (5, '88b91c187cc01b74e9e7fcc06cc286eb', 'newReply', '/forum/:cat/:name-:id.html?reply', '{"module":"forum","method":"newReply"}', '{"cat":"\\\\d+","id":"\\\\d+"}', 0, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_sessions`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_sessions` (
+  `uid` int(11) NOT NULL,
+  `sid` varchar(32) NOT NULL DEFAULT '',
+  `hostname` varchar(128) DEFAULT NULL,
+  `timestamp` int(11) NOT NULL DEFAULT '0',
+  `useragent` varchar(255) NOT NULL,
+  `mode` enum('active','kill','ban','update') NOT NULL DEFAULT 'active',
+  `store` longblob,
+  PRIMARY KEY (`sid`),
+  KEY `timestamp` (`timestamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -118,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `cscms_users` (
 --
 
 INSERT INTO `cscms_users` (`id`, `username`, `password`, `pin`, `register_date`, `last_active`, `usercode`, `email`, `show_email`, `avatar`, `title`, `language`, `timezone`, `theme`, `hidden`, `active`, `userlevel`, `banned`, `primary_group`, `login_attempts`, `pin_attempts`, `autologin`, `reffered_by`, `password_update`, `whitelist`, `whitelisted_ips`, `warnings`) VALUES
-(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
+(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -153,7 +196,3 @@ CREATE TABLE IF NOT EXISTS `cscms_users_extras` (
 
 INSERT INTO `cscms_users_extras` (`uid`, `birthday`, `sex`, `contact_info`, `about`, `interests`, `signature`, `usernotes`, `ajax_settings`, `notification_settings`, `forum_show_sigs`, `forum_autowatch`, `forum_quickreply`, `forum_cat_order`, `forum_tracker`, `pagination_style`) VALUES
 (1, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1);
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

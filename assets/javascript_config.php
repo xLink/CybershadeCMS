@@ -16,8 +16,4 @@ $scripts['extras'] = array(
     //'app.js',
 );
 
-
-$scripts['panels'] = array(
-
-);
 ?>
