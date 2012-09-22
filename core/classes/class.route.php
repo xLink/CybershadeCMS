@@ -35,7 +35,6 @@ class route extends coreObj{
      * @return      bool
      */
     function processURL( $url ) {
-        global $routes;
 
         // Append a forward slash to the incoming url if there isn't one
         //  (Should be solved elsewhere)
@@ -48,8 +47,7 @@ class route extends coreObj{
 
         // @TODO: Once the caching class is sorted, we can get rid of this line
         //require_once( cmsROOT . 'cache/cache_routes.php' );
-        #$routes = $objCache->load('routes');
-        $routes = $this->routes;
+        $routes = $objCache->load('routes');
 
         foreach( $routes as $label => $route ) {
 
@@ -148,7 +146,7 @@ class route extends coreObj{
         }
 
         // We assume the invoke is a module call, Let's go!
-        // call_user_func_array( array( $module, $method ), $params );
+        call_user_func_array( array( $route['arguments']['module'], $route['arguments']['method'] ), array_splice($route['arguments'], 2) );
         echo 'Invoking Module Call';
         echo dump($route, $_GET['l']);
     }
@@ -165,27 +163,24 @@ class route extends coreObj{
      *
      * @return      bool
      */
-    public function addRoute( $module, array $route ) {
+    public function addRoute( array $route ) {
         $values   = array();
-        $label    = key( $route );
-        $route    = $route[$label];
+        $label    = $route['label'];
         $objSQL   = coreObj::getDBO();
         $objCache = coreObj::getCache();
 
         $values['label']        = $label;
         $values['status']       = '1';
-        $values['module']       = $module;
-        $values['pattern']      = $route[0];
-        $values['arguments']    = json_encode( $route[1] );
-        $values['requirements'] = json_encode( !empty( $route[2] ) ? $route[2] : null );
+        $values['module']       = $route['moduleID'];
+        $values['pattern']      = $route['pattern'];
+        $values['arguments']    = json_encode( !empty( $route['arguments'] )    ? $route['arguments']    : array() );
+        $values['requirements'] = json_encode( !empty( $route['requirements'] ) ? $route['requirements'] : array() );
         // To Add Logic for: Status && Redirection
 
         $query = $objSQL->queryBuilder()
                         ->insertInto('#__routes')
                         ->set($values)
                         ->build();
-
-        echo dump( $query );
 
         $result = $objSQL->query($query);
         $objCache->doCache('route');

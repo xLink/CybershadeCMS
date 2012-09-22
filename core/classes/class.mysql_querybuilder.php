@@ -312,7 +312,7 @@ class mysql_queryBuilder extends coreObj{
             foreach($this->_values as $field => $val){
                 $val = $this->_sanitizeValue($val);
 
-                $values[] = sprintf('%s', $val);
+                $values[] = sprintf('%s', ($val === NULL ? 'NULL' : $val));
             }
             $statement[] = sprintf('(%s)', implode(', ', $values));
         }

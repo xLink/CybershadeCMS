@@ -9,7 +9,7 @@ include_once('core/core.php');
 $objRoute = coreObj::getRoute();
 
 #include_once('forumInstaller.php');
-
+/*
 $currentURL = $_GET['l'];
 
 $routes[] = array(
@@ -45,8 +45,8 @@ $routes[] = array(
     'status'        => null,
     'redirect'      => null
 );
+*/
 
-$objRoute->setVar( 'routes', $routes );
-$objRoute->processURL( $currentURL );
+$objRoute->processURL( $_GET['l'] );
 
 ?>
