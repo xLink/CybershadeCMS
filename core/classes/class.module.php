@@ -12,7 +12,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  * @author  Dan Aldridge
  */
 class Module extends coreObj{
-    public $modConf = array();
+    public $modConf = array( );
 
     /**
      * Check if a module exists in the file structure
@@ -25,13 +25,13 @@ class Module extends coreObj{
      *
      * @return  bool
      */
-    public function moduleExists($moduleName) {
-        if(is_empty($moduleName) || !is_dir(cmsROOT . 'modules/' . $moduleName)) {
+    public function moduleExists( $moduleName ) {
+        if( is_empty( $moduleName ) || !is_dir cmsROOT . 'modules/' . $moduleName ) ) {
             return false;
         }
 
-        $files = glob(cmsROOT.'modules/'.$moduleName.'/base.'.$moduleName.'.php');
-            if(is_empty($files)) {
+        $files = glob( cmsROOT.'modules/'.$moduleName.'/base.'.$moduleName.'.php' );
+            if( is_empty( $files ) ) {
                 return false;
             }
         return true;

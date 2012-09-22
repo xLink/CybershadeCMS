@@ -4,7 +4,7 @@ Twitter: @CybershadeCMS
 Site: http://cybershade.org/
 
 /* SITE */
-Last update: 11/07/2011
+Last update: 22/09/2012
 Doctype: HTML5
 Tools: SublimeText 2, Photoshop
 
