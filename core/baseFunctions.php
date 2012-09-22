@@ -442,66 +442,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     }
 
     /**
-     * Central place to call the cache calls from.
-     *
-     * @version 1.0
-     * @since   1.0.0
-     *
-     * @param   string      $file
-     * @param   var         $new_file
-     */
-    function newCache($file, &$new_file){
-        global $objCore;
-        switch($file){
-            case 'config':
-                $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                    'SELECT * FROM `$Pconfig`', $new_file);
-            break;
-            case 'groups':
-                $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                    'SELECT * FROM `$Pgroups` ORDER BY `order` ASC', $new_file);
-            break;
-            case 'bans':
-                //$objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                //    'SELECT * FROM `$Pbanned`', $new_file);
-            break;
-            case 'menus':
-                $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                    'SELECT * FROM `$Pmenus` ORDER BY `order` ASC', $new_file);
-            break;
-            case 'menu_setups':
-                $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                    'SELECT * FROM `$Pmenu_setups` ORDER BY `order` ASC', $new_file);
-            break;
-            case 'menu_blocks':
-                $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                    'SELECT * FROM `$Pmenu_blocks`', $new_file);
-            break;
-            case 'group_subscriptions':
-                $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                    'SELECT * FROM `$Pgroup_subs`', $new_file);
-            break;
-            case 'modules':
-                $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                    'SELECT * FROM `$Pmodules`', $new_file);
-            break;
-            case 'plugins':
-                $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                    'SELECT * FROM `$Pplugins`', $new_file);
-            break;
-
-        //
-        //--Use Callback functions to generate the required configuations
-        //
-            case 'statistics':
-                $objCore->objCache->initCache($file.'_db', 'cache_'.$file.'.php',
-                    NULL, $new_file, 'Cache::generate_statistics_cache');
-            break;
-        }
-    }
-
-
-    /**
      * Configures the Menu system and outputs the requested version
      *
      * @version 3.5

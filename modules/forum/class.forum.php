@@ -6,8 +6,23 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class forum extends Module{
 
-    public function __call($name, $arguments){
-        echo dump($arguments, 'Called forum::'.$name);
+    /**
+     * Displays a forum thread
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       $id  int   ID of the forum thread
+     *
+     * @return      void
+     */
+    public function viewThread($id, $test){
+
+
+    	$args = func_get_args();
+    	$method = __METHOD__;
+        echo dump($args, 'Called '.$method);
     }
 
 

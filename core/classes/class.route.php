@@ -36,28 +36,34 @@ class route extends coreObj{
      */
     function processURL( $url ) {
 
+        $objCache = coreObj::getCache();
+        (cmsDEBUG ? memoryUsage('Routes: Began Processing URL') : '');
+
         // Append a forward slash to the incoming url if there isn't one
-        //  (Should be solved elsewhere)
-        if( strpos( $url, '/' ) !== 0 )
-        {
+        // TODO: (Should be solved elsewhere)
+        if( strpos( $url, '/' ) !== 0 ) {
             $url = '/' . $url;
         }
 
-        $objCache = coreObj::getCache();
-
-        // @TODO: Once the caching class is sorted, we can get rid of this line
-        //require_once( cmsROOT . 'cache/cache_routes.php' );
+        // Grab the Routes from the cache
+        (cmsDEBUG ? memoryUsage('Routes: Grabbing Cache') : '');
         $routes = $objCache->load('routes');
 
+        // Loop through our routes and find the most appropriate match
+        (cmsDEBUG ? memoryUsage('Routes: Finding Appropriate Route') : '');
         foreach( $routes as $label => $route ) {
+
+            (cmsDEBUG ? memoryUsage('Routes: Testing .. '.$route['pattern']) : '');
 
             // Check for a method being set, if it doesn't match, continue
             if( $route['method'] != 'any' && $route['method'] != $_SERVER['REQUEST_METHOD']) {
+                (cmsDEBUG ? memoryUsage('Routes: Dismissing pattern due to incorrect REQUEST_METHOD') : '');
                 continue;
             }
 
             // Match Absolute URLs
             if( $route['pattern'] == $url ) {
+                (cmsDEBUG ? memoryUsage('Routes: Absolute URL Matched') : '');
                 $this->invoke($route);
                 return true;
             }
@@ -65,24 +71,25 @@ class route extends coreObj{
             // Store the route's pattern for replacing later on
             $ourRoute = $route['pattern'];
 
-            // Seperate the route and URL into parts
-            $parts_u = explode( '/', $url );
-            $parts_r = explode( '/', $route['pattern'] );
-
             // Filter out empty values, and essentially reset the array keys
-            $parts_u = array_values( array_filter( $parts_u ) );
-            $parts_r = array_values( array_filter( $parts_r ) );
+            $parts_u = array_values( array_filter( explode( '/', $url ) ) );
+            $parts_r = array_values( array_filter( explode( '/', $route['pattern'] ) ) );
 
             // If the route and parts aren't of equal length, insta-dismiss this route
-            if( count( $parts_u ) !== count( $parts_r) ) { continue; }
+            if( count( $parts_u ) !== count( $parts_r) ) { 
+                (cmsDEBUG ? memoryUsage('Routes: Dismissing due to incorrect parts counts') : '');
+                continue; 
+            }
 
             // Collect all the replacement 'variables' from the route structure into an array
+            (cmsDEBUG ? memoryUsage('Routes: Gathering Params from pattern') : '');
             $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
             $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
             // Loop through our replacements (if there are any),
             //  In the matching, if there is a requirement set, use that,
             //  else, use our generic alpha-numeric string match that includes SEO friendly chars.
+            (cmsDEBUG ? memoryUsage('Routes: Replace Params with Replacements') : '');
             foreach( $replacements as $replacement ) {
                 $replaceWith = '[A-Za-z0-9\-\_]+';
 
@@ -94,6 +101,7 @@ class route extends coreObj{
             }
 
             // If the route matches the URL, we've got a winner!
+            (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
             if( preg_match( '#' . $ourRoute . '#', $url, $matches  ) ) {
 
                 // Remove the URL from the paramaters
@@ -115,6 +123,7 @@ class route extends coreObj{
         } // End the foreach loop on the routes
 
         #echo '404';
+        (cmsDEBUG ? memoryUsage('Routes: No Patterns Matched. Invoke 404') : '');
         $this->throwHTTP(404);
         // 404, Route not found
         return;
@@ -125,13 +134,14 @@ class route extends coreObj{
      *
      * @version     1.0
      * @since       1.0.0
-     * @author      Daniel Noel-Davies
+     * @author      Daniel Noel-Davies & Dan Aldridge
      *
      * @param       $route  array   Key/Value array of a Route
      *
      * @return      bool
      */
     public function invoke($route=array()){
+        (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D') : '');
         if( empty( $route ) ) {
             trigger_error('Route passed is null. :/', E_USER_ERROR);
         }
@@ -143,10 +153,41 @@ class route extends coreObj{
             return true;
         }
 
+
         // We assume the invoke is a module call, Let's go!
-        call_user_func_array( array( $route['arguments']['module'], $route['arguments']['method'] ), array_splice($route['arguments'], 2) );
-        echo 'Invoking Module Call';
-        echo dump($route, $_GET['l']);
+        $module = $route['arguments']['module'];
+        $method = $route['arguments']['method'];
+
+        // Check the class and subsequent method are callable, else trigger an error
+        if ( !is_callable( array( $module, $method ) ) ) {
+            trigger_error( 'Error: The module/method you are trying to call apparently says no.', E_USER_ERROR );
+        }
+
+        // Retrieve the info we need about the class and method
+        (cmsDEBUG ? memoryUsage('Routes: Method found to be callable. Do our thing :D') : '');
+        $refMethod = new ReflectionMethod( $module, $method );
+        $params    = $refMethod->getParameters( );
+        $args      = array( );
+
+
+        // Loop through the parameters the method asks for, and match them up with our arguments
+        foreach( $params as $k => $name ) {
+            $var = $name->getName( );
+
+            // check if the var they asked for is in the params
+            if(!isset($route['arguments'][$var])){ continue; }
+
+            // and then check if we have to throw the var at them as a reference
+            if($name->isPassedByReference()){
+                $args[$var] = &$route['arguments'][$var];
+            }else{
+                $args[$var] = $route['arguments'][$var];
+            }
+        }
+
+        // GO! $Module!, $Module used $Method($args)... It was super effective!
+        (cmsDEBUG ? memoryUsage('Routes: Call Method.') : '');
+        $refMethod->invokeArgs( new $module, $args);
     }
 
     /**

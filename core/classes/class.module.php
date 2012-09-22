@@ -26,7 +26,7 @@ class Module extends coreObj{
      * @return  bool
      */
     public function moduleExists( $moduleName ) {
-        if( is_empty( $moduleName ) || !is_dir cmsROOT . 'modules/' . $moduleName ) ) {
+        if( is_empty( $moduleName ) || !is_dir( cmsROOT . 'modules/' . $moduleName ) ) {
             return false;
         }
 

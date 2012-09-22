@@ -49,4 +49,8 @@ $routes[] = array(
 
 $objRoute->processURL( $_GET['l'] );
 
+
+$a = memoryUsage(' Last :) ');
+echo dump($a, 'Exec Info');
+
 ?>
