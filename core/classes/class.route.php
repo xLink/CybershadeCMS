@@ -102,9 +102,7 @@ class route extends coreObj{
                 $params  = array();
 
                 // Make sure our key/index array is sorted properly
-                foreach( $matches as $index => $value )
-                {
-
+                foreach( $matches as $index => $value ) {
                     $params[ $replacements[$index] ] = $value;
                 }
 
@@ -116,7 +114,8 @@ class route extends coreObj{
 
         } // End the foreach loop on the routes
 
-        echo '404';
+        #echo '404';
+        $this->throwHTTP(404);
         // 404, Route not found
         return;
     }
@@ -140,8 +139,7 @@ class route extends coreObj{
         // Check if the route is a redirection
         if( !empty( $route['redirect'] ) ) {
             // TODO: Add Internal Redirections (Internal, meaning no 301, just different internal processing)
-            header("HTTP/1.1 301 Moved Permanently");
-            header("Location: " . $route['redirect']);
+            $this->throwHTTP( 301, $route['redirect'] );
             return true;
         }
 
@@ -301,11 +299,16 @@ class route extends coreObj{
 
         foreach( $results as $result ) {
 
-            $args = ( json_decode( $result['arguments'], true )    !== null ? json_decode( $result['arguments'], true )    : array() );
-            $reqs = ( json_decode( $result['requirements'], true ) !== null ? json_decode( $result['requirements'], true ) : array() );
 
-            $args = recursiveArray($args, 'stripslashes');
-            $reqs = recursiveArray($reqs, 'stripslashes');
+            $args = json_decode( $result['arguments'], true);
+                if($args === null){
+                    $args = array();
+                }
+
+            $reqs = json_decode( $result['requirements'], true);
+                if($reqs === null){
+                    $reqs = array();
+                }
 
             $output[$result['pattern']] = array(
                 'method'        => ( !empty( $result['method'] ) ? $result['method'] : 'any' ),
@@ -320,6 +323,65 @@ class route extends coreObj{
         }
 
         return $output;
+    }
+   /**
+     * Throws a HTTP Error Code and a pretty CMS Page
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Daniel Aldridge
+     *
+     * @param   int    $error
+     */
+    public function throwHTTP($error=000, $val=null){
+        $msg = NULL;
+        $objPage = coreObj::getPage();
+        switch($error){
+            default:
+            case 000:
+                header('HTTP/1.0 '.$error.'');
+                $msg = 'Something went wrong, we cannot determine what. HTTP Error: '.$error;
+            break;
+
+            case 301:
+                header('HTTP/1.0 301 Moved Permanently');
+                header('Location: ' . $val);
+                return;
+            break;
+
+            case 400:
+                header('HTTP/1.0 400 Bad Request');
+                $objPage->setTitle('Error 400 - Bad Request');
+                $msg = 'Error 400 - The server did not understand your request.' .
+                        ' If the error persists contact an administrator with details on how to replicate the error.';
+            break;
+
+            case 401:
+                header('HTTP/1.0 401 Unauthorized');
+                $objPage->setTitle('Error 401 Unauthorized');
+                $msg = 'Error 401 - You do not have authorization to access esource.';
+            break;
+
+            case 403:
+                header('HTTP/1.0 403 Forbidden');
+                $objPage->setTitle('Error 403 - Forbidden');
+                $msg = 'Error 403 - You have been denied access to the requested page.';
+            break;
+
+            case 404:
+                header('HTTP/1.0 404 Not Found');
+                $objPage->setTitle('Error 404 - Page Not Found');
+                $msg = 'Error 404 - The file you were looking for cannot be found.';
+            break;
+
+            case 500:
+                header('HTTP/1.0 500 Internal Server Error');
+                $objPage->setTitle('Error 500 - Internal Server Error');
+                $msg = 'Error 500 - Oops it seems we have broken something..   ';
+            break;
+        }
+
+        //hmsgDie('FAIL', $msg);
     }
 }
 
