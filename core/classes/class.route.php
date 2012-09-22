@@ -76,9 +76,9 @@ class route extends coreObj{
             $parts_r = array_values( array_filter( explode( '/', $route['pattern'] ) ) );
 
             // If the route and parts aren't of equal length, insta-dismiss this route
-            if( count( $parts_u ) !== count( $parts_r) ) { 
+            if( count( $parts_u ) !== count( $parts_r) ) {
                 (cmsDEBUG ? memoryUsage('Routes: Dismissing due to incorrect parts counts') : '');
-                continue; 
+                continue;
             }
 
             // Collect all the replacement 'variables' from the route structure into an array
@@ -113,6 +113,7 @@ class route extends coreObj{
                 foreach( $matches as $index => $value ) {
                     $params[ $replacements[$index] ] = $value;
                 }
+                $params['_all'] = $matches;
 
                 $route['arguments'] = array_merge( (array) $route['arguments'], $params);
                 $this->invoke($route);
@@ -184,6 +185,7 @@ class route extends coreObj{
                 $args[$var] = $route['arguments'][$var];
             }
         }
+        $args['_all'] = $route['arguments']['_all'];
 
         // GO! $Module!, $Module used $Method($args)... It was super effective!
         (cmsDEBUG ? memoryUsage('Routes: Call Method.') : '');
