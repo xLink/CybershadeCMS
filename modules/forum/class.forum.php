@@ -17,8 +17,10 @@ class forum extends Module{
      *
      * @return      void
      */
-    public function viewThread($id, $test){
+    public function viewThread($id, $name){
+    	$objPlugin = coreObj::getPlugins();
 
+    	$objPlugin->hook('CMS_forum_viewThread', $args);
 
     	$args = func_get_args();
     	$method = __METHOD__;

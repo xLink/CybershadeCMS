@@ -72,7 +72,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 (cmsDEBUG ? memoryUsage('Core: version check & basefunctions') : '');
 
     //kill magic quotes completely
-    if(get_magic_quotes_gpc()!==false){
+    if(get_magic_quotes_gpc() != false){
 (cmsDEBUG ? memoryUsage('Core: anti magic quotes') : '');
 
         //strip all the global arrays
@@ -132,6 +132,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 // echo dump($a, 'Core - Loaded Files', 'orange');
 
 (cmsDEBUG ? memoryUsage('Core: everything else') : '');
+
+$objPlugin->hook('CMS_START')
 //
 
 // $a = memoryUsage();

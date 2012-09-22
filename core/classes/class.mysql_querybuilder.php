@@ -279,7 +279,7 @@ class mysql_queryBuilder extends coreObj{
 
             $set = array();
             foreach($this->_fields as $k => $f){
-                $set[] = sprintf('`%s` = %s', $f, $this->_sanitizeValue($this->_values[$k]));
+                $set[] = sprintf('%s = %s', $f, $this->_sanitizeValue($this->_values[$k]));
             }
 
             $statement[] = implode(', ', $set);
@@ -304,7 +304,7 @@ class mysql_queryBuilder extends coreObj{
         }
 
         private function _buildINSERTFields(&$statement){
-            $statement[] = sprintf('(`%s`)', implode('`, `', $this->_fields));
+            $statement[] = sprintf('(%s)', implode(', ', $this->_fields));
         }
 
         private function _buildINSERTValues(&$statement){
@@ -332,19 +332,18 @@ class mysql_queryBuilder extends coreObj{
                 if(count($field) == 1){
                     $field = current($field);
 
-                    if(strtoupper(substr($field, 0, 5)) == 'COUNT' ||
-                        $field == '*'){
+                    if(strtoupper(substr($field, 0, 5)) == 'COUNT' || $field == '*'){
                         $_fields[] = $field;
                     }else{
-                        $_fields[] = sprintf('`%s`', $field);
+                            $_fields[] = sprintf('%s', $field);
                     }
                     continue;
                 }
 
                 if(!is_number($key) && count($field) == 2){
-                    $_fields[] = sprintf('%s.`%s` as %s', $field[0], $field[1], $key);
+                    $_fields[] = sprintf('%s.%s as %s', $field[0], $field[1], $key);
                 }else{
-                    $_fields[] = sprintf('%s.`%s`', $field[0], $field[1]);
+                    $_fields[] = sprintf('%s.%s', $field[0], $field[1]);
                 }
             }
 
@@ -369,15 +368,15 @@ class mysql_queryBuilder extends coreObj{
                 //check if were querying another db
                 $tbl = explode('.', $table);
                 if(count($tbl) == 2){
-                    $_tables[] = sprintf('%s.`%s`', $tbl[0], $tbl[1]);
+                    $_tables[] = sprintf('%s.%s', $tbl[0], $tbl[1]);
                     continue;
                 }
 
 
                 if(isset($key) && !empty($key)){
-                    $_tables[] = sprintf('`%s` as %s', $table, $key);
+                    $_tables[] = sprintf('%s as %s', $table, $key);
                 }else{
-                    $_tables[] = sprintf('`%s`', $table);
+                    $_tables[] = sprintf('%s', $table);
                 }
             }
             return implode(', ', $_tables);
@@ -424,7 +423,7 @@ class mysql_queryBuilder extends coreObj{
             $statement[] = 'GROUP BY';
             $gbs = array();
             foreach($this->_groupBy as $gb){
-                $gbs[] = sprintf('`%s`', $gb);
+                $gbs[] = sprintf('%s', $gb);
             }
             $statement[] = implode(', ', $gbs);
         }

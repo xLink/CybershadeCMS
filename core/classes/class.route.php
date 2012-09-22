@@ -16,6 +16,8 @@ class route extends coreObj{
      * @since   1.0
      * @author  Daniel Noel-Davies
      *
+     * @todo    Remove this->route, as it's not a route, it's the current URL... :/
+     *
      * @return  void
      */
     public function __construct() {
@@ -82,14 +84,14 @@ class route extends coreObj{
             }
 
             // Collect all the replacement 'variables' from the route structure into an array
-            (cmsDEBUG ? memoryUsage('Routes: Gathering Params from pattern') : '');
+            (cmsDEBUG ? memoryUsage('Routes: Gathering variables from pattern') : '');
             $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
             $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
             // Loop through our replacements (if there are any),
             //  In the matching, if there is a requirement set, use that,
             //  else, use our generic alpha-numeric string match that includes SEO friendly chars.
-            (cmsDEBUG ? memoryUsage('Routes: Replace Params with Replacements') : '');
+            (cmsDEBUG ? memoryUsage('Routes: Replace variables with Replacements') : '');
             foreach( $replacements as $replacement ) {
                 $replaceWith = '[A-Za-z0-9\-\_]+';
 
@@ -118,8 +120,10 @@ class route extends coreObj{
                 $route['arguments'] = array_merge( (array) $route['arguments'], $params);
                 $this->invoke($route);
 
+                unset($route, $matches, $params, $replacements, $parts_u, $parts_r, $ourRoute, $replaceWith, $objCache);
                 return true;
             }
+            (cmsDEBUG ? memoryUsage('Routes: Pattern Dismissed, Pattern Variables didn\'t match') : '');
 
         } // End the foreach loop on the routes
 
@@ -141,7 +145,7 @@ class route extends coreObj{
      *
      * @return      bool
      */
-    public function invoke($route=array()){
+    public function invoke( $route = array( ) ) {
         (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D') : '');
         if( empty( $route ) ) {
             trigger_error('Route passed is null. :/', E_USER_ERROR);
@@ -161,7 +165,7 @@ class route extends coreObj{
 
         // Check the class and subsequent method are callable, else trigger an error
         if ( !is_callable( array( $module, $method ) ) ) {
-            trigger_error( 'Error: The module/method you are trying to call apparently says no.', E_USER_ERROR );
+            trigger_error( 'The module/method you are trying to call apparently says no.', E_USER_ERROR );
         }
 
         // Retrieve the info we need about the class and method
@@ -176,7 +180,10 @@ class route extends coreObj{
             $var = $name->getName( );
 
             // check if the var they asked for is in the params
-            if(!isset($route['arguments'][$var])){ continue; }
+            if(!isset($route['arguments'][$var])){ 
+                $args[$var] = null;
+                continue;
+            }
 
             // and then check if we have to throw the var at them as a reference
             if($name->isPassedByReference()){
@@ -185,7 +192,6 @@ class route extends coreObj{
                 $args[$var] = $route['arguments'][$var];
             }
         }
-        $args['_all'] = $route['arguments']['_all'];
 
         // GO! $Module!, $Module used $Method($args)... It was super effective!
         (cmsDEBUG ? memoryUsage('Routes: Call Method.') : '');
@@ -242,8 +248,7 @@ class route extends coreObj{
      * @return      bool
      */
     public function addRoutes( $module, array $routes ) {
-        if( empty( $routes ) )
-        {
+        if( empty( $routes ) ) {
             return false;
         }
 
@@ -335,13 +340,14 @@ class route extends coreObj{
 
         $query = $objSQL->queryBuilder()
                         ->select('module', 'label', 'pattern', 'arguments', 'requirements', 'status', 'redirect')
+                            ->addField('pattern LIKE "%:%" as `dynamic`')
                         ->from('#__routes')
+                        ->orderBy('`dynamic`, CHAR_LENGTH(pattern)', 'DESC')
                         ->build();
 
         $results = $objSQL->fetchAll( $query );
 
         foreach( $results as $result ) {
-
 
             $args = json_decode( $result['arguments'], true);
                 if($args === null){
@@ -372,7 +378,7 @@ class route extends coreObj{
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Daniel Aldridge
+     * @author  Dan Aldridge
      *
      * @param   int    $error
      */

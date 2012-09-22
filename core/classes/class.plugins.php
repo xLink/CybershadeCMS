@@ -18,13 +18,13 @@ class plugins extends coreObj{
     /**
      * Get plugin list from the database, and attempt to load them in
      *
-     * @version    1.1
-     * @since   1.0.0
-     * @author  Dan Aldridge
+     * @version     1.1
+     * @since       1.0.0
+     * @author      Dan Aldridge
      *
-     * @param   array $plugin
+     * @param       array $plugin
      *
-     * @return  bool
+     * @return      bool
      */
     public function loadHooks($plugin){
         if($this->dontBother == true){ return false; }
@@ -63,16 +63,16 @@ class plugins extends coreObj{
     /**
      * This is the backbone of the sys
      *
-     * @version    1.0
-     * @since     1.0.0
-     * @author     Dan Aldridge
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
      *
-     * @param     string     $hook
-     * @param     string     $args
-     * @param     string     $option
-     * @param     int     $priority
+     * @param       string     $hook
+     * @param       string     $args
+     * @param       string     $option
+     * @param       int        $priority
      *
-     * @return  string
+     * @return      string
      */
     public function hook($hook, &$args='', $option='run', $priority=MED){
         //decide what we need to do here
@@ -121,13 +121,13 @@ class plugins extends coreObj{
     /**
      * Attach a function to a hook with specified priority
      *
-     * @version    1.0
-     * @since   1.0.0
-     * @author  Dan Aldridge
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
      *
-     * @param   string     $hook
-     * @param   string  $callback
-     * @param     int     $priority
+     * @param       string  $hook
+     * @param       string  $callback
+     * @param       int     $priority
      */
     public function addHook($hook, $callback, $priority=MED){
         $this->hook($hook, $callback, 'add', $priority);
@@ -136,13 +136,13 @@ class plugins extends coreObj{
     /**
      * Remove a hook from the system
      *
-     * @version    1.0
-     * @since   1.0.0
-     * @author  Dan Aldridge
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
      *
-     * @param   string     $hook
-     * @param   string  $callback
-     * @param     int     $priority
+     * @param       string  $hook
+     * @param       string  $callback
+     * @param       int     $priority
      */
     public function delHook($hook, $callback, $priority=MED){
         $this->hook($hook, $callback, 'rm', $priority);

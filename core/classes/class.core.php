@@ -76,7 +76,7 @@ class coreObj {
             }
         }
 
-        trigger_error('Error: No File found for this Class.'.dump($dirs, $class), E_USER_ERROR);
+        trigger_error('No File found for this Class.'.dump($dirs, $class), E_USER_ERROR);
         return false;
     }
 
