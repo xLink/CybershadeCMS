@@ -8,21 +8,43 @@ include_once('core/core.php');
 
 $objRoute = coreObj::getRoute();
 
-include_once('forumInstaller.php');
+#include_once('forumInstaller.php');
 
 $currentURL = $_GET['l'];
 
-$routes = array('newReply' => array(
-		'/forum/:cat/:name-:id.html',
-		array(
-			'module' => 'forum', 
-			'method' => 'newReply',
-		), 
-		array(
-			'cat' => '\d+',
-			'id'  => '\d+',
-		),
-	));
+$routes[] = array(
+    'method'        => 'any',
+    'pattern'       => '/forum/:cat/:name-:id.html?reply',
+    'module'        => 'forum',
+    'arguments'     => array(
+        'module' => 'forum',
+        'method' => 'newReply',
+    ),
+    'requirements'  => array(
+        'cat' => '\w+',
+        'id'  => '\d+',
+    ),
+    'label'         => 'newReply',
+    'status'        => null,
+    'redirect'      => null
+);
+
+$routes[] = array(
+    'method'        => 'any',
+    'pattern'       => '/forum/:cat/:name-:id.html',
+    'module'        => 'forum',
+    'arguments'     => array(
+        'module' => 'forum',
+        'method' => 'viewThread',
+    ),
+    'requirements'  => array(
+        'cat' => '\w+',
+        'id'  => '\d+',
+    ),
+    'label'         => 'viewThread',
+    'status'        => null,
+    'redirect'      => null
+);
 
 $objRoute->setVar( 'routes', $routes );
 $objRoute->processURL( $currentURL );

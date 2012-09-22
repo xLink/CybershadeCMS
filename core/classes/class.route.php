@@ -48,7 +48,8 @@ class route extends coreObj{
 
         // @TODO: Once the caching class is sorted, we can get rid of this line
         //require_once( cmsROOT . 'cache/cache_routes.php' );
-        $routes = $objCache->load('routes');
+        #$routes = $objCache->load('routes');
+        $routes = $this->routes;
 
         foreach( $routes as $label => $route ) {
 
@@ -149,6 +150,7 @@ class route extends coreObj{
         // We assume the invoke is a module call, Let's go!
         // call_user_func_array( array( $module, $method ), $params );
         echo 'Invoking Module Call';
+        echo dump($route, $_GET['l']);
     }
 
     /**
