@@ -484,7 +484,7 @@ class page extends coreObj{
 
         //throw a hook here, so they have the ability to do...whatever
         $cssFiles = array();
-        $objPlugins->hook('CMSPage_cssFiles', $cssFiles);
+        $objPlugins->hook('CMS_Page_cssFiles', $cssFiles);
 
             if(count($cssFiles)){
                 foreach($cssFiles as $file){
@@ -504,7 +504,7 @@ class page extends coreObj{
 
         //throw a hook here, so they have the ability to do...whatever
         $jsFiles = array();
-        $objPlugins->hook('CMSPage_jsFiles', $jsFiles);
+        $objPlugins->hook('CMS_Page_jsFiles', $jsFiles);
 
 
 

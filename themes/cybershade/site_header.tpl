@@ -13,11 +13,6 @@
     <div class="container">
         <div id="topbar">
             <div class="logo"> Cybershade Inc </div>
-            <!--nav class="pull-right hidden-phone"><ul>
-                  <li><a href="#">Github</a></li>
-                  <li><a href="#">Facebook</a></li>
-                  <li><a href="#">Twitter</a></li>
-            </ul></nav-->
             <div class="pull-right hidden-phone share-wrapper">
                 <div class="share-action socicon-share"></div>
                 <div class="share-container">
@@ -53,68 +48,6 @@
         </div>
     </div></div>
 
-    <div class="container">
-        <div id="shoutbox">
-            <header class="row">
-                <div class="span2">Users Only</div>
-                <div class="span7">Community Activity</div>
-                <div class="span2">You!</div>
-            </header>
-            <section class="row">
-                <div id="userlist" class="span2">
-                    <ul class="nav nav-list">
-                        <li>
-                            <div class="username"> <i class="fam-bullet-red"></i> xLink</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-black"></i> Darkmantis</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-blue"></i> Jesus</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-red"></i> xLink</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-black"></i> Darkmantis</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-blue"></i> Jesus</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-red"></i> xLink</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-black"></i> Darkmantis</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-blue"></i> Jesus</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-red"></i> xLink</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-black"></i> Darkmantis</div>
-                        </li>
-                        <li>
-                            <div class="username"> <i class="fam-bullet-blue"></i> Jesus</div>
-                        </li>
-                    </ul>
-                </div>
-
-                <div id="activity" class="span7">
-                    <div class="activity">
-                        <div class="username"> <i class="fam-bullet-red"></i> xLink </div>
-                    </div>
-                </div>
-
-                <div id="userblock" class="span2">
-
-                </div>
-            </section>
-        </div>
-    </div>
-
     <div class="clearfix"></div>
 </header>
 
@@ -122,9 +55,13 @@
     <div class="row">
 
         <aside class="span4 hidden-phone">
+
             <div class="menu">
                 <section>
-                    <header>Main Menu (inside header, padding)</header>
+                    <header>Main Menu</header>
+                    <div class="content">
+
+                    </div>
                     <ul class="nav nav-list">
                         <li class="nav-header">List header</li>
                         <li class="active"><a href="#">Home</a></li>
@@ -139,39 +76,6 @@
                 </section>
             </div>
 
-            <div class="menu">
-                <header>Main Menu (outside header, padding)</header>
-                <section>
-                    <ul class="nav nav-list">
-                        <li class="nav-header">List header</li>
-                        <li class="active"><a href="#">Home</a></li>
-                        <li><a href="#">Library</a></li>
-                        <li><a href="#">Applications</a></li>
-                        <li class="nav-header">Another list header</li>
-                        <li><a href="#">Profile</a></li>
-                        <li><a href="#">Settings</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">Help</a></li>
-                    </ul>
-                </section>
-            </div>
-
-            <div class="menu">
-                <header>Main Menu (outside header, no padding)</header>
-                <section class="no-padding">
-                    <ul class="nav nav-list">
-                        <li class="nav-header">List header</li>
-                        <li class="active"><a href="#">Home</a></li>
-                        <li><a href="#">Library</a></li>
-                        <li><a href="#">Applications</a></li>
-                        <li class="nav-header">Another list header</li>
-                        <li><a href="#">Profile</a></li>
-                        <li><a href="#">Settings</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">Help</a></li>
-                    </ul>
-                </section>
-            </div>
         </aside>
 
         <div id="pageContent" class="span8">

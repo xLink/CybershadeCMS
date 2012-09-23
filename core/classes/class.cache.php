@@ -80,7 +80,6 @@ class cache extends coreObj{
      */
     public function load( $file ) {
         $file = trim($file);
-
         //make sure we have something to work with
         if(empty($file)){
             trigger_error('$file is empty, please give it a value nub, \'\' dosent constiute a value either >.>', E_USER_ERROR);
@@ -156,7 +155,7 @@ class cache extends coreObj{
         }
 
         //try and load the cache, if it failed, we'll just return false
-        if($this->loadCache($store) === false){
+        if($this->load($store) === false){
             return false;
         }
 
@@ -213,30 +212,28 @@ class cache extends coreObj{
      * @param       string $file    Alias for Cache Store
      */
     public function doCache($file){
-        $objSQL = coreObj::getDBO();
-        $objRoute = coreObj::getRoute();
-
         $return = false;
         switch($file){
-
             case 'config':
-            case 'plugins':
-                $query = $objSQL->queryBuilder()->select('*')->from('#__'.$file)->build();
-                $this->setup($file, $query);
+                $return = $this->generate_config_cache();
             break;
 
             case 'routes':
-                $return = $objRoute->generate_cache();
+                $return = coreObj::getRoute()->generate_cache();
             break;
 
             case 'statistics':
                 $return = $this->generate_stats_cache();
             break;
 
-        }
-        
-        // TODO: throw a hook in here, and modify this baby so the hook can add to this switch without modifying the core code... hrm ;x - xLink
+            case 'plugins':
+                $query = coreObj::getDBO()->queryBuilder()->select('*')->from('#__'.$file)->build();
+                $this->setup($file, $query);
+            break;
 
+        }
+
+        // TODO: throw a hook in here, and modify this baby so the hook can add to this switch without modifying the core code... hrm ;x - xLink
 
         if($return !== false){
             $this->writeFile($file, $return);
@@ -297,8 +294,7 @@ class cache extends coreObj{
      */
     public function writeFile($filename, $contents){
         if(!$this->getVar('cacheToggle')){ return; }
-$a = func_get_args();
-echo dump($a);
+
         $fp = fopen(sprintf($this->getVar('fileTpl'), str_replace('_db', '', $filename)), 'w');
             if(!$fp){ return false; }
 
@@ -338,6 +334,41 @@ PHP;
      */
     public function generate_stats_cache(){
 
+    }
+
+    /**
+     *  Generates the config cache
+     *
+     * @version     2.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     *
+     */
+    public function generate_config_cache(){
+        $objSQL = coreObj::getDBO();
+
+        $query = $objSQL->queryBuilder()
+                        ->select('`key`', '`var`', '`value`', '`default`')
+                        ->from('#__config')
+                        ->orderBy('`key`', 'DESC')
+                        ->build();
+
+        $results = $objSQL->fetchAll($query);
+            if(!count($results)){
+                echo $objSQL->getError();
+                return false;
+            }
+
+        $return = array();
+        foreach($results as $row) {
+
+            $return[$row['key']][$row['var']] = (isset($row['value']) && !is_empty($row['value'])
+                ? $row['value']
+                : $row['default']);
+        }
+
+        return $return;
     }
 }
 ?>

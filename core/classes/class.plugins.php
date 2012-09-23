@@ -148,6 +148,5 @@ class plugins extends coreObj{
     public function delHook($hook, $callback, $priority=MED){
         $this->hook($hook, $callback, 'rm', $priority);
     }
-
 }
 ?>

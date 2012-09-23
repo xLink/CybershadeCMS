@@ -175,7 +175,16 @@ class coreObj {
      * @return  mixed
      */
     public static function config($array=null, $setting=null, $default=null){
-        global $config;
+        //if its the database details they want, then lets throw em the config stuff
+        if($array == 'db'){
+            global $config;
+
+        //else load in the config cache and go from there
+        }else{
+            $objCache = coreObj::getCache();
+
+            $config = $objCache->get('config');
+        }
 
         //if no arguments were passed, throw it all out
         if(!func_num_args()){
@@ -183,7 +192,7 @@ class coreObj {
         }
 
         //if just an array key was passed and it exists, throw that out
-        if(func_num_args()==1 && in_array($array, array_keys($config))){
+        if(func_num_args() == 1 && in_array($array, array_keys($config))){
             return $config[$array];
         }
 
