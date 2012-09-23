@@ -124,8 +124,7 @@ class route extends coreObj{
                 $this->modifyGET($params);
 
                 // add some extras here...
-                $params['_all'] = $matches;
-                $params['_url'] = $url;
+                $params['_all'] = $params;
 
                 // Add a hook for the params
                 $objPlugin->hook('CMS_ROUTE_PARAMS', $params);
@@ -458,7 +457,11 @@ class route extends coreObj{
 
             //and merge away :D
             $_GET = array_merge($_GET, $params);
+
+            return;
         }
+
+        $_GET = array();
     }
 }
 

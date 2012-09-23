@@ -27,7 +27,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             function dump(){} function getExecInfo(){} function memoryUsage(){}
         }else{ require_once($file); }
 
-(cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
+    (cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
 
     if(cmsDEBUG && false){
         require_once(cmsROOT.'core/php_error.php');
@@ -37,9 +37,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
           'error_reporting_on'  => E_ALL | E_STRICT,
           'background_text'     => 'Cybershade CMS',
         ));
-(cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
+    (cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
     }
-
 
     //Lets set a simple error template up till we have the template engine going
     $errorTPL = '<h3>%s</h3> <p>%s Killing Process...</p>';
@@ -56,7 +55,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to read the configuration file, please ensure correct privileges are given.'));
         }else{ require_once($file); }
 
-(cmsDEBUG ? memoryUsage('Core: loaded config') : '');
+    (cmsDEBUG ? memoryUsage('Core: loaded config') : '');
 
     //make sure we are running a compatible PHP Version
     if(PHP_VERSION_ID < '50300'){
@@ -69,11 +68,11 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to locate/read the baseFunctions file.'));
         }else{ require_once($file); }
 
-(cmsDEBUG ? memoryUsage('Core: version check & basefunctions') : '');
+    (cmsDEBUG ? memoryUsage('Core: version check & basefunctions') : '');
 
     //kill magic quotes completely
     if(get_magic_quotes_gpc() != false){
-(cmsDEBUG ? memoryUsage('Core: anti magic quotes') : '');
+    (cmsDEBUG ? memoryUsage('Core: anti magic quotes') : '');
 
         //strip all the global arrays
         recursiveArray($_POST,    'stripslashes');
@@ -88,7 +87,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         date_default_timezone_set('Europe/London');
     }
 
-(cmsDEBUG ? memoryUsage('Core: default timezone') : '');
+    (cmsDEBUG ? memoryUsage('Core: default timezone') : '');
 
 /**
   //
@@ -97,7 +96,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 **/
     require_once(cmsROOT.'core/classes/class.core.php');
 
-(cmsDEBUG ? memoryUsage('Core: loaded base class') : '');
+    (cmsDEBUG ? memoryUsage('Core: loaded base class') : '');
 
     // AUTOLOADER, I Choose You!
         //directories to use for the autoloading, these get glob'd over after
@@ -106,12 +105,12 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         $dirs = coreObj::addClassDirs(cmsROOT.'modules/*/class.*.php');
 
 // echo dump($dirs, 'Loading Classes From', 'orange');exit;
-(cmsDEBUG ? memoryUsage('Core: autoloader dirs') : '');
+    (cmsDEBUG ? memoryUsage('Core: autoloader dirs') : '');
 
     spl_autoload_extensions('.php');
     spl_autoload_register(array('coreObj', 'loadClass'));
 
-(cmsDEBUG ? memoryUsage('Core: autoloader registration') : '');
+    (cmsDEBUG ? memoryUsage('Core: autoloader registration') : '');
 
 // $a = get_included_files();
 // echo dump($a, 'Core - Loaded Files', 'orange');
@@ -119,7 +118,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objCore     = new coreObj;
 
     $objCache    = coreObj::getCache();
-    $objRoute    = coreObj::getRoute()->modifyGET();
+    $objRoute    = coreObj::getRoute();
     $objSQL      = coreObj::getDBO();
     #$objSession = coreObj::getSession();
     $objPlugin   = coreObj::getPlugins();

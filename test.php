@@ -10,13 +10,53 @@ $objRoute = coreObj::getRoute();
 
 $objRoute->addRoute( array(
     'method'       => 'get',
-    'pattern'      => '/backup',
-    'arguments'	   => array(
-    	'module'	=> 'backup',
-    	'method'	=> 'go'
+    'pattern'      => '/:group',
+    'arguments'    => array(
+		'module' => 'group',
+		'method' => 'index',
     ),
-    'label'        => 'backup',
-    'status'       => '0',
-) );
+    'label'        => 'group-index',
+    'status'       => '1',
+));
 
+$objRoute->addRoute( array(
+    'method'       => 'get',
+    'pattern'      => '/:group/forum/:cat/:name-:id.html',
+    'arguments'    => array(
+		'module'	=> 'forum',
+		'method'	=> 'viewThread'
+    ),
+    'label'        => 'group-view-thread',
+    'status'       => '1',
+));
+
+$objRoute->addRoute( array(
+    'method'       => 'get',
+    'pattern'      => '/:group/users/list',
+    'arguments'    => array(
+     'module' => 'group',
+     'method' => 'userList'
+    ),
+    'label'        => 'group-user-list',
+    'status'       => '1',
+));
+
+$objRoute->addRoute( array(
+    'method'       => 'get',
+    'pattern'      => '/:group/about-us',
+    'arguments'    => array(
+		'module' => 'content',
+		'method' => 'render',
+		'page'	 => 'about-us'
+    ),
+    'label'        => 'group-page-about',
+    'status'       => '1',
+));
+
+/*
+/cybershade/
+	-/about-us
+	-/users/list
+	-/forum/:cat/:name-:id.html
+*/
 ?>

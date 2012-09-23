@@ -10,9 +10,7 @@ $objRoute = coreObj::getRoute();
 
 $objRoute->processURL( $_GET['l'] );
 
-$a = coreObj::getPlugins()->getVar('hooks');
-echo dump($a, 'Hooks');
-
+echo dump($_GET, 'after route exec');
 // $a = memoryUsage(' Last :) ');
 // echo dump($a, 'Exec Info');
 
