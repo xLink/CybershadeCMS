@@ -141,7 +141,7 @@ class cache extends coreObj{
     public function remove($type) {
         $cacheFiles = '';
         switch($type){
-            case 'config':
+            case 'stores':
                 $cacheFiles = glob(cmsROOT.'cache/cache_*.php');
             break;
 
@@ -180,10 +180,13 @@ class cache extends coreObj{
 
         $return = false;
         switch($file){
+
             case 'config':
-                $query = $objSQL->queryBuilder()->select('*')->from('#__config')->build();
+            case 'plugins':
+                $query = $objSQL->queryBuilder()->select('*')->from('#__'.$file)->build();
                 $this->setup($file, $query);
             break;
+
             case 'routes':
                 $return = $objRoute->generate_cache();
             break;

@@ -22,28 +22,29 @@ class plugins extends coreObj{
      * @since       1.0.0
      * @author      Dan Aldridge
      *
-     * @param       array $plugin
+     * @param       array $plugins
      *
      * @return      bool
      */
-    public function loadHooks($plugin){
+    public function load($plugins=array()){
         if($this->dontBother == true){ return false; }
         $objSQL = self::getDBO();
 
         //make sure we didnt get an empty var...
-        if(!is_array($plugin) || is_empty($plugin)){
+        if(!is_array($plugins) || is_empty($plugins)){
             //if we did try and get a fresh copy from the db
-            $query = $objSQL->queryBuilder()->select('*')->from('#__plugins')->build();
-            $plugin = $objSQL->fetchAll($query);
+            $objCache = self::getCache();
+            
+            $plugins = $objCache->load('plugins');
 
-            if(!is_array($plugin) || is_empty($plugin)){
+            if(!is_array($plugins) || is_empty($plugins)){
                 $this->dontBother = true;
                 return false; //no luck this time so just return quietly
             }
         }
 
         //loop though each plugin
-        foreach($plugin as $hook){
+        foreach($plugins as $hook){
             $hookStr = $hook['filePath'];
 
             //make sure its actually a file and is readable

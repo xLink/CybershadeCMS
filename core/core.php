@@ -133,7 +133,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 (cmsDEBUG ? memoryUsage('Core: everything else') : '');
 
-$objPlugin->hook('CMS_START')
+$objPlugin->hook('CMS_START');
 //
 
 // $a = memoryUsage();

@@ -314,6 +314,8 @@ class coreObj {
     public static function getPlugins(){
         if(!isset(coreObj::$_classes['plugins'])){
             plugins::getInstance('plugins');
+
+            coreObj::$_classes['plugins']->load();
         }
 
         return coreObj::$_classes['plugins'];

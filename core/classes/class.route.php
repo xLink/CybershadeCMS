@@ -37,9 +37,12 @@ class route extends coreObj{
      * @return      bool
      */
     function processURL( $url ) {
-
-        $objCache = coreObj::getCache();
+        $objPlugin  = coreObj::getPlugins();
+        $objCache   = coreObj::getCache();
         (cmsDEBUG ? memoryUsage('Routes: Began Processing URL') : '');
+
+        // Run A hook
+        $objPlugin->hook('CMS_ROUTING_START');
 
         // Append a forward slash to the incoming url if there isn't one
         // TODO: (Should be solved elsewhere)
@@ -342,6 +345,7 @@ class route extends coreObj{
                         ->select('module', 'label', 'pattern', 'arguments', 'requirements', 'status', 'redirect')
                             ->addField('pattern LIKE "%:%" as `dynamic`')
                         ->from('#__routes')
+                        ->where('status', '=', '1')
                         ->orderBy('`dynamic`, CHAR_LENGTH(pattern)', 'DESC')
                         ->build();
 

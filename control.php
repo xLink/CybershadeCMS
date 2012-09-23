@@ -53,7 +53,7 @@ $objRoute->processURL( $_GET['l'] );
 $a = coreObj::getPlugins()->getVar('hooks');
 echo dump($a, 'Hooks');
 
-$a = memoryUsage(' Last :) ');
-echo dump($a, 'Exec Info');
+// $a = memoryUsage(' Last :) ');
+// echo dump($a, 'Exec Info');
 
 ?>
