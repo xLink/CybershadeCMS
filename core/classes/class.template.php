@@ -112,10 +112,10 @@ class template extends coreObj{
     public function parse($handle, $echo=true) {
         $code = '';
 
-        if(!$this->isHandle($handle)){ 
+        if(!$this->isHandle($handle)){
             trigger_error('"'.$handle.'" is not a valid file handle.');
         }
-        
+
         if($this->use_cache) {
             $code = $this->get_cached_code($handle);
         } else {
@@ -186,7 +186,8 @@ class template extends coreObj{
 
     public function get_html($handle) {
         if(!$this->loadfile($handle)) {
-            msgDie('FAIL', "Template->get_html(): Couldn't load template file for handle $handle @ Line ".__line__);
+            trigger_error('Template->get_html(): Couldn\'t load template file for handle '.$handle);
+            return false;
         }
 
         // Compile it, with the "no echo statements" option on.
@@ -215,7 +216,7 @@ class template extends coreObj{
      */
     public function assign_var_from_handle($varname, $handle) {
         if(!$this->loadfile($handle)) {
-            msgDie('FAIL', "Template->assign_var_from_handle(): Couldn't load template file for handle $handle @ Line ".__LINE__);
+            trigger_error('Template->assign_var_from_handle(): Couldn\'t load template file for handle '.$handle, E_USER_ERROR);
         }
 
         // Compile it, with the "no echo statements" option on.
@@ -336,14 +337,15 @@ class template extends coreObj{
 
         // If we don't have a file assigned to this handle, die.
         if(!isset($this->files[$handle])) {
-            msgdie('FAIL', "Template->loadfile(): No file specified for handle $handle @ Line ".__line__);
+            trigger_error('Template->loadfile(): No file specified for handle '.$handle);
+            return false;
         }
 
         $filename = $this->files[$handle];
 
         $str = implode('', @file($filename));
         if(empty($str)) {
-            msgdie('FAIL', "Template->loadfile(): File $filename for handle $handle is empty @ Line ".__line__);
+            trigger_error('Template->loadfile(): File '.$filename.' for handle '.$handle.' is empty');
         }
 
         $this->uncompiled_code[$handle] = $str;
@@ -533,7 +535,7 @@ class template extends coreObj{
         if($create_new_cache) {
             if(!isset($this->loadFile[$handle])){
                 if(!$this->loadfile($handle)) {
-                    msgdie('FAIL', "Template->parse(): Couldn't load template file for handle $handle @ Line ".__line__);
+                    trigger_error('Template->parse(): Couldn\'t load template file for handle '.$handle, E_USER_ERROR);
                 }
             }
 

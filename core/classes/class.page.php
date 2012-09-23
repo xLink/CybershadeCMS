@@ -506,9 +506,11 @@ class page extends coreObj{
         $jsFiles = array();
         $objPlugins->hook('CMS_Page_jsFiles', $jsFiles);
 
-
-
-
+/**
+  //
+  //-- Extras
+  //
+**/
         $themeConfig = self::$THEME_ROOT.'theme.php';
         if(is_readable($themeConfig)){
             include_once($themeConfig);

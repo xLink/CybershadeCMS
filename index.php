@@ -12,15 +12,20 @@ $objPage->setTitle('Test');
 
 $objPage->buildPage();
 
-$theme_test = file_get_contents('theme_test.html');
-$objTPL->assign_var('THEME_TESTER', $theme_test);
-
 $objRoute = coreObj::getRoute();
 $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
 // $a = memoryUsage();
 // echo dump($a, 'Exec Info');
 
+// $a = $objTPL->_tpldata;
+// echo dump($a);
+
 $objPage->showHeader();
+    if(!$objTPL->get_html('body')){
+        msgDie('FAIL', 'No output received from module.');
+    }else{
+        echo $objTPL->get_html('body');
+    }
 $objPage->showFooter();
 ?>

@@ -54,40 +54,39 @@
 <section class="container">
     <div class="row">
 
+    <!-- BEGIN menu -->
         <aside class="span4 hidden-phone">
+    <!-- END menu -->
 
+            <!-- BEGIN left_menu -->
             <div class="menu">
                 <section>
-                    <header>Main Menu</header>
+                    <header>{left_menu.TITLE}</header>
                     <div class="content">
-
+                        {left_menu.CONTENT}
                     </div>
-                    <ul class="nav nav-list">
-                        <li class="nav-header">List header</li>
-                        <li class="active"><a href="#">Home</a></li>
-                        <li><a href="#">Library</a></li>
-                        <li><a href="#">Applications</a></li>
-                        <li class="nav-header">Another list header</li>
-                        <li><a href="#">Profile</a></li>
-                        <li><a href="#">Settings</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">Help</a></li>
-                    </ul>
                 </section>
             </div>
+            <!-- END left_menu -->
 
+            <!-- BEGIN right_menu -->
+            <div class="menu">
+                <section>
+                    <header>{right_menu.TITLE}</header>
+                    <div class="content">
+                        {right_menu.CONTENT}
+                    </div>
+                </section>
+            </div>
+            <!-- END right_menu -->
+
+    <!-- BEGIN menu -->
         </aside>
+    <!-- END menu -->
 
+    <!-- BEGIN menu -->
         <div id="pageContent" class="span8">
-            {THEME_TESTER}
-        </div>
-    </div>
-</section>
-
-<footer>
-
-</footer>
-
-{_JS_FOOTER}
-</body>
-</html>
+    <!-- END menu -->
+    <!-- BEGIN no_menu -->
+        <div id="pageContent" class="span12">
+    <!-- END no_menu -->
