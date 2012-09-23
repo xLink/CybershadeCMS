@@ -27,18 +27,18 @@ class cache extends coreObj{
     }
 
     /**
-     * Sets up a cache file
+     * Initializes a cache store
      *
      * @version     2.0
      * @since       1.0.0
      * @author      Dan Aldridge
      *
      *
-     * @param       string    $file   [desc]
-     * @param       string    $query      [desc]
-     * @param       callable  $callback   [desc]
+     * @param       string    $file
+     * @param       string    $query
+     * @param       callable  $callback
      *
-     * @return      string   ?
+     * @return      string
      */
     public function setup($file, $query, $callback=null){
 
@@ -61,12 +61,24 @@ class cache extends coreObj{
         return $result;
     }
 
+    /**
+     * Loads a cache store
+     *
+     * @version     2.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     *
+     * @param       string  $file
+     *
+     * @return      array
+     */
     public function load( $file ) {
         $file = trim($file);
 
         //make sure we have something to work with
         if(empty($file)){
-            trigger_error('Error: $file is empty, please give it a value nub, \'\' dosent constiute a value either >.>', E_USER_ERROR);
+            trigger_error('$file is empty, please give it a value nub, \'\' dosent constiute a value either >.>', E_USER_ERROR);
         }
 
         //normalize the var and see if we already have it done
@@ -91,7 +103,7 @@ class cache extends coreObj{
                 //if we get in here, then the cache file still hasnt generated, so mebe folder perms, or query issue?
 
                 if(empty($cache)){
-                    trigger_error('Error: Sorry, we tried everything, your cache file does not wanna load, wtf you trying to do?', E_USER_ERROR);
+                    trigger_error('Sorry, we tried everything, your cache file does not wanna load, wtf you trying to do?', E_USER_ERROR);
                     return false;
                 }
             }else{
@@ -110,7 +122,17 @@ class cache extends coreObj{
         return false;
     }
 
-    
+    /**
+     * Gets the cache store, or loads it if it hasnt been already
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       string  $store
+     *
+     * @return      array   Returns the cache store in array form
+     */
     public function get($store){
         //if we have the store loaded, just return
         if(isset($this->cacheFiles[$store])){

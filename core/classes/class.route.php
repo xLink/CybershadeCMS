@@ -42,7 +42,7 @@ class route extends coreObj{
         (cmsDEBUG ? memoryUsage('Routes: Began Processing URL') : '');
 
         // Run A hook
-        $objPlugin->hook('CMS_ROUTING_START');
+        $objPlugin->hook('CMS_ROUTE_START');
 
         // Append a forward slash to the incoming url if there isn't one
         // TODO: (Should be solved elsewhere)
@@ -118,8 +118,19 @@ class route extends coreObj{
                 foreach( $matches as $index => $value ) {
                     $params[ $replacements[$index] ] = $value;
                 }
-                $params['_all'] = $matches;
 
+                // replace get params with what we have here & whats in the URL...
+                // we dont want them to see what we are playing with internally tbh
+                $this->modifyGET($params);
+
+                // add some extras here...
+                $params['_all'] = $matches;
+                $params['_url'] = $url;
+
+                // Add a hook for the params
+                $objPlugin->hook('CMS_ROUTE_PARAMS', $params);
+
+                // merge the arguments & the params and then invoke the route
                 $route['arguments'] = array_merge( (array) $route['arguments'], $params);
                 $this->invoke($route);
 
@@ -130,10 +141,9 @@ class route extends coreObj{
 
         } // End the foreach loop on the routes
 
-        #echo '404';
         (cmsDEBUG ? memoryUsage('Routes: No Patterns Matched. Invoke 404') : '');
         $this->throwHTTP(404);
-        // 404, Route not found
+
         return;
     }
 
@@ -183,7 +193,7 @@ class route extends coreObj{
             $var = $name->getName( );
 
             // check if the var they asked for is in the params
-            if(!isset($route['arguments'][$var])){ 
+            if(!isset($route['arguments'][$var])){
                 $args[$var] = null;
                 continue;
             }
@@ -435,6 +445,20 @@ class route extends coreObj{
         }
 
         //hmsgDie('FAIL', $msg);
+    }
+
+    public function modifyGET($params){
+        $url = explode('?', $_SERVER['REQUEST_URI']);
+        if(isset($url[1])){
+            //backup the _GET array parse_str overwrites the $_GET array
+            //$GET = $_GET;
+
+            //parse the _GET vars from the url
+            parse_str($url[1], $_GET);
+
+            //and merge away :D
+            $_GET = array_merge($_GET, $params);
+        }
     }
 }
 

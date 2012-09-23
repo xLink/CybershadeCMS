@@ -34,7 +34,7 @@ class plugins extends coreObj{
         if(!is_array($plugins) || is_empty($plugins)){
             //if we did try and get a fresh copy from the db
             $objCache = self::getCache();
-            
+
             $plugins = $objCache->load('plugins');
 
             if(!is_array($plugins) || is_empty($plugins)){
@@ -45,10 +45,10 @@ class plugins extends coreObj{
 
         //loop though each plugin
         foreach($plugins as $hook){
-            $hookStr = $hook['filePath'];
+            $hookStr = $hook['path'];
 
             //make sure its actually a file and is readable
-            if(!is_file($hookStr) || !is_readable($hookStr)){ continue; }
+            if(!is_file($hookStr) && !is_readable($hookStr)){ continue; }
 
             //also make sure its enabled..
             if(!$hook['enabled']){ continue; }
