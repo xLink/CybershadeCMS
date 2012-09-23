@@ -18,9 +18,9 @@ $objRoute = coreObj::getRoute();
 $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
 echo dump($_GET);
-/*$a = memoryUsage();
-echo dump($a, 'Exec Info');*/
+// $a = memoryUsage();
+// echo dump($a, 'Exec Info');
 
- // $objPage->showHeader();
- // $objPage->showFooter();
+// $objPage->showHeader();
+// $objPage->showFooter();
 ?>

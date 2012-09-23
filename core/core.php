@@ -112,9 +112,6 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
     (cmsDEBUG ? memoryUsage('Core: autoloader registration') : '');
 
-// $a = get_included_files();
-// echo dump($a, 'Core - Loaded Files', 'orange');
-
     $objCore     = new coreObj;
 
     $objCache    = coreObj::getCache();
@@ -125,18 +122,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objTPL      = coreObj::getTPL();
     $objPage     = coreObj::getPage();
 
-// $a = $objModule->moduleExists('core');
-// echo dump($a, 'module exists');
-
-// $a = get_included_files();
-// echo dump($a, 'Core - Loaded Files', 'orange');
-
 (cmsDEBUG ? memoryUsage('Core: everything else') : '');
 
 $objPlugin->hook('CMS_START');
-//
 
-// $a = memoryUsage();
-// echo dump($a, 'Exec Info');
 
 ?>

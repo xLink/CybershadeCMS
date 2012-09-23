@@ -54,6 +54,13 @@ class route extends coreObj{
         (cmsDEBUG ? memoryUsage('Routes: Grabbing Cache') : '');
         $routes = $objCache->load('routes');
 
+        // If we have no routes to use, then we need to stop here
+        if(!count($routes)){
+            (cmsDEBUG ? memoryUsage('Routes: Could not load Cache... :(') : '');
+            $this->throwHTTP(500);
+            return false;
+        }
+
         // Loop through our routes and find the most appropriate match
         (cmsDEBUG ? memoryUsage('Routes: Finding Appropriate Route') : '');
         foreach( $routes as $label => $route ) {

@@ -49,6 +49,11 @@ class cache extends coreObj{
             include_once($filename);
             $result = $$cacheVar;
 
+            //if we have nothing in the result then we will just regenerate it
+            if(is_empty($result)){
+                $result = $this->generateCache($file, $query);
+            }
+
         //if we have a callback then we will call it
         }else if(is_callable($callback)){
             $result = call_user_func($callback);
@@ -103,12 +108,23 @@ class cache extends coreObj{
                 //if we get in here, then the cache file still hasnt generated, so mebe folder perms, or query issue?
 
                 if(empty($cache)){
-                    trigger_error('Sorry, we tried everything, your cache file does not wanna load, wtf you trying to do?', E_USER_ERROR);
+                    trigger_error('Sorry, we tried everything, your cache file "'.$file.'" does not wanna load, wtf you trying to do?', E_USER_ERROR);
                     return false;
                 }
             }else{
                 include_once($path);
                 $cache = ${$file.'_db'};
+
+                //make sure its not empty, if it is, then regenerate it
+                if(is_empty($cache)){
+                    $cache = $this->doCache($file);
+
+                    //if we regenerate it then we will do another check just to make sure...
+                    if(is_empty($cache)){
+                        trigger_error('Sorry, we tried everything, your cache file "'.$file.'" does not wanna load, wtf you trying to do?', E_USER_ERROR);
+                        return false;
+                    }
+                }
 
             }
 
@@ -218,7 +234,7 @@ class cache extends coreObj{
             break;
 
         }
-
+echo dump($return, $file);
         // TODO: throw a hook in here, and modify this baby so the hook can add to this switch without modifying the core code... hrm ;x - xLink
 
 
@@ -281,8 +297,9 @@ class cache extends coreObj{
      */
     public function writeFile($filename, $contents){
         if(!$this->getVar('cacheToggle')){ return; }
-
-        $fp = @fopen(sprintf($this->getVar('fileTpl'), str_replace('_db', '', $filename)), 'wb');
+$a = func_get_args();
+echo dump($a);
+        $fp = fopen(sprintf($this->getVar('fileTpl'), str_replace('_db', '', $filename)), 'w');
             if(!$fp){ return false; }
 
         $contents = var_export($contents, true);
