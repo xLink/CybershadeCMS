@@ -12,7 +12,6 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  * @author  Dan Aldridge
  */
 class Module extends coreObj{
-    public $modConf = array( );
 
     /**
      * Check if a module exists in the file structure

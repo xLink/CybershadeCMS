@@ -16,7 +16,7 @@ RewriteRule .* - [L]
 #RewriteRule (.*) http://www.cybershade.org/$1 [R=301,L]
 
 RewriteCond %{REQUEST_FILENAME} -f [NC,OR]
-RewriteCond %{REQUEST_FILENAME} -d [NC] 
+RewriteCond %{REQUEST_FILENAME} -d [NC]
 RewriteRule .* - [L]
 
 ##minifing techniques
@@ -28,14 +28,14 @@ RewriteRule ^modules/([^/]*)/styles/([^.]*)-min.css     core/lib/min/index.php?b
 RewriteRule ^modules/([^/]*)/scripts/([^.]*)-min.js     core/lib/min/index.php?b=modules/$1/scripts&f=$2.js [QSA,L]
 
 ##control panels
-#RewriteRule ^(admin|mod|user)/([^/]*)/([^.]*)(.*)       control.php?__mode=$1&__module=$2&__action=$3&__extra=$4 [QSA,L]
-#RewriteRule ^(admin|mod|user)($|/)                      control.php?__mode=$1 [QSA,L]
+#RewriteRule ^(admin|mod|user)/([^/]*)/([^.]*)(.*)      control.php?__mode=$1&__module=$2&__action=$3&__extra=$4 [QSA,L]
+#RewriteRule ^(admin|mod|user)($|/)                     control.php?__mode=$1 [QSA,L]
 
 ##extra module bits
 RewriteRule ^modules/([^/]*)/([^.]*)(.*)                modules.php?__module=$1&__action=$2&__extra=$3 [QSA,L]
 RewriteRule ^modules($|/)                               modules.php [QSA,L]
 
-RewriteRule (.*) control.php?l=$1 [L]
+RewriteRule (.*)                                        index.php?$1 [L]
 
 </IfModule>
 

@@ -62,7 +62,6 @@ Thanks to the people that have contributed and helped test/find bugs in the proj
 - [Daniel Aldridge](https://github.com/xLink)
 - [Daniel Noel-Davies](https://github.com/NoelDavies)
 - [Richard Clifford](https://github.com/DarkMantisCS)
-
 - [Infy](https://github.com/infyhr)
 - [LK-](https://github.com/LK-)
 - [louve](https://github.com/louve)

@@ -447,7 +447,7 @@ class route extends coreObj{
         //hmsgDie('FAIL', $msg);
     }
 
-    public function modifyGET($params){
+    public function modifyGET($params=array()){
         $url = explode('?', $_SERVER['REQUEST_URI']);
         if(isset($url[1])){
             //backup the _GET array parse_str overwrites the $_GET array
