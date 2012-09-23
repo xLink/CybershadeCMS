@@ -17,13 +17,11 @@ class forum extends Module{
      *
      * @return      void
      */
-    public function viewThread($id, $name, $_all){
+    public function viewThread( $id, $group='' ) {
     	$args = func_get_args();
     	$method = __METHOD__;
         echo dump($args, 'Called '.$method);
     }
-
-
 }
 
 ?>

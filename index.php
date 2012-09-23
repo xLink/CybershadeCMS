@@ -6,9 +6,9 @@ define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 include_once('core/core.php');
 
-//  $objPage->setTheme();
+// $objPage->setTheme();
 
-//  $objPage->setTitle('Test');
+// $objPage->setTitle('Test');
 
 // $objPage->buildPage();
 // $theme_test = file_get_contents('theme_test.html');
@@ -17,7 +17,6 @@ include_once('core/core.php');
 $objRoute = coreObj::getRoute();
 $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
-echo dump($_GET);
 // $a = memoryUsage();
 // echo dump($a, 'Exec Info');
 

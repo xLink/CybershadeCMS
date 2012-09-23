@@ -234,7 +234,7 @@ class cache extends coreObj{
             break;
 
         }
-echo dump($return, $file);
+        
         // TODO: throw a hook in here, and modify this baby so the hook can add to this switch without modifying the core code... hrm ;x - xLink
 
 

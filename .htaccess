@@ -35,7 +35,7 @@ RewriteRule ^modules/([^/]*)/scripts/([^.]*)-min.js     core/lib/min/index.php?b
 RewriteRule ^modules/([^/]*)/([^.]*)(.*)                modules.php?__module=$1&__action=$2&__extra=$3 [QSA,L]
 RewriteRule ^modules($|/)                               modules.php [QSA,L]
 
-RewriteRule ^(.+)                                       index.php?$1 [L]
+RewriteRule ^(.*)                                       index.php?$1 [L]
 
 </IfModule>
 

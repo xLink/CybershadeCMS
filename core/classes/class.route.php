@@ -22,7 +22,6 @@ class route extends coreObj{
      */
     public function __construct() {
         $this->route = $_GET;
-
     }
 
     /**
@@ -74,24 +73,24 @@ class route extends coreObj{
             }
 
             // Match Absolute URLs
-            if( $route['pattern'] == $url ) {
+            if( $route['pattern'] === $url ) {
                 (cmsDEBUG ? memoryUsage('Routes: Absolute URL Matched') : '');
                 $this->invoke($route);
                 return true;
             }
 
-            // Store the route's pattern for replacing later on
-            $ourRoute = $route['pattern'];
-
             // Filter out empty values, and essentially reset the array keys
             $parts_u = array_values( array_filter( explode( '/', $url ) ) );
-            $parts_r = array_values( array_filter( explode( '/', $route['pattern'] ) ) );
+            $parts_p = array_values( array_filter( explode( '/', $route['pattern'] ) ) );
 
             // If the route and parts aren't of equal length, insta-dismiss this route
-            if( count( $parts_u ) !== count( $parts_r) ) {
+            if( count( $parts_u ) !== count( $parts_p ) ) {
                 (cmsDEBUG ? memoryUsage('Routes: Dismissing due to incorrect parts counts') : '');
                 continue;
             }
+
+            // Store the route's pattern for replacing later on
+            $ourRoute = $route['pattern'];
 
             // Collect all the replacement 'variables' from the route structure into an array
             (cmsDEBUG ? memoryUsage('Routes: Gathering variables from pattern') : '');
@@ -114,7 +113,7 @@ class route extends coreObj{
 
             // If the route matches the URL, we've got a winner!
             (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
-            if( preg_match( '#' . $ourRoute . '#', $url, $matches  ) ) {
+            if( preg_match( '#' . $ourRoute . '#', $url, $matches ) ) {
 
                 // Remove the URL from the paramaters
                 unset( $matches[0] );
@@ -140,9 +139,10 @@ class route extends coreObj{
                 $route['arguments'] = array_merge( (array) $route['arguments'], $params);
                 $this->invoke($route);
 
-                unset($route, $matches, $params, $replacements, $parts_u, $parts_r, $ourRoute, $replaceWith, $objCache);
+                unset($route, $matches, $params, $replacements, $parts_u, $parts_p, $ourRoute, $replaceWith, $objCache);
                 return true;
-            }
+            }// End of our If conditional checking for the url match
+
             (cmsDEBUG ? memoryUsage('Routes: Pattern Dismissed, Pattern Variables didn\'t match') : '');
 
         } // End the foreach loop on the routes
@@ -176,7 +176,6 @@ class route extends coreObj{
             $this->throwHTTP( 301, $route['redirect'] );
             return true;
         }
-
 
         // We assume the invoke is a module call, Let's go!
         $module = $route['arguments']['module'];
@@ -214,7 +213,7 @@ class route extends coreObj{
 
         // GO! $Module!, $Module used $Method($args)... It was super effective!
         (cmsDEBUG ? memoryUsage('Routes: Call Method.') : '');
-        $refMethod->invokeArgs( new $module, $args);
+        $refMethod->invokeArgs( new $module, $args );
     }
 
     /**
