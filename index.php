@@ -10,7 +10,6 @@ $objPage->setTheme();
 
 $objPage->setTitle('Test');
 
-$objPage->buildPage();
 
 $objRoute = coreObj::getRoute();
 $objRoute->processURL( $_SERVER['QUERY_STRING'] );
@@ -21,6 +20,7 @@ $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 // $a = $objTPL->_tpldata;
 // echo dump($a);
 
+$objPage->buildPage();
 $objPage->showHeader();
     if(!$objTPL->get_html('body')){
         msgDie('FAIL', 'No output received from module.');

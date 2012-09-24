@@ -9,6 +9,18 @@
       ☐ Time Class
       ☐ Comments Class
       ☐ Forms Class
+      ☐ Debug Class
+      ☐ Error Class
+
+| id |    error_code    |               error_msg               | useragent  |  timestamp  | user_id | method |                        url                        |                store                 |
+|----|------------------|---------------------------------------|------------|-------------|---------|--------|---------------------------------------------------|--------------------------------------|
+|  1 | HTTP_404         | Page not found, you fucking derp      | xxxxx      | 42947932832 |    1337 | get    | http://cybershade.org/path/to/a/non/existant/page | {$_GET, $_POST, $_SESSION, $_COOKIE} |
+|  2 | PHP_ERROR        | missing ';', found in derp A's module | xxxxxxxxxx | 01234567898 |    7331 | post   | http://cybershade.org/path/to/enlightenment       | {$_GET, $_POST, $_SESSION, $_COOKIE} |
+|  3 | CMS_MODULE_ERROR | Module not installed                  | xxxyyyxxx  | 12345678901 |    2468 | get    | http://cybershade.org/forum/                      | {$_GET, $_POST, $_SESSION, $_COOKIE} |
+|  4 | JS_ERROR         | unexpected } on line YOUR MUM         | IE-IS-SHIT | 12345678989 |   30987 | put    | http://cybershade.org/forum/scripts/shit.js       | {$_GET, $_POST, $_SESSION, $_COOKIE} |
+|    |                  |                                       |            |             |         |        |                                                   | {$_GET, $_POST, $_SESSION, $_COOKIE} |
+
+
       ☐ ...
 
       Some of the classes, Pagination, Time, Forms can be lifted directly...

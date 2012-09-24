@@ -6,6 +6,25 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class forum extends Module{
 
+    public function __construct(){
+        $objPage = coreobj::getPage();
+        $objPage->setMenu('forum');
+        $objPage->addJSFile('/'.root().'modules/forum/scripts/forum.js');
+        $objPage->addCSSFile('/'.root().'modules/forum/styles/forum.css');
+
+
+echo dump($objPage->jsFiles);
+        /*
+            /forum
+
+
+
+
+
+
+        */
+    }
+
     /**
      * Displays a forum thread
      *
@@ -21,6 +40,8 @@ class forum extends Module{
     	$args = func_get_args();
     	$method = __METHOD__;
         echo dump($args, 'Called '.$method);
+
+
     }
 }
 

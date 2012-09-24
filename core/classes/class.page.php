@@ -223,8 +223,8 @@ class page extends coreObj{
         if(!is_array($arg) || !array_key_exists('href', $args)){
             $css = array(
                 'href'  => doArgs(0, false, $args),
-                'type' => doArgs(1, 'text/css', $args),
-                'rel'  => doArgs(2, 'stylesheet', $args),
+                'type'  => doArgs(1, 'text/css', $args),
+                'rel'   => doArgs(2, 'stylesheet', $args),
             );
         }
 
@@ -345,7 +345,7 @@ class page extends coreObj{
             if(!count($this->jsFiles[$mode]) && !count($this->jsCode[$mode])){ return false; }
 
             $_tag = "\n".'<script%s>%s</script>';
-            $_arg  = ' %s="%s"';
+            $_arg = ' %s="%s"';
 
             $return = null;
 

@@ -164,9 +164,6 @@ class route extends coreObj{
      *
      * @return      bool
      */
-
-
-    
     public function invoke( $route = array( ) ) {
         (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D') : '');
         if( empty( $route ) ) {
@@ -186,7 +183,10 @@ class route extends coreObj{
 
         // Check the class and subsequent method are callable, else trigger an error
         if ( !is_callable( array( $module, $method ) ) ) {
-            trigger_error( 'The module/method you are trying to call apparently says no.', E_USER_ERROR );
+            trigger_error( 'The module or method you are trying to call, dosen\'t exist.' );
+            $a = array($module, $method);
+            echo dump($a, 'Your trying to call..');
+            return false;
         }
 
         // Retrieve the info we need about the class and method
@@ -195,10 +195,9 @@ class route extends coreObj{
         $params    = $refMethod->getParameters( );
         $args      = array( );
 
-
         // Loop through the parameters the method asks for, and match them up with our arguments
         foreach( $params as $k => $name ) {
-            $var = $name->getName( );
+            $var = $name->getName();
 
             // check if the var they asked for is in the params
             if(!isset($route['arguments'][$var])){
