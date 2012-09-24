@@ -17,7 +17,7 @@ class forum extends Module{
      *
      * @return      void
      */
-    public function viewThread( $id, $group='' ) {
+    public function viewThread( $id, $_all='' ) {
     	$args = func_get_args();
     	$method = __METHOD__;
         echo dump($args, 'Called '.$method);
