@@ -29,8 +29,13 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
                             && (isset($_SERVER['HTTP_X_CMS_IS']) && strtolower($_SERVER['HTTP_X_CMS_IS']) == 'cybershade')
                                 ? true
                                 : false));
-    define('HTTP_POST',     ($_SERVER['REQUEST_METHOD']=='POST' ? true : false));
-    define('HTTP_GET',      ($_SERVER['REQUEST_METHOD']=='GET' ? true : false));
+
+    define('HTTP_POST',         ($_SERVER['REQUEST_METHOD'] == 'POST'    ? true : false));
+    define('HTTP_GET',          ($_SERVER['REQUEST_METHOD'] == 'GET'     ? true : false));
+    define('HTTP_PUT',          ($_SERVER['REQUEST_METHOD'] == 'PUT'     ? true : false));
+    define('HTTP_DELETE',       ($_SERVER['REQUEST_METHOD'] == 'DELETE'  ? true : false));
+    define('HTTP_HEAD',         ($_SERVER['REQUEST_METHOD'] == 'HEAD'    ? true : false));
+    define('HTTP_OPTIONS',      ($_SERVER['REQUEST_METHOD'] == 'OPTIONS' ? true : false));
 
 // Hook Priority Constants
     define('LOW',               1);
