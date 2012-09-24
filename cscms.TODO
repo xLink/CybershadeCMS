@@ -1,0 +1,57 @@
+ CMS Core:
+
+    Core Classes:
+      ☐ Create the User Class
+      ☐ Create the Session Class
+      ✔ Create Routing System @done (12-09-24 02:16)
+
+    Misc:
+      ☐ Get the Admin Panel up
+      ☐ Get the Permissions System up (Using groups?)
+      ☐ Get the module client system working (for all cms installs)
+      ☐ Get the module server system working (for cs.org)
+          (Within the admin panel, so client CMS' can report in and download new modules, themes and plugins on-the-fly)
+
+      The Admin panel should work on a permissions basis per group.
+      That was a user can define their own administratitive groups and assign each group thier own access rights.
+      
+---- ✄ -----------------------
+
+Custom Modules:
+
+    Content Module: 
+      ☐ Create DB Struct
+      ☐ Create Base Class
+      ☐ Create Routes
+      ☐ Create Templates
+      ☐ Create Admin Panel to Edit Content
+
+      Custom Content Types (cct):
+        ☐ Create ability for custom content types (cct)
+        ☐ Create Admin panel to manage cct
+        ☐ Include ability to use Markdown (https://github.com/michelf/php-markdown/)
+
+---- ✄ -----------------------
+
+Cybershade.org:
+  ☐ Get Website up and running
+
+  ☐ Build user-base to 10 Users
+  ☐ Build user-base to 25 Users
+  ☐ Build user-base to 50 Users
+  ☐ Build user-base to 100 Users
+  ☐ Build user-base to 250 Users
+
+  ☐ Have a total of 5 'custom' modules, available to download
+  ☐ Have a total of 35 'custom' modules, available to download
+  ☐ Have a total of 10 'custom' modules, available to download
+  ☐ Have a total of 15 'custom' modules, available to download
+  ☐ Have a total of 25 'custom' modules, available to download
+
+  ☐ Have a total of 5 'custom' modules, available to download
+  ☐ Have a total of 35 'custom' modules, available to download
+  ☐ Have a total of 10 'custom' modules, available to download
+  ☐ Have a total of 15 'custom' modules, available to download
+  ☐ Have a total of 25 'custom' modules, available to download
+
+  
