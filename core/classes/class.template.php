@@ -20,10 +20,10 @@ class template extends coreObj{
     // This will end up being a multi-dimensional array like this:
     // $this->_tpldata[block.][iteration#][child.][iteration#][child2.][iteration#][variablename] == value
     // if it's a root-level variable, it'll be like this:
-    // $this->_tpldata[.][0][varname] == value
+    // $this->_tpldata[.][0][varwame] == value
     public $_tpldata = array();
 
-    // Hash of filenames for each template handle.
+    // Hash of filenames for each tempglate handle.
     public $files = array();
 
     // Root template directory.

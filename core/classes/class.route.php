@@ -164,6 +164,9 @@ class route extends coreObj{
      *
      * @return      bool
      */
+
+
+    
     public function invoke( $route = array( ) ) {
         (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D') : '');
         if( empty( $route ) ) {
