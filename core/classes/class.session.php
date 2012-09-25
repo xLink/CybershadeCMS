@@ -7,31 +7,45 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class session extends coreObj{
 
     public function __construct($store='none', $options = array()){
-
-        //kill whatever session crap PHP has going
-        if(session_id()){
-            session_unset();
-            session_destroy();
-        }
-
+        $this->objSQL = coreObj::getDBO();
     }
 
     public function __destruct(){
         echo dump($a, 'DESTRUCTED!');
     }
 
-
-
-
-
+    /**
+     * Gets the form token for the sessoni
+     *
+     * @author Dan Aldridge, Richard Clifford
+     * @version 1.0.0
+     * 
+     * @since 1.0.0
+     *
+     * @param bool $forceNew 
+     *
+     * @return string $token
+     */
     public function getFormToken($forceNew=false){
         $objUser = coreObj::getUser();
 
         return $objUser->mkHash($objUser->get('id', 0) . self::getToken());
     }
 
+    /**
+     * Gets the token for the session
+     *
+     * @author Dan Aldridge, Richard Clifford
+     * @version 1.0.0
+     * 
+     * @since 1.0.0
+     *
+     * @param bool $forceNew 
+     *
+     * @return string $token
+     */
     public function getToken($forceNew=false){
-        $token = $this->getvar('session', 'token');
+        $token = $this->getVar('session', 'token');
 
         if(empty($token) || $forceNew){
             $token = randCode(12);
@@ -39,6 +53,137 @@ class session extends coreObj{
         }
 
         return $token;
+    }
+
+    /**
+     * Gets the token for the session
+     *
+     * @author Richard Clifford
+     * @version 1.0.0
+     * 
+     * @since 1.0.0
+     *
+     * @return bool 
+     */
+    public function createSession( $status = 'active' ){
+        $this->objSQL = coreObj::getDBO();
+
+        $session_id = randCode(32);
+
+        // Just a check
+        if( empty( $session_id ) ){
+            $offset = rand( 1, 86400 );
+            $session_id = md5( time() + $offset );
+        }
+
+        // Set the var
+        $this->setVar( 'session_id', $session_id );
+        
+        // Explicitly set the variable
+        $values = array();
+
+        // Values to insert into db
+        $values['uid']       = 0;
+        $values['sid']       = $session_id;
+        $values['store']     = serialize( $_SESSION );
+        $values['hostname']  = $_SERVER['REMOTE_ADDR'];
+        $values['timestamp'] = time();
+        $values['useragent'] = $_SERVER['HTTP_USER_AGENT'];
+        $values['mode']      = $status;
+
+        (cmsDEBUG ? memoryUsage('Sessions: Lets save the session!') : '');
+        $query = $this->objSQL->queryBuilder()
+                        ->insertInto('#__sessions')
+                        ->set($values)
+                        ->build();
+
+        (cmsDEBUG ? memoryUsage( sprintf('Sessions: Executing Query: %s', $query )) : '');
+        $result = $this->objSQL->query( $query );
+
+        // Ensure the result is valid
+        if( $result ){
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Kills all the sessions for whatever reason
+     *
+     * @author  Richard Clifford
+     * @since   1.0.0
+     *
+     * @version 1.0.0
+     * 
+     * @return bool
+     */
+    public function killAllSessions(){
+
+        $query = $this->objSQL->queryBuilder() 
+                              ->deleteFrom('#__sessions')
+                              ->where('1 = 1')
+                              ->build();
+
+        (cmsDEBUG ? memoryUsage(sprintf('Sessions: Executing Query: %s', $query) ): '');
+        $result = $this->objSQL->query( $query );
+
+        if( $result ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Kills the specified session
+     *
+     * @author  Richard Clifford
+     * @since   1.0.0
+     *
+     * @version 1.0.0
+     * 
+     * @return bool
+     */
+    public function killSession( $session_id ){
+
+    }
+
+    /**
+     * Retrieves a session 
+     *
+     * @author  Richard Clifford
+     * @since   1.0.0
+     *
+     * @version 1.0.0
+     * 
+     * @return bool
+     */
+    public function getSession( $session_id ){
+        $session_id = ( ctype_alnum((string)$session_id) ? $session_id : '' );
+
+        if( $session_id === '' || empty( $session_id ) ) {
+            return false;
+        }
+
+        (cmsDEBUG ? memoryUsage( sprintf('Sessions: Executing Query: %s', $query ) ) : '');
+        // Build the query
+        $query = $this->objSQL->queryBuilder()
+                              ->select('uid', 'sid', 'mode', 'store', 'hostname')
+                              ->from('#__sessions')
+                              ->where('sid', '=', $session_id)
+                                ->limit(1)
+                              ->build();
+
+        // Execute the query
+        $result = $this->objSQL->query( $query );
+
+        (cmsDEBUG ? memoryUsage( sprintf('Sessions: Returning: %s', $return ) ) : '');
+        if( $result ){
+            return $result;
+        }
+
+        return '';
     }
 }
 

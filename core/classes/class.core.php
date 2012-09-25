@@ -368,6 +368,14 @@ class coreObj {
         return coreObj::$_classes['route'];
     }
 
+    public function getSession(){
+        if(!isset( coreObj::$_classes['session'] )){
+            session::getInstance('session');
+        }
+
+        return coreObj::$_classes['session'];
+    }
+
 }
 
 ?>
