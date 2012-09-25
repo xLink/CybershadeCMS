@@ -66,8 +66,6 @@ class session extends coreObj{
      * @return bool 
      */
     public function createSession( $status = 'active' ){
-        $this->objSQL = coreObj::getDBO();
-
         $session_id = randCode(32);
 
         // Just a check
