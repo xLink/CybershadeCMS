@@ -28,17 +28,17 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         $return    = null;
         $specialFX = ($specialFX!==false ? true : false);
 
-        if(is_object($objPage) && $specialFX){
-            $objPage->addJSFile('assets/javascript/tree.js');
-            $objPage->addCSSFile('assets/styles/debug.css');
-        }else{
+        //if(is_object($objPage) && $specialFX){
+            $objPage->addJSFile('/'.root().'/assets/javascript/tree.js');
+            $objPage->addCSSFile('/'.root().'/assets/styles/debug.css');
+/*        }else{
             static $run;
             if(!isset($run) || $run != true){
                 echo '<link rel="stylesheet" type="text/css" href="/' . root() . 'assets/styles/debug.css" />'."\n";
             }
             $run = true;
         }
-
+*/
         $vals = ($scope ? $scope : $GLOBALS);
 
         $old = $var;

@@ -108,7 +108,7 @@ class coreObj {
         if(!is_array($array)){ return false; }
 
         foreach($array as $k => $v){
-            $this->$k = $v;
+            $this->setVar($k, $v);
         }
         return true;
     }

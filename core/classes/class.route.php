@@ -215,7 +215,12 @@ class route extends coreObj{
 
         // GO! $Module!, $Module used $Method($args)... It was super effective!
         (cmsDEBUG ? memoryUsage('Routes: Call Method.') : '');
-        $refMethod->invokeArgs( new $module, $args );
+        $objModule = new $module;
+        $objModule->setVars(array(
+            '_method' => $method,
+            '_module' => $module,
+        ));
+        $refMethod->invokeArgs( $objModule , $args );
     }
 
     /**
@@ -456,20 +461,15 @@ class route extends coreObj{
 
     public function modifyGET($params=array()){
         $url = explode('?', $_SERVER['REQUEST_URI']);
-        if(isset($url[1])){
-            //backup the _GET array parse_str overwrites the $_GET array
-            //$GET = $_GET;
 
+        $urlParams = array();
+        if(isset($url[1]) && !empty($url[1])){
             //parse the _GET vars from the url
-            parse_str($url[1], $_GET);
-
-            //and merge away :D
-            $_GET = array_merge($_GET, $params);
-
-            return;
+            parse_str($url[1], $urlParams);
         }
 
-        $_GET = array();
+        //and merge away :D
+        $_GET = array_merge($params, $urlParams);
     }
 }
 

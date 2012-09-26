@@ -9,7 +9,7 @@ class cache extends coreObj{
     public $cacheToggle = false,
            $output      = array(),
            $cacheDir    = '',
-           $fileTpl     = '';
+           $fileTpal     = '';
 
     /**
      *

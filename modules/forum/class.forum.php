@@ -12,10 +12,11 @@ class forum extends Module{
         $objPage->addJSFile('/'.root().'modules/forum/scripts/forum.js');
         $objPage->addCSSFile('/'.root().'modules/forum/styles/forum.css');
 
-
-echo dump($objPage->jsFiles);
+echo dump($_GET);
+        // echo dump($objPage->jsFiles);
         /*
-            /forum
+
+
 
 
 
@@ -37,12 +38,14 @@ echo dump($objPage->jsFiles);
      * @return      void
      */
     public function viewThread( $id, $_all='' ) {
-    	$args = func_get_args();
-    	$method = __METHOD__;
-        echo dump($args, 'Called '.$method);
+        $objTPL = coreObj::getTPL();
 
-
+        $objTPL->assign_var('VARIABLE', dump($id));
+echo dump(coreObj::getDBO()->getVar('debug'));
+        $this->setView('view_1');
     }
 }
+
+
 
 ?>
