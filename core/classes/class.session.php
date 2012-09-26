@@ -19,10 +19,10 @@ class session extends coreObj{
      *
      * @author Dan Aldridge, Richard Clifford
      * @version 1.0.0
-     * 
+     *
      * @since 1.0.0
      *
-     * @param bool $forceNew 
+     * @param bool $forceNew
      *
      * @return string $token
      */
@@ -37,10 +37,10 @@ class session extends coreObj{
      *
      * @author Dan Aldridge, Richard Clifford
      * @version 1.0.0
-     * 
+     *
      * @since 1.0.0
      *
-     * @param bool $forceNew 
+     * @param bool $forceNew
      *
      * @return string $token
      */
@@ -60,10 +60,10 @@ class session extends coreObj{
      *
      * @author Richard Clifford
      * @version 1.0.0
-     * 
+     *
      * @since 1.0.0
      *
-     * @return bool 
+     * @return bool
      */
     public function createSession( $status = 'active' ){
         $session_id = randCode(32);
@@ -74,9 +74,38 @@ class session extends coreObj{
             $session_id = md5( time() + $offset );
         }
 
+        $check = $this->objSQL->queryBuilder()
+                              ->select('sid')
+                              ->from('#__sessions')
+                              ->where('sid', '=', $session_id)
+                              ->build();
+
+        $checkSessionsQuery = $this->objSQL->query( $check );
+
+        $checkResult = $this->objSQL->fetchAll( $checkSessionsQuery );
+
+        // Checks if the result is in the array of sessions
+        if( in_array( $session_id, $checkResult ) ){
+            $getAllSessions = $this->objSQL->queryBuilder()
+                                           ->select('sid')
+                                           ->from('#__sessions')
+                                           ->build();
+
+            // Get all sessions
+            $session_result = $this->objSQL->query( $getAllSessions );
+
+            $sessions = $this->objSQL->fetchAll( $session_result );
+
+            // Ensure the current session_id is not in use
+            while( in_array( $session_id, $sessions ) ){
+                (cmsDEBUG ? memoryUsage( 'Sessions: Generated Session ID was not Unique, Recreating... ') : '');
+                $session_id = randCode(32);
+            }
+        }
+
         // Set the var
         $this->setVar( 'session_id', $session_id );
-        
+
         // Explicitly set the variable
         $values = array();
 
@@ -103,6 +132,8 @@ class session extends coreObj{
             return true;
         }
 
+
+
         return false;
     }
 
@@ -113,12 +144,12 @@ class session extends coreObj{
      * @since   1.0.0
      *
      * @version 1.0.0
-     * 
+     *
      * @return bool
      */
     public function killAllSessions(){
 
-        $query = $this->objSQL->queryBuilder() 
+        $query = $this->objSQL->queryBuilder()
                               ->deleteFrom('#__sessions')
                               ->where('1 = 1')
                               ->build();
@@ -140,7 +171,7 @@ class session extends coreObj{
      * @since   1.0.0
      *
      * @version 1.0.0
-     * 
+     *
      * @return bool
      */
     public function killSession( $session_id ){
@@ -148,14 +179,14 @@ class session extends coreObj{
     }
 
     /**
-     * Retrieves a session 
+     * Retrieves a session
      *
      * @author  Richard Clifford
      * @since   1.0.0
      *
      * @version 1.0.0
-     * 
-     * @return bool
+     *
+     * @return array
      */
     public function getSession( $session_id ){
         $session_id = ( ctype_alnum((string)$session_id) ? $session_id : '' );
@@ -176,12 +207,14 @@ class session extends coreObj{
         // Execute the query
         $result = $this->objSQL->query( $query );
 
+        $sessions = $this->objSQL->fetchRow( $result );
+
         (cmsDEBUG ? memoryUsage( sprintf('Sessions: Returning: %s', $return ) ) : '');
-        if( $result ){
-            return $result;
+        if( $sessions ){
+            return $sessions;
         }
 
-        return '';
+        return array();
     }
 }
 
