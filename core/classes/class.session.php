@@ -77,30 +77,48 @@ class session extends coreObj{
         // Set the var
         $this->setVar( 'session_id', $session_id );
         
-        // Explicitly set the variable
-        $values = array();
 
-        // Values to insert into db
-        $values['uid']       = 0;
-        $values['sid']       = $session_id;
-        $values['store']     = serialize( $_SESSION );
-        $values['hostname']  = $_SERVER['REMOTE_ADDR'];
-        $values['timestamp'] = time();
-        $values['useragent'] = $_SERVER['HTTP_USER_AGENT'];
-        $values['mode']      = $status;
+        $check = $this->objSQL->queryBuilder()
+                              ->select('sid')
+                              ->from('#__sessions')
+                              ->where('sid', '=', $session_id)
+                              ->build();
 
-        (cmsDEBUG ? memoryUsage('Sessions: Lets save the session!') : '');
-        $query = $this->objSQL->queryBuilder()
-                        ->insertInto('#__sessions')
-                        ->set($values)
-                        ->build();
+        $checkResult = $this->objSQL->query( $check );
 
-        (cmsDEBUG ? memoryUsage( sprintf('Sessions: Executing Query: %s', $query )) : '');
-        $result = $this->objSQL->query( $query );
+        // Ensure the current session_id is not in use
+        if( count( $checkResult ) === 0 ){
 
-        // Ensure the result is valid
-        if( $result ){
-            return true;
+            // Explicitly set the variable
+            $values = array();
+
+            // Values to insert into db
+            $values['uid']       = 0;
+            $values['sid']       = $session_id;
+            $values['store']     = serialize( $_SESSION );
+            $values['hostname']  = $_SERVER['REMOTE_ADDR'];
+            $values['timestamp'] = time();
+            $values['useragent'] = $_SERVER['HTTP_USER_AGENT'];
+            $values['mode']      = $status;
+
+            (cmsDEBUG ? memoryUsage('Sessions: Lets save the session!') : '');
+            $query = $this->objSQL->queryBuilder()
+                            ->insertInto('#__sessions')
+                            ->set($values)
+                            ->build();
+
+            (cmsDEBUG ? memoryUsage( sprintf('Sessions: Executing Query: %s', $query )) : '');
+            $result = $this->objSQL->query( $query );
+
+            // Ensure the result is valid
+            if( $result ){
+                return true;
+            }
+
+        } else {
+            // Recreate the session_id and perform all the previous checks
+            // Need $this ?
+            return $this->createSession( $status );
         }
 
         return false;
