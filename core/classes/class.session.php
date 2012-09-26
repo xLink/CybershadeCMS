@@ -118,6 +118,7 @@ class session extends coreObj{
         } else {
             // Recreate the session_id and perform all the previous checks
             // Need $this ?
+            (cmsDEBUG ? memoryUsage( 'Sessions: Generated Session ID was not Unique, Recreating... ') : '');
             return $this->createSession( $status );
         }
 
