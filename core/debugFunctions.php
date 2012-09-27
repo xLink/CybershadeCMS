@@ -18,7 +18,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      *
      * @return      string
      */
-    function dump(&$var, $info = false, $color='', $specialFX=false) {
+    function dump(&$var, $info = false, $color='', $specialFX=true) {
         if (file_exists('debug')) { return; }
 
         $objPage   = coreObj::getPage();
@@ -28,17 +28,27 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         $return    = null;
         $specialFX = ($specialFX!==false ? true : false);
 
-        //if(is_object($objPage) && $specialFX){
-            $objPage->addJSFile('/'.root().'/assets/javascript/tree.js');
-            $objPage->addCSSFile('/'.root().'/assets/styles/debug.css');
-/*        }else{
+        if(is_object($objPage)){
+
+            if($specialFX){
+                $objPage->addJSFile(array(
+                    'src'      => '/'.root().'assets/javascript/tree.js',
+                    'priority' => LOW,
+                ));
+            }
+
+            $objPage->addCSSFile(array(
+                'href'     => '/'.root().'assets/styles/debug.css',
+                'priority' => HIGH,
+            ));
+        }else{
             static $run;
             if(!isset($run) || $run != true){
                 echo '<link rel="stylesheet" type="text/css" href="/' . root() . 'assets/styles/debug.css" />'."\n";
             }
             $run = true;
         }
-*/
+
         $vals = ($scope ? $scope : $GLOBALS);
 
         $old = $var;

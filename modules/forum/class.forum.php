@@ -10,20 +10,19 @@ class forum extends Module{
         $objPage = coreobj::getPage();
         $objPage->setMenu('forum');
         $objPage->addJSFile('/'.root().'modules/forum/scripts/forum.js');
-        $objPage->addCSSFile('/'.root().'modules/forum/styles/forum.css');
-
-echo dump($_GET);
-        // echo dump($objPage->jsFiles);
-        /*
-
-
-
+        $objPage->addCSSFile(array(
+            'href'     => '/'.root().'modules/forum/styles/forum.css',
+            'type'     => 'text/css',
+            'rel'      => 'stylesheet',
+            'priority' => LOW
+        ));
 
 
+        //reset the forum tracker
+        /*if(User::$IS_ONLINE){
+            $this->forumTrackerInit();
+        }*/
 
-
-
-        */
     }
 
     /**
@@ -40,12 +39,11 @@ echo dump($_GET);
     public function viewThread( $id, $_all='' ) {
         $objTPL = coreObj::getTPL();
 
-        $objTPL->assign_var('VARIABLE', dump($id));
-echo dump(coreObj::getDBO()->getVar('debug'));
+
+        $objTPL->assign_var('VARIABLE', dump($b));
+
         $this->setView('view_1');
     }
 }
-
-
 
 ?>

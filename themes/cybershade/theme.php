@@ -6,8 +6,16 @@ if(!is_object($objPage)){
 }
 
 //if(LOCALHOST){
-    $objPage->addCSSFile('/'.root().self::$THEME_ROOT.'theme.less', 'text/css', 'stylesheet/less');
-    $objPage->addJSFile('/'.root().'assets/javascript/less.min.js', 'footer');
+    $objPage->addCSSFile(array(
+        'href'     => '/'.root().self::$THEME_ROOT.'theme.less',
+        'type'     => 'text/css',
+        'rel'      => 'stylesheet/less',
+        'priority' => MED
+    ));
+    $objPage->addJSFile(array(
+        'src' => '/'.root().'assets/javascript/less.min.js',
+        'priority' => HIGH
+    ), 'footer');
 //}else{
 //    $objPage->addCSSFile('/'.root().self::$THEME_ROOT.'theme.css', 'text/css');
 //}

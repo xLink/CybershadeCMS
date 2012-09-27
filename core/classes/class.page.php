@@ -217,24 +217,31 @@ class page extends coreObj{
     public function addCSSFile(){
         $args = $this->_getArgs(func_get_args());
 
-        $arg = func_get_arg(0);
-
-        $css = $args;
-        if(!is_array($arg) || !array_key_exists('href', $args)){
+        if(count(func_get_args()) == 1 && array_key_exists('href', $args)){
             $css = array(
-                'href'  => doArgs(0, false, $args),
-                'type'  => doArgs(1, 'text/css', $args),
-                'rel'   => doArgs(2, 'stylesheet', $args),
+                'href'     => doArgs('href', false, $args),
+                'type'     => doArgs('type', 'text/css', $args),
+                'rel'      => doArgs('rel', 'stylesheet', $args),
+                'priority' => doArgs('priority', MED, $args),
+            );
+        }else{
+            $args = array_values($args);
+            $css = array(
+                'href'     => doArgs(0, false, $args),
+                'type'     => doArgs(1, 'text/css', $args),
+                'rel'      => doArgs(2, 'stylesheet', $args),
+                'priority' => doArgs(3, MED, $args),
             );
         }
 
         if(!isset($css['href'])){ return false; }
+        $priority = doArgs('priority', MED, $css);
 
         $file = str_replace(DS, '-', $css['href']);
         $file = md5($file);
-            if(array_key_exists($file, $this->cssFiles)){ return false; }
+            if(isset($this->cssFiles[$priority]) && array_key_exists($file, $this->cssFiles[$priority])){ return false; }
 
-        $this->cssFiles[$file] = $css;
+        $this->cssFiles[$priority][$file] = $css;
 
         return true;
     }
@@ -249,18 +256,27 @@ class page extends coreObj{
          * @return  string
          */
         private function buildCSS(){
-            if(!count($this->cssFiles)){ return false; }
 
             $_tag = "\n".'<link%s />';
-            $_arg  = ' %s="%s"';
+            $_arg = ' %s="%s"';
 
             $return = null;
-            foreach($this->cssFiles as $args){
-                $tag = null;
-                foreach($args as $k => $v){
-                    $tag .= sprintf($_arg, $k, $v);
+            if(count($this->cssFiles)){
+
+                foreach(range(HIGH, LOW) as $priority){
+                    if(!count($this->cssFiles[$priority])){ continue; }
+
+                    foreach($this->cssFiles[$priority] as $args){
+                        $tag = null;
+                        foreach($args as $k => $v){
+                            if($k == 'priority'){ continue; }
+
+                            $tag .= sprintf($_arg, $k, $v);
+                        }
+                        $return .= sprintf($_tag, $tag);
+                    }
                 }
-                $return .= sprintf($_tag, $tag);
+
             }
 
             return $return;
@@ -284,24 +300,35 @@ class page extends coreObj{
         $args = $this->_getArgs(func_get_args());
 
         $arg = func_get_arg(0);
-        $position = in_array($args[1], array('header', 'footer')) ? strtolower($args[1]) : 'footer';
+        $position = in_array($args[1], array('header', 'footer'))
+                        ? strtolower($args[1])
+                        : 'footer';
 
-        $js = $args;
-        if(!is_array($arg) || !array_key_exists('src', $args)){
+        if(is_array($arg) && isset($arg['src'])){
+            $args = $arg;
             $js = array(
-                'src'  => doArgs(0, false, $args),
+                'src'      => doArgs('src', false, $args),
+                'type'     => doArgs('type', 'text/javascript', $args),
+                'priority' => doArgs('priority', MED, $args),
+            );
+        }else{
+            $js = array(
+                'src'      => doArgs(0, false, $args),
+                'type'     => doArgs(1, 'text/javascript', $args),
+                'priority' => doArgs(2, MED, $args),
             );
         }
 
         if(!isset($js['src'])){ return false; }
+        $priority = doArgs('priority', MED, $js);
 
         $file = str_replace(DS, '-', $js['src']);
         $file = md5($file);
-            if(isset($this->jsFiles[$position]) && array_key_exists($file, $this->jsFiles[$position])){
+            if(isset($this->jsFiles[$position][$priority]) && array_key_exists($file, $this->jsFiles[$position][$priority])){
                 return false;
             }
 
-        $this->jsFiles[$position][$file] = $js;
+        $this->jsFiles[$position][$priority][$file] = $js;
 
         return true;
     }
@@ -342,21 +369,24 @@ class page extends coreObj{
          * @return  string
          */
         private function buildJS($mode){
-            if(!count($this->jsFiles[$mode]) && !count($this->jsCode[$mode])){ return false; }
 
             $_tag = "\n".'<script%s>%s</script>';
             $_arg = ' %s="%s"';
 
             $return = null;
-
             //do the files
-            if(!empty($this->jsFiles[$mode])){
-                foreach($this->jsFiles[$mode] as $args){
-                    $tag = null;
-                    foreach($args as $k => $v){
-                        $tag .= sprintf($_arg, $k, $v);
+            if(count($this->jsFiles[$mode])){
+                foreach(range(HIGH, LOW) as $priority){
+                    foreach($this->jsFiles[$mode][$priority] as $args){
+                        $tag = null;
+                        foreach($args as $k => $v){
+                            if($k == 'priority'){ continue; }
+
+                            $tag .= sprintf($_arg, $k, $v);
+                        }
+                        $return .= sprintf($_tag, $tag, '');
+
                     }
-                    $return .= sprintf($_tag, $tag, '');
                 }
             }
 
@@ -479,7 +509,7 @@ class page extends coreObj{
 **/
         $cssDir = '/'.root().'assets/styles';
 
-        $this->addCSSFile($cssDir.'/framework-min.css', 'text/css');
+        $this->addCSSFile($cssDir.'/framework-min.css', 'text/css', 'stylesheet', HIGH);
         #$this->addCSSFile($cssDir.'/extras-min.css', 'text/css');
 
         //throw a hook here, so they have the ability to do...whatever
@@ -499,8 +529,14 @@ class page extends coreObj{
 **/
         $cssDir = '/'.root().'assets/javascript';
 
-        $this->addJSFile($cssDir.'/framework-min.js', 'footer');
-        $this->addJSFile($cssDir.'/extras-min.js', 'footer');
+        $this->addJSFile(array(
+            'src' => $cssDir.'/framework-min.js',
+            'priority' => HIGH,
+        ), 'footer');
+        $this->addJSFile(array(
+            'src' => $cssDir.'/extras-min.js',
+            'priority' => HIGH,
+        ), 'footer');
 
         //throw a hook here, so they have the ability to do...whatever
         $jsFiles = array();

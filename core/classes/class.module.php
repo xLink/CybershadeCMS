@@ -17,6 +17,17 @@ class Module extends coreObj{
     public $_module = false;
     public $_method = false;
 
+    /**
+     * Set the view for the method.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $view
+     *
+     * @return  bool
+     */
     public function setView($view='default'){
         $objTPL = coreObj::getTPL();
 
@@ -26,6 +37,7 @@ class Module extends coreObj{
 
         if(is_empty($view)){
             trigger_error('You did not set a view for this, cant see it going well ;/');
+            return false;
         }
 
         // Allow Developers to test custom views
@@ -34,7 +46,8 @@ class Module extends coreObj{
             if( is_readable( $tempPath ) ) {
                 $view = $_GET['view'];
             } else {
-                trigger_error('The view overide you attempted to use dow work', E_USER_ERROR);
+                trigger_error('The view overide you attempted to use dow work');
+                return false;
             }
         }
 
@@ -47,13 +60,32 @@ class Module extends coreObj{
             'body' => $path,
         ));
 
-        $this->setVar('tplSet', true);
+        $this->setVar('viewSet', true);
+        return true;
     }
 
+    /**
+     * If the view has been set we will parse the body and go from there.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @return  bool
+     */
     public function __destruct(){
-        if($this->getVar('tplSet') !== true){ return false; }
+        // if view hasnt been set, then we dont want to continue
+        if($this->getVar('viewSet') !== true){
+            return false;
+        }
         $objTPL = coreObj::getTPL();
 
+        // if the handle isnt valid, then return
+        if(!$objTPL->isHandle('body')){
+            return false;
+        }
+
+        //parse the body and store it for later use
         $objTPL->parse('body', false);
     }
 
