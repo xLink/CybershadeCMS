@@ -63,11 +63,20 @@ class session extends coreObj{
      *
      * @since 1.0.0
      *
+     * @param $uid      int     The User ID of the user to create the session for (Default 0 - Anonymous)
+     * @param $status   string  The state of the session (Default 'active')
+     *
      * @return bool
      */
-    public function createSession( $status = 'active' ){
-        $session_id = randCode(32);
+    public function createSession( $uid = 0, $status = 'active'  ){
 
+        $uid = ( !is_number( $uid ) ? false : $uid );
+
+        if( !$uid ){
+            return false;
+        }
+
+        $session_id = randCode(32);
         // Just a check
         if( empty( $session_id ) ){
             $offset = rand( 1, 86400 );
@@ -110,7 +119,7 @@ class session extends coreObj{
         $values = array();
 
         // Values to insert into db
-        $values['uid']       = 0;
+        $values['uid']       = $uid;
         $values['sid']       = $session_id;
         $values['store']     = serialize( $_SESSION );
         $values['hostname']  = $_SERVER['REMOTE_ADDR'];
@@ -175,7 +184,24 @@ class session extends coreObj{
      * @return bool
      */
     public function killSession( $session_id ){
+        $session_id = ( ctype_alnum( $session_id ) ? $session_id : false  );
 
+        if( !$session_id ){
+            return false;
+        }
+
+        $query = $this->objSQL->queryBuilder()
+                              ->deleteFrom('#__sessions')
+                              ->where('session_id', '=', $session_id)
+                              ->build();
+
+        $result = $this->objSQL->query( $query );
+
+        if( !$query ){
+            return false;
+        }
+
+        return true;
     }
 
     /**
