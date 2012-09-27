@@ -224,7 +224,7 @@ class session extends coreObj{
      *
      * @return array
      */
-    public function getSession( $session_id ){
+    public function getSessionById( $session_id ){
         $session_id = ( ctype_alnum((string)$session_id) ? $session_id : '' );
 
         if( $session_id === '' || empty( $session_id ) ) {

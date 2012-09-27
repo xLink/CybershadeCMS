@@ -15,7 +15,7 @@ $var = $objSession->session_id;
 
 echo dump( $var, 'Session ID', 'yellow' );
 
-echo $objSession->getSession( $var );
+echo $objSession->getSessionById( $var );
 
 echo $objSession->getSessionsByType('active');
 ?>
