@@ -307,6 +307,10 @@ class session extends coreObj{
     public function getSessionsByType( $type, $limit = 0 ){
         $sessions = array();
 
+        // Ensure that $limit is a number
+        $limit = ( is_number( $limit ) ? $limit : (int)$limit );
+
+        // Check for valid session types
         if( $type != 'banned' || $type != 'active' || $type != 'update' ){
             (cmsDEBUG ? memoryUsage( 'Sessions: Session type invalid')  : '');
             return $sessions;
@@ -325,6 +329,7 @@ class session extends coreObj{
             return $sessions;
         }
 
+        // Get the array of data
         $sessions = $this->objSQL->fetchAll( $result );
         (cmsDEBUG ? memoryUsage( 'Sessions: Got me some sessions, I do!')  : '');
 
