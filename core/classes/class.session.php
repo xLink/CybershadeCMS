@@ -167,6 +167,9 @@ class session extends coreObj{
         $result = $this->objSQL->query( $query );
 
         if( $result ) {
+
+            // Unset the sessions
+            unset( $_SESSION );
             return true;
         }
 
@@ -184,12 +187,15 @@ class session extends coreObj{
      * @return bool
      */
     public function killSession( $session_id ){
+        // Check the session id for type
         $session_id = ( ctype_alnum( $session_id ) ? $session_id : false  );
 
+        // If wrong type then return false
         if( !$session_id ){
             return false;
         }
 
+        // Build the query
         $query = $this->objSQL->queryBuilder()
                               ->deleteFrom('#__sessions')
                               ->where('session_id', '=', $session_id)
@@ -201,6 +207,8 @@ class session extends coreObj{
             return false;
         }
 
+        // Unset the session id
+        unset( $_SESSION[$session_id] );
         return true;
     }
 
