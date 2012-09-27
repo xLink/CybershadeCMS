@@ -72,7 +72,8 @@ class session extends coreObj{
 
         $uid = ( !is_number( $uid ) ? false : $uid );
 
-        if( !$uid ){
+        if( $uid === false ){
+            (cmsDEBUG ? memoryUsage( 'Sessions: $uid was not a number, returning false ') : '');
             return false;
         }
 
@@ -95,6 +96,7 @@ class session extends coreObj{
 
         // Checks if the result is in the array of sessions
         if( in_array( $session_id, $checkResult ) ){
+
             $getAllSessions = $this->objSQL->queryBuilder()
                                            ->select('sid')
                                            ->from('#__sessions')
@@ -140,8 +142,6 @@ class session extends coreObj{
         if( $result ){
             return true;
         }
-
-
 
         return false;
     }
@@ -209,6 +209,8 @@ class session extends coreObj{
 
         // Unset the session id
         unset( $_SESSION[$session_id] );
+
+        (cmsDEBUG ? memoryUsage( sprintf('Sessions: Deleted session: %s ', $session_id ) ) : '');
         return true;
     }
 
@@ -249,6 +251,84 @@ class session extends coreObj{
         }
 
         return array();
+    }
+
+
+    /**
+     * Retrieves a set of active sessions
+     *
+     * @author  Richard Clifford
+     * @since   1.0.0
+     *
+     * @version 1.0.0
+     *
+     * @param int $limit The limit on the query
+     *
+     * @return array
+     */
+    public function getActiveSessions( $limit = 0 ){
+        (cmsDEBUG ? memoryUsage( 'Sessions: Getting all Active Sessions')  : '');
+        return $this->getSessionsByType( 'active', $limit );
+    }
+
+
+    /**
+     * Retrieves a set of Banned Sessions
+     *
+     * @author  Richard Clifford
+     * @since   1.0.0
+     *
+     * @version 1.0.0
+     *
+     * @param int $limit The limit on the query
+     *
+     * @return array
+     */
+    public function getBannedSessions( $limit = 0 ){
+        (cmsDEBUG ? memoryUsage( 'Sessions: Getting all Banned Sessions')  : '');
+        return $this->getSessionsByType( 'banned', $limit );
+    }
+
+
+
+    /**
+     * Retrieves set of sessions according to the provided type
+     *
+     * @author  Richard Clifford
+     * @since   1.0.0
+     *
+     * @version 1.0.0
+     *
+     * @param string $type  The type of session
+     * @param int    $limit The limit on the query
+     *
+     * @return array
+     */
+    public function getSessionsByType( $type, $limit = 0 ){
+        $sessions = array();
+
+        if( $type != 'banned' || $type != 'active' || $type != 'update' ){
+            (cmsDEBUG ? memoryUsage( 'Sessions: Session type invalid')  : '');
+            return $sessions;
+        }
+
+        $query = $this->objSQL->queryBuilder()
+                              ->select('uid', 'sid', 'mode', 'store', 'hostname')
+                              ->from('#__sessions')
+                              ->where('mode', '=', $type)
+                              ->limit( $limit )
+                              ->build();
+
+        $result = $this->objSQL->query( $query );
+
+        if( !$result ){
+            return $sessions;
+        }
+
+        $sessions = $this->objSQL->fetchAll( $result );
+        (cmsDEBUG ? memoryUsage( 'Sessions: Got me some sessions, I do!')  : '');
+
+        return $sessions;
     }
 }
 
