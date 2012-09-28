@@ -153,7 +153,7 @@ class core_SQL extends coreObj{
     public function fetchAll($query, $key=false){
         $this->query($query);
             if(!$this->affectedRows()){
-                return false;
+                return array();
             }
 
         $line = $this->results($key);
