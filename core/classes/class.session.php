@@ -90,9 +90,8 @@ class session extends coreObj{
                               ->where('sid', '=', $session_id)
                               ->build();
 
-        $checkSessionsQuery = $this->objSQL->query( $check );
 
-        $checkResult = $this->objSQL->fetchAll( $checkSessionsQuery );
+        $checkResult = $this->objSQL->fetchAll( $check );
 
         // Checks if the result is in the array of sessions
         if( in_array( $session_id, $checkResult ) ){
@@ -103,9 +102,7 @@ class session extends coreObj{
                                            ->build();
 
             // Get all sessions
-            $session_result = $this->objSQL->query( $getAllSessions );
-
-            $sessions = $this->objSQL->fetchAll( $session_result );
+            $sessions = $this->objSQL->fetchAll( $getAllSessions );
 
             // Ensure the current session_id is not in use
             while( in_array( $session_id, $sessions ) ){
@@ -241,9 +238,7 @@ class session extends coreObj{
                               ->build();
 
         // Execute the query
-        $result = $this->objSQL->query( $query );
-
-        $sessions = $this->objSQL->fetchRow( $result );
+        $sessions = $this->objSQL->fetchRow( $query );
 
         (cmsDEBUG ? memoryUsage( sprintf('Sessions: Returning: %s', $return ) ) : '');
         if( $sessions ){
@@ -323,14 +318,9 @@ class session extends coreObj{
                               ->limit( $limit )
                               ->build();
 
-        $result = $this->objSQL->query( $query );
-
-        if( !$result ){
-            return $sessions;
-        }
 
         // Get the array of data
-        $sessions = $this->objSQL->fetchAll( $result );
+        $sessions = $this->objSQL->fetchAll( $query );
         (cmsDEBUG ? memoryUsage( 'Sessions: Got me some sessions, I do!')  : '');
 
         return $sessions;
