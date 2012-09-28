@@ -311,7 +311,7 @@ class session extends coreObj{
         $limit = ( is_number( $limit ) ? $limit : (int)$limit );
 
         // Check for valid session types
-        if( $type != 'banned' || $type != 'active' || $type != 'update' ){
+        if( $type != 'banned' && $type != 'active' && $type != 'update' ){
             (cmsDEBUG ? memoryUsage( 'Sessions: Session type invalid')  : '');
             return $sessions;
         }
