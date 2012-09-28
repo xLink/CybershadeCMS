@@ -59,25 +59,11 @@
     <!-- END menu -->
 
             <!-- BEGIN left_menu -->
-            <div class="menu">
-                <section>
-                    <header>{left_menu.TITLE}</header>
-                    <div class="content">
-                        {left_menu.CONTENT}
-                    </div>
-                </section>
-            </div>
+            {_CMS.LEFT_MENU}
             <!-- END left_menu -->
 
             <!-- BEGIN right_menu -->
-            <div class="menu">
-                <section>
-                    <header>{right_menu.TITLE}</header>
-                    <div class="content">
-                        {right_menu.CONTENT}
-                    </div>
-                </section>
-            </div>
+            {_CMS.RIGHT_MENU}
             <!-- END right_menu -->
 
     <!-- BEGIN menu -->

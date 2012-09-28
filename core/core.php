@@ -121,6 +121,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objPlugin   = coreObj::getPlugins();
     $objTPL      = coreObj::getTPL();
     $objPage     = coreObj::getPage();
+    $objDebug    = coreObj::getDebug();
 
 (cmsDEBUG ? memoryUsage('Core: everything else') : '');
 

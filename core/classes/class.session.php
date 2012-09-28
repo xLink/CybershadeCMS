@@ -238,7 +238,7 @@ class session extends coreObj{
                               ->build();
 
         // Execute the query
-        $sessions = $this->objSQL->fetchRow( $query );
+        $sessions = $this->objSQL->fetchLine( $query );
 
         (cmsDEBUG ? memoryUsage( sprintf('Sessions: Returning: %s', $return ) ) : '');
         if( $sessions ){

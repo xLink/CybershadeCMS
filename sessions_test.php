@@ -6,7 +6,10 @@ define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 include_once('core/core.php');
 
-$objSession = coreObj::getSession();
+$objPage->setTheme();
+$objPage->setTitle('Test');
+$objPage->buildPage();
+$objPage->showHeader();
 
 echo $objSession->killAllSessions();
 echo $objSession->createSession();

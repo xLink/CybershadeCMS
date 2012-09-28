@@ -368,12 +368,20 @@ class coreObj {
         return coreObj::$_classes['route'];
     }
 
-    public function getSession(){
+    public static function getSession(){
         if(!isset( coreObj::$_classes['session'] )){
             session::getInstance('session');
         }
 
         return coreObj::$_classes['session'];
+    }
+
+    public static function getDebug(){
+        if(!isset( coreObj::$_classes['debug'] )){
+            debug::getInstance('debug');
+        }
+
+        return coreObj::$_classes['debug'];
     }
 
 }

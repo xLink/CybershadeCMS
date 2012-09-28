@@ -22,10 +22,10 @@ $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
 $objPage->buildPage();
 $objPage->showHeader();
-    if(!$objTPL->get_html('body')){
+    /*if(!$objTPL->get_html('body')){
         msgDie('FAIL', 'No output received from module.');
     }else{
         echo $objTPL->get_html('body');
-    }
+    }*/
 $objPage->showFooter();
 ?>

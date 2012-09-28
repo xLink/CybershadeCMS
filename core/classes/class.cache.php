@@ -5,11 +5,12 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class cache extends coreObj{
-
-    public $cacheToggle = false,
-           $output      = array(),
-           $cacheDir    = '',
-           $fileTpal     = '';
+    public $cacheToggle  = false,
+           $output       = array(),
+           $cacheDir     = '',
+           $fileTpl      = '',
+           $loadedCaches = array(),
+           $failedCaches = array();
 
     /**
      *
@@ -18,7 +19,7 @@ class cache extends coreObj{
      *
      *
      */
-    public function __construct($name='', $args=array()){
+    public function __construct( $name = '', $args = array() ){
         $this->setVars(array(
             'cacheToggle' => doArgs('useCache', false, $args),
             'cacheDir'    => doArgs('cacheDir', '', $args),
@@ -40,7 +41,7 @@ class cache extends coreObj{
      *
      * @return      string
      */
-    public function setup($file, $query, $callback=null){
+    public function setup( $file, $query, $callback = null ) {
 
         $filename = sprintf($this->getVar('fileTpl'), $file);
 
@@ -79,56 +80,76 @@ class cache extends coreObj{
      * @return      array
      */
     public function load( $file ) {
-        $file = trim($file);
+
+        $file = trim( $file );
+
         //make sure we have something to work with
-        if(empty($file)){
-            trigger_error('$file is empty, please give it a value nub, \'\' dosent constiute a value either >.>', E_USER_ERROR);
+        if( empty( $file ) ) {
+            trigger_error( '$file is empty, please provide a non-empty string', E_USER_ERROR );
+
+            // Add the cache to the failed cache's array
+            $this->failedCaches[] = $file;
+
+            // The File doesn't exist, return empty array
+            return array();
         }
 
         //normalize the var and see if we already have it done
-        $file = strtolower($file);
-        if(isset($this->cacheFiles[$file])){
+        $file = strtolower( $file );
+        if( isset( $this->cacheFiles[$file] ) ) {
+
+            // Cache was successfully loaded, Make sure we log it ;D
+            $this->loadedCaches[] = $file;
+
             //woo just return now, party later k?
             return $this->cacheFiles[$file];
 
         //awwh, now we have to do some work :(
-        }else{
+        } else {
 
             //generate the filename
-            $path = sprintf($this->getVar('fileTpl'), $file);
+            $path = sprintf ($this->getVar( 'fileTpl' ), $file );
 
             //if its not readable, then ah shit, lets just try and generate it (hopefully theyre trying to generate a sane cache store)
-            if(!is_readable($path)){
-                $cache = $this->doCache($file);
+            if( !is_readable( $path ) ) {
+                $cache = $this->doCache( $file );
             }
 
             //try once again
-            if(!is_readable($path)){
+            if( !is_readable( $path ) ) {
                 //if we get in here, then the cache file still hasnt generated, so mebe folder perms, or query issue?
 
-                if(empty($cache)){
-                    trigger_error('Sorry, we tried everything, your cache file "'.$file.'" does not wanna load, wtf you trying to do?', E_USER_ERROR);
+                if( empty( $cache ) ) {
+                    trigger_error( 'Sorry, we tried everything, your cache file "'.$file.'" does not wanna load, wtf you trying to do?', E_USER_ERROR );
+
+                    // Add the cache to the failed cache's array
+                    $this->failedCaches[] = $file;
+
                     return false;
                 }
-            }else{
-                include_once($path);
+            } else {
+                include_once( $path );
                 $cache = ${$file.'_db'};
 
                 //make sure its not empty, if it is, then regenerate it
-                if(is_empty($cache)){
-                    $cache = $this->doCache($file);
+                if( is_empty( $cache ) ) {
+                    $cache = $this->doCache( $file );
 
                     //if we regenerate it then we will do another check just to make sure...
-                    if(is_empty($cache)){
-                        trigger_error('Sorry, we tried everything, your cache file "'.$file.'" does not wanna load, wtf you trying to do?', E_USER_ERROR);
+                    if( is_empty( $cache ) ) {
+                        trigger_error( 'Sorry, we tried everything, your cache file "'.$file.'" does not wanna load, wtf you trying to do?', E_USER_ERROR );
+
+                        // Add the cache to the failed cache's array
+                        $this->failedCaches[] = $file;
+                        
                         return false;
                     }
                 }
-
             }
 
             //cache apparently worked this time, lets roll :D
             $this->cacheFiles[$file] = $cache;
+            $this->loadedCaches[]    = $file;
 
             return $cache;
         }
@@ -211,7 +232,7 @@ class cache extends coreObj{
      *
      * @param       string $file    Alias for Cache Store
      */
-    public function doCache($file){
+    public function doCache( $file ) {
         $return = false;
         switch($file){
             case 'config':

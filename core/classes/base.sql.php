@@ -125,11 +125,6 @@ class core_SQL extends coreObj{
   //-- Extra Functionality
   //
 **/
-    public function getDebug(){
-        if(!$this->dbSettings['debug']){ return false; }
-
-        return $this->debug;
-    }
 
     public function queryBuilder(){
         return new ${strtolower($this->driver).'_queryBuilder'}();

@@ -5,63 +5,41 @@
 define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 include_once('core/core.php');
-// http://example.com/modules/module/*
-$objRoute = coreObj::getRoute();
 
-$objRoute->addRoute( array(
-    'method'       => 'get', // post|get|put|delete|options|head....|any
-    'pattern'      => '/:group', //http://cybershade.org/:group
-    'arguments'    => array(
-		'module' => 'group',
-		'method' => 'index',
-    ),
-    'label'        => 'group-index',
-    'status'       => '1',
-));
+$objPage->setTheme();
 
-$objRoute->addRoute( array(
-    'method'       => 'get',
-    'pattern'      => '/:group/forum/:cat/:name-:id.html',
-    'arguments'    => array(
-		'module'	=> 'forum',
-		'method'	=> 'viewThread'
-    ),
-    'requirements' => array(
-        'group' => '\w+',
-        'cat'   => '\w+',
-        'id'    => '\d+'
-    ),
-    'label'        => 'group-view-thread',
-    'status'       => '1',
-));
+$objPage->setTitle('Test');
 
-$objRoute->addRoute( array(
-    'method'       => 'get',
-    'pattern'      => '/:group/users/list',
-    'arguments'    => array(
-        'module' => 'group',
-        'method' => 'userList'
-    ),
-    'label'        => 'group-user-list',
-    'status'       => '1',
-));
-
-$objRoute->addRoute( array(
-    'method'       => 'get',
-    'pattern'      => '/:group/about-us',
-    'arguments'    => array(
-		'module' => 'content',
-		'method' => 'render',
-		'page'	 => 'about-us'
-    ),
-    'label'        => 'group-page-about',
-    'status'       => '1',
-));
-
-/*
-/cybershade/
-	-/about-us
-	-/users/list
-	-/forum/:cat/:name-:id.html
-*/
+$objPage->buildPage();
+$objPage->showHeader();
 ?>
+
+<div id="debugBar" class="wrapper">
+	<div id="debugBtn" class="socicon-cogs"></div>
+	<div class="container" id="errorContent">
+		<ul class="tab-nav">
+			<li><a href="#console">Console Log</a></li>
+			<li><a href="#errors">PHP / CMS Errors</a></li>
+			<li><a href="#queries">SQL Queries</a></li>
+			<li><a href="#files">Included Files</a></li>
+			<li><a href="#tpls">Template Files</a></li>
+		</ul>
+		<div class="tab-panes">
+			<div class="tab-pane">Console Log n'shit</div>
+			<div class="tab-pane">PHP Errors yo</div>
+			<div class="tab-pane">Query's and shit</div>
+			<div class="tab-pane">All those m'fucking included files</div>
+			<div class="tab-pane">GEIF ME ALL THE TEMPLATE FILES!!111</div>
+
+		</div>
+	</div>
+</div>
+
+<?php
+//echo $objDebug->output();
+
+$objPage->showFooter();
+
+?>
+
+JKP2YZJ
