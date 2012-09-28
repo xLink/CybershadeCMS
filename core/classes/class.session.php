@@ -335,6 +335,32 @@ class session extends coreObj{
 
         return $sessions;
     }
+
+    /**
+     * Cleans all expired sessions
+     *
+     * @author Richard Clifford
+     * @since 1.0.0
+     *
+     * @version 1.0.0
+     *
+     * @param int $expire The timestamp when the sessions should expire
+     *
+     * @return bool
+     */
+    public function cleanSessions( $expire = 0 ){
+
+        $expire = ( $expire === 0 ? time() : $expire );
+
+        $query = $this->objSQL->queryBuilder()
+                              ->deleteFrom('#__sessions')
+                              ->where( sprintf( 'DATE_ADD(`timestamp`, INTERVAL %d SECOND) < NOW()', $expire ) )
+                              ->build();
+
+        $result = $this->objSQL->query($query);
+
+        return $result;
+    }
 }
 
 ?>
