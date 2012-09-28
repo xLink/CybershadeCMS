@@ -18,7 +18,7 @@ class mysql_queryBuilder extends coreObj{
     private $_values   = array();
     private $_tables   = array();
 
-    private $_join     = '';
+    private $_join     = array();
     private $_using    = '';
     private $_on       = array();
 
@@ -110,19 +110,19 @@ class mysql_queryBuilder extends coreObj{
         }
 
     public function join($table){
-        $this->_join = sprintf('JOIN %s', $this->_buildTables($table));
+        $this->_join[] = sprintf('JOIN %s', $this->_buildTables($table));
 
         return $this;
     }
 
         public function leftJoin($table){
-            $this->_join = sprintf('LEFT JOIN %s', $this->_buildTables($table));
+            $this->_join[] = sprintf('LEFT JOIN %s', $this->_buildTables($table));
 
             return $this;
         }
 
         public function rightJoin($table){
-            $this->_join = sprintf('RIGHT JOIN %s', $this->_buildTables($table));
+            $this->_join[] = sprintf('RIGHT JOIN %s', $this->_buildTables($table));
 
             return $this;
         }
@@ -266,11 +266,13 @@ class mysql_queryBuilder extends coreObj{
         private function _buildJoin(&$statement){
             if(!$this->_join){ return; }
 
-            $statement[] = $this->_join;
-            if($this->_using){
-                $statement[] = sprintf('USING(%s)', $this->_using);
+            foreach($this->_join as $idx => $join){
+                $statement[] = $join;
+                if($this->_using){
+                    $statement[] = sprintf('USING(%s)', $this->_using);
+                }
+                $this->_buildWhereOn($statement, 'on', $idx);
             }
-            $this->_buildWhereOn($statement, 'on');
         }
 
         private function _buildUpdate(&$statement){
@@ -382,13 +384,17 @@ class mysql_queryBuilder extends coreObj{
             return implode(', ', $_tables);
         }
 
-        private function _buildWhereOn(&$statement, $type){
+        private function _buildWhereOn(&$statement, $type, $index=0){
             if(!in_array($this->queryType, array('UPDATE', 'DELETE', 'SELECT'))){ return; }
 
             if(!count($this->{'_'.strtolower($type)})){ return; }
 
             $statement[] = strtoupper($type);
-            foreach($this->{'_'.strtolower($type)} as $where){
+
+            // foreach($this->{'_'.strtolower($type)} as $where){
+            if(!isset($this->{'_'.strtolower($type)}[$index])){ return; }
+            $where = $this->{'_'.strtolower($type)}[$index];
+
                 $tmp = array($where['type'], $where['cond1'], $where['operand']);
                 $tmp[1] = $this->_buildFields($tmp[1]);
 
@@ -412,7 +418,7 @@ class mysql_queryBuilder extends coreObj{
                     $tmp[2] = sprintf('%s ("%s")', $tmp[2], implode(', ', $ins));
                 }
                 $statement[] = implode(' ', $tmp);
-            }
+            // }
         }
 
         private function _buildGroupBy(&$statement){

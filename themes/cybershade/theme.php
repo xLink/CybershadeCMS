@@ -5,19 +5,22 @@ if(!is_object($objPage)){
     $objPage = self::getPage();
 }
 
-//if(LOCALHOST){
+if(LOCALHOST){
     $objPage->addCSSFile(array(
         'href'     => '/'.root().self::$THEME_ROOT.'theme.less',
-        'type'     => 'text/css',
         'rel'      => 'stylesheet/less',
-        'priority' => MED
+        'priority' => HIGH
     ));
     $objPage->addJSFile(array(
         'src' => '/'.root().'assets/javascript/less.min.js',
         'priority' => HIGH
     ), 'footer');
-//}else{
-//    $objPage->addCSSFile('/'.root().self::$THEME_ROOT.'theme.css', 'text/css');
-//}
+}else{
+    $objPage->addCSSFile(array(
+        'href'     => '/'.root().self::$THEME_ROOT.'theme.css',
+        'type'     => 'text/css',
+        'priority' => HIGH
+    ));
+}
 
 ?>
