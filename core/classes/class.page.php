@@ -377,6 +377,8 @@ class page extends coreObj{
             //do the files
             if(count($this->jsFiles[$mode])){
                 foreach(range(HIGH, LOW) as $priority){
+                    if(!count($this->jsFiles[$mode][$priority])){ continue; }
+
                     foreach($this->jsFiles[$mode][$priority] as $args){
                         $tag = null;
                         foreach($args as $k => $v){
