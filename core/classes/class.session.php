@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class session extends coreObj{
+class Session extends coreObj{
 
     public function __construct($store='none', $options = array()){
         $this->objSQL = coreObj::getDBO();
