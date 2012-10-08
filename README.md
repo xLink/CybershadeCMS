@@ -18,7 +18,7 @@
 - [Mootools More 1.4.0](http://mootools.net/)
 - [Bootstrap for Mootools](http://anutron.github.com/mootools-bootstrap/)
 - [Modernizr 2.6.1](http://modernizr.com)
-- [Less 1.3.0](http://modernizr.com)
+- [Less 1.3.0](http://lesscss.org/)
 - [PHP.js](http://phpjs.org)
 - [Prefixfree 1.0.7](http://leaverou.github.com/prefixfree/)
 - [Selectivizr 1.0.2](http://selectivizr.com/)
