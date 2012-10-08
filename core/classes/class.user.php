@@ -40,6 +40,7 @@ class User extends coreObj {
 								  ->limit(1)
 								  ->build();
 
+		// Get the result from the previous query
 		$result = $this->objSQL->getLine( $userQuery );
 
 		if( count( $result ) > 0 ){
@@ -70,12 +71,29 @@ class User extends coreObj {
 
 	}
 
+	/**
+	 * Generates a user password with the given length
+	 * 
+	 * @author 	Richard Clifford, Dan Aldridge
+	 * @version 1.0.0
+	 * @access  Protected
+	 * 
+	 * @since 	1.0.0
+	 *
+	 * @param 	int $len
+	 *
+	 * @return 	string
+	 */
 	protected function makePassword( $len = 12 ){
-
+		return randCode( $len );
 	}
 
 	public function resetPassword( $user_id, $password = '' ){
+		// Used to send a reset email to the user
+	}
 
+	public function editUserPassword( $user_id, $password ){
+		// Edits the user password from the UCP
 	}
 
 	public function banUserId( $user_id, $len = 0 ){
