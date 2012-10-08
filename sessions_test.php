@@ -9,7 +9,7 @@ include_once('core/core.php');
 $objPage->setTheme();
 $objPage->setTitle('Test');
 $objPage->buildPage();
-$objPage->showHeader();
+$objPage->showHeader(); // lol i am editing that o.O
 
 echo $objSession->killAllSessions();
 echo $objSession->createSession();
