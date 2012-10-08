@@ -90,6 +90,26 @@ class User extends coreObj {
 
 	public function resetPassword( $user_id, $password = '' ){
 		// Used to send a reset email to the user
+		$userDetails = $this->getUserById( $user_id );
+
+		$userDetails = (is_array( $userDetails ) && !is_empty( $userDetails )
+						? $userDetails 
+						: array());
+
+		$email = $userDetails['email'];
+
+		// Needs some major work xD
+		if( !is_empty( $email ) ){
+			$adminEmail = 'admin@cybershade.org'; // test email address
+			$subject 	= sprintf( 'Password Reset for %s', $userDetails['username'] ); 
+			$message	= sprintf( "Dear %s \n\r The password link to reset your password is: %s", $userDetails['username'], $this->resetPassURL( $user_id ) );
+			$mail 		= _mailer($email, $adminEmail, $subject, $message);
+
+			if( $mail ){
+				return truel
+			}
+		}
+		return false;
 	}
 
 	public function editUserPassword( $user_id, $password ){
