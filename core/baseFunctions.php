@@ -4,13 +4,17 @@
 \*======================================================================*/
 if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
-//--Core Functions
+/**
+  //
+  //--Core Functions
+  //
+**/
     /**
      * Used to determine the base path of the CMS installation;
      *
      * @version 1.2
      * @since   1.0.0
-     * @author  Jesus
+     * @author  Daniel Noel-Davies
      *
      * @return  string
      */
@@ -49,10 +53,10 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
         //test value here so we have atleast a value to work with
         $value = (isset($args[$key])
-                        ? $args[$key]
-                        : (!empty($default)
-                                ? $default
-                                : false));
+                    ? $args[$key]
+                    : (!empty($default)
+                        ? $default
+                        : false));
 
         //if we have a callback then exec
         if(is_empty($callback)){
@@ -164,129 +168,11 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         return $file_info;
     }
 
-//--CMS Functions
-
-    /**
-     * Handles Notifications for CMS Modules.
-     *
-     * @version 2.0
-     * @since   0.8.0
-     * @author  Dan Aldridge
-     *
-     * @param   string  $to
-     * @param   string  $module
-     * @param   int     $setting
-     * @param   array   $content
-     *
-     */
-    function doNotification($to, $module, $setting, $content=array()){
-        global $objSQL, $objUser, $objPage, $objSecurity;
-
-        //if the content we need is unavalible, then return false
-        if(!doArgs('title', false, $content) ||
-            !doArgs('email', false, $content) ||
-            !doArgs('notify', false, $content)){ return false; }
-
-        //we give the option to pass a $user array thru, it makes sense to use the query if they have already performed it
-        $user = $objUser->getUserInfo($to);
-            if(empty($user)){ return false; }
-
-        //grab the notification settings
-        $settings = $objSQL->getLine('SELECT * FROM `$Pnotification_settings` WHERE module="%s" AND name="%s" LIMIT 1;', array($module, $setting));
-            if(empty($settings)){ return false; }
-
-        //make sure we have something to work off
-        $userSetting = array();
-        if(doArgs('notification_settings', false, $user)){
-            $userSetting = unserialize($user['notification_settings']);
-        }
-
-        //do a check to see what we need to do
-        $setting = (isset($userSetting[$setting]) ? $userSetting[$setting] : $settings['default']);
-
-        if($setting==3){ $setting = $objUser->isUserOnline($to) ? 2 : 1; }
-
-        //execute sir, Yes sir!
-        switch($setting){
-            case 1: //email
-                if(!sendMail($user['email'],
-                    $objPage->getSetting('site', 'title').' - '.secureMe($content['title']),
-                    contentParse($content['email']),
-                    true
-                )){
-                    return false;
-                }
-            break;
-
-            case 2: //notify
-                return $objNotify->notifyUser($user['id'], contentParse($content['notify']), secureMe($content['title']));
-            break;
-
-            //not sure what to do here, so we shall do nothing atall
-            default:
-            case 0: break;
-            }
-        return true;
-    }
-
-    /**
-     * Sends an email to the target.
-     *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Dan Aldridge
-     *
-     * @param   string  $emailVar
-     * @param   array   $vars
-     *
-     * @return  string
-     */
-    function parseEmail($emailVar, $vars){
-        global $objCore;
-
-        $handle = randCode(20);
-        $message = $objCore->config('email', $emailVar);
-            if(!strlen($message)){ return false; }
-
-        //parse the email message
-        $objCore->objTPL->assign_vars($vars);
-        $objCore->objTPL->parseString('email_'.$handle, $message, false);
-
-        return $objCore->objTPL->get_html('email_'.$handle);
-    }
-
-    /**
-     * Sends an email to the target.
-     *
-     * @version 2.5
-     * @since   1.0.0
-     * @author  Dan Aldridge
-     *
-     * @param   string  $to
-     * @param   string  $emailVar
-     * @param   array   $vars
-     * @param   bool    $dontDie
-     */
-    function sendEmail($to, $emailVar, $vars=array(), $dontDie=false){
-        global $objCore;
-
-        $message = parseEmail($emailVar, $vars);
-
-        //try and grab a title
-        $subject = langVar($emailVar);
-
-        if(is_empty($subject)){
-            $subject = $emailVar;
-        }
-
-        if(_mailer($to, $objCore->config('site', 'admin_email'), $subject, $message)){
-            return true;
-        }
-
-        if($dontDie){ return false; }
-        msgDie('FAIL', 'Error: Could not send email. If this is unexpected please contact the administrator of this website.');
-    }
-
+/**
+  //
+  //--CMS Functions
+  //
+**/
     /**
      * Sends an email to the intended target
      *
@@ -326,7 +212,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     }
 
     /**
-     * Returns a list of all directories and files
+     * Returns a list of all directories and files in an associative array.
      *
      * @version 1.0
      * @since   1.0.0
@@ -340,15 +226,27 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $fileNames = array();
         $i = 0;
 
-        if(!is_dir($path)){ return array(); }
+        // ensure the path is a directory
+        if(!is_dir($path)){
+            return array();
+        }
 
+        // open it up and lets have a look
         if($dh = opendir($path)) {
+            // whilst we have something to play with
             while(($file = readdir($dh)) !== false) {
-                if($file == '.' || $file == '..') { continue; }
+
+                //if it is a . or .., which are this dir and parent dir, then continue over them
+                if($file == '.' || $file == '..') {
+                    continue;
+                }
+
                 $fullpath = $path . '/' . $file;
                 $fkey = strtolower($file);
+
+                // if the filename is already in here add a space, files & folders can have same names >.<
                 while(array_key_exists($fkey, $fileNames)) {
-                $fkey .= ' ';
+                    $fkey .= ' ';
                 }
 
                 $a = stat($fullpath);
@@ -357,14 +255,19 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
                 $files[$fkey]['name'] = $file;
                 $files[$fkey]['type'] = filetype($fullpath);
                 $fileNames[$i++] = $fkey;
+
             }
             closedir($dh);
         } else {
-            die('Cannot open directory: ' . $path);
+            trigger_error('getFiles(): Cannot open directory: '.$path, E_USER_ERROR);
         }
 
-        if(is_empty($fileNames)){ return array(); }
+        // nothing was returned, we'll just return here
+        if(is_empty($fileNames)){
+            return array();
+        }
 
+        // we'll sort the files before returning
         sort($fileNames, SORT_STRING);
         $sortedFiles = array();
         $i = 0;
@@ -441,146 +344,11 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         return $useragent;
     }
 
-    /**
-     * Configures the Menu system and outputs the requested version
-     *
-     * @version 3.5
-     * @since   1.0.0
-     *
-     * @param   string $module
-     * @param   string $page_id
-     *
-     * @return  bool
-     */
-    function show_menu($module, $page_id='default'){
-        global $config, $objCore;
-
-        //either this or globalling a shit ton of vars?
-        $objUser = $objCore->objUser;
-        $objSQL = $objCore->objSQL;
-        $objTPL = $objCore->objTPL;
-
-        //if we havent got what we need, attempt to grab it
-        if(!doArgs('menu_setups', false, $config)){
-            $query = 'SELECT * FROM `#__menu_setups` WHERE module = "%s" AND page_id = "%s" ORDER BY `order` ASC';
-            $config['menu_setups'] = $objSQL->getTable($query, array($module, $page_id));
-        }
-
-        //make sure we have something to play with
-        if(!doArgs('menu_setups', false, $config)){ return false; }
-
-        //sort out where the menus are supposed to go
-        $menu = array();
-        foreach($config['menu_setups'] as $row){
-            //if its not on the side wer looking for, move on
-            if(strtolower($module) != strtolower($row['module']) || $page_id != $row['page_id']){ continue; }
-
-            //set the menu position in the array, default to the left side
-            switch($row['position']){
-                default:
-                case 0: $menu['left'][]     = $row; break;
-                case 1: $menu['right'][]     = $row; break;
-                case 2: $menu['center'][]     = $row; break;
-            }
-        }
-
-        //no point continuing if we arnt populated
-        if(is_empty($menu)){ return false; }
-
-        //loop thru left right and center
-        foreach($menu as $k => $menuBlock){
-            foreach($menuBlock as $row){
-                //loop thru the block lookin for the right one
-                foreach($config['menu_blocks'] as $menu){
-                    //if its not the one we need, continue
-                    if(strtolower($menu['unique_id']) != strtolower($row['menu_id'])){ continue; }
-
-                    //now check if we can call the function
-                    if(!function_exists($menu['function'])){
-                        if(is_empty($menu['module'])){ $menu['module'] = 'core'; }
-                        if(is_file(cmsROOT.'modules/'.$menu['module'].'/block.php')){
-                            include_once cmsROOT.'modules/'.$menu['module'].'/block.php';
-                        }
-                    }
-                    break; //just so the foreach dosent write over $menu
-                }
-
-                //check perms, no point processing that info if they cant view it anyway
-                if(!$objUser->checkPermissions($objUser->grab('id'), $menu['perms'])){
-                    continue;
-                }
-
-                $i = $row['id'];
-                if(isset($_cachee[$i]) && !is_empty($_cache[$i])){
-                    $content = $_cache[$i];
-                }else{
-                    //parse the params for this menu block..
-                    $params = (is_empty($row['params']) ? array() : parseMenuParams($row['params']));
-
-                    //set various things up accordingly
-                    $params['menu_title'] = doArgs('menu_title', $params['menu_title'], $params, function($var){
-                        $title = langVar(strtoupper($var));
-                        return (is_empty($title) ? $var : $title);
-                    });
-                    $content = langVar('L_INVALID_FUNCTION', $menu['function'].'()');
-
-                    $params += array(
-                        'menu_class'    => $menu['function']!='NULL' ? 'block_'.$menu['function'] : 'block_'.$params['menu_name']
-                    );
-
-
-                    //can we call the function or do we have to generate from get_menu()?
-                    if(is_callable('menu_'.$menu['function'])){
-                        //we wanna add in some custom params
-                        $params += array(
-                            'unique_id'     => substr(md5($i), 0, 9),
-                            'block'         => $k.'_menu',
-                        );
-
-                        //call the function
-                        $content = call_user_func('menu_'.$menu['function'], $params);
-
-                    }else if(is_empty($menu['function']) || $menu['function']=='NULL'){
-                        //switch so we get the right menu
-                        switch($params['menu_name']){
-                            case 'NULL':        /* Dont do anythin to this one */                       break;
-                            case 'main_menu':   $params['menu_name'] = 'menu_mm';                       break;
-                            default:            $params['menu_name'] = 'menu_'.$params['menu_name'];    break;
-                        }
-
-                        //get the menu
-                        $return = get_menu($params['menu_name'], 'link');
-                        if(!is_empty($return)){
-                            $content = $return;
-                        }
-                    }
-                    //do this so we dont have to keep processing the same menu
-                    $_cache[$i] = $content;
-                }
-
-                //output it on the template
-                $objTPL->assign_block_vars($k.'_menu', array(
-                    'ID'      => $params['menu_class'],
-                    'TITLE'   => $params['menu_title'],
-                    'CONTENT' => $content,
-                ));
-
-                $a = doArgs('menu_chrome', true, $params)=='true' ? true : false;
-                if($a){
-                    $objTPL->assign_block_vars($k.'_menu.chrome', array());
-                }else{
-                    $objTPL->assign_block_vars($k.'_menu.no_chrome', array());
-                }
-            }
-            //let the page class know we've been busy and to show the menu
-            return true;
-        }
-        //nothing happened, so return false
-        return false;
-    }
-
-//--String Functions
-
+/**
+  //
+  //--String Functions
+  //
+**/
     /**
      * Parse an .ini string into a useable array
      *
@@ -681,7 +449,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         if(is_empty($var)){ return false; }
 
             //swap the first argument for the language var
-            foreach($args as $k => $v){ $vars[$k] = ($k==0 ? $var : $v); }
+            foreach($args as $k => $v){
+                $vars[$k] = ($k==0 ? $var : $v);
+            }
 
         if(is_array($var)){
             foreach($var as $k => $v){
@@ -706,7 +476,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     function translateFile($file){
         global $_lang;
 
-        if(!isset($LANG_LOAD)){ $LANG_LOAD = true; }
+        if(!isset($LANG_LOAD)){
+            $LANG_LOAD = true;
+        }
 
         $return = false;
         if(is_file($file) && is_readable($file)){
@@ -1038,10 +810,11 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         return false;
     }
 
-
-
-//--Errors
-
+/**
+  //
+  //--Errors
+  //
+**/
     /**
      * Custom error handler for the cms.
      *
@@ -1065,9 +838,11 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
     }
 
-
-//-- MSG Functions
-//
+/**
+  //
+  //-- MSG Functions
+  //
+**/
     /**
      * Displays a formatted error on screen.
      *
@@ -1242,11 +1017,11 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         msgDie($type, $msg, '', '', '', !$doSimple);
     }
 
-
-//
-//--bbcode_tags.php
-//
-
+/**
+  //
+  //--bbcode_tags.php
+  //
+**/
     /**
      * Grab File Extension, Language and GeSHi Information
      *

@@ -251,10 +251,11 @@ class coreObj {
         return get_called_class();
     }
 
-
-//
-//--SQL
-//
+/**
+  //
+  //-- Get Class Instances
+  //
+**/
     public static function getDBO($driver=null){
         global $errorTPL;
 

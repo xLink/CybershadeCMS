@@ -11,7 +11,7 @@ class Session extends coreObj{
     }
 
     public function __destruct(){
-        echo dump($a, 'DESTRUCTED!');
+
     }
 
     /**

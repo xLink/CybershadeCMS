@@ -18,14 +18,13 @@ class User extends coreObj {
     /**
      * Gets users details by their User ID
      *
-     * @author Richard Clifford
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
-     * @since 1.0.0
+     * @param   int $user_id
      *
-     * @param int $user_id
-     *
-     * @return array
+     * @return  array
      */
     public function getUserById( $user_id ){
         if( is_empty( $user_id ) || !is_number( $user_id ) ){
@@ -54,14 +53,14 @@ class User extends coreObj {
     /**
      * Gets users details by their Username
      *
-     * @author Richard Clifford
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
-     * @since 1.0.0
      *
-     * @param string $username
+     * @param   string $username
      *
-     * @return array
+     * @return  array
      */
     public function getUserIdByName( $username ){
 
@@ -74,11 +73,11 @@ class User extends coreObj {
     /**
      * Generates a user password with the given length
      *
-     * @author  Richard Clifford, Dan Aldridge
-     * @version 1.0.0
      * @access  Protected
-     *
+     * @version 1.0.0
      * @since   1.0.0
+     * @author  Richard Clifford, Dan Aldridge
+     *
      *
      * @param   int $len
      *

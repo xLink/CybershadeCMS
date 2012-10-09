@@ -21,4 +21,5 @@ echo dump( $var, 'Session ID', 'yellow' );
 echo $objSession->getSessionById( $var );
 
 echo $objSession->getSessionsByType('active');
+echo dump($_SESSION);
 ?>
