@@ -55,6 +55,7 @@ class Session extends coreObj{
         return $token;
     }
 
+
     /**
      * Gets the token for the session
      *
@@ -69,6 +70,9 @@ class Session extends coreObj{
      * @return bool
      */
     public function createSession( $uid = 0, $status = 'active'  ){
+        if( isset($_SESSION['sid']) && $_SESSION['ts'] > time() ){
+            return false;
+        }
 
         $uid = ( !is_number( $uid ) ? false : $uid );
 
@@ -137,6 +141,10 @@ class Session extends coreObj{
 
         // Ensure the result is valid
         if( $result ){
+            $_SESSION['id']  = $session_id;
+            $_SESSION['sid'] = md5( $uid );
+            $_SESSION['ts']  = (time() + 3600); // Give it an hour
+
             return true;
         }
 

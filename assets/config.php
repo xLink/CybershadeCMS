@@ -14,12 +14,12 @@ if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
     $config['db']['prefix']        = 'cscms_';
 //the cookie prefix
     $config['db']['ckefix']        = 'CMS_';
-    
+
 //some settings for the cron
     $config['cron']['hourly_time'] = (3600); //1 Hour
     $config['cron']['daily_time']  = (3600*24); //1 Day
     $config['cron']['weekly_time'] = (3600*24*7); //1 Week
-    
+
 //some default settings, incase the cms dies before getting
 //the chance to populate the config array.
     $config['cms']['name']         = 'Cybershade CMS';

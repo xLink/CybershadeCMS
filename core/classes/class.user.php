@@ -1,7 +1,7 @@
 <?php
 
 class User extends coreObj {
-    
+
     protected $objSession;
     protected $objSQL;
 
@@ -17,12 +17,12 @@ class User extends coreObj {
 
     /**
      * Gets users details by their User ID
-     * 
+     *
      * @author Richard Clifford
      * @version 1.0.0
      *
      * @since 1.0.0
-     *  
+     *
      * @param int $user_id
      *
      * @return array
@@ -53,12 +53,12 @@ class User extends coreObj {
 
     /**
      * Gets users details by their Username
-     * 
+     *
      * @author Richard Clifford
      * @version 1.0.0
      *
      * @since 1.0.0
-     *  
+     *
      * @param string $username
      *
      * @return array
@@ -73,11 +73,11 @@ class User extends coreObj {
 
     /**
      * Generates a user password with the given length
-     * 
+     *
      * @author  Richard Clifford, Dan Aldridge
      * @version 1.0.0
      * @access  Protected
-     * 
+     *
      * @since   1.0.0
      *
      * @param   int $len
@@ -93,7 +93,7 @@ class User extends coreObj {
         $userDetails = $this->getUserById( $user_id );
 
         $userDetails = (is_array( $userDetails ) && !is_empty( $userDetails )
-                        ? $userDetails 
+                        ? $userDetails
                         : array());
 
         $email = $userDetails['email'];
@@ -101,9 +101,9 @@ class User extends coreObj {
         // Needs some major work xD
         if( !is_empty( $email ) ){
             $adminEmail = 'admin@cybershade.org'; // test email address
-            $subject    = sprintf( 'Password Reset for %s', $userDetails['username'] ); 
+            $subject    = sprintf( 'Password Reset for %s', $userDetails['username'] );
             $message    = sprintf( "Dear %s \n\r The password link to reset your password is: %s", $userDetails['username'], $this->resetPassURL( $user_id ) );
-            $mail       = _mailer($email, $adminEmail, $subject, $message);
+            $mail       = _mailer( $email, $adminEmail, $subject, $message );
 
             if( $mail ){
                 return true;
