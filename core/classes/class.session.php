@@ -359,6 +359,37 @@ class Session extends coreObj{
 
         return $result;
     }
+
+    /**
+     * Renews a set of sessions specified as an array
+     *
+     * @author Richard Clifford
+     * @since 1.0.0
+     *
+     * @version 1.0.0
+     *
+     * @param array $session The sessions array (keyed by uid and value as sid)
+     *
+     * @return array
+     */
+    public function renewSessions( $session = array() ){
+        $session = ( !is_array( $session ) ? array( $session ) : $session );
+        $renewedSessions = array();
+
+        foreach( $session as $uid => $sid ){
+            $this->killSession( $sid );
+
+            // Ensure there is an array key and value
+            if( is_empty( $sid ) || is_empty( $uid ) ){
+                continue;
+            }
+
+            if( $this->getVar( $sid ) === false ){
+                $renewedSessions[$uid] = $this->createSession( $uid );
+            }
+        }
+        return $renewedSessions;
+    }
 }
 
 ?>
