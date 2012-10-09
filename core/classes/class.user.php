@@ -18,8 +18,8 @@ class User extends coreObj {
     /**
      * Gets users details by their User ID
      *
-     * @since   1.0.0
      * @version 1.0.0
+     * @since   1.0.0
      * @author  Richard Clifford
      *
      * @param   int $user_id
@@ -39,10 +39,9 @@ class User extends coreObj {
     /**
      * Gets users details by their Username
      *
-     * @since   1.0.0
      * @version 1.0.0
+     * @since   1.0.0
      * @author  Richard Clifford
-     *
      *
      * @param   string $username
      *
@@ -62,15 +61,15 @@ class User extends coreObj {
     /**
      * Gets info on the specified user by ID or username
      *
-     * @author Richard Clifford, Dan Aldridge
-     * @since  1.0.0
-     * @author 1.0.0
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford, Dan Aldridge
      *
      * @param   int     $uid
      * @param   string  $field1
      * @param   string  $field2 [etc]
      *
-     * @return array
+     * @return  array
      */
     public function getUserInfo(){
 
@@ -84,8 +83,8 @@ class User extends coreObj {
 
         if( !isset( $cachedInfo[$uid] ) ){
             // username or user ID?
-            $user = (is_number( $uid ) 
-                        ? sprintf('u.uid = %d', $uid)  
+            $user = (is_number( $uid )
+                        ? sprintf('u.uid = %d', $uid)
                         : sprintf('UPPER(u.username) = UPPER("%s")', $uid));
 
 
@@ -129,12 +128,11 @@ class User extends coreObj {
     /**
      * Assigns a session to a specified User ID
      *
-     * @since   1.0.0
      * @version 1.0.0
+     * @since   1.0.0
      * @author  Richard Clifford
      *
-     *
-     * @param   int  $user_id 
+     * @param   int  $user_id
      *
      * @return  bool
      */
@@ -154,15 +152,13 @@ class User extends coreObj {
      * Generates a user password with the given length
      *
      * @access  Protected
-     * @since   1.0.0
      * @version 1.0.0
+     * @since   1.0.0
      * @author  Richard Clifford, Dan Aldridge
      *
-     *
-     * @param   string  $string (Default: '')
-     * @param   int     $length (Default: 8)
-     * @param   string  $salt   (Default: '')
-     * @param   string  $pepper (Default: '')
+     * @param   string  $string
+     * @param   string  $salt
+     * @param   string  $pepper
      *
      * @return  string
      */
@@ -173,27 +169,27 @@ class User extends coreObj {
         $this->setVar('pepper', $pepper);
 
         if( is_empty( $string ) ){
-            $string = randCode($lenght); // Generate a random string
+            $string = randCode($length); // Generate a random string
         }
 
         // Instanciate the Portable password hashing framework
-        $objPass = new phpass( $length, true );
+        $objPass = new phpass(8, true);
 
         // Generate the new password with salt
-        $password   = sprintf( '%s%s%s', $salt, $string, $pepper );
+        $password   = $salt . $string . $pepper;
         $hashed     = $objPass->HashPassword( $password );
 
         // Clean up
-        unset( $objPass, $string, $password );
+        unset($objPass, $string, $password);
         return $hashed;
     }
 
     /**
      * Determines whether a user is online or not
      *
-     * @author  Richard Clifford, Dan Aldridge
-     * @since   1.0.0
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
      * @param   int     $uid
      *
@@ -203,10 +199,10 @@ class User extends coreObj {
         $ts = $this->getUserInfo( $uid, 'timestamp' );
 
         return ( is_empty( $ts ) ? false : true );
-    }   
+    }
 
     public function resetPassword( $user_id, $password = '' ){
-   
+
     }
 
     public function editPassword( $user_id, $password, $salt = '', $pepper = '' ){

@@ -17,14 +17,13 @@ class Session extends coreObj{
     /**
      * Gets the form token for the sessoni
      *
-     * @author Dan Aldridge, Richard Clifford
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Dan Aldridge, Richard Clifford
      *
-     * @since 1.0.0
+     * @param   bool $forceNew
      *
-     * @param bool $forceNew
-     *
-     * @return string $token
+     * @return  string $token
      */
     public function getFormToken($forceNew=false){
         $objUser = coreObj::getUser();
@@ -35,14 +34,13 @@ class Session extends coreObj{
     /**
      * Gets the token for the session
      *
-     * @author Dan Aldridge, Richard Clifford
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Dan Aldridge, Richard Clifford
      *
-     * @since 1.0.0
+     * @param   bool $forceNew
      *
-     * @param bool $forceNew
-     *
-     * @return string $token
+     * @return  string $token
      */
     public function getToken($forceNew=false){
         $token = $this->getVar('session', 'token');
@@ -59,13 +57,12 @@ class Session extends coreObj{
     /**
      * Gets the token for the session
      *
-     * @author Richard Clifford
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
-     * @since 1.0.0
-     *
-     * @param $uid      int     The User ID of the user to create the session for (Default 0 - Anonymous)
-     * @param $status   string  The state of the session (Default 'active')
+     * @param   int     $uid      The User ID of the user to create the session for
+     * @param   string  $status   The state of the session
      *
      * @return bool
      */
@@ -110,7 +107,7 @@ class Session extends coreObj{
 
             // Ensure the current session_id is not in use
             while( in_array( $session_id, $sessions ) ){
-                (cmsDEBUG ? memoryUsage( 'Sessions: Generated Session ID was not Unique, Recreating... ') : '');
+                (cmsDEBUG ? memoryUsage('Sessions: Generated Session ID was not Unique, Recreating... ') : '');
                 $session_id = randCode(32);
             }
         }
@@ -154,10 +151,9 @@ class Session extends coreObj{
     /**
      * Kills all the sessions for whatever reason
      *
-     * @author  Richard Clifford
-     * @since   1.0.0
-     *
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
      * @return bool
      */
@@ -184,10 +180,9 @@ class Session extends coreObj{
     /**
      * Kills the specified session
      *
-     * @author  Richard Clifford
-     * @since   1.0.0
-     *
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
      * @return bool
      */
@@ -196,7 +191,7 @@ class Session extends coreObj{
         $session_id = ( ctype_alnum( $session_id ) ? $session_id : false  );
 
         // If wrong type then return false
-        if( !$session_id ){
+        if( $session_id === false ){
             return false;
         }
 
@@ -208,7 +203,7 @@ class Session extends coreObj{
 
         $result = $this->objSQL->query( $query );
 
-        if( !$query ){
+        if( $query === false ){
             return false;
         }
 
@@ -222,17 +217,16 @@ class Session extends coreObj{
     /**
      * Retrieves a session
      *
-     * @author  Richard Clifford
-     * @since   1.0.0
-     *
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
      * @return array
      */
     public function getSessionById( $session_id ){
         $session_id = ( ctype_alnum((string)$session_id) ? $session_id : '' );
 
-        if( $session_id === '' || empty( $session_id ) ) {
+        if( empty( $session_id ) ) {
             return false;
         }
 
@@ -242,7 +236,7 @@ class Session extends coreObj{
                               ->select('uid', 'sid', 'mode', 'store', 'hostname')
                               ->from('#__sessions')
                               ->where('sid', '=', $session_id)
-                                ->limit(1)
+                              ->limit(1)
                               ->build();
 
         // Execute the query
@@ -259,13 +253,13 @@ class Session extends coreObj{
     /**
      * Checks whether a user has a session record and optionally kill it
      *
-     * @since   1.0.0
      * @version 1.0.0
+     * @since   1.0.0
      * @author  Richard Clifford
-     * 
+     *
      * @param   int  $user_id
      * @param   bool $kill
-     * 
+     *
      * @return  bool
      */
     public function checkUserSession( $user_id, $kill = false ){
@@ -279,55 +273,53 @@ class Session extends coreObj{
 
         $result = $this->objSQL->fetchLine( $sql );
 
-        if( count( $result ) === 0 ){
+        if(count($result) === 0){
             return false;
         }
 
-        if( $kill ){
-            if( !is_empty( $result['sid'] ) ){
+        if($kill){
+            if(!is_empty($result['sid'])){
                 $killed = $this->killSession( $result['sid'] );
             }
         }
 
-        // If kill is true then return the result of the 
-        // killSession function, otherwise return true 
-        return ( $kill ? $killed : true );
+        // If kill is true then return the result of the
+        // killSession function, otherwise return true
+        return ($kill ? $killed : true);
     }
 
 
     /**
      * Retrieves a set of active sessions
      *
-     * @author  Richard Clifford
-     * @since   1.0.0
-     *
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
-     * @param int $limit The limit on the query
+     * @param   int $limit The limit on the query
      *
-     * @return array
+     * @return  array
      */
     public function getActiveSessions( $limit = 0 ){
-        (cmsDEBUG ? memoryUsage( 'Sessions: Getting all Active Sessions')  : '');
-        return $this->getSessionsByType( 'active', $limit );
+        (cmsDEBUG ? memoryUsage('Sessions: Getting all Active Sessions')  : '');
+        return $this->getSessionsByType('active', $limit);
     }
 
 
     /**
      * Retrieves a set of Banned Sessions
      *
-     * @author  Richard Clifford
-     * @since   1.0.0
-     *
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
-     * @param int $limit The limit on the query
+     * @param   int $limit The limit on the query
      *
      * @return array
      */
     public function getBannedSessions( $limit = 0 ){
-        (cmsDEBUG ? memoryUsage( 'Sessions: Getting all Banned Sessions')  : '');
-        return $this->getSessionsByType( 'banned', $limit );
+        (cmsDEBUG ? memoryUsage('Sessions: Getting all Banned Sessions')  : '');
+        return $this->getSessionsByType('banned', $limit);
     }
 
 
@@ -335,15 +327,14 @@ class Session extends coreObj{
     /**
      * Retrieves set of sessions according to the provided type
      *
-     * @author  Richard Clifford
-     * @since   1.0.0
-     *
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
-     * @param string $type  The type of session
-     * @param int    $limit The limit on the query
+     * @param   string $type  The type of session
+     * @param   int    $limit The limit on the query
      *
-     * @return array
+     * @return  array
      */
     public function getSessionsByType( $type, $limit = 0 ){
         $sessions = array();
@@ -353,7 +344,7 @@ class Session extends coreObj{
 
         // Check for valid session types
         if( $type != 'banned' && $type != 'active' && $type != 'update' ){
-            (cmsDEBUG ? memoryUsage( 'Sessions: Session type invalid')  : '');
+            (cmsDEBUG ? memoryUsage('Sessions: Session type invalid')  : '');
             return $sessions;
         }
 
@@ -367,7 +358,7 @@ class Session extends coreObj{
 
         // Get the array of data
         $sessions = $this->objSQL->fetchAll( $query );
-        (cmsDEBUG ? memoryUsage( 'Sessions: Got me some sessions, I do!')  : '');
+        (cmsDEBUG ? memoryUsage('Sessions: Got me some sessions, I do!')  : '');
 
         return $sessions;
     }
@@ -375,14 +366,13 @@ class Session extends coreObj{
     /**
      * Cleans all expired sessions
      *
-     * @author Richard Clifford
-     * @since 1.0.0
-     *
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
-     * @param int $expire The timestamp when the sessions should expire
+     * @param   int $expire The timestamp when the sessions should expire
      *
-     * @return bool
+     * @return  bool
      */
     public function cleanSessions( $expire = 0 ){
 
@@ -401,14 +391,13 @@ class Session extends coreObj{
     /**
      * Renews a set of sessions specified as an array
      *
-     * @author Richard Clifford
-     * @since 1.0.0
-     *
      * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
      *
-     * @param array $session The sessions array (keyed by uid and value as sid)
+     * @param   array $session The sessions array (keyed by uid and value as sid)
      *
-     * @return array
+     * @return  array
      */
     public function renewSessions( $session = array() ){
         $session = ( !is_array( $session ) ? array( $session ) : $session );
@@ -426,6 +415,7 @@ class Session extends coreObj{
                 $renewedSessions[$uid] = $this->createSession( $uid );
             }
         }
+
         return $renewedSessions;
     }
 }

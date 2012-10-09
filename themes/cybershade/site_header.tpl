@@ -31,7 +31,7 @@
                 <li><a href="#">Home</a></li>
                 <li><a href="#">Link</a></li>
                 <li><a href="#">Link</a></li>
-                <li class="dropdown">
+                <li class="dropdown" data-behavior="BS.Dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#">Dropdown <b class="caret"></b></a>
                     <ul class="dropdown-menu">
                         <li><a href="#">Action</a></li>
@@ -58,13 +58,8 @@
         <aside class="span4 hidden-phone">
     <!-- END menu -->
 
-            <!-- BEGIN left_menu -->
             {_CMS.LEFT_MENU}
-            <!-- END left_menu -->
-
-            <!-- BEGIN right_menu -->
             {_CMS.RIGHT_MENU}
-            <!-- END right_menu -->
 
     <!-- BEGIN menu -->
         </aside>
