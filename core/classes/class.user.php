@@ -18,8 +18,8 @@ class User extends coreObj {
     /**
      * Gets users details by their User ID
      *
-     * @version 1.0.0
      * @since   1.0.0
+     * @version 1.0.0
      * @author  Richard Clifford
      *
      * @param   int $user_id
@@ -53,8 +53,8 @@ class User extends coreObj {
     /**
      * Gets users details by their Username
      *
-     * @version 1.0.0
      * @since   1.0.0
+     * @version 1.0.0
      * @author  Richard Clifford
      *
      *
@@ -74,8 +74,8 @@ class User extends coreObj {
      * Generates a user password with the given length
      *
      * @access  Protected
-     * @version 1.0.0
      * @since   1.0.0
+     * @version 1.0.0
      * @author  Richard Clifford, Dan Aldridge
      *
      *

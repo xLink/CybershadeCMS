@@ -399,7 +399,8 @@ class route extends coreObj{
 
         return $output;
     }
-   /**
+
+    /**
      * Throws a HTTP Error Code and a pretty CMS Page
      *
      * @version 1.0
@@ -411,9 +412,8 @@ class route extends coreObj{
      * @return bool
      */
     public function throwHTTP($error=000, $val=null){
-        if( headers_sent() ){
-            return false;
-        }
+        if(headers_sent()){ return false; }
+
         $msg = NULL;
         $objPage = coreObj::getPage();
         switch($error){
@@ -460,9 +460,18 @@ class route extends coreObj{
             break;
         }
 
-        return headers_sent();
+        //hmsgDie('FAIL', $msg);
     }
 
+    /**
+     * Merges $params with the current _GET global.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   array   $params
+     */
     public function modifyGET($params=array()){
         $url = explode('?', $_SERVER['REQUEST_URI']);
 
