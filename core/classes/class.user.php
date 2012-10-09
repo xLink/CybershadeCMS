@@ -66,8 +66,94 @@ class User extends coreObj {
 
     }
 
-    public function assignSession( $user_id, $session_id ){
 
+    /**
+     * Gets info on the specified user by ID or username
+     *
+     * @author Richard Clifford, Dan Aldridge
+     * @since  1.0.0
+     * @author 1.0.0
+     *
+     * @param   int     $uid
+     * @param   string  $field1
+     * @param   string  $field2 [etc]
+     *
+     * @return array
+     */
+    public function getUserInfo(){
+
+        $args = func_get_args();
+        $uid  = array_shift($args);
+
+        $fieldList = $args;
+
+        $cachedInfo = $this->getVar( 'userInfo' );
+        $username = (!is_number( $uid ) ? strtolower($uid) : $uid );
+
+        if( !isset( $cachedInfo[$uid] ) ){
+            // username or user ID?
+            $user = (is_number( $uid ) 
+                        ? sprintf('u.uid = %d', $uid)  
+                        : sprintf('UPPER(u.username) = UPPER("%s")', $uid));
+
+            $info = $this->objSQL->queryBuilder()
+                                 ->select('u.*, e.*, u.uid AS id, s.timestamp, s.sid')
+                                 ->from('#__users')
+                                 ->leftJoin('#__users_extras')
+                                    ->on('u.uid = e.uid')
+                                 ->leftJoin('#__sessions')
+                                    ->on('s.uid = u.uid')
+                                 ->where($user);
+
+            $results = $this->objSQL->fetchAll( $info );
+
+            if( count( $results ) === 0 ){
+                trigger_error(sprintf('User query failed. Query : %s', $info));
+                return false;
+            }
+
+            unset( $results['uid'] );
+
+            $this->userInfo[$username] = $results;
+        }
+
+        if( count( $fieldList ) > 0 ){
+            foreach( $fieldList as $field ){
+                if( !array_key_exists( $field, $this->userInfo[$username] ) ){
+                    continue;
+                }
+
+                $arrOut[$uid][] = $this->userInfo[$username][$field];
+            }
+
+            return $arrOut;
+        }
+        return $this->userInfo[$username];
+    }
+
+
+    /**
+     * Assigns a session to a specified User ID
+     *
+     * @since   1.0.0
+     * @version 1.0.0
+     * @author  Richard Clifford
+     *
+     *
+     * @param   int  $user_id 
+     *
+     * @return  bool
+     */
+    public function assignSession( $user_id ){
+        $userSession = $this->objSession->checkUserSession( $user_id, false );
+
+        if( !is_number( $user_id ) || $userSession ){
+            return false;
+        }
+
+        $assignedSession = $this->objSession->createSession( $user_id );
+
+        return $assignedSession;
     }
 
     /**
@@ -79,39 +165,40 @@ class User extends coreObj {
      * @author  Richard Clifford, Dan Aldridge
      *
      *
-     * @param   int $len
+     * @param   string  $string (Default: '')
+     * @param   int     $length (Default: 8)
+     * @param   string  $salt   (Default: '')
+     * @param   string  $pepper (Default: '')
      *
      * @return  string
      */
-    protected function makePassword( $len = 12 ){
-        return randCode( $len );
+    protected function makePassword( $string = '', $length = 8, $salt = '', $pepper = '' ){
+
+        // Store the salt and pepper
+        $this->setVar('salt', $salt);
+        $this->setVar('pepper', $pepper);
+
+        if( is_empty( $string ) ){
+            $string = randCode($lenght); // Generate a random string
+        }
+
+        // Instanciate the Portable password hashing framework
+        $objPass = new phpass( $length, true );
+
+        // Generate the new password with salt
+        $password   = sprintf( '%s%s%s', $salt, $string, $pepper );
+        $hashed     = $objPass->HashPassword( $password );
+
+        // Clean up
+        unset( $objPass, $string, $password );
+        return $hashed;
     }
 
     public function resetPassword( $user_id, $password = '' ){
-        // Used to send a reset email to the user
-        $userDetails = $this->getUserById( $user_id );
-
-        $userDetails = (is_array( $userDetails ) && !is_empty( $userDetails )
-                        ? $userDetails
-                        : array());
-
-        $email = $userDetails['email'];
-
-        // Needs some major work xD
-        if( !is_empty( $email ) ){
-            $adminEmail = 'admin@cybershade.org'; // test email address
-            $subject    = sprintf( 'Password Reset for %s', $userDetails['username'] );
-            $message    = sprintf( "Dear %s \n\r The password link to reset your password is: %s", $userDetails['username'], $this->resetPassURL( $user_id ) );
-            $mail       = _mailer( $email, $adminEmail, $subject, $message );
-
-            if( $mail ){
-                return true;
-            }
-        }
-        return false;
+   
     }
 
-    public function editUserPassword( $user_id, $password ){
+    public function editPassword( $user_id, $password, $salt = '', $pepper = '' ){
         // Edits the user password from the UCP
     }
 

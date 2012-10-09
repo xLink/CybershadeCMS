@@ -256,6 +256,44 @@ class Session extends coreObj{
         return array();
     }
 
+    /**
+     * Checks whether a user has a session record and optionally kill it
+     *
+     * @since   1.0.0
+     * @version 1.0.0
+     * @author  Richard Clifford
+     * 
+     * @param   int  $user_id
+     * @param   bool $kill
+     * 
+     * @return  bool
+     */
+    public function checkUserSession( $user_id, $kill = false ){
+
+        $sql = $this->objSQL->queryBuilder()
+                            ->select('sid', 'uid', 'timestamp')
+                            ->from('#__sessions')
+                            ->where('uid', '=', $uid)
+                            ->limit(1)
+                            ->build();
+
+        $result = $this->objSQL->fetchLine( $sql );
+
+        if( count( $result ) === 0 ){
+            return false;
+        }
+
+        if( $kill ){
+            if( !is_empty( $result['sid'] ) ){
+                $killed = $this->killSession( $result['sid'] );
+            }
+        }
+
+        // If kill is true then return the result of the 
+        // killSession function, otherwise return true 
+        return ( $kill ? $killed : true );
+    }
+
 
     /**
      * Retrieves a set of active sessions
