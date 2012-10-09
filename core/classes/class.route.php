@@ -407,8 +407,13 @@ class route extends coreObj{
      * @author  Dan Aldridge
      *
      * @param   int    $error
+     *
+     * @return bool
      */
     public function throwHTTP($error=000, $val=null){
+        if( headers_sent() ){
+            return false;
+        }
         $msg = NULL;
         $objPage = coreObj::getPage();
         switch($error){
@@ -421,7 +426,6 @@ class route extends coreObj{
             case 301:
                 header('HTTP/1.0 301 Moved Permanently');
                 header('Location: ' . $val);
-                return;
             break;
 
             case 400:
@@ -456,7 +460,7 @@ class route extends coreObj{
             break;
         }
 
-        //hmsgDie('FAIL', $msg);
+        return headers_sent();
     }
 
     public function modifyGET($params=array()){
