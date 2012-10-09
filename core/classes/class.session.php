@@ -70,7 +70,7 @@ class Session extends coreObj{
      * @return bool
      */
     public function createSession( $uid = 0, $status = 'active'  ){
-        if( isset($_SESSION['sid']) && $_SESSION['ts'] > time() ){
+        if( ( isset($_SESSION['sid']) && isset( $_SESSION['ts'] ) ) && $_SESSION['ts'] > time() ){
             return false;
         }
 
