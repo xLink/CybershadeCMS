@@ -27,27 +27,13 @@ class User extends coreObj {
      * @return  array
      */
     public function getUserById( $user_id ){
-        if( is_empty( $user_id ) || !is_number( $user_id ) ){
-            return 0;
+        if( is_empty( $user_id ) ){
+            return array();
         }
 
-        (cmsDEBUG ? memoryUsage( 'Users: Building the user select query') : '');
-        $userQuery = $this->objSQL->queryBuilder()
-                                  ->select('username', 'register_date', 'last_active', 'email', 'show_email', 'userlevel', 'warnings')
-                                  ->from('#__users')
-                                  ->where('id', '=', $user_id)
-                                  ->limit(1)
-                                  ->build();
+        $userDetails = $this->getUserInfo( $user_id );
 
-        // Get the result from the previous query
-        $result = $this->objSQL->getLine( $userQuery );
-
-        if( count( $result ) > 0 ){
-            return $result;
-        }
-
-        (cmsDEBUG ? memoryUsage( 'Users: Requested User ID could not be found') : '');
-        return array();
+        return $userDetails;
     }
 
     /**
@@ -62,8 +48,14 @@ class User extends coreObj {
      *
      * @return  array
      */
-    public function getUserIdByName( $username ){
+    public function getUserByName( $username ){
+        if( is_empty( $username ) ){
+            return array();
+        }
 
+        $userDetails = $this->getUserInfo( $username );
+
+        return $userDetails;
     }
 
 
@@ -96,6 +88,8 @@ class User extends coreObj {
                         ? sprintf('u.uid = %d', $uid)  
                         : sprintf('UPPER(u.username) = UPPER("%s")', $uid));
 
+
+            // Optimize this query!
             $info = $this->objSQL->queryBuilder()
                                  ->select('u.*, e.*, u.uid AS id, s.timestamp, s.sid')
                                  ->from('#__users')
@@ -193,6 +187,23 @@ class User extends coreObj {
         unset( $objPass, $string, $password );
         return $hashed;
     }
+
+    /**
+     * Determines whether a user is online or not
+     *
+     * @author  Richard Clifford, Dan Aldridge
+     * @since   1.0.0
+     * @version 1.0.0
+     *
+     * @param   int     $uid
+     *
+     * @return  bool
+     */
+    public function isUserOnline( $uid ){
+        $ts = $this->getUserInfo( $uid, 'timestamp' );
+
+        return ( is_empty( $ts ) ? false : true );
+    }   
 
     public function resetPassword( $user_id, $password = '' ){
    
