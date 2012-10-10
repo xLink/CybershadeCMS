@@ -166,6 +166,9 @@ class User extends coreObj {
      * @since   1.0.0
      * @author  Richard Clifford
      *
+     * @todo    This will return a false positive if the user is banned, so need to
+     * check whether the user has been banned first then get the timestamp
+     *
      * @param   int     $uid
      *
      * @return  bool
@@ -261,6 +264,9 @@ class User extends coreObj {
 
         $uid = $this->_userIdQuery( $user_id );
 
+        // Ensure $banLen is a number
+        $banLen = ( is_number( $banLen ) ? $banLen : 0 );
+
         $query = $this->objSQL->queryBuilder()
                               ->update('#__users')
                               ->set('banned', 1)
@@ -271,12 +277,10 @@ class User extends coreObj {
         $banUser = $this->objSQL->query($query);
 
         if( $banUser ){
-            // Unset query to reuse it
-            unset( $query );
 
             $user_id = $this->getUserInfo( $uid, 'id' );
 
-            $query = $this->objSQL->queryBuilder()
+            $sessionQuery = $this->objSQL->queryBuilder()
                                   ->update('#__sessions')
                                   ->set(array(
                                         'mode'      => 'ban',
@@ -286,7 +290,7 @@ class User extends coreObj {
                                   ->build();
 
             // Ban the user from the sessions table
-            $banSession = $this->objSQL->query( $query );
+            $banSession = $this->objSQL->query( $sessionQuery );
 
             if( $banSession ){
                 $blOut = true;
