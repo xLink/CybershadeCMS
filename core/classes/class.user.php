@@ -83,10 +83,7 @@ class User extends coreObj {
 
         if( !isset( $cachedInfo[$uid] ) ){
             // username or user ID?
-            $user = (is_number( $uid )
-                        ? sprintf('u.uid = %d', $uid)
-                        : sprintf('UPPER(u.username) = UPPER("%s")', $uid));
-
+            $user = $this->_userIdQuery( $uid );
 
             // Optimize this query!
             $info = $this->objSQL->queryBuilder()
@@ -177,6 +174,67 @@ class User extends coreObj {
         $ts = $this->getUserInfo( $uid, 'timestamp' );
 
         return ( is_empty( $ts ) ? false : true );
+    }
+
+    /**
+     * Checks if the given user id is a number (id) or a string (username)
+     * and returns a sql formatted string (only to be used within this class)
+     *
+     * @access  Protected
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   mixed   $uid
+     *
+     * @return  string  SQL formatted string
+     */
+    protected function _userIdQuery( $uid ){
+
+        $user = '';
+        $return = null;
+
+        // Check if number
+        if( !is_number( $uid ) ){
+            $user = sprintf( 'UPPER(#__users.username) = UPPER("%s")', $uid );
+        } else {
+            $user = sprintf( '#__users.uid = %d', $uid );
+        }
+
+        return $user;
+    }
+
+    /**
+     * Checks whether a user exists with the given ID/Username
+     *
+     * @access  Protected
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   mixed   $uid
+     *
+     * @return  string  SQL formatted string
+     */
+    public function userExists( $uid ){
+
+        $user = $this->_userIdQuery( $uid );
+        // Build the query
+        $userQuery = $this->objSQL->queryBuilder()
+                                  ->select('username','uid')
+                                  ->from('#__users')
+                                  ->where($user)
+                                  ->limit(1)
+                                  ->build();
+
+        // Get the return values
+        $results = $this->objSQL->fetchLine( $userQuery );
+
+        if( !count( $results ) ){
+            return false;
+        }
+
+        return true;
     }
 
     public function resetPassword( $user_id, $password = '' ){
