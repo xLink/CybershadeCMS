@@ -101,11 +101,11 @@ class Module extends coreObj{
      * @return  bool
      */
     public function moduleExists( $moduleName ) {
-        if( is_empty( $moduleName ) || !is_dir( cmsROOT . 'modules/' . $moduleName ) ) {
+        if( is_empty( $moduleName ) || !is_dir( sprintf( '%smodules/%s', cmsROOT, $moduleName ) ) ) {
             return false;
         }
 
-        $files = glob( cmsROOT.'modules/'.$moduleName.'/base.'.$moduleName.'.php' );
+        $files = glob( sprintf( '%1$smodules/%2$s/base%2$s.php', cmsROOT, $moduleName ) );
             if( is_empty( $files ) ) {
                 return false;
             }
