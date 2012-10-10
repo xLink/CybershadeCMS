@@ -105,6 +105,7 @@ class User extends coreObj {
                 return false;
             }
 
+            // No need for uid as the user id is 'id'
             unset( $results['uid'] );
 
             $this->userInfo[$username] = $results;
@@ -124,29 +125,6 @@ class User extends coreObj {
         return $this->userInfo[$username];
     }
 
-
-    /**
-     * Assigns a session to a specified User ID
-     *
-     * @version 1.0.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @param   int  $user_id
-     *
-     * @return  bool
-     */
-    public function assignSession( $user_id ){
-        $userSession = $this->objSession->checkUserSession( $user_id, false );
-
-        if( !is_number( $user_id ) || $userSession ){
-            return false;
-        }
-
-        $assignedSession = $this->objSession->createSession( $user_id );
-
-        return $assignedSession;
-    }
 
     /**
      * Generates a user password with the given length
@@ -217,6 +195,5 @@ class User extends coreObj {
 
     }
 }
-
 
 ?>

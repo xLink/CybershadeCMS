@@ -410,6 +410,56 @@ class Session extends coreObj{
 
         return $renewedSessions;
     }
+
+
+    /**
+     * Assigns a session to a specified User ID
+     *
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   int  $user_id
+     *
+     * @return  bool
+     */
+    public function assignSession( $user_id ){
+        if( !is_number( $user_id ) ){
+            return false;
+        }
+
+        $userSession = $this->checkUserSession( $user_id );
+
+        if( $userSession ){
+            $sql = $this->objSQL->queryBuilder()
+                                ->select('sid', 'timestamp')
+                                ->from('#__sessions')
+                                ->where('uid', '=', $user_id);
+                                ->limit(1)
+                                ->build();
+
+            $result = $this->objSQL->fetchLine($sql);
+
+            // Just another check to make sure the session exists
+            if( count($result) > 0 ){
+
+                // If their session is about to run out then renew it now
+                if( $result['timestamp'] < (time()+200) ){
+                    // Create the sessions array
+                    $sessions = array(
+                        $user_id => $result['sid']
+                    );
+
+                    // Renew the users session
+                    $this->renewSession( $sessions );
+                }
+            }
+        }
+
+        $assignedSession = $this->createSession( $user_id );
+
+        return $assignedSession;
+    }
 }
 
 ?>
