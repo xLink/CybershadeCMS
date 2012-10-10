@@ -139,7 +139,7 @@ class Session extends coreObj{
         // Ensure the result is valid
         if( $result ){
             $_SESSION['id']  = $session_id;
-            $_SESSION['sid'] = md5( $uid );
+            $_SESSION['uid'] = md5( $uid );
             $_SESSION['ts']  = (time() + 3600); // Give it an hour
 
             return true;
