@@ -207,7 +207,6 @@ class User extends coreObj {
     /**
      * Checks whether a user exists with the given ID/Username
      *
-     * @access  Protected
      * @version 1.0.0
      * @since   1.0.0
      * @author  Richard Clifford
@@ -245,8 +244,59 @@ class User extends coreObj {
         // Edits the user password from the UCP
     }
 
-    public function banUserId( $user_id, $len = 0 ){
+    /**
+     * Bans a user from the users table and the sessions table
+     *
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   mixed   $uid
+     * @param   int     $banLen
+     *
+     * @return  bool
+     */
+    public function banUserId( $uid, $banLen = 0 ){
+        $blOut = false;
 
+        $uid = $this->_userIdQuery( $user_id );
+
+        $query = $this->objSQL->queryBuilder()
+                              ->update('#__users')
+                              ->set('banned', 1)
+                              ->where($uid)
+                              ->build();
+
+        // Ban the user from the users table
+        $banUser = $this->objSQL->query($query);
+
+        if( $banUser ){
+            // Unset query to reuse it
+            unset( $query );
+
+            $user_id = $this->getUserInfo( $uid, 'id' );
+
+            $query = $this->objSQL->queryBuilder()
+                                  ->update('#__sessions')
+                                  ->set(array(
+                                        'mode'      => 'ban',
+                                        'timestamp' => $banLen
+                                    ))
+                                  ->where('uid', $user_id)
+                                  ->build();
+
+            // Ban the user from the sessions table
+            $banSession = $this->objSQL->query( $query );
+
+            if( $banSession ){
+                $blOut = true;
+            }
+        }
+
+        // Tidy up
+        unset( $banUser, $query, $uid, $banSession );
+
+        return $blOut;
     }
 
     public function updateUser( $user_id, $fields = array() ){
