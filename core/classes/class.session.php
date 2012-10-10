@@ -262,7 +262,7 @@ class Session extends coreObj{
      *
      * @return  bool
      */
-    public function checkUserSession( $user_id, $kill = false ){
+    public function checkUserSession( $user_id ){
 
         $sql = $this->objSQL->queryBuilder()
                             ->select('sid', 'uid', 'timestamp')
@@ -277,15 +277,7 @@ class Session extends coreObj{
             return false;
         }
 
-        if($kill){
-            if(!is_empty($result['sid'])){
-                $killed = $this->killSession( $result['sid'] );
-            }
-        }
-
-        // If kill is true then return the result of the
-        // killSession function, otherwise return true
-        return ($kill ? $killed : true);
+        return true;
     }
 
 
