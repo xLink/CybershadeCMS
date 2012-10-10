@@ -90,7 +90,7 @@ class User extends coreObj {
 
             // Optimize this query!
             $info = $this->objSQL->queryBuilder()
-                                 ->select('u.*, e.*, u.uid AS id, s.timestamp, s.sid')
+                                 ->select(array('u.*', 'e.*', 'id' => 'u.uid', 's.timestamp', 's.sid'))
                                  ->from('#__users')
                                  ->leftJoin('#__users_extras')
                                     ->on('u.uid = e.uid')
