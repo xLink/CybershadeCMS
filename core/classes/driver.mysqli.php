@@ -126,8 +126,9 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
         //apply the prefix swapping mech
         $query = $this->_query = $this->_replacePrefix($query);
+
         //exec the query and cache it
-        $this->results = $this->DBH->query($query) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
+        $this->results = $this->DBH->query($query) or trigger_error("MySQL Error: \n\r".dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
 
 
         if($this->dbSettings['debug']){
