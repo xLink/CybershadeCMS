@@ -299,8 +299,62 @@ class User extends coreObj {
         return $blOut;
     }
 
+
+    /**
+     * Update the users tables with the given details
+     *
+     * @version     1.0.0
+     * @since       1.0.0
+     * @author      Richard Clifford
+     *
+     * @param       int     $user_id
+     * @param       array   $field      array('users' => array('fields' => 'fieldVal'), 'users_extras' => array('fields' => 'fieldVal'))
+     * 
+     * @return      bool
+     */
     public function updateUser( $user_id, $fields = array() ){
 
+        $blOut = false;
+        /* Example Param                                
+            $fields = array(
+                'users' => array(
+                    'id'        => 1,
+                    'username'  => 'DarkMantis',
+                    'email'     => 'dm@cs.org',
+                ),
+                'users_extras'  => array(
+                    'age'   => 21,
+                    'sex'   => 'M'
+                )
+            );*/
+
+
+        $user_id = $this->_userIdQuery( $user_id );
+
+        if( !$this->userExists( $user_id ) ){
+            return $blOut;
+        }
+
+        if( !is_array( $fields ) || empty( $fields ) ){
+            return $blOut;
+        }
+
+
+        // Updates the user and extras table
+        foreach( $fields as $fieldset => $fields ){        
+            $updateQuery = $this->objSQL->queryBuilder()
+                                        ->update(sprintf('#__%s', $fieldset )
+                                        ->set($fields)
+                                        ->where('id', '=', $user_id)
+                                        ->build();
+
+            $result = $this->objSQL->query( $updateQuery );
+            if( !$result ){
+                $blOut = false;
+            }
+        }
+
+        return $blOut;
     }
 }
 
