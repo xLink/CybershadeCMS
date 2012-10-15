@@ -1,13 +1,14 @@
 <?php
-
+/**
+ *@todo REMOVE $this->_idQuery function
+*/
 class User extends coreObj {
 
     protected $objSession;
     protected $objSQL;
 
-    public function __construct(){
-        $this->objSession   = coreObj::getSessions(); // Wrong function?
-        $this->objSQL       = coreObj::getDBO();
+    public function __construct( $keys = array() ){
+        $this->objSQL = coreObj::getDBO();
 
         $blackListedKeys = array(
             'id',
@@ -15,6 +16,10 @@ class User extends coreObj {
             'password',
             'email',
         );
+
+        $keys = ( is_array( $keys ) ? $keys : array( $keys ) );
+
+        $blackListedKeys = array_merge( $blackListedKeys, $keys );
 
         $this->setVar('blackListedKeys', $blackListedKeys );
     }
@@ -94,15 +99,28 @@ class User extends coreObj {
             // username or user ID?
             $user = $this->_userIdQuery( $uid );
 
-            // Optimize this query!
+            // Gets all 'safe' data about a user
             $info = $this->objSQL->queryBuilder()
-                                 ->select(array('u.*', 'e.*', 'id' => 'u.uid', 's.timestamp', 's.sid'))
+                                 ->select('#__users.id', '#__users.username', '#__users.register_date', '#__users.email',
+                                    '#__users.last_active', '#__users.register_date', '#__users.title', '#__users.language',
+                                    '#__users.timezone', '#__users.theme', '#__users.hidden', '#__users.userlevel', '#__users.active',
+                                    '#__users.banned', '#__users.primary_group', '#__users.login_attempts', '#__users.pin_attempts',
+                                    '#__users.autologin', '#__users.reffered_by', '#__users.password_update', '#__users.whitelist',
+                                    '#__users.whitelisted_ips', '#__users.warnings', '#__users_extras.birthday',
+                                    '#__users_extras.sex', '#__users_extras.contact_info', '#__users_extras.about',
+                                    '#__users_extras.interests', '#__users_extras.usernotes', '#__users_extras.signature',
+                                    '#__users_extras.ajax_settings', '#__users_extras.notification_settings', '#__users_extras.forum_show_sigs',
+                                    '#__users_extras.forum_autowatch', '#__users_extras.forum_quickreply',
+                                    '#__users_extras.forum_cat_order', '#__users_extras.forum_tracker', '#__users_extras.pagination_style',
+                                    '#__sessions.timestamp', '#__sessions.sid')
                                  ->from('#__users')
                                  ->leftJoin('#__users_extras')
-                                    ->on('u.uid = e.uid')
+                                    ->on('#__users.id = #__users_extras.uid')
                                  ->leftJoin('#__sessions')
-                                    ->on('s.uid = u.uid')
-                                 ->where($user);
+                                    ->on('#__users.id = #__sessions.uid')
+                                 ->where($user)
+                                 ->limit(1)
+                                 ->build();
 
             $results = $this->objSQL->fetchAll( $info );
 
@@ -110,9 +128,6 @@ class User extends coreObj {
                 trigger_error(sprintf('User query failed. Query : %s', $info));
                 return false;
             }
-
-            // No need for uid as the user id is 'id'
-            unset( $results['uid'] );
 
             $this->userInfo[$username] = $results;
         }
@@ -203,14 +218,14 @@ class User extends coreObj {
      */
     protected function _userIdQuery( $uid ){
 
-        $user   = '';
+        $user   =  '';
         $return = '';
 
         // Check if number
         if( !is_number( $uid ) ){
             $user = sprintf( 'UPPER(#__users.username) = UPPER("%s")', $uid );
         } else {
-            $user = sprintf( '#__users.uid = %d', $uid );
+            $user = sprintf( '#__users.id = %d', $uid );
         }
 
         return $user;
@@ -232,7 +247,7 @@ class User extends coreObj {
         $user = $this->_userIdQuery( $uid );
         // Build the query
         $userQuery = $this->objSQL->queryBuilder()
-                                  ->select('username','uid')
+                                  ->select('username','id')
                                   ->from('#__users')
                                   ->where($user)
                                   ->limit(1)
@@ -259,6 +274,8 @@ class User extends coreObj {
      * @param   mixed   $uid
      * @param   int     $banLen
      *
+     * @todo fix the _userIdQuery as returns     $ = String(72) "UPPER(#__users.username) = UPPER("UPPER(#__users.username) = UPPER("")")"
+     * 
      * @return  bool
      */
     public function banUserId( $uid, $banLen = 0 ){
@@ -368,7 +385,7 @@ class User extends coreObj {
         foreach( $fields as $fieldset => $fields ){
 
             $updateQuery = $this->objSQL->queryBuilder()
-                                        ->update(sprintf('#__%s', $fieldset )
+                                        ->update(sprintf('#__%s', $fieldset ))
                                         ->set($fields)
                                         ->where('id', '=', $user_id)
                                         ->build();
@@ -417,7 +434,7 @@ class User extends coreObj {
         $fields = array();
 
         $fields['users'] = array(
-            'password'  =>  $this->makePassword();
+            'password'  =>  $this->makePassword(),
         );
 
         $update = $this->updateUser($uid, $fields);
@@ -459,6 +476,13 @@ MSG;
         }
 
         return true;
+    }
+
+    /**
+     * TODO: make the function better XD
+     */
+    public function getRemoteAddr(){
+        return $_SERVER['REMOTE_ADDR'];
     }
 }
 

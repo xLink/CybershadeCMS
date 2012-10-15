@@ -13,7 +13,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class coreObj {
 
-    public static  $classDirs   = array(),
+    public static   $classDirs   = array(),
                     $_classes    = array(),
                     $_instances  = array();
 
@@ -385,6 +385,13 @@ class coreObj {
         return coreObj::$_classes['debug'];
     }
 
+    public static function getUser(){
+        if(!isset( coreObj::$_classes['user'] )){
+            user::getInstance('user');
+        }
+
+        return coreObj::$_classes['user'];
+    }
 }
 
 ?>

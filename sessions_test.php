@@ -11,8 +11,15 @@ include_once('core/core.php');
 // $objPage->buildPage();
 // $objPage->showHeader(); // lol i am editing that o.O
 
-$var = $objSession->createSession();
+$objUser = coreObj::getUser(); // Not  being instanciated in core
+
+$array = array(
+    'usercode' => 'g6dwtw', // Was g6dtwt
+    'show_email' => 1,
+    'avatar' => 'trololol.png'
+);
+
+$var = $objUser->updateUser( 1, $array );
 
 echo dump( $var );
-
 ?>

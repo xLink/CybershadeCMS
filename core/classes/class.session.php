@@ -9,7 +9,7 @@ class Session extends coreObj{
     public function __construct($store='none', $options = array()){
 
         // Get the database object
-        $this->objSQL = coreObj::getDBO();
+        $this->objSQL   = coreObj::getDBO();
     }
 
     public function __destruct(){
@@ -123,7 +123,7 @@ class Session extends coreObj{
         }
 
         // Set the var
-        $this->setVar( 'session_id', $session_id );
+        $this->setVar( 'sid', $session_id );
 
         // Explicitly set the variable
         $values = array();
@@ -132,7 +132,7 @@ class Session extends coreObj{
         $values['uid']       = $uid;
         $values['sid']       = $session_id;
         $values['store']     = serialize( $_SESSION );
-        $values['hostname']  = $_SERVER['REMOTE_ADDR'];
+        $values['hostname']  = $objUser->getRemoteAddr();
         $values['timestamp'] = time();
         $values['useragent'] = $_SERVER['HTTP_USER_AGENT'];
         $values['mode']      = $status;
@@ -281,6 +281,7 @@ class Session extends coreObj{
                             ->select('sid', 'uid', 'timestamp')
                             ->from('#__sessions')
                             ->where('uid', '=', $user_id)
+                                ->andWhere('hostname', '=', $this->objUser->getRemoteAddr())
                             ->limit(1)
                             ->build();
 
@@ -289,6 +290,8 @@ class Session extends coreObj{
         if(count($result) === 0){
             return false;
         }
+
+
 
         return true;
     }
@@ -451,7 +454,7 @@ class Session extends coreObj{
                                 ->select('sid', 'timestamp', 'hostname')
                                 ->from('#__sessions')
                                 ->where('uid', '=', $user_id)
-                                ->andWhere('hostname', '=', $_SERVER['REMOTE_ADDR']) // Change to be $objUser->getRemoteAddr()
+                                ->andWhere('hostname', '=', $_SERVER['REMOTE_ADDR'])
                                 ->limit(1)
                                 ->build();
 
