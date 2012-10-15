@@ -454,7 +454,7 @@ class Session extends coreObj{
                                 ->select('sid', 'timestamp', 'hostname')
                                 ->from('#__sessions')
                                 ->where('uid', '=', $user_id)
-                                ->andWhere('hostname', '=', $_SERVER['REMOTE_ADDR'])
+                                ->andWhere('hostname', '=', $objUser->getRemoteAddr())
                                 ->limit(1)
                                 ->build();
 
