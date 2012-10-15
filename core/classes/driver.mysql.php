@@ -67,6 +67,11 @@ class driver_mysql extends core_SQL implements base_SQL{
      */
     public function connect(){
 
+        // add check for port, and append it to the hostname
+        if(isset($this->dbSettings['port']) && is_number($this->dbSettings['port'])){
+            $this->dbSettings['host'] .= ':'. $this->dbSettings['port'];
+        }
+
         // if we have persistent enabled, we'll try that first
         if($this->dbSettings['persistent'] === true){
             $this->DBH = @mysql_pconnect($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password']);

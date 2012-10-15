@@ -47,7 +47,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
     public function connect(){
         // if we have persistent enabled, we'll try that first
         if($this->dbSettings['persistent'] === true){
-            $this->DBH = new mysqli('p:'.$this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password']);
+            $this->DBH = new mysqli('p:'.$this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password'], $this->dbSettings['database'], (int)$this->dbSettings['port'] );
             if($this->DBH->connect_error != null){
                 trigger_error('Database Connection: Connect Error ('.$mysqli->connect_errno.') '.$mysqli->connect_error, E_USER_ERROR);
                 return false;
@@ -56,7 +56,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
         //persistent is off, lets try and connect normally
         if($this->dbSettings['persistent'] === false){
-            $this->DBH = new mysqli($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password']);
+            $this->DBH = new mysqli($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password'], $this->dbSettings['database'], (int)$this->dbSettings['port'] );
         }
 
             //we havent got a resource we need to bomb out now
@@ -64,12 +64,6 @@ class driver_mysqli extends core_SQL implements base_SQL{
                 trigger_error('Cannot connect to the database - verify username and password.<br />', E_USER_ERROR);
                 return false;
             }
-
-        //select the DB
-        if($this->selectDB($this->dbSettings['database']) === false){
-            trigger_error('Cannot select database - check user permissions.<br />', E_USER_ERROR);
-            return false;
-        }
 
         $this->registerPrefix('#__', $this->dbSettings['prefix']);
 
