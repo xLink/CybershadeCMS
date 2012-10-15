@@ -1,0 +1,8 @@
+.DS_STORE
+themes/cybershade/
+thumbs.db
+test.php
+assets/config.php
+sublime.*
+/nbproject/private/
+
