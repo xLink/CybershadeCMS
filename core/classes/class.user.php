@@ -8,6 +8,15 @@ class User extends coreObj {
     public function __construct(){
         $this->objSession   = coreObj::getSessions(); // Wrong function?
         $this->objSQL       = coreObj::getDBO();
+
+        $blackListedKeys = array(
+            'id',
+            'username',
+            'password',
+            'email',
+        );
+
+        $this->setVar('blackListedKeys', $blackListedKeys );
     }
 
     public function __destruct(){
@@ -194,8 +203,8 @@ class User extends coreObj {
      */
     protected function _userIdQuery( $uid ){
 
-        $user = '';
-        $return = null;
+        $user   = '';
+        $return = '';
 
         // Check if number
         if( !is_number( $uid ) ){
@@ -306,25 +315,12 @@ class User extends coreObj {
      *
      * @param       int     $user_id
      * @param       array   $field      array('users' => array('fields' => 'fieldVal'), 'users_extras' => array('fields' => 'fieldVal'))
-     * 
+     *
      * @return      bool
      */
     public function updateUser( $user_id, $fields = array() ){
 
         $blOut = false;
-        /* Example Param                                
-            $fields = array(
-                'users' => array(
-                    'id'        => 1,
-                    'username'  => 'DarkMantis',
-                    'email'     => 'dm@cs.org',
-                ),
-                'users_extras'  => array(
-                    'age'   => 21,
-                    'sex'   => 'M'
-                )
-            );*/
-
 
         $user_id = $this->_userIdQuery( $user_id );
 
@@ -336,9 +332,41 @@ class User extends coreObj {
             return $blOut;
         }
 
+        $columnInfo                 = array();
+        $columnInfo['users']        = $this->objSQL->fetchColumnInfo( '#__users' );
+        $columnInfo['users_extras'] = $this->objSQL->fetchColumnInfo( '#__users_extras' );
+
+        $usersData = array();
+
+        if( is_empty($columnInfo['users']) || is_empty( $columnInfo['users_extras'] ) ){
+            return false;
+        }
+
+        $blackListKeys = $this->getVar('blackListedKeys');
+
+        foreach( $fields as $column => $data ){
+
+            // Exclude the blacklisted keys
+            if( in_array( $column, $blackListKeys ) ){
+                continue;
+            }
+
+            if( array_key_exists( $column, $columnInfo['users'] ) ){
+                $usersData['users'][$column] = $data;
+            }
+
+            if( array_key_exists( $column, $columnInfo['users_extras'] ) ) {
+                $usersData['users_extras'][$column] = $data;
+            }
+        }
+
+        if( is_empty( $fields ) ){
+            return false;
+        }
 
         // Updates the user and extras table
-        foreach( $fields as $fieldset => $fields ){        
+        foreach( $fields as $fieldset => $fields ){
+
             $updateQuery = $this->objSQL->queryBuilder()
                                         ->update(sprintf('#__%s', $fieldset )
                                         ->set($fields)
@@ -363,7 +391,7 @@ class User extends coreObj {
      * @author      Richard Clifford
      *
      * @param       int     $user_id
-     * 
+     *
      * @return      bool
      */
     public function resetPassword( $user_id ){
@@ -400,7 +428,7 @@ class User extends coreObj {
 
 
         // Generate the URL for the user to click when they receive the email (tokenized)
-        $resetLink = ''; 
+        $resetLink = '';
 
         // Setup the email details
         $adminEmail = $this->config( 'site', 'admin_email' );
@@ -420,10 +448,10 @@ MSG;
         $msgDetails = array(
             $userDetails['username'],
             $resetLink,
-        ); 
+        );
 
         $message    = vsprintf( $message, $msgDetails );
-        $mail       = _mailer( $userDetails['email'], $adminEmail, sprintf( 'Password Reset from %s.', $siteName ) );
+        $mail       = _mailer( $userDetails['email'], $adminEmail, sprintf( 'Password Reset from %s.', $siteName ), $message );
 
         // send the mail
         if( !$mail ){

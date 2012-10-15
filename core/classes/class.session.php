@@ -7,17 +7,12 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Session extends coreObj{
 
     public function __construct($store='none', $options = array()){
-        $str = 'Sessions Instanciated';
-        var_dump( $str );
 
+        // Get the database object
         $this->objSQL = coreObj::getDBO();
     }
 
     public function __destruct(){
-
-        $str = 'Sessions Destroyed';
-        var_dump( $str );
-
         // Clean up the objects
         unset( $this->objSQL );
     }
@@ -84,6 +79,13 @@ class Session extends coreObj{
         if( $uid === false ){
             (cmsDEBUG ? memoryUsage( 'Sessions: $uid was not a number, returning false ') : '');
             return false;
+        }
+
+        // Checks to see if the user has already got a session
+        $userSession = $this->checkUserSession( $uid );
+
+        if( $userSession ){
+            return true;
         }
 
         $session_id = randCode(32);
@@ -230,7 +232,7 @@ class Session extends coreObj{
      * @version 1.0.0
      * @since   1.0.0
      * @author  Richard Clifford
-     * 
+     *
      * @param   string  $session_id
      *
      * @return  array
@@ -270,7 +272,6 @@ class Session extends coreObj{
      * @author  Richard Clifford
      *
      * @param   int  $user_id
-     * @param   bool $kill
      *
      * @return  bool
      */
