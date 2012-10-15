@@ -10,7 +10,6 @@ $objPage->setTheme();
 
 $objPage->setTitle('Test');
 
-
 $objRoute = coreObj::getRoute();
 $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
