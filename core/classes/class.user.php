@@ -239,13 +239,6 @@ class User extends coreObj {
         return true;
     }
 
-    public function resetPassword( $user_id, $password = '' ){
-
-    }
-
-    public function editPassword( $user_id, $password, $salt = '', $pepper = '' ){
-        // Edits the user password from the UCP
-    }
 
     /**
      * Bans a user from the users table and the sessions table
@@ -303,8 +296,141 @@ class User extends coreObj {
         return $blOut;
     }
 
+
+    /**
+     * Update the users tables with the given details
+     *
+     * @version     1.0.0
+     * @since       1.0.0
+     * @author      Richard Clifford
+     *
+     * @param       int     $user_id
+     * @param       array   $field      array('users' => array('fields' => 'fieldVal'), 'users_extras' => array('fields' => 'fieldVal'))
+     * 
+     * @return      bool
+     */
     public function updateUser( $user_id, $fields = array() ){
 
+        $blOut = false;
+        /* Example Param                                
+            $fields = array(
+                'users' => array(
+                    'id'        => 1,
+                    'username'  => 'DarkMantis',
+                    'email'     => 'dm@cs.org',
+                ),
+                'users_extras'  => array(
+                    'age'   => 21,
+                    'sex'   => 'M'
+                )
+            );*/
+
+
+        $user_id = $this->_userIdQuery( $user_id );
+
+        if( !$this->userExists( $user_id ) ){
+            return $blOut;
+        }
+
+        if( !is_array( $fields ) || empty( $fields ) ){
+            return $blOut;
+        }
+
+
+        // Updates the user and extras table
+        foreach( $fields as $fieldset => $fields ){        
+            $updateQuery = $this->objSQL->queryBuilder()
+                                        ->update(sprintf('#__%s', $fieldset )
+                                        ->set($fields)
+                                        ->where('id', '=', $user_id)
+                                        ->build();
+
+            $result = $this->objSQL->query( $updateQuery );
+            if( !$result ){
+                $blOut = false;
+            }
+        }
+
+        return $blOut;
+    }
+
+
+    /**
+     * Resets the users password and confirms with them via email
+     *
+     * @version     1.0.0
+     * @since       1.0.0
+     * @author      Richard Clifford
+     *
+     * @param       int     $user_id
+     * 
+     * @return      bool
+     */
+    public function resetPassword( $user_id ){
+
+        $uid        = $user_id;
+        $user_id    = $this->_userIdQuery( $user_id );
+
+        if( !$this->userExists( $user_id ) ){
+            return false;
+        }
+
+
+        // Get the users details
+        $userDetails = $this->getUserInfo( $uid, 'email', 'username' );
+
+
+        // Check if the details are valid and not empty
+        if( is_empty( $userDetails ) ){
+            return false;
+        }
+
+        // Everything from here should be for a valid user
+        $fields = array();
+
+        $fields['users'] = array(
+            'password'  =>  $this->makePassword();
+        );
+
+        $update = $this->updateUser($uid, $fields);
+
+        if( !$update ){
+            return false;
+        }
+
+
+        // Generate the URL for the user to click when they receive the email (tokenized)
+        $resetLink = ''; 
+
+        // Setup the email details
+        $adminEmail = $this->config( 'site', 'admin_email' );
+        $siteName   = $this->config( 'site', 'name' );
+        $message    = <<<MSG
+            Dear %s,
+                Your password has been reset by your request.
+
+                If you did not request your password to be changed, please ignore this email, otherwise, please follow this link:
+
+                %s
+
+                Your link will only be valid for 24 hours, after that you will be required to reset again.
+MSG;
+
+        // Replace the $message tokens
+        $msgDetails = array(
+            $userDetails['username'],
+            $resetLink,
+        ); 
+
+        $message    = vsprintf( $message, $msgDetails );
+        $mail       = _mailer( $userDetails['email'], $adminEmail, sprintf( 'Password Reset from %s.', $siteName ) );
+
+        // send the mail
+        if( !$mail ){
+            return false;
+        }
+
+        return true;
     }
 }
 

@@ -11,15 +11,12 @@ $objPage->setTitle('Test');
 $objPage->buildPage();
 $objPage->showHeader(); // lol i am editing that o.O
 
-echo $objSession->killAllSessions();
-echo $objSession->createSession();
+$var =$objSession->createSession();
 
-$var = $objSession->session_id;
 
-echo dump( $var, 'Session ID', 'yellow' );
 
-echo $objSession->getSessionById( $var );
+$var = $objSession->cleanSessions();
 
-echo $objSession->getSessionsByType('active');
-echo dump($_SESSION);
+var_dump( $var );
+
 ?>

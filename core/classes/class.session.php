@@ -7,11 +7,19 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Session extends coreObj{
 
     public function __construct($store='none', $options = array()){
+        $str = 'Sessions Instanciated';
+        var_dump( $str );
+
         $this->objSQL = coreObj::getDBO();
     }
 
     public function __destruct(){
 
+        $str = 'Sessions Destroyed';
+        var_dump( $str );
+
+        // Clean up the objects
+        unset( $this->objSQL );
     }
 
     /**
@@ -184,7 +192,9 @@ class Session extends coreObj{
      * @since   1.0.0
      * @author  Richard Clifford
      *
-     * @return bool
+     * @param   string  $session_id
+     *
+     * @return  bool
      */
     public function killSession( $session_id ){
         // Check the session id for type
@@ -198,7 +208,7 @@ class Session extends coreObj{
         // Build the query
         $query = $this->objSQL->queryBuilder()
                               ->deleteFrom('#__sessions')
-                              ->where('session_id', '=', $session_id)
+                              ->where('sid', '=', $session_id)
                               ->build();
 
         $result = $this->objSQL->query( $query );
@@ -220,8 +230,10 @@ class Session extends coreObj{
      * @version 1.0.0
      * @since   1.0.0
      * @author  Richard Clifford
+     * 
+     * @param   string  $session_id
      *
-     * @return array
+     * @return  array
      */
     public function getSessionById( $session_id ){
         $session_id = ( ctype_alnum((string)$session_id) ? $session_id : '' );
@@ -267,7 +279,7 @@ class Session extends coreObj{
         $sql = $this->objSQL->queryBuilder()
                             ->select('sid', 'uid', 'timestamp')
                             ->from('#__sessions')
-                            ->where('uid', '=', $uid)
+                            ->where('uid', '=', $user_id)
                             ->limit(1)
                             ->build();
 
@@ -372,7 +384,7 @@ class Session extends coreObj{
 
         $query = $this->objSQL->queryBuilder()
                               ->deleteFrom('#__sessions')
-                              ->where( sprintf( 'DATE_ADD(`timestamp`, INTERVAL %d SECOND) < NOW()', $expire ) )
+                              ->where( 'DATE_ADD(`timestamp`, INTERVAL '. $expire .' SECOND) < NOW()' ) // Doesn't work
                               ->build();
 
         $result = $this->objSQL->query($query);
@@ -424,17 +436,21 @@ class Session extends coreObj{
      * @return  bool
      */
     public function assignSession( $user_id ){
+
         if( !is_number( $user_id ) ){
             return false;
         }
 
-        $userSession = $this->checkUserSession( $user_id );
+        $userSession     = $this->checkUserSession( $user_id );
+        $assignedSession = '';
 
         if( $userSession ){
+
             $sql = $this->objSQL->queryBuilder()
-                                ->select('sid', 'timestamp')
+                                ->select('sid', 'timestamp', 'hostname')
                                 ->from('#__sessions')
-                                ->where('uid', '=', $user_id);
+                                ->where('uid', '=', $user_id)
+                                ->andWhere('hostname', '=', $_SERVER['REMOTE_ADDR']) // Change to be $objUser->getRemoteAddr()
                                 ->limit(1)
                                 ->build();
 
@@ -451,12 +467,12 @@ class Session extends coreObj{
                     );
 
                     // Renew the users session
-                    $this->renewSession( $sessions );
+                    $assignedSession = $this->renewSessions( $sessions );
                 }
             }
+        } else {
+            $assignedSession = $this->createSession( $user_id );
         }
-
-        $assignedSession = $this->createSession( $user_id );
 
         return $assignedSession;
     }
