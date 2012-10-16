@@ -6,8 +6,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class route extends coreObj{
 
-    public  $route  = '',
-            $routes = array();
+    public  $routes = array(),      // Array holding all the routes
+            $route = array(),         // Contains the route matched
+            $method = '';           // Tells us how to handle the route
 
     /**
      * Constructor
@@ -16,12 +17,44 @@ class route extends coreObj{
      * @since   1.0
      * @author  Daniel Noel-Davies
      *
-     * @todo    Remove this->route, as it's not a route, it's the current URL... :/
-     *
      * @return  void
      */
     public function __construct() {
-        $this->route = $_GET;
+
+    }
+
+/**
+  //
+  //-- Main Functions
+  //
+**/
+
+    /**
+     * Processes the action of a URL based on cached routes
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @return      bool
+     */
+    public function loadRoutes(){
+        // Check if we have already loaded the cache file
+        if( !is_empty($this->routes) ){
+            return;
+        }
+
+        // Load the routes cache in
+        (cmsDEBUG ? memoryUsage('Routes: Loading Routes') : '');
+        $this->routes = coreObj::getCache()->load('routes');
+
+        // If we have no routes to use, then we need to stop here
+        if( is_empty($this->routes) ){
+            $this->throwHTTP(500);
+            trigger_error('Could not load the routes. Please make sure we can write to the cache :)', E_USER_ERROR);
+        }
+
+        return true;
     }
 
     /**
@@ -35,36 +68,50 @@ class route extends coreObj{
      *
      * @return      bool
      */
-    function processURL( $url ) {
+    public function processURL( $uri ) {
         $objPlugin  = coreObj::getPlugins();
-        $objCache   = coreObj::getCache();
-        (cmsDEBUG ? memoryUsage('Routes: Began Processing URL') : '');
+        (cmsDEBUG ? memoryUsage('Routes: Began Processing URL: '.$uri) : '');
+
+        $this->loadRoutes();
 
         // Run A hook
         $objPlugin->hook('CMS_ROUTE_START');
 
         // Append a forward slash to the incoming url if there isn't one
         // TODO: (Should be solved elsewhere)
-        if( strpos( $url, '/' ) !== 0 ) {
-            $url = '/' . $url;
+        if( strpos( $uri, '/' ) !== 0 ) {
+            $uri = '/' . $uri;
         }
 
-        // Grab the Routes from the cache
-        (cmsDEBUG ? memoryUsage('Routes: Grabbing Cache') : '');
-        $routes = $objCache->load('routes');
-
-        // If we have no routes to use, then we need to stop here
-        if(!count($routes)){
-            (cmsDEBUG ? memoryUsage('Routes: Could not load Cache... :(') : '');
-            $this->throwHTTP(500);
-            return false;
+        // Strip the slash off the end if there is one, purely for the routes
+        // TODO: (Should be solved elsewhere)
+        if( substr( $uri, -1) == '/' ){
+            #$uri = substr( $uri, 0, -1 );
         }
 
-        // Loop through our routes and find the most appropriate match
-        (cmsDEBUG ? memoryUsage('Routes: Finding Appropriate Route') : '');
-        foreach( $routes as $label => $route ) {
+        $this->findMatch( $uri );
 
-            (cmsDEBUG ? memoryUsage('Routes: Testing .. '.$route['pattern']) : '');
+        $this->invokeRoute();
+
+        return;
+    }
+
+    /**
+     * Finds a route to match the URI given
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     *
+     * @param       $uri    string  URL to process against the cached routes
+     *
+     * @return      bool
+     */
+    public function findMatch( $uri ){
+        $this->loadRoutes();
+
+        foreach($this->routes as $label => $route){
+            (cmsDEBUG ? memoryUsage('Routes: Testing - '.$route['pattern']).'' : '');
 
             // Check for a method being set, if it doesn't match, continue
             if( $route['method'] != 'any' && $route['method'] != $_SERVER['REQUEST_METHOD']) {
@@ -73,14 +120,17 @@ class route extends coreObj{
             }
 
             // Match Absolute URLs
-            if( $route['pattern'] === $url ) {
+            if( $route['pattern'] === $uri ) {
                 (cmsDEBUG ? memoryUsage('Routes: Absolute URL Matched') : '');
-                $this->invoke($route);
+
+                $this->setVar('route', $route);
+                $this->setVar('method', 'absolute');
+
                 return true;
             }
 
-            // Filter out empty values, and essentially reset the array keys
-            $parts_u = array_values( array_filter( explode( '/', $url ) ) );
+            // Filter out empty values, and reset the array keys
+            $parts_u = array_values( array_filter( explode( '/', $uri ) ) );
             $parts_p = array_values( array_filter( explode( '/', $route['pattern'] ) ) );
 
             // If the route and parts aren't of equal length, insta-dismiss this route
@@ -89,68 +139,130 @@ class route extends coreObj{
                 continue;
             }
 
-            // Store the route's pattern for replacing later on
-            $ourRoute = $route['pattern'];
+            // We found a route with a potential match, lets try it!
+            $pattern = $this->prepareRoute( $route );
 
-            // Collect all the replacement 'variables' from the route structure into an array
-            (cmsDEBUG ? memoryUsage('Routes: Gathering variables from pattern') : '');
-            $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
-            $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
+            if( $this->testRoute( $uri, $pattern, $route ) !== false ){
+                (cmsDEBUG ? memoryUsage('Routes: Pattern Match Successful - '.$route['pattern']) : '');
 
-            // Loop through our replacements (if there are any),
-            //  In the matching, if there is a requirement set, use that,
-            //  else, use our generic alpha-numeric string match that includes SEO friendly chars.
-            (cmsDEBUG ? memoryUsage('Routes: Replace variables with Replacements') : '');
-            foreach( $replacements as $replacement ) {
-                $replaceWith = '[A-Za-z0-9\-\_]+';
+                $this->setVar('route', $route);
+                $this->setVar('method', 'exec');
 
-                if( !empty( $route['requirements'][$replacement] ) ) {
-                    $replaceWith = $route['requirements'][$replacement];
-                }
-
-                $ourRoute = str_replace( ':' . $replacement, '(' . $replaceWith . ')', $ourRoute );
-            }
-
-            // If the route matches the URL, we've got a winner!
-            (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
-            if( preg_match( '#' . $ourRoute . '#', $url, $matches ) ) {
-
-                // Remove the URL from the paramaters
-                unset( $matches[0] );
-                $matches = array_values( $matches );
-                $params  = array();
-
-                // Make sure our key/index array is sorted properly
-                foreach( $matches as $index => $value ) {
-                    $params[ $replacements[$index] ] = $value;
-                }
-
-                // replace get params with what we have here & whats in the URL...
-                // we dont want them to see what we are playing with internally tbh
-                $this->modifyGET($params);
-
-                // add some extras here...
-                $params['_all'] = $params;
-
-                // Add a hook for the params
-                $objPlugin->hook('CMS_ROUTE_PARAMS', $params);
-
-                // merge the arguments & the params and then invoke the route
-                $route['arguments'] = array_merge( (array) $route['arguments'], $params);
-                $this->invoke($route);
-
-                unset($route, $matches, $params, $replacements, $parts_u, $parts_p, $ourRoute, $replaceWith, $objCache);
                 return true;
-            }// End of our If conditional checking for the url match
+            }
 
             (cmsDEBUG ? memoryUsage('Routes: Pattern Dismissed, Pattern Variables didn\'t match') : '');
 
-        } // End the foreach loop on the routes
+        }
 
-        (cmsDEBUG ? memoryUsage('Routes: No Patterns Matched. Invoke 404') : '');
-        $this->throwHTTP(404);
+        return false;
+    }
 
-        return;
+    /**
+     * Prepares a Routes Pattern for matching
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge & Daniel Noel-Davies
+     *
+     * @param       $route    array
+     *
+     * @return      string
+     */
+    public function prepareRoute( $route ){
+        if( !is_array( $route ) || is_empty( $route ) ){
+            trigger_error('prepareRoute - $route is not an array or is empty.');
+            return false;
+        }
+
+        // Collect all the replacement 'variables' from the route structure into an array
+        (cmsDEBUG ? memoryUsage('Routes: Gathering variables from pattern') : '');
+        $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
+        $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
+
+        // Loop through our replacements (if there are any),
+        //  In the matching, if there is a requirement set, use that,
+        //  else, use our generic alpha-numeric string match that includes SEO friendly chars.
+        (cmsDEBUG ? memoryUsage('Routes: Replace variables with Replacements') : '');
+        foreach( $replacements as $replacement ) {
+            $replaceWith = '[A-Za-z0-9\-\_]+';
+
+            if( !is_empty( $route['requirements'][$replacement] ) ) {
+                $replaceWith = $route['requirements'][$replacement];
+            }
+
+            $route['pattern'] = str_replace( ':' . $replacement, '(' . $replaceWith . ')', $route['pattern'] );
+        }
+
+        return $route['pattern'];
+    }
+
+    /**
+     *
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge & Daniel Noel-Davies
+     *
+     * @param       $route    array
+     *
+     * @return      array
+     */
+    public function testRoute( $uri, $pattern, $route ){
+        if( $pattern === false ){
+            trigger_error('$pattern is false, stopping processing.');
+            return false;
+        }
+
+        if( is_empty( $pattern ) ){
+            trigger_error('$pattern is empty, stopping processing.');
+            return false;
+        }
+
+        if( is_empty( $uri ) ){
+            trigger_error('$uri is empty, stopping processing.');
+            return false;
+        }
+
+        if( !is_array( $route ) || is_empty( $route ) ){
+            trigger_error('$route is empty, stopping processing.');
+            return false;
+        }
+
+        $objPlugin  = coreObj::getPlugins();
+
+        // If the route matches the URL, we've got a winner!
+        (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
+        if( preg_match( '#' . $pattern . '#', $uri, $matches ) ) {
+
+            // Remove the URL from the paramaters
+            unset( $matches[0] );
+            $matches = array_values( $matches );
+            $params  = array();
+
+            // Make sure our key/index array is sorted properly
+            foreach( $matches as $index => $value ) {
+                $params[ $replacements[$index] ] = $value;
+            }
+
+            // replace get params with what we have here & whats in the URL...
+            // we dont want them to see what we are playing with internally tbh
+            $this->modifyGET($params);
+
+            // add some extras here...
+            $params['_all'] = $params;
+
+            // Add a hook for the params
+            $objPlugin->hook('CMS_ROUTE_PARAMS', $params);
+
+            // merge the arguments & the params and then invoke the route
+            $route['arguments'] = array_merge( (array) $route['arguments'], $params);
+
+            unset($route, $matches, $params, $replacements, $parts_u, $parts_p, $ourRoute, $replaceWith, $objCache);
+            return $route;
+        }
+
+        return false;
     }
 
     /**
@@ -160,18 +272,18 @@ class route extends coreObj{
      * @since       1.0.0
      * @author      Daniel Noel-Davies & Dan Aldridge
      *
-     * @param       $route  array   Key/Value array of a Route
-     *
      * @return      bool
      */
-    public function invoke( $route = array( ) ) {
+    public function invokeRoute(){
         (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D') : '');
-        if( empty( $route ) ) {
+
+        $route = $this->getVar('route');
+        if( is_empty( $route ) ) {
             trigger_error('Route passed is null. :/', E_USER_ERROR);
         }
 
         // Check if the route is a redirection
-        if( !empty( $route['redirect'] ) ) {
+        if( !is_empty( $route['redirect'] ) ) {
             // TODO: Add Internal Redirections (Internal, meaning no 301, just different internal processing)
             $this->throwHTTP( 301, $route['redirect'] );
             return true;
@@ -223,6 +335,12 @@ class route extends coreObj{
         $refMethod->invokeArgs( $objModule , $args );
     }
 
+/**
+  //
+  //-- Managing Functions
+  //
+**/
+
     /**
      * Adds a route to the database
      *
@@ -235,7 +353,11 @@ class route extends coreObj{
      *
      * @return      bool
      */
-    public function addRoute( array $route ) {
+    public function addRoute( $route ) {
+        if( !is_array($route) || is_empty($route) ){
+            return false;
+        }
+
         $values   = array();
         $label    = $route['label'];
         $objSQL   = coreObj::getDBO();
@@ -272,14 +394,16 @@ class route extends coreObj{
      *
      * @return      bool
      */
-    public function addRoutes( $module, array $routes ) {
-        if( empty( $routes ) ) {
+    public function addRoutes( $module, $routes ) {
+        if( !is_array( $routes ) || empty( $routes ) ) {
             return false;
         }
 
         foreach ( $routes as $name => $route ) {
             $this->addRoute( $module, array( $name => $route ) );
         }
+
+        return true;
     }
 
     /**
@@ -344,6 +468,12 @@ class route extends coreObj{
 
         return $result;
     }
+
+/**
+  //
+  //-- Helper Functions
+  //
+**/
 
     /**
      * Generates the cache for the routing system, used as a callback in the caching class

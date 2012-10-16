@@ -24,6 +24,7 @@ class forum extends Module{
         }*/
 
     }
+
     public function viewIndex(){
         $mainCats = $this->getForumInfo('*');
 

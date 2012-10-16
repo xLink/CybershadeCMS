@@ -1,4 +1,4 @@
-##Options -Indexes -MultiViews
+Options -Indexes -MultiViews
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
