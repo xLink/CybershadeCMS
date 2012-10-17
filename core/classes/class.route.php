@@ -6,9 +6,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class route extends coreObj{
 
-    public  $routes = array(),      // Array holding all the routes
-            $route = array(),         // Contains the route matched
-            $method = '';           // Tells us how to handle the route
+    public  $routes = array(),    // Array holding all the routes
+            $route  = array(),    // Contains the route matched
+            $type   = '';         // Tells us how to handle the route
 
     /**
      * Constructor
@@ -68,9 +68,9 @@ class route extends coreObj{
      *
      * @return      bool
      */
-    public function processURL( $uri ) {
+    public function processURL( $url ) {
         $objPlugin  = coreObj::getPlugins();
-        (cmsDEBUG ? memoryUsage('Routes: Began Processing URL: '.$uri) : '');
+        (cmsDEBUG ? memoryUsage('Routes: Began Processing URL: '.$url) : '');
 
         $this->loadRoutes();
 
@@ -79,17 +79,17 @@ class route extends coreObj{
 
         // Append a forward slash to the incoming url if there isn't one
         // TODO: (Should be solved elsewhere)
-        if( strpos( $uri, '/' ) !== 0 ) {
-            $uri = '/' . $uri;
+        if( strpos( $url, '/' ) !== 0 ) {
+            $url = '/' . $url;
         }
 
         // Strip the slash off the end if there is one, purely for the routes
         // TODO: (Should be solved elsewhere)
-        if( substr( $uri, -1) == '/' ){
-            $uri = substr( $uri, 0, -1 );
+        if( substr( $url, -1) == '/' ){
+            $url = substr( $url, 0, -1 );
         }
 
-        $this->findMatch( $uri );
+        $this->findMatch( $url );
 
         $this->invokeRoute();
 
@@ -97,17 +97,17 @@ class route extends coreObj{
     }
 
     /**
-     * Finds a route to match the URI given
+     * Finds a route to match the URL given
      *
      * @version     1.0
      * @since       1.0.0
      * @author      Daniel Noel-Davies
      *
-     * @param       $uri    string  URL to process against the cached routes
+     * @param       $url    string  URL to process against the cached routes
      *
      * @return      bool
      */
-    public function findMatch( $uri ){
+    public function findMatch( $url ){
         $this->loadRoutes();
 
         foreach($this->routes as $label => $route){
@@ -120,17 +120,17 @@ class route extends coreObj{
             }
 
             // Match Absolute URLs
-            if( $route['pattern'] === $uri ) {
+            if( $route['pattern'] === $url ) {
                 (cmsDEBUG ? memoryUsage('Routes: Absolute URL Matched') : '');
 
                 $this->setVar('route', $route);
-                $this->setVar('method', 'absolute');
+                $this->setVar('type', 'absolute');
 
                 return true;
             }
 
             // Filter out empty values, and reset the array keys
-            $parts_u = array_values( array_filter( explode( '/', $uri ) ) );
+            $parts_u = array_values( array_filter( explode( '/', $url ) ) );
             $parts_p = array_values( array_filter( explode( '/', $route['pattern'] ) ) );
 
             // If the route and parts aren't of equal length, insta-dismiss this route
@@ -142,11 +142,11 @@ class route extends coreObj{
             // We found a route with a potential match, lets try it!
             $pattern = $this->prepareRoute( $route );
 
-            if( $this->testRoute( $uri, $pattern, $route ) !== false ){
+            if( $this->testRoute( $url, $pattern, $route ) !== false ){
                 (cmsDEBUG ? memoryUsage('Routes: Pattern Match Successful - '.$route['pattern']) : '');
 
                 $this->setVar('route', $route);
-                $this->setVar('method', 'exec');
+                $this->setVar('type', 'dynamic');
 
                 return true;
             }
@@ -208,7 +208,7 @@ class route extends coreObj{
      *
      * @return      array
      */
-    public function testRoute( $uri, $pattern, $route ){
+    public function testRoute( $url, $pattern, $route ){
         if( $pattern === false ){
             trigger_error('$pattern is false, stopping processing.');
             return false;
@@ -219,8 +219,8 @@ class route extends coreObj{
             return false;
         }
 
-        if( is_empty( $uri ) ){
-            trigger_error('$uri is empty, stopping processing.');
+        if( is_empty( $url ) ){
+            trigger_error('$url is empty, stopping processing.');
             return false;
         }
 
@@ -233,7 +233,7 @@ class route extends coreObj{
 
         // If the route matches the URL, we've got a winner!
         (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
-        if( preg_match( '#' . $pattern . '#', $uri, $matches ) ) {
+        if( preg_match( '#' . $pattern . '#', $url, $matches ) ) {
 
             // Remove the URL from the paramaters
             unset( $matches[0] );

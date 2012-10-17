@@ -13,8 +13,7 @@ $objPage->setTitle('Test');
 $objPage->buildPage();
 $objPage->showHeader();
 
-$a = get_browser($_SERVER['HTTP_USER_AGENT']);
-echo dump($a);
+echo $objDebug->output();
 
 $objPage->showFooter();
 
