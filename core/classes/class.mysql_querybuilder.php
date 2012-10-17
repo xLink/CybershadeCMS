@@ -85,7 +85,9 @@ class mysql_queryBuilder extends coreObj{
     }
 
         public function addField($field, $key=null){
-            if(!is_string($field)){ trigger_error('addField; typeOf $field != "string"', E_USER_ERROR); }
+            if(!is_string($field)){
+                trigger_error('addField; typeOf $field != "string"', E_USER_ERROR);
+            }
 
             if(!in_array($field, $this->_fields)){
                 if(empty($key)){
@@ -337,7 +339,7 @@ class mysql_queryBuilder extends coreObj{
                     if(strtoupper(substr($field, 0, 5)) == 'COUNT' || $field == '*'){
                         $_fields[] = $field;
                     }else{
-                            $_fields[] = sprintf('%s', $field);
+                        $_fields[] = sprintf('%s', $field);
                     }
                     continue;
                 }
@@ -391,34 +393,32 @@ class mysql_queryBuilder extends coreObj{
 
             $statement[] = strtoupper($type);
 
-            // foreach($this->{'_'.strtolower($type)} as $where){
             if(!isset($this->{'_'.strtolower($type)}[$index])){ return; }
             $where = $this->{'_'.strtolower($type)}[$index];
 
-                $tmp = array($where['type'], $where['cond1'], $where['operand']);
-                $tmp[1] = $this->_buildFields($tmp[1]);
+            $tmp = array($where['type'], $where['cond1'], $where['operand']);
+            $tmp[1] = $this->_buildFields($tmp[1]);
 
-                if($where['operand'] != 'IN'){
-                    if($type == 'where'){
-                        $tmp[] = $this->_sanitizeValue($where['cond2'], $where['operand'] == 'LIKE');
-                    }else{
-                        $tmp[] = $where['cond2'];
-                    }
+            if($where['operand'] != 'IN'){
+                // if($type == 'where'){
+                //     $tmp[] = $this->_sanitizeValue($where['cond2'], $where['operand'] == 'LIKE');
+                // }else{
+                    $tmp[] = $where['cond2'];
+                // }
+            }else{
+
+                $ins = array();
+                if(!is_array($where['cond2'])){
+                    $ins = array($where['cond2']);
                 }else{
-
-                    $ins = array();
-                    if(!is_array($where['cond2'])){
-                        $ins = array($where['cond2']);
-                    }else{
-                        foreach($where['cond2'] as $c2){
-                            $ins[] = $this->_sanitizeValue($c2, false);
-                        }
+                    foreach($where['cond2'] as $c2){
+                        $ins[] = $this->_sanitizeValue($c2, false);
                     }
-
-                    $tmp[2] = sprintf('%s ("%s")', $tmp[2], implode(', ', $ins));
                 }
-                $statement[] = implode(' ', $tmp);
-            // }
+
+                $tmp[2] = sprintf('%s ("%s")', $tmp[2], implode(', ', $ins));
+            }
+            $statement[] = implode(' ', $tmp);
         }
 
         private function _buildGroupBy(&$statement){
@@ -476,7 +476,8 @@ class mysql_queryBuilder extends coreObj{
             $args = explode(' ', $args);
         }
         if(!is_string($args) && !is_array($args)){
-            trigger_error('Error: $args == '.gettype($args).'; Not of type String || Array', E_USER_ERROR);
+            trigger_error('Error: $args == '.gettype($args).'; Not of type String || Array',
+                E_USER_ERROR);
         }
 
         return $args;
@@ -486,7 +487,10 @@ class mysql_queryBuilder extends coreObj{
         $cond = $this->_getArgs($cond);
         $cond = $this->_NormalizeArgs($cond);
 
-        if(count($cond) != 3){ trigger_error(dump($cond, count($cond)).'Error: Not enough args for Clause. '.count($cond), E_USER_ERROR); }
+        if(count($cond) != 3){
+            trigger_error(dump($cond, count($cond)).'Error: Not enough args for Clause. '.count($cond),
+                E_USER_ERROR);
+        }
 
         $operand = strtoupper($cond[1]);
         if(!in_array($operand, array('=', '>', '<', '<>', '!=', '<=', '>=', 'LIKE', 'IN'))){
@@ -509,7 +513,7 @@ class mysql_queryBuilder extends coreObj{
             return $val;
         }
 
-        return '"' . addslashes($val) . '"';
+        return addslashes($val);
     }
 
     private function setQueryType($queryType){

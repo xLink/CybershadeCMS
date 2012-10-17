@@ -161,6 +161,46 @@ class coreObj {
         return array();
     }
 
+
+    /**
+     * Returns the last error set.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @return  string
+     */
+    public function getError(){
+        return end($this->errors);
+    }
+
+    /**
+     * Returns the entire array.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @return  array
+     */
+    public function getErrors(){
+        return $this->errors;
+    }
+
+    /**
+     * Allows for an error to be set just before returning false
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $msg
+     */
+    public function setError($msg){
+        $this->errors[] = (string)$msg;
+    }
+
     /**
      * Returns a config variable
      *

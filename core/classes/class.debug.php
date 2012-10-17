@@ -11,7 +11,7 @@ class debug extends coreObj{
            $templateFiles   = array();
 
     public function __construct( ) {
-        
+
     }
 
     /**
@@ -50,7 +50,7 @@ class debug extends coreObj{
      *
      * @param       bool        $output     If True, The function will output the HTML
      *
-     * @todo        
+     * @todo
      *
      * @return      string
      */
@@ -152,27 +152,27 @@ class debug extends coreObj{
         $objPlugin = coreObj::getPlugins();
 
         // Setup the tabs
-        $debugTabs['console']   = array( 
+        $debugTabs['console']   = array(
             'title'     => 'Console Log',
             'content'   => ''
         );
-        $debugTabs['errors']    = array( 
+        $debugTabs['errors']    = array(
             'title'     => 'PHP / CMS Errors',
             'content'   => ''
         );
-        $debugTabs['queries']   = array( 
+        $debugTabs['queries']   = array(
             'title'     => 'SQL Queries',
             'content'   => $this->getSQLQueries(true)
         );
-        $debugTabs['included']  = array( 
+        $debugTabs['included']  = array(
             'title'     => 'Included Files',
             'content'   => $this->getIncludedFiles(true)
         );
-        $debugTabs['templates'] = array( 
+        $debugTabs['templates'] = array(
             'title'     => 'Template Files',
             'content'   => $this->getTemplates(true),
         );
-        $debugTabs['cache']     = array( 
+        $debugTabs['cache']     = array(
             'title'     => 'Cache\'s in use',
             'content'   => $this->getInitdCaches(true)
         );
@@ -180,18 +180,20 @@ class debug extends coreObj{
         // Allow developers to hook into the debug bar
         $objPlugin->hook('CMS_DEBUGBAR_TABS', $debugTabs);
 
+        $counter = 0;
         foreach( $debugTabs as $k => $tab ) {
-            $tabs .= sprintf( '<li><a href="#%1$s">%2$s</a></li>',
+            $tabs .= sprintf( '<li class="tab" id="%1$s" data-index="%3$d"><a href="#%1$s">%2$s</a></li>',
                 $k,
-                $tab['title']
+                $tab['title'],
+                $counter++
             );
 
-            $content .= sprintf( '<div class="tab-pane">%s</div>',
+            $content .= sprintf( '<div class="content">%s</div>',
                 $tab['content']
             );
         }
-        $tabs .= '<li class="pull-right"><div id="debug_button"><i class="socicon-cogs"></i></div></li>';
-        return sprintf( '<ul class="nav nav-tabs">%s</ul><div class="tab-content">%s</div>',
+        $tabs .= '<li class="tab pull-right"><div id="debug_button"><i class="socicon-cogs"></i></div></li>';
+        return sprintf( '<div id="debug-tabs"><ul class="nav nav-tabs">%s</ul><div class="tab-content">%s</div></div>',
             $tabs,
             $content
         );

@@ -53,6 +53,18 @@ class User extends coreObj {
   //
 **/
 
+    /**
+     * Retreives information about the $uid.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   mixed   $uid        Can either be the User ID, or Username.
+     * @param   mixed   $fields     Can either be the single field.
+     *
+     * @return  mixed
+     */
     public function get( $uid, $fields=array() ){
 
         // test to see if we already have the info avaliable
@@ -61,6 +73,7 @@ class User extends coreObj {
             $info = $this->userInfo[strtolower($uid)];
 
             if($info === false){
+                $this->setError('$info was set to false.');
                 return false;
             }
 
@@ -68,7 +81,6 @@ class User extends coreObj {
         }else{
 
             $objSQL = coreObj::getDBO();
-            echo dump($uid, 'Quering for user');
             //figure out if they gave us a username or a user id
             $user = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = upper("%s")');
 
@@ -90,8 +102,9 @@ class User extends coreObj {
 
             // If we have no results, we will set false & have it cache it too
             // any subsequent checks will be auto failed.
-            if( !count($results) ){
+            if( !$results || !count($results) ){
                 $this->userInfo[strtolower($uid)] = false;
+                $this->setError('Could not retreive information about the user.');
                 return false;
             }
 
@@ -106,6 +119,7 @@ class User extends coreObj {
         }
 
         if( !count($info) ){
+            $this->setError('Could not retreive information about the user.');
             return false;
         }
 
@@ -122,6 +136,7 @@ class User extends coreObj {
                 if( isset( $info[$fields[0]] ) ){
                     return $info[$fields[0]];
                 }else{
+                    $this->setError('Could not find the field you were looking for.');
                     return false;
                 }
 
@@ -150,6 +165,7 @@ class User extends coreObj {
             if( isset($info[$fields]) ){
                 return $info[$fields];
             }else{
+                $this->setError('Could not find the field you were looking for.');
                 return false;
             }
 
@@ -172,7 +188,7 @@ class User extends coreObj {
         if( is_empty($username) || !$this->validateUsername($username, true) ){
             return false;
         }
-echo dump($username);
+
         $return = $this->get($username, 'id');
         return ($return === false ? 0 : $return);
     }
@@ -180,6 +196,20 @@ echo dump($username);
 
 
     public function validateUsername( $username, $exists=false ){
+        if( strlen($username) > 25 || strlen($username) < 2 ){
+            $this->setError('Username dosen\'t fall within usable length parameters. Between 2 and 25 characters long.');
+            return false;
+        }
+
+        if( preg_match('~[^a-z0-9_\-@^]~i', $username) ){
+            $this->setError('Username dosen\'t validate. Please ensure that you are using no special characters etc.');
+            return false;
+        }
+
+        if( $exists === true && $this->get($username, 'username') === false ){
+            $this->setError('Username alerady exists. Please make sure your username is unique.');
+            return false;
+        }
 
         return true;
     }
@@ -194,7 +224,7 @@ echo dump($username);
         else if ($_SERVER['HTTP_FORWARDED_FOR']){   $ip = $_SERVER['HTTP_FORWARDED_FOR']; }
         else{                                       $ip = $_SERVER['REMOTE_ADDR']; }
 
-        if($ip == '::1'){ $ip = '127.0.0.1'; }
+        if( $ip == '::1' ){ $ip = '127.0.0.1'; }
         return $ip;
     }
 
@@ -205,7 +235,14 @@ echo dump($username);
 **/
 
     public function update( $uid, array $settings ){
+        unset($settings['id'], $settings['uid'], $settings['password']);
 
+        if( !count($settings) ){
+            $this->setError('No Settings Detected! Make sure the array you gave was populated'.
+                                'The follwing columsn are blacklisted from being updated with this function: '.
+                                'id, uid, password, pin');
+            return false;
+        }
     }
 
     public function setPassword( $uid, $password ){
