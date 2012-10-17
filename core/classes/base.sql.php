@@ -164,11 +164,12 @@ class core_SQL extends coreObj{
     public function fetchLine($query){
         if(!is_string($query)){ return false; }
 
-        if(strpos($query, 'LIMIT 1') === false){
+        if(strpos($query, ' LIMIT 1') === false){
             $query = $query.' LIMIT 1';
         }
 
-        return $this->fetchAll($query);
+        $line = $this->fetchAll($query);
+        return (is_array($line) && count($line) ? $line[0] : false);
     }
 
     public function fetchValue($table, $field, $clause=null){

@@ -1,489 +1,341 @@
 <?php
-/**
- *@todo REMOVE $this->_idQuery function
-*/
+/*======================================================================*\
+||                 Cybershade CMS - Your CMS, Your Way                  ||
+\*======================================================================*/
+defined('INDEX_CHECK') or die('Error: Cannot access directly.');
+
+
 class User extends coreObj {
 
-    protected $objSession;
-    protected $objSQL;
+/**
+  //
+  //--
+  //
+**/
 
-    public function __construct( $keys = array() ){
-        $this->objSQL = coreObj::getDBO();
+    //some static vars
+    static  $IS_ONLINE = false;
+    static  $IS_ADMIN  = false,
+            $IS_MOD    = false,
+            $IS_USER   = false;
 
-        $blackListedKeys = array(
-            'id',
-            'username',
-            'password',
-            'email',
-        );
-
-        $keys = ( is_array( $keys ) ? $keys : array( $keys ) );
-
-        $blackListedKeys = array_merge( $blackListedKeys, $keys );
-
-        $this->setVar('blackListedKeys', $blackListedKeys );
-    }
-
-    public function __destruct(){
-        // Kill the class vars
-        unset( $this->objSession, $this->objSQL );
+    /**
+     * Sets the current user to online
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   bool $value
+     *
+     * @return  bool
+     */
+    public function setIsOnline( $value=true ){
+        return self::$IS_ONLINE = $value;
     }
 
     /**
-     * Gets users details by their User ID
+     * Defines global CMS permissions
      *
-     * @version 1.0.0
+     * @version 1.0
      * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @param   int $user_id
-     *
-     * @return  array
+     * @author  Dan Aldridge
      */
-    public function getUserById( $user_id ){
-        if( is_empty( $user_id ) ){
-            return array();
-        }
-
-        $userDetails = $this->getUserInfo( $user_id );
-
-        return $userDetails;
+    public function initPerms(){
+        self::$IS_USER      = $this->checkPermissions($this->grab('id'), USER);
+        self::$IS_ADMIN     = $this->checkPermissions($this->grab('id'), ADMIN);
+        self::$IS_MOD       = $this->checkPermissions($this->grab('id'), MOD);
     }
 
-    /**
-     * Gets users details by their Username
-     *
-     * @version 1.0.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @param   string $username
-     *
-     * @return  array
-     */
-    public function getUserByName( $username ){
-        if( is_empty( $username ) ){
-            return array();
-        }
+/**
+  //
+  //-- Information Functions
+  //
+**/
 
-        $userDetails = $this->getUserInfo( $username );
+    public function get( $uid, $fields=array() ){
 
-        return $userDetails;
-    }
+        // test to see if we already have the info avaliable
+        if( isset($this->userInfo[strtolower($uid)]) ){
 
+            $info = $this->userInfo[strtolower($uid)];
 
-    /**
-     * Gets info on the specified user by ID or username
-     *
-     * @version 1.0.0
-     * @since   1.0.0
-     * @author  Richard Clifford, Dan Aldridge
-     *
-     * @param   int     $uid
-     * @param   string  $field1
-     * @param   string  $field2 [etc]
-     *
-     * @return  array
-     */
-    public function getUserInfo(){
-
-        $args = func_get_args();
-        $uid  = array_shift($args);
-
-        $fieldList = $args;
-
-        $cachedInfo = $this->getVar( 'userInfo' );
-        $username = (!is_number( $uid ) ? strtolower($uid) : $uid );
-
-        if( !isset( $cachedInfo[$uid] ) ){
-            // username or user ID?
-            $user = $this->_userIdQuery( $uid );
-
-            // Gets all 'safe' data about a user
-            $info = $this->objSQL->queryBuilder()
-                                 ->select('#__users.id', '#__users.username', '#__users.register_date', '#__users.email',
-                                    '#__users.last_active', '#__users.register_date', '#__users.title', '#__users.language',
-                                    '#__users.timezone', '#__users.theme', '#__users.hidden', '#__users.userlevel', '#__users.active',
-                                    '#__users.banned', '#__users.primary_group', '#__users.login_attempts', '#__users.pin_attempts',
-                                    '#__users.autologin', '#__users.reffered_by', '#__users.password_update', '#__users.whitelist',
-                                    '#__users.whitelisted_ips', '#__users.warnings', '#__users_extras.birthday',
-                                    '#__users_extras.sex', '#__users_extras.contact_info', '#__users_extras.about',
-                                    '#__users_extras.interests', '#__users_extras.usernotes', '#__users_extras.signature',
-                                    '#__users_extras.ajax_settings', '#__users_extras.notification_settings', '#__users_extras.forum_show_sigs',
-                                    '#__users_extras.forum_autowatch', '#__users_extras.forum_quickreply',
-                                    '#__users_extras.forum_cat_order', '#__users_extras.forum_tracker', '#__users_extras.pagination_style',
-                                    '#__sessions.timestamp', '#__sessions.sid')
-                                 ->from('#__users')
-                                 ->leftJoin('#__users_extras')
-                                    ->on('#__users.id = #__users_extras.uid')
-                                 ->leftJoin('#__sessions')
-                                    ->on('#__users.id = #__sessions.uid')
-                                 ->where($user)
-                                 ->limit(1)
-                                 ->build();
-
-            $results = $this->objSQL->fetchAll( $info );
-
-            if( count( $results ) === 0 ){
-                trigger_error(sprintf('User query failed. Query : %s', $info));
+            if($info === false){
                 return false;
             }
 
-            $this->userInfo[$username] = $results;
+        // we don't so we shall grab it
+        }else{
+
+            $objSQL = coreObj::getDBO();
+            echo dump($uid, 'Quering for user');
+            //figure out if they gave us a username or a user id
+            $user = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = upper("%s")');
+
+            $query = $objSQL->queryBuilder()
+                ->select(array('u.*', 'ux.*', 'id'=>'u.id', 's.timestamp'))
+                ->from(array('u' => '#__users'))
+
+                ->leftJoin(array('ux' => '#__users_extras'))
+                    ->on('u.id', '=', 'ux.uid')
+
+                ->leftJoin(array('s' => '#__sessions'))
+                    ->on('u.id', '=', 's.uid')
+
+                ->where(sprintf($user, $uid))
+                ->limit(1)
+                ->build();
+
+            $results = $objSQL->fetchLine($query);
+
+            // If we have no results, we will set false & have it cache it too
+            // any subsequent checks will be auto failed.
+            if( !count($results) ){
+                $this->userInfo[strtolower($uid)] = false;
+                return false;
+            }
+
+            // cache it under the uid && the username
+            // so if they request 0 || admin, it is already cached :)
+            $this->userInfo[strtolower($results['username'])] = $results;
+            $this->userInfo[$results['id']] = $results;
+
+            unset($query);
+            $info = $results;
+
         }
 
-        if( count( $fieldList ) > 0 ){
-            foreach( $fieldList as $field ){
-                if( !array_key_exists( $field, $this->userInfo[$username] ) ){
-                    continue;
+        if( !count($info) ){
+            return false;
+        }
+
+        if( is_array($fields) && count($fields) ){
+
+            if( count($fields) == 1 ){
+
+                // if we have * as the first array value, return all the things!
+                if( $fields[0] == '*' ){
+                    return $info;
                 }
 
-                $arrOut[$uid][] = $this->userInfo[$username][$field];
+                // make sure the field is set in the array
+                if( isset( $info[$fields[0]] ) ){
+                    return $info[$fields[0]];
+                }else{
+                    return false;
+                }
+
+            }else{
+                $return = array();
+                foreach( $fields as $field ){
+                    if( !isset($info[$field]) ){
+                        continue;
+                    }
+
+                    $return[$field] = $info[$field];
+                }
+
+                return $return;
             }
 
-            return $arrOut;
-        }
-        return $this->userInfo[$username];
-    }
-
-
-    /**
-     * Generates a user password with the given length
-     *
-     * @access  Protected
-     * @version 1.0.0
-     * @since   1.0.0
-     * @author  Richard Clifford, Dan Aldridge
-     *
-     * @param   string  $string
-     * @param   string  $salt
-     * @param   string  $pepper
-     *
-     * @return  string
-     */
-    protected function makePassword( $string = '', $length = 8, $salt = '', $pepper = '' ){
-
-        // Store the salt and pepper
-        $this->setVar('salt', $salt);
-        $this->setVar('pepper', $pepper);
-
-        if( is_empty( $string ) ){
-            $string = randCode($length); // Generate a random string
         }
 
-        // Instanciate the Portable password hashing framework
-        $objPass = new phpass(8, true);
+        // if $fields is a string, and its *, then return all the things also!
+        if( is_string($fields) ){
 
-        // Generate the new password with salt
-        $password   = $salt . $string . $pepper;
-        $hashed     = $objPass->HashPassword( $password );
+            if( $fields == '*' ){
+                return $this->userInfo[strtolower($uid)];
+            }
 
-        // Clean up
-        unset($objPass, $string, $password);
-        return $hashed;
-    }
+            if( isset($info[$fields]) ){
+                return $info[$fields];
+            }else{
+                return false;
+            }
 
-    /**
-     * Determines whether a user is online or not
-     *
-     * @version 1.0.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @todo    This will return a false positive if the user is banned, so need to
-     * check whether the user has been banned first then get the timestamp
-     *
-     * @param   int     $uid
-     *
-     * @return  bool
-     */
-    public function isUserOnline( $uid ){
-        $ts = $this->getUserInfo( $uid, 'timestamp' );
-
-        return ( is_empty( $ts ) ? false : true );
-    }
-
-    /**
-     * Checks if the given user id is a number (id) or a string (username)
-     * and returns a sql formatted string (only to be used within this class)
-     *
-     * @access  Protected
-     * @version 1.0.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @param   mixed   $uid
-     *
-     * @return  string  SQL formatted string
-     */
-    protected function _userIdQuery( $uid ){
-
-        $user   =  '';
-        $return = '';
-
-        // Check if number
-        if( !is_number( $uid ) ){
-            $user = sprintf( 'UPPER(#__users.username) = UPPER("%s")', $uid );
-        } else {
-            $user = sprintf( '#__users.id = %d', $uid );
         }
 
-        return $user;
+        // if we get this far, may aswell return everything
+        return $info;
     }
 
-    /**
-     * Checks whether a user exists with the given ID/Username
-     *
-     * @version 1.0.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @param   mixed   $uid
-     *
-     * @return  string  SQL formatted string
-     */
-    public function userExists( $uid ){
-
-        $user = $this->_userIdQuery( $uid );
-        // Build the query
-        $userQuery = $this->objSQL->queryBuilder()
-                                  ->select('username','id')
-                                  ->from('#__users')
-                                  ->where($user)
-                                  ->limit(1)
-                                  ->build();
-
-        // Get the return values
-        $results = $this->objSQL->fetchLine( $userQuery );
-
-        if( !count( $results ) ){
+    public function getUsernameByID( $uid=0 ){
+        if( is_empty($uid) || !is_number($uid) || $uid == 0){
             return false;
         }
+
+        $return = $this->get($uid, 'username');
+        return ($return === false ? 'Guest' : $return);
+    }
+
+    public function getIDByUsername( $username ){
+        if( is_empty($username) || !$this->validateUsername($username, true) ){
+            return false;
+        }
+echo dump($username);
+        $return = $this->get($username, 'id');
+        return ($return === false ? 0 : $return);
+    }
+
+
+
+    public function validateUsername( $username, $exists=false ){
 
         return true;
     }
 
+    public function getAjaxSetting( $setting ){
+
+    }
+
+    public static function getIP(){
+        if      ($_SERVER['HTTP_X_FORWARDED_FOR']){ $ip = $_SERVER['HTTP_X_FORWARDED_FOR']; }
+        else if ($_SERVER['HTTP_X_FORWARDED']){     $ip = $_SERVER['HTTP_X_FORWARDED']; }
+        else if ($_SERVER['HTTP_FORWARDED_FOR']){   $ip = $_SERVER['HTTP_FORWARDED_FOR']; }
+        else{                                       $ip = $_SERVER['REMOTE_ADDR']; }
+
+        if($ip == '::1'){ $ip = '127.0.0.1'; }
+        return $ip;
+    }
+
+/**
+  //
+  //-- Update Infomation Functions
+  //
+**/
+
+    public function update( $uid, array $settings ){
+
+    }
+
+    public function setPassword( $uid, $password ){
+
+    }
+
+    public function toggle( $var, $state=null ){
+
+    }
+
+/**
+  //
+  //-- Functions
+  //
+**/
+
+    public function register( array $userInfo ){
+
+    }
+
+
+/**
+  //
+  //-- Auth Functions
+  //
+**/
 
     /**
-     * Bans a user from the users table and the sessions table
+     * Returns permission state for given user and group
      *
-     * @version 1.0.0
+     * @version 1.0
      * @since   1.0.0
-     * @author  Richard Clifford
+     * @author  Dan Aldridge
      *
-     * @param   mixed   $uid
-     * @param   int     $banLen
+     * @param   int     $uid        UserID
+     * @param   int     $group      GUEST, USER, MOD, or ADMIN
      *
-     * @todo fix the _userIdQuery as returns     $ = String(72) "UPPER(#__users.username) = UPPER("UPPER(#__users.username) = UPPER("")")"
-     * 
-     * @return  bool
+     * @return  bool    True/False on successful check, -1 on unknown group
      */
-    public function banUserId( $uid, $banLen = 0 ){
-        $blOut = false;
+    public function checkUserAuth( $type, $key, $u_access, $is_admin ){
+        $auth_user = 0;
 
-        $uid = $this->_userIdQuery( $user_id );
-
-        // Ensure $banLen is a number
-        $banLen = ( is_number( $banLen ) ? $banLen : 0 );
-
-        $query = $this->objSQL->queryBuilder()
-                              ->update('#__users')
-                              ->set('banned', 1)
-                              ->where($uid)
-                              ->build();
-
-        // Ban the user from the users table
-        $banUser = $this->objSQL->query($query);
-
-        if( $banUser ){
-
-            $user_id = $this->getUserInfo( $uid, 'id' );
-
-            $sessionQuery = $this->objSQL->queryBuilder()
-                                  ->update('#__sessions')
-                                  ->set(array(
-                                        'mode'      => 'ban',
-                                        'timestamp' => $banLen
-                                    ))
-                                  ->where('uid', $user_id)
-                                  ->build();
-
-            // Ban the user from the sessions table
-            $banSession = $this->objSQL->query( $sessionQuery );
-
-            if( $banSession ){
-                $blOut = true;
+        if(count($u_access)){
+            for($j = 0; $j < count($u_access); $j++){
+                $result = 0;
+                switch($type){
+                    case AUTH_ACL:   $result = $u_access[$j][$key]; break;
+                    case AUTH_MOD:   $result = $result || $u_access[$j]['auth_mod']; break;
+                    case AUTH_ADMIN: $result = $result || $is_admin; break;
+                }
+                $auth_user = $auth_user || $result;
             }
+        }else{
+            $auth_user = $is_admin;
         }
-
-        // Tidy up
-        unset( $banUser, $query, $uid, $banSession );
-
-        return $blOut;
-    }
-
-
-    /**
-     * Update the users tables with the given details
-     *
-     * @version     1.0.0
-     * @since       1.0.0
-     * @author      Richard Clifford
-     *
-     * @param       int     $user_id
-     * @param       array   $field      array('users' => array('fields' => 'fieldVal'), 'users_extras' => array('fields' => 'fieldVal'))
-     *
-     * @return      bool
-     */
-    public function updateUser( $user_id, $fields = array() ){
-
-        $blOut = false;
-
-        $user_id = $this->_userIdQuery( $user_id );
-
-        if( !$this->userExists( $user_id ) ){
-            return $blOut;
-        }
-
-        if( !is_array( $fields ) || empty( $fields ) ){
-            return $blOut;
-        }
-
-        $columnInfo                 = array();
-        $columnInfo['users']        = $this->objSQL->fetchColumnInfo( '#__users' );
-        $columnInfo['users_extras'] = $this->objSQL->fetchColumnInfo( '#__users_extras' );
-
-        $usersData = array();
-
-        if( is_empty($columnInfo['users']) || is_empty( $columnInfo['users_extras'] ) ){
-            return false;
-        }
-
-        $blackListKeys = $this->getVar('blackListedKeys');
-
-        foreach( $fields as $column => $data ){
-
-            // Exclude the blacklisted keys
-            if( in_array( $column, $blackListKeys ) ){
-                continue;
-            }
-
-            if( array_key_exists( $column, $columnInfo['users'] ) ){
-                $usersData['users'][$column] = $data;
-            }
-
-            if( array_key_exists( $column, $columnInfo['users_extras'] ) ) {
-                $usersData['users_extras'][$column] = $data;
-            }
-        }
-
-        if( is_empty( $fields ) ){
-            return false;
-        }
-
-        // Updates the user and extras table
-        foreach( $fields as $fieldset => $fields ){
-
-            $updateQuery = $this->objSQL->queryBuilder()
-                                        ->update(sprintf('#__%s', $fieldset ))
-                                        ->set($fields)
-                                        ->where('id', '=', $user_id)
-                                        ->build();
-
-            $result = $this->objSQL->query( $updateQuery );
-            if( !$result ){
-                $blOut = false;
-            }
-        }
-
-        return $blOut;
-    }
-
-
-    /**
-     * Resets the users password and confirms with them via email
-     *
-     * @version     1.0.0
-     * @since       1.0.0
-     * @author      Richard Clifford
-     *
-     * @param       int     $user_id
-     *
-     * @return      bool
-     */
-    public function resetPassword( $user_id ){
-
-        $uid        = $user_id;
-        $user_id    = $this->_userIdQuery( $user_id );
-
-        if( !$this->userExists( $user_id ) ){
-            return false;
-        }
-
-
-        // Get the users details
-        $userDetails = $this->getUserInfo( $uid, 'email', 'username' );
-
-
-        // Check if the details are valid and not empty
-        if( is_empty( $userDetails ) ){
-            return false;
-        }
-
-        // Everything from here should be for a valid user
-        $fields = array();
-
-        $fields['users'] = array(
-            'password'  =>  $this->makePassword(),
-        );
-
-        $update = $this->updateUser($uid, $fields);
-
-        if( !$update ){
-            return false;
-        }
-
-
-        // Generate the URL for the user to click when they receive the email (tokenized)
-        $resetLink = '';
-
-        // Setup the email details
-        $adminEmail = $this->config( 'site', 'admin_email' );
-        $siteName   = $this->config( 'site', 'name' );
-        $message    = <<<MSG
-            Dear %s,
-                Your password has been reset by your request.
-
-                If you did not request your password to be changed, please ignore this email, otherwise, please follow this link:
-
-                %s
-
-                Your link will only be valid for 24 hours, after that you will be required to reset again.
-MSG;
-
-        // Replace the $message tokens
-        $msgDetails = array(
-            $userDetails['username'],
-            $resetLink,
-        );
-
-        $message    = vsprintf( $message, $msgDetails );
-        $mail       = _mailer( $userDetails['email'], $adminEmail, sprintf( 'Password Reset from %s.', $siteName ), $message );
-
-        // send the mail
-        if( !$mail ){
-            return false;
-        }
-
-        return true;
+        return $auth_user;
     }
 
     /**
-     * TODO: make the function better XD
+     * Returns permission state for given user and group
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   int     $uid        UserID
+     * @param   int     $group      GUEST, USER, MOD, or ADMIN
+     *
+     * @return  bool    True/False on successful check, -1 on unknown group
      */
-    public function getRemoteAddr(){
-        return $_SERVER['REMOTE_ADDR'];
+    public function checkPermissions( $uid, $group=0 ) {
+        $group = (int)$group;
+
+        //make sure we have a group to check against
+        if(is_empty($group) || $group == 0 || $group == GUEST){
+            return true;
+        }
+
+        //check to see whether we have a user id to check against..
+        if(is_empty($uid)){
+            return false;
+        }
+
+        //grab the user level if possible
+        $userlevel = GUEST;
+        if(self::$IS_ONLINE){
+            $userlevel = $this->getUserInfo($uid, 'userlevel');
+        }
+
+        //see which group we are checking for
+        switch($group){
+            case GUEST:
+                if(!self::$IS_ONLINE){
+                    return true;
+                }
+            break;
+
+            case USER:
+                if(self::$IS_ONLINE){
+                    return true;
+                }
+            break;
+
+            case MOD:
+                if($userlevel == MOD){
+                    return true;
+                }
+            break;
+
+            case ADMIN:
+                if($userlevel == ADMIN){
+                    if(LOCALHOST || doArgs('adminAuth', false, $_SESSION['acp'])){
+                        return true;
+                    }
+                }
+            break;
+
+            //no idea what they tried to check for, so we'll return something unexpected too
+            default: return -1; break;
+        }
+
+        //if we are an admin then give them mod powers regardless
+        if(($group == MOD || $group == USER) && $userlevel == ADMIN){
+            return true;
+        }
+
+        //apparently the checks didnt return true, so we'll go for false
+        return false;
     }
+
 }
 
 ?>

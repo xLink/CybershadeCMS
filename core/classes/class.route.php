@@ -86,7 +86,7 @@ class route extends coreObj{
         // Strip the slash off the end if there is one, purely for the routes
         // TODO: (Should be solved elsewhere)
         if( substr( $uri, -1) == '/' ){
-            #$uri = substr( $uri, 0, -1 );
+            $uri = substr( $uri, 0, -1 );
         }
 
         $this->findMatch( $uri );
