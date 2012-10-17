@@ -160,6 +160,13 @@ class debug extends coreObj{
             'title'     => 'PHP / CMS Errors',
             'content'   => ''
         );
+
+        $memory = memoryUsage('OUTPUT!');
+        $debugTabs['memory']    = array(
+            'title'     => 'Memory Usage',
+            'content'   => dump($memory)
+        );
+
         $debugTabs['queries']   = array(
             'title'     => 'SQL Queries',
             'content'   => $this->getSQLQueries(true)

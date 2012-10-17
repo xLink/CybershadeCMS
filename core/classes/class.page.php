@@ -565,7 +565,7 @@ class page extends coreObj{
     public function showHeader(){
         if($this->getOptions('completed')){ return; }
 
-        $objTPL     = self::getTPL();
+        $objTPL = self::getTPL();
 
         //run a check on simple
         $simple = ($this->getOptions('mode') ? true : false);
@@ -583,10 +583,11 @@ class page extends coreObj{
         $this->setOptions('completed', 1);
     }
 
+
     public function showFooter(){
         if(!$this->getOptions('completed')){ return; }
 
-        $objTPL     = self::getTPL();
+        $objTPL = self::getTPL();
 
         //run a check on simple
         $simple = ($this->getOptions('mode') ? true : false);
@@ -597,10 +598,18 @@ class page extends coreObj{
 
         $objTPL->set_filenames(array( 'siteFooter' => self::$THEME_ROOT . $footer ));
 
+        if( defined('cmsDEBUG') && cmsDEBUG === true ){
 
+            $objDebug = coreObj::getDebug();
+            $objTPL->assign_block_vars('debug', array(
+                'DEBUG' => $objDebug->output(),
+            ));
+
+        }
 
         $objTPL->parse('siteFooter');
     }
+
 }
 
 ?>

@@ -17,7 +17,6 @@ $objPage->addJSFile(array('src' => '/'.root().'assets/javascript/debug.js'), 'fo
 $objPage->buildPage();
 $objPage->showHeader();
 
-echo $objDebug->output();
 
 $objPage->showFooter();
 
