@@ -260,6 +260,7 @@ class coreObj {
         if (!isset(coreObj::$_classes[$name]) || empty(coreObj::$_classes[$name])){
             $class = self::getStaticClassName();
             coreObj::$_classes[$name] = new $class($name, $options);
+            (cmsDEBUG ? memoryUsage( sprintf('Init: New object - %s. ', $class) ) : '');
         }
 
         return coreObj::$_classes[$name];

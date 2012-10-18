@@ -243,6 +243,8 @@ class User extends coreObj {
                                 'id, uid, password, pin');
             return false;
         }
+
+        return $settings;
     }
 
     public function setPassword( $uid, $password ){

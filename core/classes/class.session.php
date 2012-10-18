@@ -8,13 +8,11 @@ class Session extends coreObj{
 
     public function __construct($store='none', $options = array()){
 
-        // Get the database object
-        $this->objSQL   = coreObj::getDBO();
     }
 
     public function __destruct(){
         // Clean up the objects
-        unset( $this->objSQL );
+        unset( $objSQL );
     }
 
     /**
@@ -74,6 +72,8 @@ class Session extends coreObj{
             return false;
         }
 
+        $objSQL   = coreObj::getDBO();
+        // echo dump( $objSQL );
         $uid = ( !is_number( $uid ) ? false : $uid );
 
         if( $uid === false ){
@@ -95,25 +95,26 @@ class Session extends coreObj{
             $session_id = md5( time() + $offset );
         }
 
-        $check = $this->objSQL->queryBuilder()
+        $check = $objSQL->queryBuilder()
                               ->select('sid')
                               ->from('#__sessions')
                               ->where('sid', '=', $session_id)
+                                ->andWhere('hostname', '=', $objUser->getIP())
                               ->build();
 
 
-        $checkResult = $this->objSQL->fetchAll( $check );
+        $checkResult = $objSQL->fetchAll( $check );
 
         // Checks if the result is in the array of sessions
         if( in_array( $session_id, $checkResult ) ){
 
-            $getAllSessions = $this->objSQL->queryBuilder()
+            $getAllSessions = $objSQL->queryBuilder()
                                            ->select('sid')
                                            ->from('#__sessions')
                                            ->build();
 
             // Get all sessions
-            $sessions = $this->objSQL->fetchAll( $getAllSessions );
+            $sessions = $objSQL->fetchAll( $getAllSessions );
 
             // Ensure the current session_id is not in use
             while( in_array( $session_id, $sessions ) ){
@@ -132,19 +133,21 @@ class Session extends coreObj{
         $values['uid']       = $uid;
         $values['sid']       = $session_id;
         $values['store']     = serialize( $_SESSION );
-        $values['hostname']  = $objUser->getRemoteAddr();
+        $values['hostname']  = $objUser->getIP();
         $values['timestamp'] = time();
         $values['useragent'] = $_SERVER['HTTP_USER_AGENT'];
         $values['mode']      = $status;
 
         (cmsDEBUG ? memoryUsage('Sessions: Lets save the session!') : '');
-        $query = $this->objSQL->queryBuilder()
+
+        $query = $objSQL->queryBuilder()
                         ->insertInto('#__sessions')
                         ->set($values)
                         ->build();
 
         (cmsDEBUG ? memoryUsage( sprintf('Sessions: Executing Query: %s', $query )) : '');
-        $result = $this->objSQL->query( $query );
+
+        $result = $objSQL->query( $query );
 
         // Ensure the result is valid
         if( $result ){
@@ -158,6 +161,7 @@ class Session extends coreObj{
         return false;
     }
 
+
     /**
      * Kills all the sessions for whatever reason
      *
@@ -169,13 +173,13 @@ class Session extends coreObj{
      */
     public function killAllSessions(){
 
-        $query = $this->objSQL->queryBuilder()
+        $query = $objSQL->queryBuilder()
                               ->deleteFrom('#__sessions')
                               ->where('1 = 1')
                               ->build();
 
         (cmsDEBUG ? memoryUsage(sprintf('Sessions: Executing Query: %s', $query) ): '');
-        $result = $this->objSQL->query( $query );
+        $result = $objSQL->query( $query );
 
         if( $result ) {
 
@@ -208,12 +212,12 @@ class Session extends coreObj{
         }
 
         // Build the query
-        $query = $this->objSQL->queryBuilder()
+        $query = $objSQL->queryBuilder()
                               ->deleteFrom('#__sessions')
                               ->where('sid', '=', $session_id)
                               ->build();
 
-        $result = $this->objSQL->query( $query );
+        $result = $objSQL->query( $query );
 
         if( $query === false ){
             return false;
@@ -246,7 +250,7 @@ class Session extends coreObj{
 
         (cmsDEBUG ? memoryUsage( sprintf('Sessions: Executing Query: %s', $query ) ) : '');
         // Build the query
-        $query = $this->objSQL->queryBuilder()
+        $query = $objSQL->queryBuilder()
                               ->select('uid', 'sid', 'mode', 'store', 'hostname')
                               ->from('#__sessions')
                               ->where('sid', '=', $session_id)
@@ -254,7 +258,7 @@ class Session extends coreObj{
                               ->build();
 
         // Execute the query
-        $sessions = $this->objSQL->fetchLine( $query );
+        $sessions = $objSQL->fetchLine( $query );
 
         (cmsDEBUG ? memoryUsage( sprintf('Sessions: Returning: %s', $return ) ) : '');
         if( $sessions ){
@@ -276,26 +280,25 @@ class Session extends coreObj{
      * @return  bool
      */
     public function checkUserSession( $user_id ){
+        $objSQL  = coreObj::getDBO();
+        $objUser = coreObj::getUser();
 
-        $sql = $this->objSQL->queryBuilder()
+        $sql = $objSQL->queryBuilder()
                             ->select('sid', 'uid', 'timestamp')
                             ->from('#__sessions')
                             ->where('uid', '=', $user_id)
-                                ->andWhere('hostname', '=', $this->objUser->getRemoteAddr())
+                                ->andWhere('hostname', '=', $objUser->getIP())
                             ->limit(1)
                             ->build();
 
-        $result = $this->objSQL->fetchLine( $sql );
+        $result = $objSQL->fetchLine( $sql );
 
         if(count($result) === 0){
             return false;
         }
 
-
-
         return true;
     }
-
 
     /**
      * Retrieves a set of active sessions
@@ -356,7 +359,7 @@ class Session extends coreObj{
             return $sessions;
         }
 
-        $query = $this->objSQL->queryBuilder()
+        $query = $objSQL->queryBuilder()
                               ->select('uid', 'sid', 'mode', 'store', 'hostname')
                               ->from('#__sessions')
                               ->where('mode', '=', $type)
@@ -365,7 +368,7 @@ class Session extends coreObj{
 
 
         // Get the array of data
-        $sessions = $this->objSQL->fetchAll( $query );
+        $sessions = $objSQL->fetchAll( $query );
         (cmsDEBUG ? memoryUsage('Sessions: Got me some sessions, I do!')  : '');
 
         return $sessions;
@@ -386,12 +389,12 @@ class Session extends coreObj{
 
         $expire = ( $expire === 0 ? time() : $expire );
 
-        $query = $this->objSQL->queryBuilder()
+        $query = $objSQL->queryBuilder()
                               ->deleteFrom('#__sessions')
                               ->where( 'DATE_ADD(`timestamp`, INTERVAL '. $expire .' SECOND) < NOW()' ) // Doesn't work
                               ->build();
 
-        $result = $this->objSQL->query($query);
+        $result = $objSQL->query($query);
 
         return $result;
     }
@@ -425,60 +428,6 @@ class Session extends coreObj{
         }
 
         return $renewedSessions;
-    }
-
-
-    /**
-     * Assigns a session to a specified User ID
-     *
-     * @version 1.0.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @param   int  $user_id
-     *
-     * @return  bool
-     */
-    public function assignSession( $user_id ){
-
-        if( !is_number( $user_id ) ){
-            return false;
-        }
-
-        $userSession     = $this->checkUserSession( $user_id );
-        $assignedSession = '';
-
-        if( $userSession ){
-
-            $sql = $this->objSQL->queryBuilder()
-                                ->select('sid', 'timestamp', 'hostname')
-                                ->from('#__sessions')
-                                ->where('uid', '=', $user_id)
-                                ->andWhere('hostname', '=', $objUser->getRemoteAddr())
-                                ->limit(1)
-                                ->build();
-
-            $result = $this->objSQL->fetchLine($sql);
-
-            // Just another check to make sure the session exists
-            if( count($result) > 0 ){
-
-                // If their session is about to run out then renew it now
-                if( $result['timestamp'] < (time()+200) ){
-                    // Create the sessions array
-                    $sessions = array(
-                        $user_id => $result['sid']
-                    );
-
-                    // Renew the users session
-                    $assignedSession = $this->renewSessions( $sessions );
-                }
-            }
-        } else {
-            $assignedSession = $this->createSession( $user_id );
-        }
-
-        return $assignedSession;
     }
 }
 

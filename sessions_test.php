@@ -6,20 +6,22 @@ define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 include_once('core/core.php');
 
-// $objPage->setTheme();
-// $objPage->setTitle('Test');
-// $objPage->buildPage();
-// $objPage->showHeader(); // lol i am editing that o.O
+$objPage->setTheme();
+$objPage->setTitle('Test');
+$objPage->buildPage();
+$objPage->showHeader(); 
 
-$objUser = coreObj::getUser(); // Not  being instanciated in core
 
-$array = array(
-    'usercode' => 'g6dwtw', // Was g6dtwt
-    'show_email' => 1,
-    'avatar' => 'trololol.png'
-);
+/**
+throw some session stuff in here8
++
+**/
 
-$var = $objUser->updateUser( 1, $array );
+$var = $objSession->createSession( 0 );
 
 echo dump( $var );
+
+echo dump($_SESSION);
+
+$objPage->showFooter(); 
 ?>
