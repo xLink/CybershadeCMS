@@ -10,8 +10,6 @@ $objPage->setTheme();
 
 $objPage->setTitle('Test');
 
-$objPage->addJSFile(array('src' => '/'.root().'assets/javascript/tabs.js'), 'footer');
-$objPage->addJSFile(array('src' => '/'.root().'assets/javascript/debug.js'), 'footer');
 
 
 $objPage->buildPage();

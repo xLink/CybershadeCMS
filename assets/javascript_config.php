@@ -5,6 +5,7 @@ $scripts['framework'] = array(
     'mootools-core.js',
     'mootools-more.js',
     'modernizr.js',
+    'tabs.js',
 );
 $scripts['extras'] = array(
     'php.min.js',

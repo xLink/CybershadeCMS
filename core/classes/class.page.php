@@ -544,6 +544,13 @@ class page extends coreObj{
         $jsFiles = array();
         $objPlugins->hook('CMS_Page_jsFiles', $jsFiles);
 
+        if( defined('cmsDEBUG') && cmsDEBUG === true ){
+            $this->addJSFile(array(
+                'src' => $cssDir.'/debug.js',
+                'priority' => HIGH,
+            ), 'footer');
+        }
+
 /**
   //
   //-- Extras

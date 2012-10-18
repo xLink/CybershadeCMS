@@ -135,6 +135,43 @@ class debug extends coreObj{
         return sprintf( '<ul>%s</ul>', $output );
     }
 
+    public function getMemoryUse( $output = false ){
+        if( $output !== true ){
+            return false;
+        }
+
+        $output = null;
+        $debug = memoryUsage('OUTPUT!');
+
+
+//echo dump($debug);
+
+        $output .= '<table class="table "><tbody><tr>';
+
+        $header = null;
+        foreach($debug as $row){
+            $info = explode(':', $row['info']);
+            if($info[0] == 'OUTPUT!'){ continue; }
+            if($info[0] !== $header){
+                $header = $info[0];
+                $output .= '</tr><tr>';
+                $output .= sprintf('<td colspan="9"><h4>%s</h4></td>', $header.' - '.$row['file_exec']);
+            }
+            $output .= '</tr><tr>';
+
+            #$output .= sprintf('<td>[%s - %d-%d] [Timer: %s] [Memory: %s] %s</td>',);
+
+
+            $output .= sprintf('<td>%s</td>', $row['time_exec']);
+            $output .= sprintf('<td>%s</td>', $row['start_exec'] .' - '.$row['end_exec']);
+            $output .= sprintf('<td>%s</td>', $row['memory_exec']);
+            $output .= sprintf('<td>%s</td>', $info[1]);
+        }
+
+        $output .= '</tr></tbody></table>';
+        return $output;
+    }
+
     /**
      * Outputs the debug onto the page
      *
@@ -150,6 +187,7 @@ class debug extends coreObj{
         $output    = '';
         $debugTabs = array( );
         $objPlugin = coreObj::getPlugins();
+        $objPage   = coreObj::getPage();
 
         // Setup the tabs
         $debugTabs['console']   = array(
@@ -160,13 +198,10 @@ class debug extends coreObj{
             'title'     => 'PHP / CMS Errors',
             'content'   => ''
         );
-
-        $memory = memoryUsage('OUTPUT!');
         $debugTabs['memory']    = array(
             'title'     => 'Memory Usage',
-            'content'   => dump($memory)
+            'content'   => $this->getMemoryUse(true),
         );
-
         $debugTabs['queries']   = array(
             'title'     => 'SQL Queries',
             'content'   => $this->getSQLQueries(true)
