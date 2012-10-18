@@ -14,6 +14,60 @@ class debug extends coreObj{
 
     }
 
+
+    /**
+     * Calculates Memory useage and Execution time between calls
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       string $info
+     * @param       string $nl
+     *
+     * @return      string
+     */
+    function memoryUsage($info = null, $nl = '<br />') {
+        global $START_CMS_LOAD;
+        static $start_code_line = 0;
+        static $memoryUsage = array();
+
+        $start_time = $START_CMS_LOAD;
+
+        $debug = debug_backtrace();
+        $call_info = array_shift($debug);
+        $code_line = $call_info['line'];
+        $file = explode((stristr(PHP_OS, 'WIN') ? '\\' : '/'), $call_info['file']);
+        $file = array_pop($file);
+
+        if ($start_time === null) {
+            print 'debug ['.($info === null ? null : $info).']<strong>'.$file.'</strong>> init'.$nl;
+            $start_time = time() + microtime();
+            $start_code_line = $code_line;
+            return 0;
+        }
+
+        $memoryUsage[] = array(
+            'info'        => ($info === null ? null : $info),
+            'file_exec'   => $file,
+            'start_exec'  => $start_code_line,
+            'end_exec'    => $code_line,
+            'time_exec'   => round(time() + microtime() - $start_time, 4),
+            'memory_exec' => formatBytes(memory_get_usage())
+        );
+
+        $start_time = time() + microtime();
+        $start_code_line = $code_line;
+
+        return $memoryUsage;
+    }
+
+/**
+  //
+  // Debug Output Functionality
+  //
+**/
+
     /**
      * Retrieves all the included files in the current page
      *
@@ -143,29 +197,31 @@ class debug extends coreObj{
         $output = null;
         $debug = memoryUsage('OUTPUT!');
 
+        $output .= '<table class="table table-bordered"><thead>';
+            $output .= sprintf('<th>%s</th>', 'Execution <br />Time');
+            $output .= sprintf('<th>%s</th>', 'File <br />Lines');
+            $output .= sprintf('<th>%s</th>', 'Messages <br />'.count($debug));
+            $output .= sprintf('<th>%s</th>', 'Memory <br />'.formatBytes(memory_get_usage()));
+        $output .= '</thead><tbody><tr>';
 
-//echo dump($debug);
-
-        $output .= '<table class="table "><tbody><tr>';
-
-        $header = null;
+        $header = null; $memory = 0;
         foreach($debug as $row){
-            $info = explode(':', $row['info']);
+            $info = explode(':', $row['info'], 2);
             if($info[0] == 'OUTPUT!'){ continue; }
-            if($info[0] !== $header){
+            if($header !== $info[0]){
                 $header = $info[0];
-                $output .= '</tr><tr>';
-                $output .= sprintf('<td colspan="9"><h4>%s</h4></td>', $header.' - '.$row['file_exec']);
+                $output .= '</tr><tr><td colspan="11" style="height: 2px; padding: 0;"></td>';
             }
             $output .= '</tr><tr>';
 
-            #$output .= sprintf('<td>[%s - %d-%d] [Timer: %s] [Memory: %s] %s</td>',);
+            $mem = ($row['memory_exec'] - $memory);
 
+            $output .= sprintf('<td width="10%%">%s</td>', $row['time_exec']);
+            $output .= sprintf('<td width="20%%">%s <br />%s</td>', $row['file_exec'], $row['start_exec'] .' - '.$row['end_exec']);
+            $output .= sprintf('<td width="">%s</td>', $info[1]);
+            $output .= sprintf('<td width="15%%">%s</td>', (substr($mem, 0, 1) == '-') ? '-' . formatBytes( -$mem ) : formatBytes( $mem ) );
 
-            $output .= sprintf('<td>%s</td>', $row['time_exec']);
-            $output .= sprintf('<td>%s</td>', $row['start_exec'] .' - '.$row['end_exec']);
-            $output .= sprintf('<td>%s</td>', $row['memory_exec']);
-            $output .= sprintf('<td>%s</td>', $info[1]);
+            $memory = $row['memory_exec'];
         }
 
         $output .= '</tr></tbody></table>';
@@ -240,5 +296,8 @@ class debug extends coreObj{
             $content
         );
     }
+
+
 }
+
 ?>

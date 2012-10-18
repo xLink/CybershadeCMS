@@ -111,7 +111,8 @@ class route extends coreObj{
         $this->loadRoutes();
 
         foreach($this->routes as $label => $route){
-            (cmsDEBUG ? memoryUsage('Routes: Testing - '.$route['pattern']).'' : '');
+            (cmsDEBUG ? memoryUsage('Routes: ') : '');
+            (cmsDEBUG ? memoryUsage('Routes: Testing - '.$label) : '');
 
             // Check for a method being set, if it doesn't match, continue
             if( $route['method'] != 'any' && $route['method'] != $_SERVER['REQUEST_METHOD']) {
@@ -279,7 +280,8 @@ class route extends coreObj{
 
         $route = $this->getVar('route');
         if( is_empty( $route ) ) {
-            trigger_error('Route passed is null. :/', E_USER_ERROR);
+            $this->throwHTTP(404);
+            return;
         }
 
         // Check if the route is a redirection

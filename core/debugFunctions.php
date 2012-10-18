@@ -228,6 +228,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         return $msg;
     }
 
+
     /**
      * Calculates Memory useage and Execution time between calls
      *
@@ -267,7 +268,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             'start_exec'  => $start_code_line,
             'end_exec'    => $code_line,
             'time_exec'   => round(time() + microtime() - $start_time, 4),
-            'memory_exec' => formatBytes(memory_get_usage())
+            'memory_exec' => memory_get_usage()
         );
 
         $start_time = time() + microtime();
