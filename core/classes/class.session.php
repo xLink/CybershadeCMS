@@ -7,12 +7,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Session extends coreObj{
 
     public function __construct($store='none', $options = array()){
-
     }
 
     public function __destruct(){
-        // Clean up the objects
-        unset( $objSQL );
     }
 
     /**
@@ -68,7 +65,9 @@ class Session extends coreObj{
      * @return bool
      */
     public function createSession( $uid = 0, $status = 'active'  ){
-        if( ( isset($_SESSION['sid']) && isset( $_SESSION['ts'] ) ) && $_SESSION['ts'] > time() ){
+        if( ( isset($_SESSION['user']['session_id'])
+                && isset( $_SESSION['user']['timestamp'] ) )
+                && $_SESSION['user']['ts'] > time() ){
             return false;
         }
 
@@ -89,6 +88,7 @@ class Session extends coreObj{
         }
 
         $session_id = randCode(32);
+
         // Just a check
         if( empty( $session_id ) ){
             $offset = rand( 1, 86400 );
@@ -139,21 +139,19 @@ class Session extends coreObj{
         $values['mode']      = $status;
 
         (cmsDEBUG ? memoryUsage('Sessions: Lets save the session!') : '');
-
         $query = $objSQL->queryBuilder()
                         ->insertInto('#__sessions')
                         ->set($values)
                         ->build();
 
         (cmsDEBUG ? memoryUsage( sprintf('Sessions: Executing Query: %s', $query )) : '');
-
         $result = $objSQL->query( $query );
 
         // Ensure the result is valid
         if( $result ){
-            $_SESSION['id']  = $session_id;
-            $_SESSION['uid'] = md5( $uid );
-            $_SESSION['ts']  = (time() + 3600); // Give it an hour
+            $_SESSION['user']['session_id'] = $session_id;
+            $_SESSION['user']['user_id']    = md5( $uid );
+            $_SESSION['user']['timestamp']  = (time() + 3600); // Give it an hour
 
             return true;
         }
@@ -198,6 +196,8 @@ class Session extends coreObj{
      * @since   1.0.0
      * @author  Richard Clifford
      *
+     * @todo    Rewrite
+     *
      * @param   string  $session_id
      *
      * @return  bool
@@ -224,7 +224,7 @@ class Session extends coreObj{
         }
 
         // Unset the session id
-        unset( $_SESSION[$session_id] );
+        unset( $_SESSION['user'][$session_id] ); // Won't Work Needs to be rewritten
 
         (cmsDEBUG ? memoryUsage( sprintf('Sessions: Deleted session: %s ', $session_id ) ) : '');
         return true;
@@ -274,6 +274,8 @@ class Session extends coreObj{
      * @version 1.0.0
      * @since   1.0.0
      * @author  Richard Clifford
+     *
+     * @todo    Rewrite
      *
      * @param   int  $user_id
      *
@@ -387,16 +389,33 @@ class Session extends coreObj{
      */
     public function cleanSessions( $expire = 0 ){
 
+        $blOut = false;
+        $objSQL = coreObj::getDBO();
         $expire = ( $expire === 0 ? time() : $expire );
 
-        $query = $objSQL->queryBuilder()
-                              ->deleteFrom('#__sessions')
-                              ->where( 'DATE_ADD(`timestamp`, INTERVAL '. $expire .' SECOND) < NOW()' ) // Doesn't work
-                              ->build();
+        $getSessions = $objSQL->queryBuilder()
+                                ->select('sid', 'uid')
+                                ->from('#__sessions')
+                                ->where('DATE_ADD(`timestamp`, INTERVAL '. $expire .' SECOND) < NOW()')
+                                ->build();
 
-        $result = $objSQL->query($query);
+        $sessions = $getSessions->fetchAll();
 
-        return $result;
+        if( !is_array( $sessions ) || count( $sessions, COUNT_RECURSIVE ) ){
+            return $blOut;
+        }
+
+        foreach( $sessions as $session ){
+            if( isset( $session['uid'] ) && isset( $session['sid'] ) ){
+                // Kill the sessions
+                $kill = $this->killSession( $session );
+                if( $kill ){
+                    $blOut = true;
+                }
+            }
+        }
+
+        return $blOut;
     }
 
     /**
@@ -406,12 +425,14 @@ class Session extends coreObj{
      * @since   1.0.0
      * @author  Richard Clifford
      *
+     * @todo    Rewrite
+     *
      * @param   array $session The sessions array (keyed by uid and value as sid)
      *
      * @return  array
      */
     public function renewSessions( $session = array() ){
-        $session = ( !is_array( $session ) ? array( $session ) : $session );
+        $session         = ( !is_array( $session ) ? array( $session ) : $session );
         $renewedSessions = array();
 
         foreach( $session as $uid => $sid ){
