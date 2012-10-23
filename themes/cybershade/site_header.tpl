@@ -29,20 +29,22 @@
         <div class="container">
             <ul class="nav">
                 <li><a href="#">Home</a></li>
-                <li><a href="#">Link</a></li>
-                <li><a href="#">Link</a></li>
-                <li class="dropdown" data-behavior="BS.Dropdown">
-                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Dropdown <b class="caret"></b></a>
+                <li><a href="#">Forum</a></li>
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Downloads <b class="caret"></b></a>
                     <ul class="dropdown-menu">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
+                        <li><a href="#">CMS v1.0</a></li>
+                        <li><a href="#">Themes</a></li>
+                        <li><a href="#">Modules</a></li>
+                        <li><a href="#">Plugins</a></li>
+                        <li><a href="#">Languages</a></li>
                         <li class="divider"></li>
                         <li class="nav-header">Nav header</li>
                         <li><a href="#">Separated link</a></li>
                         <li><a href="#">One more separated link</a></li>
                     </ul>
                 </li>
+                <li><a href="#">Pastebin</a></li>
             </ul>
 
         </div>

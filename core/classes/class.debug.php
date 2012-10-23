@@ -216,10 +216,10 @@ class debug extends coreObj{
 
             $mem = ($row['memory_exec'] - $memory);
 
-            $output .= sprintf('<td width="10%%">%s</td>', $row['time_exec']);
+            $output .= sprintf('<td width="10%%">%s</td>',          $row['time_exec']);
             $output .= sprintf('<td width="20%%">%s <br />%s</td>', $row['file_exec'], $row['start_exec'] .' - '.$row['end_exec']);
-            $output .= sprintf('<td width="">%s</td>', $info[1]);
-            $output .= sprintf('<td width="15%%">%s</td>', (substr($mem, 0, 1) == '-') ? '-' . formatBytes( -$mem ) : formatBytes( $mem ) );
+            $output .= sprintf('<td width="">%s</td>',              $info[1]);
+            $output .= sprintf('<td width="15%%">%s</td>',          (substr($mem, 0, 1) == '-') ? '-' . formatBytes( -$mem ).'<br />Cleared' : formatBytes( $mem ).'<br />Used' );
 
             $memory = $row['memory_exec'];
         }

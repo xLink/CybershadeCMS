@@ -276,13 +276,14 @@ class route extends coreObj{
      * @return      bool
      */
     public function invokeRoute(){
-        (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D') : '');
-
         $route = $this->getVar('route');
         if( is_empty( $route ) ) {
+            (cmsDEBUG ? memoryUsage('Routes: ') : '');
+            (cmsDEBUG ? memoryUsage('Routes: No Pattern Matched. Throwing 404...') : '');
             $this->throwHTTP(404);
             return;
         }
+        (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D'.dump($this->route)) : '');
 
         // Check if the route is a redirection
         if( !is_empty( $route['redirect'] ) ) {

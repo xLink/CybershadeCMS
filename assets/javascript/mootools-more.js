@@ -1,4 +1,3 @@
-// Begin: Source/More/More.js
 /*
 ---
 
@@ -34,7 +33,433 @@ MooTools.More = {
 };
 
 
-// Begin: Source/Types/Object.Extras.js
+/*
+---
+
+name: Events.Pseudos
+
+description: Adds the functionality to add pseudo events
+
+license: MIT-style license
+
+authors:
+  - Arian Stolwijk
+
+requires: [Core/Class.Extras, Core/Slick.Parser, More/MooTools.More]
+
+provides: [Events.Pseudos]
+
+...
+*/
+
+(function(){
+
+Events.Pseudos = function(pseudos, addEvent, removeEvent){
+
+	var storeKey = '_monitorEvents:';
+
+	var storageOf = function(object){
+		return {
+			store: object.store ? function(key, value){
+				object.store(storeKey + key, value);
+			} : function(key, value){
+				(object._monitorEvents || (object._monitorEvents = {}))[key] = value;
+			},
+			retrieve: object.retrieve ? function(key, dflt){
+				return object.retrieve(storeKey + key, dflt);
+			} : function(key, dflt){
+				if (!object._monitorEvents) return dflt;
+				return object._monitorEvents[key] || dflt;
+			}
+		};
+	};
+
+	var splitType = function(type){
+		if (type.indexOf(':') == -1 || !pseudos) return null;
+
+		var parsed = Slick.parse(type).expressions[0][0],
+			parsedPseudos = parsed.pseudos,
+			l = parsedPseudos.length,
+			splits = [];
+
+		while (l--){
+			var pseudo = parsedPseudos[l].key,
+				listener = pseudos[pseudo];
+			if (listener != null) splits.push({
+				event: parsed.tag,
+				value: parsedPseudos[l].value,
+				pseudo: pseudo,
+				original: type,
+				listener: listener
+			});
+		}
+		return splits.length ? splits : null;
+	};
+
+	return {
+
+		addEvent: function(type, fn, internal){
+			var split = splitType(type);
+			if (!split) return addEvent.call(this, type, fn, internal);
+
+			var storage = storageOf(this),
+				events = storage.retrieve(type, []),
+				eventType = split[0].event,
+				args = Array.slice(arguments, 2),
+				stack = fn,
+				self = this;
+
+			split.each(function(item){
+				var listener = item.listener,
+					stackFn = stack;
+				if (listener == false) eventType += ':' + item.pseudo + '(' + item.value + ')';
+				else stack = function(){
+					listener.call(self, item, stackFn, arguments, stack);
+				};
+			});
+
+			events.include({type: eventType, event: fn, monitor: stack});
+			storage.store(type, events);
+
+			if (type != eventType) addEvent.apply(this, [type, fn].concat(args));
+			return addEvent.apply(this, [eventType, stack].concat(args));
+		},
+
+		removeEvent: function(type, fn){
+			var split = splitType(type);
+			if (!split) return removeEvent.call(this, type, fn);
+
+			var storage = storageOf(this),
+				events = storage.retrieve(type);
+			if (!events) return this;
+
+			var args = Array.slice(arguments, 2);
+
+			removeEvent.apply(this, [type, fn].concat(args));
+			events.each(function(monitor, i){
+				if (!fn || monitor.event == fn) removeEvent.apply(this, [monitor.type, monitor.monitor].concat(args));
+				delete events[i];
+			}, this);
+
+			storage.store(type, events);
+			return this;
+		}
+
+	};
+
+};
+
+var pseudos = {
+
+	once: function(split, fn, args, monitor){
+		fn.apply(this, args);
+		this.removeEvent(split.event, monitor)
+			.removeEvent(split.original, fn);
+	},
+
+	throttle: function(split, fn, args){
+		if (!fn._throttled){
+			fn.apply(this, args);
+			fn._throttled = setTimeout(function(){
+				fn._throttled = false;
+			}, split.value || 250);
+		}
+	},
+
+	pause: function(split, fn, args){
+		clearTimeout(fn._pause);
+		fn._pause = fn.delay(split.value || 250, this, args);
+	}
+
+};
+
+Events.definePseudo = function(key, listener){
+	pseudos[key] = listener;
+	return this;
+};
+
+Events.lookupPseudo = function(key){
+	return pseudos[key];
+};
+
+var proto = Events.prototype;
+Events.implement(Events.Pseudos(pseudos, proto.addEvent, proto.removeEvent));
+
+['Request', 'Fx'].each(function(klass){
+	if (this[klass]) this[klass].implement(Events.prototype);
+});
+
+})();
+
+
+/*
+---
+
+script: Class.Refactor.js
+
+name: Class.Refactor
+
+description: Extends a class onto itself with new property, preserving any items attached to the class's namespace.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Class
+  - /MooTools.More
+
+# Some modules declare themselves dependent on Class.Refactor
+provides: [Class.refactor, Class.Refactor]
+
+...
+*/
+
+Class.refactor = function(original, refactors){
+
+	Object.each(refactors, function(item, name){
+		var origin = original.prototype[name];
+		origin = (origin && origin.$origin) || origin || function(){};
+		original.implement(name, (typeof item == 'function') ? function(){
+			var old = this.previous;
+			this.previous = origin;
+			var value = item.apply(this, arguments);
+			this.previous = old;
+			return value;
+		} : item);
+	});
+
+	return original;
+
+};
+
+
+/*
+---
+
+script: Class.Binds.js
+
+name: Class.Binds
+
+description: Automagically binds specified methods in a class to the instance of the class.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Class
+  - /MooTools.More
+
+provides: [Class.Binds]
+
+...
+*/
+
+Class.Mutators.Binds = function(binds){
+	if (!this.prototype.initialize) this.implement('initialize', function(){});
+	return Array.from(binds).concat(this.prototype.Binds || []);
+};
+
+Class.Mutators.initialize = function(initialize){
+	return function(){
+		Array.from(this.Binds).each(function(name){
+			var original = this[name];
+			if (original) this[name] = original.bind(this);
+		}, this);
+		return initialize.apply(this, arguments);
+	};
+};
+
+
+/*
+---
+
+script: Class.Occlude.js
+
+name: Class.Occlude
+
+description: Prevents a class from being applied to a DOM element twice.
+
+license: MIT-style license.
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Class
+  - Core/Element
+  - /MooTools.More
+
+provides: [Class.Occlude]
+
+...
+*/
+
+Class.Occlude = new Class({
+
+	occlude: function(property, element){
+		element = document.id(element || this.element);
+		var instance = element.retrieve(property || this.property);
+		if (instance && !this.occluded)
+			return (this.occluded = instance);
+
+		this.occluded = false;
+		element.store(property || this.property, this);
+		return this.occluded;
+	}
+
+});
+
+
+/*
+---
+
+script: Chain.Wait.js
+
+name: Chain.Wait
+
+description: value, Adds a method to inject pauses between chained events.
+
+license: MIT-style license.
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Chain
+  - Core/Element
+  - Core/Fx
+  - /MooTools.More
+
+provides: [Chain.Wait]
+
+...
+*/
+
+(function(){
+
+	var wait = {
+		wait: function(duration){
+			return this.chain(function(){
+				this.callChain.delay(duration == null ? 500 : duration, this);
+				return this;
+			}.bind(this));
+		}
+	};
+
+	Chain.implement(wait);
+
+	if (this.Fx) Fx.implement(wait);
+
+	if (this.Element && Element.implement && this.Fx){
+		Element.implement({
+
+			chains: function(effects){
+				Array.from(effects || ['tween', 'morph', 'reveal']).each(function(effect){
+					effect = this.get(effect);
+					if (!effect) return;
+					effect.setOptions({
+						link:'chain'
+					});
+				}, this);
+				return this;
+			},
+
+			pauseFx: function(duration, effect){
+				this.chains(effect).get(effect || 'tween').wait(duration);
+				return this;
+			}
+
+		});
+	}
+
+})();
+
+
+/*
+---
+
+script: Array.Extras.js
+
+name: Array.Extras
+
+description: Extends the Array native object to include useful methods to work with arrays.
+
+license: MIT-style license
+
+authors:
+  - Christoph Pojer
+  - Sebastian Markbåge
+
+requires:
+  - Core/Array
+  - MooTools.More
+
+provides: [Array.Extras]
+
+...
+*/
+
+(function(nil){
+
+Array.implement({
+
+	min: function(){
+		return Math.min.apply(null, this);
+	},
+
+	max: function(){
+		return Math.max.apply(null, this);
+	},
+
+	average: function(){
+		return this.length ? this.sum() / this.length : 0;
+	},
+
+	sum: function(){
+		var result = 0, l = this.length;
+		if (l){
+			while (l--) result += this[l];
+		}
+		return result;
+	},
+
+	unique: function(){
+		return [].combine(this);
+	},
+
+	shuffle: function(){
+		for (var i = this.length; i && --i;){
+			var temp = this[i], r = Math.floor(Math.random() * ( i + 1 ));
+			this[i] = this[r];
+			this[r] = temp;
+		}
+		return this;
+	},
+
+	reduce: function(fn, value){
+		for (var i = 0, l = this.length; i < l; i++){
+			if (i in this) value = value === nil ? this[i] : fn.call(null, value, this[i], i, this);
+		}
+		return value;
+	},
+
+	reduceRight: function(fn, value){
+		var i = this.length;
+		while (i--){
+			if (i in this) value = value === nil ? this[i] : fn.call(null, value, this[i], i, this);
+		}
+		return value;
+	}
+
+});
+
+})();
+
+
 /*
 ---
 
@@ -103,7 +528,6 @@ Object.extend({
 })();
 
 
-// Begin: Source/Locale/Locale.js
 /*
 ---
 
@@ -155,9 +579,7 @@ var Locale = this.Locale = {
 
 		if (set) locale.define(set, key, value);
 
-		/*<1.2compat>*/
-		if (set == 'cascade') return Locale.inherit(name, key);
-		/*</1.2compat>*/
+		
 
 		if (!current) current = locale;
 
@@ -172,9 +594,7 @@ var Locale = this.Locale = {
 
 			this.fireEvent('change', locale);
 
-			/*<1.2compat>*/
-			this.fireEvent('langChange', locale.name);
-			/*</1.2compat>*/
+			
 		}
 
 		return this;
@@ -271,139 +691,11 @@ Locale.Set = new Class({
 
 });
 
-/*<1.2compat>*/
-var lang = MooTools.lang = {};
 
-Object.append(lang, Locale, {
-	setLanguage: Locale.use,
-	getCurrentLanguage: function(){
-		var current = Locale.getCurrent();
-		return (current) ? current.name : null;
-	},
-	set: function(){
-		Locale.define.apply(this, arguments);
-		return this;
-	},
-	get: function(set, key, args){
-		if (key) set += '.' + key;
-		return Locale.get(set, args);
-	}
-});
-/*</1.2compat>*/
 
 })();
 
 
-// Begin: Source/Locale/Locale.fa.Date.js
-/*
----
-
-name: Locale.fa.Date
-
-description: Date messages for Persian.
-
-license: MIT-style license
-
-authors:
-  - Amir Hossein Hodjaty Pour
-
-requires:
-  - /Locale
-
-provides: [Locale.fa.Date]
-
-...
-*/
-
-Locale.define('fa', 'Date', {
-
-	months: ['ژانویه', 'فوریه', 'مارس', 'آپریل', 'مه', 'ژوئن', 'ژوئیه', 'آگوست', 'سپتامبر', 'اکتبر', 'نوامبر', 'دسامبر'],
-	months_abbr: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
-	days: ['یکشنبه', 'دوشنبه', 'سه شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'],
-	days_abbr: ['ي', 'د', 'س', 'چ', 'پ', 'ج', 'ش'],
-
-	// Culture's date order: MM/DD/YYYY
-	dateOrder: ['month', 'date', 'year'],
-	shortDate: '%m/%d/%Y',
-	shortTime: '%I:%M%p',
-	AM: 'ق.ظ',
-	PM: 'ب.ظ',
-
-	// Date.Extras
-	ordinal: 'ام',
-
-	lessThanMinuteAgo: 'کمتر از یک دقیقه پیش',
-	minuteAgo: 'حدود یک دقیقه پیش',
-	minutesAgo: '{delta} دقیقه پیش',
-	hourAgo: 'حدود یک ساعت پیش',
-	hoursAgo: 'حدود {delta} ساعت پیش',
-	dayAgo: '1 روز پیش',
-	daysAgo: '{delta} روز پیش',
-	weekAgo: '1 هفته پیش',
-	weeksAgo: '{delta} هفته پیش',
-	monthAgo: '1 ماه پیش',
-	monthsAgo: '{delta} ماه پیش',
-	yearAgo: '1 سال پیش',
-	yearsAgo: '{delta} سال پیش',
-
-	lessThanMinuteUntil: 'کمتر از یک دقیقه از حالا',
-	minuteUntil: 'حدود یک دقیقه از حالا',
-	minutesUntil: '{delta} دقیقه از حالا',
-	hourUntil: 'حدود یک ساعت از حالا',
-	hoursUntil: 'حدود {delta} ساعت از حالا',
-	dayUntil: '1 روز از حالا',
-	daysUntil: '{delta} روز از حالا',
-	weekUntil: '1 هفته از حالا',
-	weeksUntil: '{delta} هفته از حالا',
-	monthUntil: '1 ماه از حالا',
-	monthsUntil: '{delta} ماه از حالا',
-	yearUntil: '1 سال از حالا',
-	yearsUntil: '{delta} سال از حالا'
-
-});
-
-
-// Begin: Source/Class/Class.Binds.js
-/*
----
-
-script: Class.Binds.js
-
-name: Class.Binds
-
-description: Automagically binds specified methods in a class to the instance of the class.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Class
-  - /MooTools.More
-
-provides: [Class.Binds]
-
-...
-*/
-
-Class.Mutators.Binds = function(binds){
-	if (!this.prototype.initialize) this.implement('initialize', function(){});
-	return Array.from(binds).concat(this.prototype.Binds || []);
-};
-
-Class.Mutators.initialize = function(initialize){
-	return function(){
-		Array.from(this.Binds).each(function(name){
-			var original = this[name];
-			if (original) this[name] = original.bind(this);
-		}, this);
-		return initialize.apply(this, arguments);
-	};
-};
-
-
-// Begin: Source/Locale/Locale.en-US.Date.js
 /*
 ---
 
@@ -476,7 +768,6 @@ Locale.define('en-US', 'Date', {
 });
 
 
-// Begin: Source/Types/Date.js
 /*
 ---
 
@@ -882,9 +1173,7 @@ Date.extend({
 		return this;
 	},
 
-	//<1.2compat>
-	parsePatterns: parsePatterns,
-	//</1.2compat>
+	
 
 	defineParser: function(pattern){
 		parsePatterns.push((pattern.re && pattern.handler) ? pattern : build(pattern));
@@ -1039,7 +1328,287 @@ Locale.addEvent('change', function(language){
 })();
 
 
-// Begin: Source/Types/String.Extras.js
+/*
+---
+
+script: Date.Extras.js
+
+name: Date.Extras
+
+description: Extends the Date native object to include extra methods (on top of those in Date.js).
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+  - Scott Kyle
+
+requires:
+  - /Date
+
+provides: [Date.Extras]
+
+...
+*/
+
+Date.implement({
+
+	timeDiffInWords: function(to){
+		return Date.distanceOfTimeInWords(this, to || new Date);
+	},
+
+	timeDiff: function(to, separator){
+		if (to == null) to = new Date;
+		var delta = ((to - this) / 1000).floor().abs();
+
+		var vals = [],
+			durations = [60, 60, 24, 365, 0],
+			names = ['s', 'm', 'h', 'd', 'y'],
+			value, duration;
+
+		for (var item = 0; item < durations.length; item++){
+			if (item && !delta) break;
+			value = delta;
+			if ((duration = durations[item])){
+				value = (delta % duration);
+				delta = (delta / duration).floor();
+			}
+			vals.unshift(value + (names[item] || ''));
+		}
+
+		return vals.join(separator || ':');
+	}
+
+}).extend({
+
+	distanceOfTimeInWords: function(from, to){
+		return Date.getTimePhrase(((to - from) / 1000).toInt());
+	},
+
+	getTimePhrase: function(delta){
+		var suffix = (delta < 0) ? 'Until' : 'Ago';
+		if (delta < 0) delta *= -1;
+
+		var units = {
+			minute: 60,
+			hour: 60,
+			day: 24,
+			week: 7,
+			month: 52 / 12,
+			year: 12,
+			eon: Infinity
+		};
+
+		var msg = 'lessThanMinute';
+
+		for (var unit in units){
+			var interval = units[unit];
+			if (delta < 1.5 * interval){
+				if (delta > 0.75 * interval) msg = unit;
+				break;
+			}
+			delta /= interval;
+			msg = unit + 's';
+		}
+
+		delta = delta.round();
+		return Date.getMsg(msg + suffix, delta).substitute({delta: delta});
+	}
+
+}).defineParsers(
+
+	{
+		// "today", "tomorrow", "yesterday"
+		re: /^(?:tod|tom|yes)/i,
+		handler: function(bits){
+			var d = new Date().clearTime();
+			switch (bits[0]){
+				case 'tom': return d.increment();
+				case 'yes': return d.decrement();
+				default: return d;
+			}
+		}
+	},
+
+	{
+		// "next Wednesday", "last Thursday"
+		re: /^(next|last) ([a-z]+)$/i,
+		handler: function(bits){
+			var d = new Date().clearTime();
+			var day = d.getDay();
+			var newDay = Date.parseDay(bits[2], true);
+			var addDays = newDay - day;
+			if (newDay <= day) addDays += 7;
+			if (bits[1] == 'last') addDays -= 7;
+			return d.set('date', d.getDate() + addDays);
+		}
+	}
+
+).alias('timeAgoInWords', 'timeDiffInWords');
+
+
+/*
+---
+
+name: Locale.en-US.Number
+
+description: Number messages for US English.
+
+license: MIT-style license
+
+authors:
+  - Arian Stolwijk
+
+requires:
+  - /Locale
+
+provides: [Locale.en-US.Number]
+
+...
+*/
+
+Locale.define('en-US', 'Number', {
+
+	decimal: '.',
+	group: ',',
+
+/* 	Commented properties are the defaults for Number.format
+	decimals: 0,
+	precision: 0,
+	scientific: null,
+
+	prefix: null,
+	suffic: null,
+
+	// Negative/Currency/percentage will mixin Number
+	negative: {
+		prefix: '-'
+	},*/
+
+	currency: {
+//		decimals: 2,
+		prefix: '$ '
+	}/*,
+
+	percentage: {
+		decimals: 2,
+		suffix: '%'
+	}*/
+
+});
+
+
+
+
+/*
+---
+name: Number.Format
+description: Extends the Number Type object to include a number formatting method.
+license: MIT-style license
+authors: [Arian Stolwijk]
+requires: [Core/Number, Locale.en-US.Number]
+# Number.Extras is for compatibility
+provides: [Number.Format, Number.Extras]
+...
+*/
+
+
+Number.implement({
+
+	format: function(options){
+		// Thanks dojo and YUI for some inspiration
+		var value = this;
+		options = options ? Object.clone(options) : {};
+		var getOption = function(key){
+			if (options[key] != null) return options[key];
+			return Locale.get('Number.' + key);
+		};
+
+		var negative = value < 0,
+			decimal = getOption('decimal'),
+			precision = getOption('precision'),
+			group = getOption('group'),
+			decimals = getOption('decimals');
+
+		if (negative){
+			var negativeLocale = getOption('negative') || {};
+			if (negativeLocale.prefix == null && negativeLocale.suffix == null) negativeLocale.prefix = '-';
+			['prefix', 'suffix'].each(function(key){
+				if (negativeLocale[key]) options[key] = getOption(key) + negativeLocale[key];
+			});
+
+			value = -value;
+		}
+
+		var prefix = getOption('prefix'),
+			suffix = getOption('suffix');
+
+		if (decimals !== '' && decimals >= 0 && decimals <= 20) value = value.toFixed(decimals);
+		if (precision >= 1 && precision <= 21) value = (+value).toPrecision(precision);
+
+		value += '';
+		var index;
+		if (getOption('scientific') === false && value.indexOf('e') > -1){
+			var match = value.split('e'),
+				zeros = +match[1];
+			value = match[0].replace('.', '');
+
+			if (zeros < 0){
+				zeros = -zeros - 1;
+				index = match[0].indexOf('.');
+				if (index > -1) zeros -= index - 1;
+				while (zeros--) value = '0' + value;
+				value = '0.' + value;
+			} else {
+				index = match[0].lastIndexOf('.');
+				if (index > -1) zeros -= match[0].length - index - 1;
+				while (zeros--) value += '0';
+			}
+		}
+
+		if (decimal != '.') value = value.replace('.', decimal);
+
+		if (group){
+			index = value.lastIndexOf(decimal);
+			index = (index > -1) ? index : value.length;
+			var newOutput = value.substring(index),
+				i = index;
+
+			while (i--){
+				if ((index - i - 1) % 3 == 0 && i != (index - 1)) newOutput = group + newOutput;
+				newOutput = value.charAt(i) + newOutput;
+			}
+
+			value = newOutput;
+		}
+
+		if (prefix) value = prefix + value;
+		if (suffix) value += suffix;
+
+		return value;
+	},
+
+	formatCurrency: function(decimals){
+		var locale = Locale.get('Number.currency') || {};
+		if (locale.scientific == null) locale.scientific = false;
+		locale.decimals = decimals != null ? decimals
+			: (locale.decimals == null ? 2 : locale.decimals);
+
+		return this.format(locale);
+	},
+
+	formatPercentage: function(decimals){
+		var locale = Locale.get('Number.percentage') || {};
+		if (locale.suffix == null) locale.suffix = '%';
+		locale.decimals = decimals != null ? decimals
+			: (locale.decimals == null ? 2 : locale.decimals);
+
+		return this.format(locale);
+	}
+
+});
+
+
 /*
 ---
 
@@ -1190,7 +1759,493 @@ String.implement({
 })();
 
 
-// Begin: Source/Element/Element.Forms.js
+/*
+---
+
+script: String.QueryString.js
+
+name: String.QueryString
+
+description: Methods for dealing with URI query strings.
+
+license: MIT-style license
+
+authors:
+  - Sebastian Markbåge
+  - Aaron Newton
+  - Lennart Pilon
+  - Valerio Proietti
+
+requires:
+  - Core/Array
+  - Core/String
+  - /MooTools.More
+
+provides: [String.QueryString]
+
+...
+*/
+
+String.implement({
+
+	parseQueryString: function(decodeKeys, decodeValues){
+		if (decodeKeys == null) decodeKeys = true;
+		if (decodeValues == null) decodeValues = true;
+
+		var vars = this.split(/[&;]/),
+			object = {};
+		if (!vars.length) return object;
+
+		vars.each(function(val){
+			var index = val.indexOf('=') + 1,
+				value = index ? val.substr(index) : '',
+				keys = index ? val.substr(0, index - 1).match(/([^\]\[]+|(\B)(?=\]))/g) : [val],
+				obj = object;
+			if (!keys) return;
+			if (decodeValues) value = decodeURIComponent(value);
+			keys.each(function(key, i){
+				if (decodeKeys) key = decodeURIComponent(key);
+				var current = obj[key];
+
+				if (i < keys.length - 1) obj = obj[key] = current || {};
+				else if (typeOf(current) == 'array') current.push(value);
+				else obj[key] = current != null ? [current, value] : value;
+			});
+		});
+
+		return object;
+	},
+
+	cleanQueryString: function(method){
+		return this.split('&').filter(function(val){
+			var index = val.indexOf('='),
+				key = index < 0 ? '' : val.substr(0, index),
+				value = val.substr(index + 1);
+
+			return method ? method.call(null, key, value) : (value || value === 0);
+		}).join('&');
+	}
+
+});
+
+
+/*
+---
+
+script: URI.js
+
+name: URI
+
+description: Provides methods useful in managing the window location and uris.
+
+license: MIT-style license
+
+authors:
+  - Sebastian Markbåge
+  - Aaron Newton
+
+requires:
+  - Core/Object
+  - Core/Class
+  - Core/Class.Extras
+  - Core/Element
+  - /String.QueryString
+
+provides: [URI]
+
+...
+*/
+
+(function(){
+
+var toString = function(){
+	return this.get('value');
+};
+
+var URI = this.URI = new Class({
+
+	Implements: Options,
+
+	options: {
+		/*base: false*/
+	},
+
+	regex: /^(?:(\w+):)?(?:\/\/(?:(?:([^:@\/]*):?([^:@\/]*))?@)?([^:\/?#]*)(?::(\d*))?)?(\.\.?$|(?:[^?#\/]*\/)*)([^?#]*)(?:\?([^#]*))?(?:#(.*))?/,
+	parts: ['scheme', 'user', 'password', 'host', 'port', 'directory', 'file', 'query', 'fragment'],
+	schemes: {http: 80, https: 443, ftp: 21, rtsp: 554, mms: 1755, file: 0},
+
+	initialize: function(uri, options){
+		this.setOptions(options);
+		var base = this.options.base || URI.base;
+		if (!uri) uri = base;
+
+		if (uri && uri.parsed) this.parsed = Object.clone(uri.parsed);
+		else this.set('value', uri.href || uri.toString(), base ? new URI(base) : false);
+	},
+
+	parse: function(value, base){
+		var bits = value.match(this.regex);
+		if (!bits) return false;
+		bits.shift();
+		return this.merge(bits.associate(this.parts), base);
+	},
+
+	merge: function(bits, base){
+		if ((!bits || !bits.scheme) && (!base || !base.scheme)) return false;
+		if (base){
+			this.parts.every(function(part){
+				if (bits[part]) return false;
+				bits[part] = base[part] || '';
+				return true;
+			});
+		}
+		bits.port = bits.port || this.schemes[bits.scheme.toLowerCase()];
+		bits.directory = bits.directory ? this.parseDirectory(bits.directory, base ? base.directory : '') : '/';
+		return bits;
+	},
+
+	parseDirectory: function(directory, baseDirectory){
+		directory = (directory.substr(0, 1) == '/' ? '' : (baseDirectory || '/')) + directory;
+		if (!directory.test(URI.regs.directoryDot)) return directory;
+		var result = [];
+		directory.replace(URI.regs.endSlash, '').split('/').each(function(dir){
+			if (dir == '..' && result.length > 0) result.pop();
+			else if (dir != '.') result.push(dir);
+		});
+		return result.join('/') + '/';
+	},
+
+	combine: function(bits){
+		return bits.value || bits.scheme + '://' +
+			(bits.user ? bits.user + (bits.password ? ':' + bits.password : '') + '@' : '') +
+			(bits.host || '') + (bits.port && bits.port != this.schemes[bits.scheme] ? ':' + bits.port : '') +
+			(bits.directory || '/') + (bits.file || '') +
+			(bits.query ? '?' + bits.query : '') +
+			(bits.fragment ? '#' + bits.fragment : '');
+	},
+
+	set: function(part, value, base){
+		if (part == 'value'){
+			var scheme = value.match(URI.regs.scheme);
+			if (scheme) scheme = scheme[1];
+			if (scheme && this.schemes[scheme.toLowerCase()] == null) this.parsed = { scheme: scheme, value: value };
+			else this.parsed = this.parse(value, (base || this).parsed) || (scheme ? { scheme: scheme, value: value } : { value: value });
+		} else if (part == 'data'){
+			this.setData(value);
+		} else {
+			this.parsed[part] = value;
+		}
+		return this;
+	},
+
+	get: function(part, base){
+		switch (part){
+			case 'value': return this.combine(this.parsed, base ? base.parsed : false);
+			case 'data' : return this.getData();
+		}
+		return this.parsed[part] || '';
+	},
+
+	go: function(){
+		document.location.href = this.toString();
+	},
+
+	toURI: function(){
+		return this;
+	},
+
+	getData: function(key, part){
+		var qs = this.get(part || 'query');
+		if (!(qs || qs === 0)) return key ? null : {};
+		var obj = qs.parseQueryString();
+		return key ? obj[key] : obj;
+	},
+
+	setData: function(values, merge, part){
+		if (typeof values == 'string'){
+			var data = this.getData();
+			data[arguments[0]] = arguments[1];
+			values = data;
+		} else if (merge){
+			values = Object.merge(this.getData(), values);
+		}
+		return this.set(part || 'query', Object.toQueryString(values));
+	},
+
+	clearData: function(part){
+		return this.set(part || 'query', '');
+	},
+
+	toString: toString,
+	valueOf: toString
+
+});
+
+URI.regs = {
+	endSlash: /\/$/,
+	scheme: /^(\w+):/,
+	directoryDot: /\.\/|\.$/
+};
+
+URI.base = new URI(Array.from(document.getElements('base[href]', true)).getLast(), {base: document.location});
+
+String.implement({
+
+	toURI: function(options){
+		return new URI(this, options);
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+script: URI.Relative.js
+
+name: URI.Relative
+
+description: Extends the URI class to add methods for computing relative and absolute urls.
+
+license: MIT-style license
+
+authors:
+  - Sebastian Markbåge
+
+
+requires:
+  - /Class.refactor
+  - /URI
+
+provides: [URI.Relative]
+
+...
+*/
+
+URI = Class.refactor(URI, {
+
+	combine: function(bits, base){
+		if (!base || bits.scheme != base.scheme || bits.host != base.host || bits.port != base.port)
+			return this.previous.apply(this, arguments);
+		var end = bits.file + (bits.query ? '?' + bits.query : '') + (bits.fragment ? '#' + bits.fragment : '');
+
+		if (!base.directory) return (bits.directory || (bits.file ? '' : './')) + end;
+
+		var baseDir = base.directory.split('/'),
+			relDir = bits.directory.split('/'),
+			path = '',
+			offset;
+
+		var i = 0;
+		for (offset = 0; offset < baseDir.length && offset < relDir.length && baseDir[offset] == relDir[offset]; offset++);
+		for (i = 0; i < baseDir.length - offset - 1; i++) path += '../';
+		for (i = offset; i < relDir.length - 1; i++) path += relDir[i] + '/';
+
+		return (path || (bits.file ? '' : './')) + end;
+	},
+
+	toAbsolute: function(base){
+		base = new URI(base);
+		if (base) base.set('directory', '').set('file', '');
+		return this.toRelative(base);
+	},
+
+	toRelative: function(base){
+		return this.get('value', new URI(base));
+	}
+
+});
+
+
+/*
+---
+
+name: Hash
+
+description: Contains Hash Prototypes. Provides a means for overcoming the JavaScript practical impossibility of extending native Objects.
+
+license: MIT-style license.
+
+requires:
+  - Core/Object
+  - /MooTools.More
+
+provides: [Hash]
+
+...
+*/
+
+(function(){
+
+if (this.Hash) return;
+
+var Hash = this.Hash = new Type('Hash', function(object){
+	if (typeOf(object) == 'hash') object = Object.clone(object.getClean());
+	for (var key in object) this[key] = object[key];
+	return this;
+});
+
+this.$H = function(object){
+	return new Hash(object);
+};
+
+Hash.implement({
+
+	forEach: function(fn, bind){
+		Object.forEach(this, fn, bind);
+	},
+
+	getClean: function(){
+		var clean = {};
+		for (var key in this){
+			if (this.hasOwnProperty(key)) clean[key] = this[key];
+		}
+		return clean;
+	},
+
+	getLength: function(){
+		var length = 0;
+		for (var key in this){
+			if (this.hasOwnProperty(key)) length++;
+		}
+		return length;
+	}
+
+});
+
+Hash.alias('each', 'forEach');
+
+Hash.implement({
+
+	has: Object.prototype.hasOwnProperty,
+
+	keyOf: function(value){
+		return Object.keyOf(this, value);
+	},
+
+	hasValue: function(value){
+		return Object.contains(this, value);
+	},
+
+	extend: function(properties){
+		Hash.each(properties || {}, function(value, key){
+			Hash.set(this, key, value);
+		}, this);
+		return this;
+	},
+
+	combine: function(properties){
+		Hash.each(properties || {}, function(value, key){
+			Hash.include(this, key, value);
+		}, this);
+		return this;
+	},
+
+	erase: function(key){
+		if (this.hasOwnProperty(key)) delete this[key];
+		return this;
+	},
+
+	get: function(key){
+		return (this.hasOwnProperty(key)) ? this[key] : null;
+	},
+
+	set: function(key, value){
+		if (!this[key] || this.hasOwnProperty(key)) this[key] = value;
+		return this;
+	},
+
+	empty: function(){
+		Hash.each(this, function(value, key){
+			delete this[key];
+		}, this);
+		return this;
+	},
+
+	include: function(key, value){
+		if (this[key] == undefined) this[key] = value;
+		return this;
+	},
+
+	map: function(fn, bind){
+		return new Hash(Object.map(this, fn, bind));
+	},
+
+	filter: function(fn, bind){
+		return new Hash(Object.filter(this, fn, bind));
+	},
+
+	every: function(fn, bind){
+		return Object.every(this, fn, bind);
+	},
+
+	some: function(fn, bind){
+		return Object.some(this, fn, bind);
+	},
+
+	getKeys: function(){
+		return Object.keys(this);
+	},
+
+	getValues: function(){
+		return Object.values(this);
+	},
+
+	toQueryString: function(base){
+		return Object.toQueryString(this, base);
+	}
+
+});
+
+Hash.alias({indexOf: 'keyOf', contains: 'hasValue'});
+
+
+})();
+
+
+
+/*
+---
+
+script: Hash.Extras.js
+
+name: Hash.Extras
+
+description: Extends the Hash Type to include getFromPath which allows a path notation to child elements.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - /Hash
+  - /Object.Extras
+
+provides: [Hash.Extras]
+
+...
+*/
+
+Hash.implement({
+
+	getFromPath: function(notation){
+		return Object.getFromPath(this, notation);
+	},
+
+	cleanValues: function(method){
+		return new Hash(Object.cleanValues(this, method));
+	},
+
+	run: function(){
+		Object.run(arguments);
+	}
+
+});
+
+
 /*
 ---
 
@@ -1333,13 +2388,14 @@ Element.implement({
 });
 
 
-// Begin: Source/Locale/Locale.en-US.Form.Validator.js
 /*
 ---
 
-name: Locale.en-US.Form.Validator
+script: Elements.From.js
 
-description: Form Validator messages for English.
+name: Elements.From
+
+description: Returns a collection of elements from a string of html.
 
 license: MIT-style license
 
@@ -1347,52 +2403,690 @@ authors:
   - Aaron Newton
 
 requires:
-  - /Locale
+  - Core/String
+  - Core/Element
+  - /MooTools.More
 
-provides: [Locale.en-US.Form.Validator]
+provides: [Elements.from, Elements.From]
 
 ...
 */
 
-Locale.define('en-US', 'FormValidator', {
+Elements.from = function(text, excludeScripts){
+	if (excludeScripts || excludeScripts == null) text = text.stripScripts();
 
-	required: 'This field is required.',
-	length: 'Please enter {length} characters (you entered {elLength} characters)',
-	minLength: 'Please enter at least {minLength} characters (you entered {length} characters).',
-	maxLength: 'Please enter no more than {maxLength} characters (you entered {length} characters).',
-	integer: 'Please enter an integer in this field. Numbers with decimals (e.g. 1.25) are not permitted.',
-	numeric: 'Please enter only numeric values in this field (i.e. "1" or "1.1" or "-1" or "-1.1").',
-	digits: 'Please use numbers and punctuation only in this field (for example, a phone number with dashes or dots is permitted).',
-	alpha: 'Please use only letters (a-z) within this field. No spaces or other characters are allowed.',
-	alphanum: 'Please use only letters (a-z) or numbers (0-9) in this field. No spaces or other characters are allowed.',
-	dateSuchAs: 'Please enter a valid date such as {date}',
-	dateInFormatMDY: 'Please enter a valid date such as MM/DD/YYYY (i.e. "12/31/1999")',
-	email: 'Please enter a valid email address. For example "fred@domain.com".',
-	url: 'Please enter a valid URL such as http://www.example.com.',
-	currencyDollar: 'Please enter a valid $ amount. For example $100.00 .',
-	oneRequired: 'Please enter something for at least one of these inputs.',
-	errorPrefix: 'Error: ',
-	warningPrefix: 'Warning: ',
+	var container, match = text.match(/^\s*<(t[dhr]|tbody|tfoot|thead)/i);
 
-	// Form.Validator.Extras
-	noSpace: 'There can be no spaces in this input.',
-	reqChkByNode: 'No items are selected.',
-	requiredChk: 'This field is required.',
-	reqChkByName: 'Please select a {label}.',
-	match: 'This field needs to match the {matchName} field',
-	startDate: 'the start date',
-	endDate: 'the end date',
-	currendDate: 'the current date',
-	afterDate: 'The date should be the same or after {label}.',
-	beforeDate: 'The date should be the same or before {label}.',
-	startMonth: 'Please select a start month',
-	sameMonth: 'These two dates must be in the same month - you must change one or the other.',
-	creditcard: 'The credit card number entered is invalid. Please check the number and try again. {length} digits entered.'
+	if (match){
+		container = new Element('table');
+		var tag = match[1].toLowerCase();
+		if (['td', 'th', 'tr'].contains(tag)){
+			container = new Element('tbody').inject(container);
+			if (tag != 'tr') container = new Element('tr').inject(container);
+		}
+	}
+
+	return (container || new Element('div')).set('html', text).getChildren();
+};
+
+
+/*
+---
+
+name: Element.Event.Pseudos
+
+description: Adds the functionality to add pseudo events for Elements
+
+license: MIT-style license
+
+authors:
+  - Arian Stolwijk
+
+requires: [Core/Element.Event, Core/Element.Delegation, Events.Pseudos]
+
+provides: [Element.Event.Pseudos, Element.Delegation]
+
+...
+*/
+
+(function(){
+
+var pseudos = {relay: false},
+	copyFromEvents = ['once', 'throttle', 'pause'],
+	count = copyFromEvents.length;
+
+while (count--) pseudos[copyFromEvents[count]] = Events.lookupPseudo(copyFromEvents[count]);
+
+DOMEvent.definePseudo = function(key, listener){
+	pseudos[key] = listener;
+	return this;
+};
+
+var proto = Element.prototype;
+[Element, Window, Document].invoke('implement', Events.Pseudos(pseudos, proto.addEvent, proto.removeEvent));
+
+})();
+
+
+/*
+---
+
+name: Element.Event.Pseudos.Keys
+
+description: Adds functionality fire events if certain keycombinations are pressed
+
+license: MIT-style license
+
+authors:
+  - Arian Stolwijk
+
+requires: [Element.Event.Pseudos]
+
+provides: [Element.Event.Pseudos.Keys]
+
+...
+*/
+
+(function(){
+
+var keysStoreKey = '$moo:keys-pressed',
+	keysKeyupStoreKey = '$moo:keys-keyup';
+
+
+DOMEvent.definePseudo('keys', function(split, fn, args){
+
+	var event = args[0],
+		keys = [],
+		pressed = this.retrieve(keysStoreKey, []);
+
+	keys.append(split.value.replace('++', function(){
+		keys.push('+'); // shift++ and shift+++a
+		return '';
+	}).split('+'));
+
+	pressed.include(event.key);
+
+	if (keys.every(function(key){
+		return pressed.contains(key);
+	})) fn.apply(this, args);
+
+	this.store(keysStoreKey, pressed);
+
+	if (!this.retrieve(keysKeyupStoreKey)){
+		var keyup = function(event){
+			(function(){
+				pressed = this.retrieve(keysStoreKey, []).erase(event.key);
+				this.store(keysStoreKey, pressed);
+			}).delay(0, this); // Fix for IE
+		};
+		this.store(keysKeyupStoreKey, keyup).addEvent('keyup', keyup);
+	}
 
 });
 
+DOMEvent.defineKeys({
+	'16': 'shift',
+	'17': 'control',
+	'18': 'alt',
+	'20': 'capslock',
+	'33': 'pageup',
+	'34': 'pagedown',
+	'35': 'end',
+	'36': 'home',
+	'144': 'numlock',
+	'145': 'scrolllock',
+	'186': ';',
+	'187': '=',
+	'188': ',',
+	'190': '.',
+	'191': '/',
+	'192': '`',
+	'219': '[',
+	'220': '\\',
+	'221': ']',
+	'222': "'",
+	'107': '+'
+}).defineKey(Browser.firefox ? 109 : 189, '-');
 
-// Begin: Source/Element/Element.Shortcuts.js
+})();
+
+
+/*
+---
+
+script: Element.Measure.js
+
+name: Element.Measure
+
+description: Extends the Element native object to include methods useful in measuring dimensions.
+
+credits: "Element.measure / .expose methods by Daniel Steigerwald License: MIT-style license. Copyright: Copyright (c) 2008 Daniel Steigerwald, daniel.steigerwald.cz"
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Element.Style
+  - Core/Element.Dimensions
+  - /MooTools.More
+
+provides: [Element.Measure]
+
+...
+*/
+
+(function(){
+
+var getStylesList = function(styles, planes){
+	var list = [];
+	Object.each(planes, function(directions){
+		Object.each(directions, function(edge){
+			styles.each(function(style){
+				list.push(style + '-' + edge + (style == 'border' ? '-width' : ''));
+			});
+		});
+	});
+	return list;
+};
+
+var calculateEdgeSize = function(edge, styles){
+	var total = 0;
+	Object.each(styles, function(value, style){
+		if (style.test(edge)) total = total + value.toInt();
+	});
+	return total;
+};
+
+var isVisible = function(el){
+	return !!(!el || el.offsetHeight || el.offsetWidth);
+};
+
+
+Element.implement({
+
+	measure: function(fn){
+		if (isVisible(this)) return fn.call(this);
+		var parent = this.getParent(),
+			toMeasure = [];
+		while (!isVisible(parent) && parent != document.body){
+			toMeasure.push(parent.expose());
+			parent = parent.getParent();
+		}
+		var restore = this.expose(),
+			result = fn.call(this);
+		restore();
+		toMeasure.each(function(restore){
+			restore();
+		});
+		return result;
+	},
+
+	expose: function(){
+		if (this.getStyle('display') != 'none') return function(){};
+		var before = this.style.cssText;
+		this.setStyles({
+			display: 'block',
+			position: 'absolute',
+			visibility: 'hidden'
+		});
+		return function(){
+			this.style.cssText = before;
+		}.bind(this);
+	},
+
+	getDimensions: function(options){
+		options = Object.merge({computeSize: false}, options);
+		var dim = {x: 0, y: 0};
+
+		var getSize = function(el, options){
+			return (options.computeSize) ? el.getComputedSize(options) : el.getSize();
+		};
+
+		var parent = this.getParent('body');
+
+		if (parent && this.getStyle('display') == 'none'){
+			dim = this.measure(function(){
+				return getSize(this, options);
+			});
+		} else if (parent){
+			try { //safari sometimes crashes here, so catch it
+				dim = getSize(this, options);
+			}catch(e){}
+		}
+
+		return Object.append(dim, (dim.x || dim.x === 0) ? {
+				width: dim.x,
+				height: dim.y
+			} : {
+				x: dim.width,
+				y: dim.height
+			}
+		);
+	},
+
+	getComputedSize: function(options){
+		
+
+		options = Object.merge({
+			styles: ['padding','border'],
+			planes: {
+				height: ['top','bottom'],
+				width: ['left','right']
+			},
+			mode: 'both'
+		}, options);
+
+		var styles = {},
+			size = {width: 0, height: 0},
+			dimensions;
+
+		if (options.mode == 'vertical'){
+			delete size.width;
+			delete options.planes.width;
+		} else if (options.mode == 'horizontal'){
+			delete size.height;
+			delete options.planes.height;
+		}
+
+		getStylesList(options.styles, options.planes).each(function(style){
+			styles[style] = this.getStyle(style).toInt();
+		}, this);
+
+		Object.each(options.planes, function(edges, plane){
+
+			var capitalized = plane.capitalize(),
+				style = this.getStyle(plane);
+
+			if (style == 'auto' && !dimensions) dimensions = this.getDimensions();
+
+			style = styles[plane] = (style == 'auto') ? dimensions[plane] : style.toInt();
+			size['total' + capitalized] = style;
+
+			edges.each(function(edge){
+				var edgesize = calculateEdgeSize(edge, styles);
+				size['computed' + edge.capitalize()] = edgesize;
+				size['total' + capitalized] += edgesize;
+			});
+
+		}, this);
+
+		return Object.append(size, styles);
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+script: Element.Pin.js
+
+name: Element.Pin
+
+description: Extends the Element native object to include the pin method useful for fixed positioning for elements.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Element.Event
+  - Core/Element.Dimensions
+  - Core/Element.Style
+  - /MooTools.More
+
+provides: [Element.Pin]
+
+...
+*/
+
+(function(){
+	var supportsPositionFixed = false,
+		supportTested = false;
+
+	var testPositionFixed = function(){
+		var test = new Element('div').setStyles({
+			position: 'fixed',
+			top: 0,
+			right: 0
+		}).inject(document.body);
+		supportsPositionFixed = (test.offsetTop === 0);
+		test.dispose();
+		supportTested = true;
+	};
+
+	Element.implement({
+
+		pin: function(enable, forceScroll){
+			if (!supportTested) testPositionFixed();
+			if (this.getStyle('display') == 'none') return this;
+
+			var pinnedPosition,
+				scroll = window.getScroll(),
+				parent,
+				scrollFixer;
+
+			if (enable !== false){
+				pinnedPosition = this.getPosition(supportsPositionFixed ? document.body : this.getOffsetParent());
+				if (!this.retrieve('pin:_pinned')){
+					var currentPosition = {
+						top: pinnedPosition.y - scroll.y,
+						left: pinnedPosition.x - scroll.x
+					};
+
+					if (supportsPositionFixed && !forceScroll){
+						this.setStyle('position', 'fixed').setStyles(currentPosition);
+					} else {
+
+						parent = this.getOffsetParent();
+						var position = this.getPosition(parent),
+							styles = this.getStyles('left', 'top');
+
+						if (parent && styles.left == 'auto' || styles.top == 'auto') this.setPosition(position);
+						if (this.getStyle('position') == 'static') this.setStyle('position', 'absolute');
+
+						position = {
+							x: styles.left.toInt() - scroll.x,
+							y: styles.top.toInt() - scroll.y
+						};
+
+						scrollFixer = function(){
+							if (!this.retrieve('pin:_pinned')) return;
+							var scroll = window.getScroll();
+							this.setStyles({
+								left: position.x + scroll.x,
+								top: position.y + scroll.y
+							});
+						}.bind(this);
+
+						this.store('pin:_scrollFixer', scrollFixer);
+						window.addEvent('scroll', scrollFixer);
+					}
+					this.store('pin:_pinned', true);
+				}
+
+			} else {
+				if (!this.retrieve('pin:_pinned')) return this;
+
+				parent = this.getParent();
+				var offsetParent = (parent.getComputedStyle('position') != 'static' ? parent : parent.getOffsetParent());
+
+				pinnedPosition = this.getPosition(offsetParent);
+
+				this.store('pin:_pinned', false);
+				scrollFixer = this.retrieve('pin:_scrollFixer');
+				if (!scrollFixer){
+					this.setStyles({
+						position: 'absolute',
+						top: pinnedPosition.y + scroll.y,
+						left: pinnedPosition.x + scroll.x
+					});
+				} else {
+					this.store('pin:_scrollFixer', null);
+					window.removeEvent('scroll', scrollFixer);
+				}
+				this.removeClass('isPinned');
+			}
+			return this;
+		},
+
+		unpin: function(){
+			return this.pin(false);
+		},
+
+		togglePin: function(){
+			return this.pin(!this.retrieve('pin:_pinned'));
+		}
+
+	});
+
+
+
+})();
+
+
+/*
+---
+
+script: Element.Position.js
+
+name: Element.Position
+
+description: Extends the Element native object to include methods useful positioning elements relative to others.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+  - Jacob Thornton
+
+requires:
+  - Core/Options
+  - Core/Element.Dimensions
+  - Element.Measure
+
+provides: [Element.Position]
+
+...
+*/
+
+(function(original){
+
+var local = Element.Position = {
+
+	options: {/*
+		edge: false,
+		returnPos: false,
+		minimum: {x: 0, y: 0},
+		maximum: {x: 0, y: 0},
+		relFixedPosition: false,
+		ignoreMargins: false,
+		ignoreScroll: false,
+		allowNegative: false,*/
+		relativeTo: document.body,
+		position: {
+			x: 'center', //left, center, right
+			y: 'center' //top, center, bottom
+		},
+		offset: {x: 0, y: 0}
+	},
+
+	getOptions: function(element, options){
+		options = Object.merge({}, local.options, options);
+		local.setPositionOption(options);
+		local.setEdgeOption(options);
+		local.setOffsetOption(element, options);
+		local.setDimensionsOption(element, options);
+		return options;
+	},
+
+	setPositionOption: function(options){
+		options.position = local.getCoordinateFromValue(options.position);
+	},
+
+	setEdgeOption: function(options){
+		var edgeOption = local.getCoordinateFromValue(options.edge);
+		options.edge = edgeOption ? edgeOption :
+			(options.position.x == 'center' && options.position.y == 'center') ? {x: 'center', y: 'center'} :
+			{x: 'left', y: 'top'};
+	},
+
+	setOffsetOption: function(element, options){
+		var parentOffset = {x: 0, y: 0},
+			offsetParent = element.measure(function(){
+				return document.id(this.getOffsetParent());
+			}),
+			parentScroll = offsetParent.getScroll();
+
+		if (!offsetParent || offsetParent == element.getDocument().body) return;
+		parentOffset = offsetParent.measure(function(){
+			var position = this.getPosition();
+			if (this.getStyle('position') == 'fixed'){
+				var scroll = window.getScroll();
+				position.x += scroll.x;
+				position.y += scroll.y;
+			}
+			return position;
+		});
+
+		options.offset = {
+			parentPositioned: offsetParent != document.id(options.relativeTo),
+			x: options.offset.x - parentOffset.x + parentScroll.x,
+			y: options.offset.y - parentOffset.y + parentScroll.y
+		};
+	},
+
+	setDimensionsOption: function(element, options){
+		options.dimensions = element.getDimensions({
+			computeSize: true,
+			styles: ['padding', 'border', 'margin']
+		});
+	},
+
+	getPosition: function(element, options){
+		var position = {};
+		options = local.getOptions(element, options);
+		var relativeTo = document.id(options.relativeTo) || document.body;
+
+		local.setPositionCoordinates(options, position, relativeTo);
+		if (options.edge) local.toEdge(position, options);
+
+		var offset = options.offset;
+		position.left = ((position.x >= 0 || offset.parentPositioned || options.allowNegative) ? position.x : 0).toInt();
+		position.top = ((position.y >= 0 || offset.parentPositioned || options.allowNegative) ? position.y : 0).toInt();
+
+		local.toMinMax(position, options);
+
+		if (options.relFixedPosition || relativeTo.getStyle('position') == 'fixed') local.toRelFixedPosition(relativeTo, position);
+		if (options.ignoreScroll) local.toIgnoreScroll(relativeTo, position);
+		if (options.ignoreMargins) local.toIgnoreMargins(position, options);
+
+		position.left = Math.ceil(position.left);
+		position.top = Math.ceil(position.top);
+		delete position.x;
+		delete position.y;
+
+		return position;
+	},
+
+	setPositionCoordinates: function(options, position, relativeTo){
+		var offsetY = options.offset.y,
+			offsetX = options.offset.x,
+			calc = (relativeTo == document.body) ? window.getScroll() : relativeTo.getPosition(),
+			top = calc.y,
+			left = calc.x,
+			winSize = window.getSize();
+
+		switch(options.position.x){
+			case 'left': position.x = left + offsetX; break;
+			case 'right': position.x = left + offsetX + relativeTo.offsetWidth; break;
+			default: position.x = left + ((relativeTo == document.body ? winSize.x : relativeTo.offsetWidth) / 2) + offsetX; break;
+		}
+
+		switch(options.position.y){
+			case 'top': position.y = top + offsetY; break;
+			case 'bottom': position.y = top + offsetY + relativeTo.offsetHeight; break;
+			default: position.y = top + ((relativeTo == document.body ? winSize.y : relativeTo.offsetHeight) / 2) + offsetY; break;
+		}
+	},
+
+	toMinMax: function(position, options){
+		var xy = {left: 'x', top: 'y'}, value;
+		['minimum', 'maximum'].each(function(minmax){
+			['left', 'top'].each(function(lr){
+				value = options[minmax] ? options[minmax][xy[lr]] : null;
+				if (value != null && ((minmax == 'minimum') ? position[lr] < value : position[lr] > value)) position[lr] = value;
+			});
+		});
+	},
+
+	toRelFixedPosition: function(relativeTo, position){
+		var winScroll = window.getScroll();
+		position.top += winScroll.y;
+		position.left += winScroll.x;
+	},
+
+	toIgnoreScroll: function(relativeTo, position){
+		var relScroll = relativeTo.getScroll();
+		position.top -= relScroll.y;
+		position.left -= relScroll.x;
+	},
+
+	toIgnoreMargins: function(position, options){
+		position.left += options.edge.x == 'right'
+			? options.dimensions['margin-right']
+			: (options.edge.x != 'center'
+				? -options.dimensions['margin-left']
+				: -options.dimensions['margin-left'] + ((options.dimensions['margin-right'] + options.dimensions['margin-left']) / 2));
+
+		position.top += options.edge.y == 'bottom'
+			? options.dimensions['margin-bottom']
+			: (options.edge.y != 'center'
+				? -options.dimensions['margin-top']
+				: -options.dimensions['margin-top'] + ((options.dimensions['margin-bottom'] + options.dimensions['margin-top']) / 2));
+	},
+
+	toEdge: function(position, options){
+		var edgeOffset = {},
+			dimensions = options.dimensions,
+			edge = options.edge;
+
+		switch(edge.x){
+			case 'left': edgeOffset.x = 0; break;
+			case 'right': edgeOffset.x = -dimensions.x - dimensions.computedRight - dimensions.computedLeft; break;
+			// center
+			default: edgeOffset.x = -(Math.round(dimensions.totalWidth / 2)); break;
+		}
+
+		switch(edge.y){
+			case 'top': edgeOffset.y = 0; break;
+			case 'bottom': edgeOffset.y = -dimensions.y - dimensions.computedTop - dimensions.computedBottom; break;
+			// center
+			default: edgeOffset.y = -(Math.round(dimensions.totalHeight / 2)); break;
+		}
+
+		position.x += edgeOffset.x;
+		position.y += edgeOffset.y;
+	},
+
+	getCoordinateFromValue: function(option){
+		if (typeOf(option) != 'string') return option;
+		option = option.toLowerCase();
+
+		return {
+			x: option.test('left') ? 'left'
+				: (option.test('right') ? 'right' : 'center'),
+			y: option.test(/upper|top/) ? 'top'
+				: (option.test('bottom') ? 'bottom' : 'center')
+		};
+	}
+
+};
+
+Element.implement({
+
+	position: function(options){
+		if (options && (options.x != null || options.y != null)){
+			return (original ? original.apply(this, arguments) : this);
+		}
+		var position = this.setStyle('position', 'absolute').calculatePosition(options);
+		return (options && options.returnPos) ? position : this.setStyles(position);
+	},
+
+	calculatePosition: function(options){
+		return local.getPosition(this, options);
+	}
+
+});
+
+})(Element.prototype.position);
+
+
 /*
 ---
 
@@ -1471,7 +3165,1159 @@ Document.implement({
 });
 
 
-// Begin: Source/Forms/Form.Validator.js
+/*
+---
+
+script: IframeShim.js
+
+name: IframeShim
+
+description: Defines IframeShim, a class for obscuring select lists and flash objects in IE.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Element.Event
+  - Core/Element.Style
+  - Core/Options
+  - Core/Events
+  - /Element.Position
+  - /Class.Occlude
+
+provides: [IframeShim]
+
+...
+*/
+
+var IframeShim = new Class({
+
+	Implements: [Options, Events, Class.Occlude],
+
+	options: {
+		className: 'iframeShim',
+		src: 'javascript:false;document.write("");',
+		display: false,
+		zIndex: null,
+		margin: 0,
+		offset: {x: 0, y: 0},
+		browsers: (Browser.ie6 || (Browser.firefox && Browser.version < 3 && Browser.Platform.mac))
+	},
+
+	property: 'IframeShim',
+
+	initialize: function(element, options){
+		this.element = document.id(element);
+		if (this.occlude()) return this.occluded;
+		this.setOptions(options);
+		this.makeShim();
+		return this;
+	},
+
+	makeShim: function(){
+		if (this.options.browsers){
+			var zIndex = this.element.getStyle('zIndex').toInt();
+
+			if (!zIndex){
+				zIndex = 1;
+				var pos = this.element.getStyle('position');
+				if (pos == 'static' || !pos) this.element.setStyle('position', 'relative');
+				this.element.setStyle('zIndex', zIndex);
+			}
+			zIndex = ((this.options.zIndex != null || this.options.zIndex === 0) && zIndex > this.options.zIndex) ? this.options.zIndex : zIndex - 1;
+			if (zIndex < 0) zIndex = 1;
+			this.shim = new Element('iframe', {
+				src: this.options.src,
+				scrolling: 'no',
+				frameborder: 0,
+				styles: {
+					zIndex: zIndex,
+					position: 'absolute',
+					border: 'none',
+					filter: 'progid:DXImageTransform.Microsoft.Alpha(style=0,opacity=0)'
+				},
+				'class': this.options.className
+			}).store('IframeShim', this);
+			var inject = (function(){
+				this.shim.inject(this.element, 'after');
+				this[this.options.display ? 'show' : 'hide']();
+				this.fireEvent('inject');
+			}).bind(this);
+			if (!IframeShim.ready) window.addEvent('load', inject);
+			else inject();
+		} else {
+			this.position = this.hide = this.show = this.dispose = Function.from(this);
+		}
+	},
+
+	position: function(){
+		if (!IframeShim.ready || !this.shim) return this;
+		var size = this.element.measure(function(){
+			return this.getSize();
+		});
+		if (this.options.margin != undefined){
+			size.x = size.x - (this.options.margin * 2);
+			size.y = size.y - (this.options.margin * 2);
+			this.options.offset.x += this.options.margin;
+			this.options.offset.y += this.options.margin;
+		}
+		this.shim.set({width: size.x, height: size.y}).position({
+			relativeTo: this.element,
+			offset: this.options.offset
+		});
+		return this;
+	},
+
+	hide: function(){
+		if (this.shim) this.shim.setStyle('display', 'none');
+		return this;
+	},
+
+	show: function(){
+		if (this.shim) this.shim.setStyle('display', 'block');
+		return this.position();
+	},
+
+	dispose: function(){
+		if (this.shim) this.shim.dispose();
+		return this;
+	},
+
+	destroy: function(){
+		if (this.shim) this.shim.destroy();
+		return this;
+	}
+
+});
+
+window.addEvent('load', function(){
+	IframeShim.ready = true;
+});
+
+
+/*
+---
+
+script: Mask.js
+
+name: Mask
+
+description: Creates a mask element to cover another.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Options
+  - Core/Events
+  - Core/Element.Event
+  - /Class.Binds
+  - /Element.Position
+  - /IframeShim
+
+provides: [Mask]
+
+...
+*/
+
+var Mask = new Class({
+
+	Implements: [Options, Events],
+
+	Binds: ['position'],
+
+	options: {/*
+		onShow: function(){},
+		onHide: function(){},
+		onDestroy: function(){},
+		onClick: function(event){},
+		inject: {
+			where: 'after',
+			target: null,
+		},
+		hideOnClick: false,
+		id: null,
+		destroyOnHide: false,*/
+		style: {},
+		'class': 'mask',
+		maskMargins: false,
+		useIframeShim: true,
+		iframeShimOptions: {}
+	},
+
+	initialize: function(target, options){
+		this.target = document.id(target) || document.id(document.body);
+		this.target.store('mask', this);
+		this.setOptions(options);
+		this.render();
+		this.inject();
+	},
+
+	render: function(){
+		this.element = new Element('div', {
+			'class': this.options['class'],
+			id: this.options.id || 'mask-' + String.uniqueID(),
+			styles: Object.merge({}, this.options.style, {
+				display: 'none'
+			}),
+			events: {
+				click: function(event){
+					this.fireEvent('click', event);
+					if (this.options.hideOnClick) this.hide();
+				}.bind(this)
+			}
+		});
+
+		this.hidden = true;
+	},
+
+	toElement: function(){
+		return this.element;
+	},
+
+	inject: function(target, where){
+		where = where || (this.options.inject ? this.options.inject.where : '') || this.target == document.body ? 'inside' : 'after';
+		target = target || (this.options.inject && this.options.inject.target) || this.target;
+
+		this.element.inject(target, where);
+
+		if (this.options.useIframeShim){
+			this.shim = new IframeShim(this.element, this.options.iframeShimOptions);
+
+			this.addEvents({
+				show: this.shim.show.bind(this.shim),
+				hide: this.shim.hide.bind(this.shim),
+				destroy: this.shim.destroy.bind(this.shim)
+			});
+		}
+	},
+
+	position: function(){
+		this.resize(this.options.width, this.options.height);
+
+		this.element.position({
+			relativeTo: this.target,
+			position: 'topLeft',
+			ignoreMargins: !this.options.maskMargins,
+			ignoreScroll: this.target == document.body
+		});
+
+		return this;
+	},
+
+	resize: function(x, y){
+		var opt = {
+			styles: ['padding', 'border']
+		};
+		if (this.options.maskMargins) opt.styles.push('margin');
+
+		var dim = this.target.getComputedSize(opt);
+		if (this.target == document.body){
+			this.element.setStyles({width: 0, height: 0});
+			var win = window.getScrollSize();
+			if (dim.totalHeight < win.y) dim.totalHeight = win.y;
+			if (dim.totalWidth < win.x) dim.totalWidth = win.x;
+		}
+		this.element.setStyles({
+			width: Array.pick([x, dim.totalWidth, dim.x]),
+			height: Array.pick([y, dim.totalHeight, dim.y])
+		});
+
+		return this;
+	},
+
+	show: function(){
+		if (!this.hidden) return this;
+
+		window.addEvent('resize', this.position);
+		this.position();
+		this.showMask.apply(this, arguments);
+
+		return this;
+	},
+
+	showMask: function(){
+		this.element.setStyle('display', 'block');
+		this.hidden = false;
+		this.fireEvent('show');
+	},
+
+	hide: function(){
+		if (this.hidden) return this;
+
+		window.removeEvent('resize', this.position);
+		this.hideMask.apply(this, arguments);
+		if (this.options.destroyOnHide) return this.destroy();
+
+		return this;
+	},
+
+	hideMask: function(){
+		this.element.setStyle('display', 'none');
+		this.hidden = true;
+		this.fireEvent('hide');
+	},
+
+	toggle: function(){
+		this[this.hidden ? 'show' : 'hide']();
+	},
+
+	destroy: function(){
+		this.hide();
+		this.element.destroy();
+		this.fireEvent('destroy');
+		this.target.eliminate('mask');
+	}
+
+});
+
+Element.Properties.mask = {
+
+	set: function(options){
+		var mask = this.retrieve('mask');
+		if (mask) mask.destroy();
+		return this.eliminate('mask').store('mask:options', options);
+	},
+
+	get: function(){
+		var mask = this.retrieve('mask');
+		if (!mask){
+			mask = new Mask(this, this.retrieve('mask:options'));
+			this.store('mask', mask);
+		}
+		return mask;
+	}
+
+};
+
+Element.implement({
+
+	mask: function(options){
+		if (options) this.set('mask', options);
+		this.get('mask').show();
+		return this;
+	},
+
+	unmask: function(){
+		this.get('mask').hide();
+		return this;
+	}
+
+});
+
+
+/*
+---
+
+script: Spinner.js
+
+name: Spinner
+
+description: Adds a semi-transparent overlay over a dom element with a spinnin ajax icon.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Fx.Tween
+  - Core/Request
+  - /Class.refactor
+  - /Mask
+
+provides: [Spinner]
+
+...
+*/
+
+var Spinner = new Class({
+
+	Extends: Mask,
+
+	Implements: Chain,
+
+	options: {/*
+		message: false,*/
+		'class': 'spinner',
+		containerPosition: {},
+		content: {
+			'class': 'spinner-content'
+		},
+		messageContainer: {
+			'class': 'spinner-msg'
+		},
+		img: {
+			'class': 'spinner-img'
+		},
+		fxOptions: {
+			link: 'chain'
+		}
+	},
+
+	initialize: function(target, options){
+		this.target = document.id(target) || document.id(document.body);
+		this.target.store('spinner', this);
+		this.setOptions(options);
+		this.render();
+		this.inject();
+
+		// Add this to events for when noFx is true; parent methods handle hide/show.
+		var deactivate = function(){ this.active = false; }.bind(this);
+		this.addEvents({
+			hide: deactivate,
+			show: deactivate
+		});
+	},
+
+	render: function(){
+		this.parent();
+
+		this.element.set('id', this.options.id || 'spinner-' + String.uniqueID());
+
+		this.content = document.id(this.options.content) || new Element('div', this.options.content);
+		this.content.inject(this.element);
+
+		if (this.options.message){
+			this.msg = document.id(this.options.message) || new Element('p', this.options.messageContainer).appendText(this.options.message);
+			this.msg.inject(this.content);
+		}
+
+		if (this.options.img){
+			this.img = document.id(this.options.img) || new Element('div', this.options.img);
+			this.img.inject(this.content);
+		}
+
+		this.element.set('tween', this.options.fxOptions);
+	},
+
+	show: function(noFx){
+		if (this.active) return this.chain(this.show.bind(this));
+		if (!this.hidden){
+			this.callChain.delay(20, this);
+			return this;
+		}
+
+		this.active = true;
+
+		return this.parent(noFx);
+	},
+
+	showMask: function(noFx){
+		var pos = function(){
+			this.content.position(Object.merge({
+				relativeTo: this.element
+			}, this.options.containerPosition));
+		}.bind(this);
+
+		if (noFx){
+			this.parent();
+			pos();
+		} else {
+			if (!this.options.style.opacity) this.options.style.opacity = this.element.getStyle('opacity').toFloat();
+			this.element.setStyles({
+				display: 'block',
+				opacity: 0
+			}).tween('opacity', this.options.style.opacity);
+			pos();
+			this.hidden = false;
+			this.fireEvent('show');
+			this.callChain();
+		}
+	},
+
+	hide: function(noFx){
+		if (this.active) return this.chain(this.hide.bind(this));
+		if (this.hidden){
+			this.callChain.delay(20, this);
+			return this;
+		}
+		this.active = true;
+		return this.parent(noFx);
+	},
+
+	hideMask: function(noFx){
+		if (noFx) return this.parent();
+		this.element.tween('opacity', 0).get('tween').chain(function(){
+			this.element.setStyle('display', 'none');
+			this.hidden = true;
+			this.fireEvent('hide');
+			this.callChain();
+		}.bind(this));
+	},
+
+	destroy: function(){
+		this.content.destroy();
+		this.parent();
+		this.target.eliminate('spinner');
+	}
+
+});
+
+Request = Class.refactor(Request, {
+
+	options: {
+		useSpinner: false,
+		spinnerOptions: {},
+		spinnerTarget: false
+	},
+
+	initialize: function(options){
+		this._send = this.send;
+		this.send = function(options){
+			var spinner = this.getSpinner();
+			if (spinner) spinner.chain(this._send.pass(options, this)).show();
+			else this._send(options);
+			return this;
+		};
+		this.previous(options);
+	},
+
+	getSpinner: function(){
+		if (!this.spinner){
+			var update = document.id(this.options.spinnerTarget) || document.id(this.options.update);
+			if (this.options.useSpinner && update){
+				update.set('spinner', this.options.spinnerOptions);
+				var spinner = this.spinner = update.get('spinner');
+				['complete', 'exception', 'cancel'].each(function(event){
+					this.addEvent(event, spinner.hide.bind(spinner));
+				}, this);
+			}
+		}
+		return this.spinner;
+	}
+
+});
+
+Element.Properties.spinner = {
+
+	set: function(options){
+		var spinner = this.retrieve('spinner');
+		if (spinner) spinner.destroy();
+		return this.eliminate('spinner').store('spinner:options', options);
+	},
+
+	get: function(){
+		var spinner = this.retrieve('spinner');
+		if (!spinner){
+			spinner = new Spinner(this, this.retrieve('spinner:options'));
+			this.store('spinner', spinner);
+		}
+		return spinner;
+	}
+
+};
+
+Element.implement({
+
+	spin: function(options){
+		if (options) this.set('spinner', options);
+		this.get('spinner').show();
+		return this;
+	},
+
+	unspin: function(){
+		this.get('spinner').hide();
+		return this;
+	}
+
+});
+
+
+/*
+---
+
+script: Form.Request.js
+
+name: Form.Request
+
+description: Handles the basic functionality of submitting a form and updating a dom element with the result.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Request.HTML
+  - /Class.Binds
+  - /Class.Occlude
+  - /Spinner
+  - /String.QueryString
+  - /Element.Delegation
+
+provides: [Form.Request]
+
+...
+*/
+
+if (!window.Form) window.Form = {};
+
+(function(){
+
+	Form.Request = new Class({
+
+		Binds: ['onSubmit', 'onFormValidate'],
+
+		Implements: [Options, Events, Class.Occlude],
+
+		options: {/*
+			onFailure: function(){},
+			onSuccess: function(){}, // aliased to onComplete,
+			onSend: function(){}*/
+			requestOptions: {
+				evalScripts: true,
+				useSpinner: true,
+				emulation: false,
+				link: 'ignore'
+			},
+			sendButtonClicked: true,
+			extraData: {},
+			resetForm: true
+		},
+
+		property: 'form.request',
+
+		initialize: function(form, target, options){
+			this.element = document.id(form);
+			if (this.occlude()) return this.occluded;
+			this.setOptions(options)
+				.setTarget(target)
+				.attach();
+		},
+
+		setTarget: function(target){
+			this.target = document.id(target);
+			if (!this.request){
+				this.makeRequest();
+			} else {
+				this.request.setOptions({
+					update: this.target
+				});
+			}
+			return this;
+		},
+
+		toElement: function(){
+			return this.element;
+		},
+
+		makeRequest: function(){
+			var self = this;
+			this.request = new Request.HTML(Object.merge({
+					update: this.target,
+					emulation: false,
+					spinnerTarget: this.element,
+					method: this.element.get('method') || 'post'
+			}, this.options.requestOptions)).addEvents({
+				success: function(tree, elements, html, javascript){
+					['complete', 'success'].each(function(evt){
+						self.fireEvent(evt, [self.target, tree, elements, html, javascript]);
+					});
+				},
+				failure: function(){
+					self.fireEvent('complete', arguments).fireEvent('failure', arguments);
+				},
+				exception: function(){
+					self.fireEvent('failure', arguments);
+				}
+			});
+			return this.attachReset();
+		},
+
+		attachReset: function(){
+			if (!this.options.resetForm) return this;
+			this.request.addEvent('success', function(){
+				Function.attempt(function(){
+					this.element.reset();
+				}.bind(this));
+				if (window.OverText) OverText.update();
+			}.bind(this));
+			return this;
+		},
+
+		attach: function(attach){
+			var method = (attach != false) ? 'addEvent' : 'removeEvent';
+			this.element[method]('click:relay(button, input[type=submit])', this.saveClickedButton.bind(this));
+
+			var fv = this.element.retrieve('validator');
+			if (fv) fv[method]('onFormValidate', this.onFormValidate);
+			else this.element[method]('submit', this.onSubmit);
+
+			return this;
+		},
+
+		detach: function(){
+			return this.attach(false);
+		},
+
+		//public method
+		enable: function(){
+			return this.attach();
+		},
+
+		//public method
+		disable: function(){
+			return this.detach();
+		},
+
+		onFormValidate: function(valid, form, event){
+			//if there's no event, then this wasn't a submit event
+			if (!event) return;
+			var fv = this.element.retrieve('validator');
+			if (valid || (fv && !fv.options.stopOnFailure)){
+				event.stop();
+				this.send();
+			}
+		},
+
+		onSubmit: function(event){
+			var fv = this.element.retrieve('validator');
+			if (fv){
+				//form validator was created after Form.Request
+				this.element.removeEvent('submit', this.onSubmit);
+				fv.addEvent('onFormValidate', this.onFormValidate);
+				this.element.validate();
+				return;
+			}
+			if (event) event.stop();
+			this.send();
+		},
+
+		saveClickedButton: function(event, target){
+			var targetName = target.get('name');
+			if (!targetName || !this.options.sendButtonClicked) return;
+			this.options.extraData[targetName] = target.get('value') || true;
+			this.clickedCleaner = function(){
+				delete this.options.extraData[targetName];
+				this.clickedCleaner = function(){};
+			}.bind(this);
+		},
+
+		clickedCleaner: function(){},
+
+		send: function(){
+			var str = this.element.toQueryString().trim(),
+				data = Object.toQueryString(this.options.extraData);
+
+			if (str) str += "&" + data;
+			else str = data;
+
+			this.fireEvent('send', [this.element, str.parseQueryString()]);
+			this.request.send({
+				data: str,
+				url: this.options.requestOptions.url || this.element.get('action')
+			});
+			this.clickedCleaner();
+			return this;
+		}
+
+	});
+
+	Element.implement('formUpdate', function(update, options){
+		var fq = this.retrieve('form.request');
+		if (!fq){
+			fq = new Form.Request(this, update, options);
+		} else {
+			if (update) fq.setTarget(update);
+			if (options) fq.setOptions(options).makeRequest();
+		}
+		fq.send();
+		return this;
+	});
+
+})();
+
+
+/*
+---
+
+script: Fx.Reveal.js
+
+name: Fx.Reveal
+
+description: Defines Fx.Reveal, a class that shows and hides elements with a transition.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Fx.Morph
+  - /Element.Shortcuts
+  - /Element.Measure
+
+provides: [Fx.Reveal]
+
+...
+*/
+
+(function(){
+
+
+var hideTheseOf = function(object){
+	var hideThese = object.options.hideInputs;
+	if (window.OverText){
+		var otClasses = [null];
+		OverText.each(function(ot){
+			otClasses.include('.' + ot.options.labelClass);
+		});
+		if (otClasses) hideThese += otClasses.join(', ');
+	}
+	return (hideThese) ? object.element.getElements(hideThese) : null;
+};
+
+
+Fx.Reveal = new Class({
+
+	Extends: Fx.Morph,
+
+	options: {/*
+		onShow: function(thisElement){},
+		onHide: function(thisElement){},
+		onComplete: function(thisElement){},
+		heightOverride: null,
+		widthOverride: null,*/
+		link: 'cancel',
+		styles: ['padding', 'border', 'margin'],
+		transitionOpacity: !Browser.ie6,
+		mode: 'vertical',
+		display: function(){
+			return this.element.get('tag') != 'tr' ? 'block' : 'table-row';
+		},
+		opacity: 1,
+		hideInputs: Browser.ie ? 'select, input, textarea, object, embed' : null
+	},
+
+	dissolve: function(){
+		if (!this.hiding && !this.showing){
+			if (this.element.getStyle('display') != 'none'){
+				this.hiding = true;
+				this.showing = false;
+				this.hidden = true;
+				this.cssText = this.element.style.cssText;
+
+				var startStyles = this.element.getComputedSize({
+					styles: this.options.styles,
+					mode: this.options.mode
+				});
+				if (this.options.transitionOpacity) startStyles.opacity = this.options.opacity;
+
+				var zero = {};
+				Object.each(startStyles, function(style, name){
+					zero[name] = [style, 0];
+				});
+
+				this.element.setStyles({
+					display: Function.from(this.options.display).call(this),
+					overflow: 'hidden'
+				});
+
+				var hideThese = hideTheseOf(this);
+				if (hideThese) hideThese.setStyle('visibility', 'hidden');
+
+				this.$chain.unshift(function(){
+					if (this.hidden){
+						this.hiding = false;
+						this.element.style.cssText = this.cssText;
+						this.element.setStyle('display', 'none');
+						if (hideThese) hideThese.setStyle('visibility', 'visible');
+					}
+					this.fireEvent('hide', this.element);
+					this.callChain();
+				}.bind(this));
+
+				this.start(zero);
+			} else {
+				this.callChain.delay(10, this);
+				this.fireEvent('complete', this.element);
+				this.fireEvent('hide', this.element);
+			}
+		} else if (this.options.link == 'chain'){
+			this.chain(this.dissolve.bind(this));
+		} else if (this.options.link == 'cancel' && !this.hiding){
+			this.cancel();
+			this.dissolve();
+		}
+		return this;
+	},
+
+	reveal: function(){
+		if (!this.showing && !this.hiding){
+			if (this.element.getStyle('display') == 'none'){
+				this.hiding = false;
+				this.showing = true;
+				this.hidden = false;
+				this.cssText = this.element.style.cssText;
+
+				var startStyles;
+				this.element.measure(function(){
+					startStyles = this.element.getComputedSize({
+						styles: this.options.styles,
+						mode: this.options.mode
+					});
+				}.bind(this));
+				if (this.options.heightOverride != null) startStyles.height = this.options.heightOverride.toInt();
+				if (this.options.widthOverride != null) startStyles.width = this.options.widthOverride.toInt();
+				if (this.options.transitionOpacity){
+					this.element.setStyle('opacity', 0);
+					startStyles.opacity = this.options.opacity;
+				}
+
+				var zero = {
+					height: 0,
+					display: Function.from(this.options.display).call(this)
+				};
+				Object.each(startStyles, function(style, name){
+					zero[name] = 0;
+				});
+				zero.overflow = 'hidden';
+
+				this.element.setStyles(zero);
+
+				var hideThese = hideTheseOf(this);
+				if (hideThese) hideThese.setStyle('visibility', 'hidden');
+
+				this.$chain.unshift(function(){
+					this.element.style.cssText = this.cssText;
+					this.element.setStyle('display', Function.from(this.options.display).call(this));
+					if (!this.hidden) this.showing = false;
+					if (hideThese) hideThese.setStyle('visibility', 'visible');
+					this.callChain();
+					this.fireEvent('show', this.element);
+				}.bind(this));
+
+				this.start(startStyles);
+			} else {
+				this.callChain();
+				this.fireEvent('complete', this.element);
+				this.fireEvent('show', this.element);
+			}
+		} else if (this.options.link == 'chain'){
+			this.chain(this.reveal.bind(this));
+		} else if (this.options.link == 'cancel' && !this.showing){
+			this.cancel();
+			this.reveal();
+		}
+		return this;
+	},
+
+	toggle: function(){
+		if (this.element.getStyle('display') == 'none'){
+			this.reveal();
+		} else {
+			this.dissolve();
+		}
+		return this;
+	},
+
+	cancel: function(){
+		this.parent.apply(this, arguments);
+		if (this.cssText != null) this.element.style.cssText = this.cssText;
+		this.hiding = false;
+		this.showing = false;
+		return this;
+	}
+
+});
+
+Element.Properties.reveal = {
+
+	set: function(options){
+		this.get('reveal').cancel().setOptions(options);
+		return this;
+	},
+
+	get: function(){
+		var reveal = this.retrieve('reveal');
+		if (!reveal){
+			reveal = new Fx.Reveal(this);
+			this.store('reveal', reveal);
+		}
+		return reveal;
+	}
+
+};
+
+Element.Properties.dissolve = Element.Properties.reveal;
+
+Element.implement({
+
+	reveal: function(options){
+		this.get('reveal').setOptions(options).reveal();
+		return this;
+	},
+
+	dissolve: function(options){
+		this.get('reveal').setOptions(options).dissolve();
+		return this;
+	},
+
+	nix: function(options){
+		var params = Array.link(arguments, {destroy: Type.isBoolean, options: Type.isObject});
+		this.get('reveal').setOptions(options).dissolve().chain(function(){
+			this[params.destroy ? 'destroy' : 'dispose']();
+		}.bind(this));
+		return this;
+	},
+
+	wink: function(){
+		var params = Array.link(arguments, {duration: Type.isNumber, options: Type.isObject});
+		var reveal = this.get('reveal').setOptions(params.options);
+		reveal.reveal().chain(function(){
+			(function(){
+				reveal.dissolve();
+			}).delay(params.duration || 2000);
+		});
+	}
+
+});
+
+})();
+
+
+/*
+---
+
+script: Form.Request.Append.js
+
+name: Form.Request.Append
+
+description: Handles the basic functionality of submitting a form and updating a dom element with the result. The result is appended to the DOM element instead of replacing its contents.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - /Form.Request
+  - /Fx.Reveal
+  - /Elements.from
+
+provides: [Form.Request.Append]
+
+...
+*/
+
+Form.Request.Append = new Class({
+
+	Extends: Form.Request,
+
+	options: {
+		//onBeforeEffect: function(){},
+		useReveal: true,
+		revealOptions: {},
+		inject: 'bottom'
+	},
+
+	makeRequest: function(){
+		this.request = new Request.HTML(Object.merge({
+				url: this.element.get('action'),
+				method: this.element.get('method') || 'post',
+				spinnerTarget: this.element
+			}, this.options.requestOptions, {
+				evalScripts: false
+			})
+		).addEvents({
+			success: function(tree, elements, html, javascript){
+				var container;
+				var kids = Elements.from(html);
+				if (kids.length == 1){
+					container = kids[0];
+				} else {
+					 container = new Element('div', {
+						styles: {
+							display: 'none'
+						}
+					}).adopt(kids);
+				}
+				container.inject(this.target, this.options.inject);
+				if (this.options.requestOptions.evalScripts) Browser.exec(javascript);
+				this.fireEvent('beforeEffect', container);
+				var finish = function(){
+					this.fireEvent('success', [container, this.target, tree, elements, html, javascript]);
+				}.bind(this);
+				if (this.options.useReveal){
+					container.set('reveal', this.options.revealOptions).get('reveal').chain(finish);
+					container.reveal();
+				} else {
+					finish();
+				}
+			}.bind(this),
+			failure: function(xhr){
+				this.fireEvent('failure', xhr);
+			}.bind(this)
+		});
+		this.attachReset();
+	}
+
+});
+
+
+/*
+---
+
+name: Locale.en-US.Form.Validator
+
+description: Form Validator messages for English.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - /Locale
+
+provides: [Locale.en-US.Form.Validator]
+
+...
+*/
+
+Locale.define('en-US', 'FormValidator', {
+
+	required: 'This field is required.',
+	length: 'Please enter {length} characters (you entered {elLength} characters)',
+	minLength: 'Please enter at least {minLength} characters (you entered {length} characters).',
+	maxLength: 'Please enter no more than {maxLength} characters (you entered {length} characters).',
+	integer: 'Please enter an integer in this field. Numbers with decimals (e.g. 1.25) are not permitted.',
+	numeric: 'Please enter only numeric values in this field (i.e. "1" or "1.1" or "-1" or "-1.1").',
+	digits: 'Please use numbers and punctuation only in this field (for example, a phone number with dashes or dots is permitted).',
+	alpha: 'Please use only letters (a-z) within this field. No spaces or other characters are allowed.',
+	alphanum: 'Please use only letters (a-z) or numbers (0-9) in this field. No spaces or other characters are allowed.',
+	dateSuchAs: 'Please enter a valid date such as {date}',
+	dateInFormatMDY: 'Please enter a valid date such as MM/DD/YYYY (i.e. "12/31/1999")',
+	email: 'Please enter a valid email address. For example "fred@domain.com".',
+	url: 'Please enter a valid URL such as http://www.example.com.',
+	currencyDollar: 'Please enter a valid $ amount. For example $100.00 .',
+	oneRequired: 'Please enter something for at least one of these inputs.',
+	errorPrefix: 'Error: ',
+	warningPrefix: 'Warning: ',
+
+	// Form.Validator.Extras
+	noSpace: 'There can be no spaces in this input.',
+	reqChkByNode: 'No items are selected.',
+	requiredChk: 'This field is required.',
+	reqChkByName: 'Please select a {label}.',
+	match: 'This field needs to match the {matchName} field',
+	startDate: 'the start date',
+	endDate: 'the end date',
+	currendDate: 'the current date',
+	afterDate: 'The date should be the same or after {label}.',
+	beforeDate: 'The date should be the same or before {label}.',
+	startMonth: 'Please select a start month',
+	sameMonth: 'These two dates must be in the same month - you must change one or the other.',
+	creditcard: 'The credit card number entered is invalid. Please check the number and try again. {length} digits entered.'
+
+});
+
+
 /*
 ---
 
@@ -1837,7 +4683,7 @@ Form.Validator.addAllThese([
 			if (typeOf(props.length) != 'null') return (element.get('value').length == props.length || element.get('value').length == 0);
 			else return true;
 		}
-	}],
+	}],	
 
 	['minLength', {
 		errorMsg: function(element, props){
@@ -2001,3272 +4847,11 @@ Element.implement({
 });
 
 
-//<1.2compat>
-//legacy
-var FormValidator = Form.Validator;
-//</1.2compat>
 
 
 
 
-// Begin: Source/Locale/Locale.zh-CH.Form.Validator.js
-/*
----
 
-name: Locale.zh-CH.Form.Validator
-
-description: Form Validator messages for Chinese (simplified and traditional).
-
-license: MIT-style license
-
-authors:
-  - YMind Chan
-
-requires:
-  - /Locale
-  - /Form.Validator
-
-provides: [Form.zh-CH.Form.Validator, Form.Validator.CurrencyYuanValidator]
-
-...
-*/
-
-// Simplified Chinese
-Locale.define('zh-CHS', 'FormValidator', {
-
-	required: '此项必填。',
-	minLength: '请至少输入 {minLength} 个字符 (已输入 {length} 个)。',
-	maxLength: '最多只能输入 {maxLength} 个字符 (已输入 {length} 个)。',
-	integer: '请输入一个整数，不能包含小数点。例如："1", "200"。',
-	numeric: '请输入一个数字，例如："1", "1.1", "-1", "-1.1"。',
-	digits: '请输入由数字和标点符号组成的内容。例如电话号码。',
-	alpha: '请输入 A-Z 的 26 个字母，不能包含空格或任何其他字符。',
-	alphanum: '请输入 A-Z 的 26 个字母或 0-9 的 10 个数字，不能包含空格或任何其他字符。',
-	dateSuchAs: '请输入合法的日期格式，如：{date}。',
-	dateInFormatMDY: '请输入合法的日期格式，例如：YYYY-MM-DD ("2010-12-31")。',
-	email: '请输入合法的电子信箱地址，例如："fred@domain.com"。',
-	url: '请输入合法的 Url 地址，例如：http://www.example.com。',
-	currencyDollar: '请输入合法的货币符号，例如：￥100.0',
-	oneRequired: '请至少选择一项。',
-	errorPrefix: '错误：',
-	warningPrefix: '警告：',
-
-	// Form.Validator.Extras
-	noSpace: '不能包含空格。',
-	reqChkByNode: '未选择任何内容。',
-	requiredChk: '此项必填。',
-	reqChkByName: '请选择 {label}.',
-	match: '必须与{matchName}相匹配',
-	startDate: '起始日期',
-	endDate: '结束日期',
-	currendDate: '当前日期',
-	afterDate: '日期必须等于或晚于 {label}.',
-	beforeDate: '日期必须早于或等于 {label}.',
-	startMonth: '请选择起始月份',
-	sameMonth: '您必须修改两个日期中的一个，以确保它们在同一月份。',
-	creditcard: '您输入的信用卡号码不正确。当前已输入{length}个字符。'
-
-});
-
-// Traditional Chinese
-Locale.define('zh-CHT', 'FormValidator', {
-
-	required: '此項必填。 ',
-	minLength: '請至少輸入{minLength} 個字符(已輸入{length} 個)。 ',
-	maxLength: '最多只能輸入{maxLength} 個字符(已輸入{length} 個)。 ',
-	integer: '請輸入一個整數，不能包含小數點。例如："1", "200"。 ',
-	numeric: '請輸入一個數字，例如："1", "1.1", "-1", "-1.1"。 ',
-	digits: '請輸入由數字和標點符號組成的內容。例如電話號碼。 ',
-	alpha: '請輸入AZ 的26 個字母，不能包含空格或任何其他字符。 ',
-	alphanum: '請輸入AZ 的26 個字母或0-9 的10 個數字，不能包含空格或任何其他字符。 ',
-	dateSuchAs: '請輸入合法的日期格式，如：{date}。 ',
-	dateInFormatMDY: '請輸入合法的日期格式，例如：YYYY-MM-DD ("2010-12-31")。 ',
-	email: '請輸入合法的電子信箱地址，例如："fred@domain.com"。 ',
-	url: '請輸入合法的Url 地址，例如：http://www.example.com。 ',
-	currencyDollar: '請輸入合法的貨幣符號，例如：￥100.0',
-	oneRequired: '請至少選擇一項。 ',
-	errorPrefix: '錯誤：',
-	warningPrefix: '警告：',
-
-	// Form.Validator.Extras
-	noSpace: '不能包含空格。 ',
-	reqChkByNode: '未選擇任何內容。 ',
-	requiredChk: '此項必填。 ',
-	reqChkByName: '請選擇 {label}.',
-	match: '必須與{matchName}相匹配',
-	startDate: '起始日期',
-	endDate: '結束日期',
-	currendDate: '當前日期',
-	afterDate: '日期必須等於或晚於{label}.',
-	beforeDate: '日期必須早於或等於{label}.',
-	startMonth: '請選擇起始月份',
-	sameMonth: '您必須修改兩個日期中的一個，以確保它們在同一月份。 ',
-	creditcard: '您輸入的信用卡號碼不正確。當前已輸入{length}個字符。 '
-
-});
-
-Form.Validator.add('validate-currency-yuan', {
-
-	errorMsg: function(){
-		return Form.Validator.getMsg('currencyYuan');
-	},
-
-	test: function(element){
-		// [￥]1[##][,###]+[.##]
-		// [￥]1###+[.##]
-		// [￥]0.##
-		// [￥].##
-		return Form.Validator.getValidator('IsEmpty').test(element) || (/^￥?\-?([1-9]{1}[0-9]{0,2}(\,[0-9]{3})*(\.[0-9]{0,2})?|[1-9]{1}\d*(\.[0-9]{0,2})?|0(\.[0-9]{0,2})?|(\.[0-9]{1,2})?)$/).test(element.get('value'));
-	}
-
-});
-
-
-// Begin: Source/Element/Element.Pin.js
-/*
----
-
-script: Element.Pin.js
-
-name: Element.Pin
-
-description: Extends the Element native object to include the pin method useful for fixed positioning for elements.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Element.Event
-  - Core/Element.Dimensions
-  - Core/Element.Style
-  - /MooTools.More
-
-provides: [Element.Pin]
-
-...
-*/
-
-(function(){
-	var supportsPositionFixed = false,
-		supportTested = false;
-
-	var testPositionFixed = function(){
-		var test = new Element('div').setStyles({
-			position: 'fixed',
-			top: 0,
-			right: 0
-		}).inject(document.body);
-		supportsPositionFixed = (test.offsetTop === 0);
-		test.dispose();
-		supportTested = true;
-	};
-
-	Element.implement({
-
-		pin: function(enable, forceScroll){
-			if (!supportTested) testPositionFixed();
-			if (this.getStyle('display') == 'none') return this;
-
-			var pinnedPosition,
-				scroll = window.getScroll(),
-				parent,
-				scrollFixer;
-
-			if (enable !== false){
-				pinnedPosition = this.getPosition(supportsPositionFixed ? document.body : this.getOffsetParent());
-				if (!this.retrieve('pin:_pinned')){
-					var currentPosition = {
-						top: pinnedPosition.y - scroll.y,
-						left: pinnedPosition.x - scroll.x
-					};
-
-					if (supportsPositionFixed && !forceScroll){
-						this.setStyle('position', 'fixed').setStyles(currentPosition);
-					} else {
-
-						parent = this.getOffsetParent();
-						var position = this.getPosition(parent),
-							styles = this.getStyles('left', 'top');
-
-						if (parent && styles.left == 'auto' || styles.top == 'auto') this.setPosition(position);
-						if (this.getStyle('position') == 'static') this.setStyle('position', 'absolute');
-
-						position = {
-							x: styles.left.toInt() - scroll.x,
-							y: styles.top.toInt() - scroll.y
-						};
-
-						scrollFixer = function(){
-							if (!this.retrieve('pin:_pinned')) return;
-							var scroll = window.getScroll();
-							this.setStyles({
-								left: position.x + scroll.x,
-								top: position.y + scroll.y
-							});
-						}.bind(this);
-
-						this.store('pin:_scrollFixer', scrollFixer);
-						window.addEvent('scroll', scrollFixer);
-					}
-					this.store('pin:_pinned', true);
-				}
-
-			} else {
-				if (!this.retrieve('pin:_pinned')) return this;
-
-				parent = this.getParent();
-				var offsetParent = (parent.getComputedStyle('position') != 'static' ? parent : parent.getOffsetParent());
-
-				pinnedPosition = this.getPosition(offsetParent);
-
-				this.store('pin:_pinned', false);
-				scrollFixer = this.retrieve('pin:_scrollFixer');
-				if (!scrollFixer){
-					this.setStyles({
-						position: 'absolute',
-						top: pinnedPosition.y + scroll.y,
-						left: pinnedPosition.x + scroll.x
-					});
-				} else {
-					this.store('pin:_scrollFixer', null);
-					window.removeEvent('scroll', scrollFixer);
-				}
-				this.removeClass('isPinned');
-			}
-			return this;
-		},
-
-		unpin: function(){
-			return this.pin(false);
-		},
-
-		togglePin: function(){
-			return this.pin(!this.retrieve('pin:_pinned'));
-		}
-
-	});
-
-//<1.2compat>
-Element.alias('togglepin', 'togglePin');
-//</1.2compat>
-
-})();
-
-
-// Begin: Source/Fx/Fx.Scroll.js
-/*
----
-
-script: Fx.Scroll.js
-
-name: Fx.Scroll
-
-description: Effect to smoothly scroll any element, including the window.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-
-requires:
-  - Core/Fx
-  - Core/Element.Event
-  - Core/Element.Dimensions
-  - /MooTools.More
-
-provides: [Fx.Scroll]
-
-...
-*/
-
-(function(){
-
-Fx.Scroll = new Class({
-
-	Extends: Fx,
-
-	options: {
-		offset: {x: 0, y: 0},
-		wheelStops: true
-	},
-
-	initialize: function(element, options){
-		this.element = this.subject = document.id(element);
-		this.parent(options);
-
-		if (typeOf(this.element) != 'element') this.element = document.id(this.element.getDocument().body);
-
-		if (this.options.wheelStops){
-			var stopper = this.element,
-				cancel = this.cancel.pass(false, this);
-			this.addEvent('start', function(){
-				stopper.addEvent('mousewheel', cancel);
-			}, true);
-			this.addEvent('complete', function(){
-				stopper.removeEvent('mousewheel', cancel);
-			}, true);
-		}
-	},
-
-	set: function(){
-		var now = Array.flatten(arguments);
-		if (Browser.firefox) now = [Math.round(now[0]), Math.round(now[1])]; // not needed anymore in newer firefox versions
-		this.element.scrollTo(now[0], now[1]);
-		return this;
-	},
-
-	compute: function(from, to, delta){
-		return [0, 1].map(function(i){
-			return Fx.compute(from[i], to[i], delta);
-		});
-	},
-
-	start: function(x, y){
-		if (!this.check(x, y)) return this;
-		var scroll = this.element.getScroll();
-		return this.parent([scroll.x, scroll.y], [x, y]);
-	},
-
-	calculateScroll: function(x, y){
-		var element = this.element,
-			scrollSize = element.getScrollSize(),
-			scroll = element.getScroll(),
-			size = element.getSize(),
-			offset = this.options.offset,
-			values = {x: x, y: y};
-
-		for (var z in values){
-			if (!values[z] && values[z] !== 0) values[z] = scroll[z];
-			if (typeOf(values[z]) != 'number') values[z] = scrollSize[z] - size[z];
-			values[z] += offset[z];
-		}
-
-		return [values.x, values.y];
-	},
-
-	toTop: function(){
-		return this.start.apply(this, this.calculateScroll(false, 0));
-	},
-
-	toLeft: function(){
-		return this.start.apply(this, this.calculateScroll(0, false));
-	},
-
-	toRight: function(){
-		return this.start.apply(this, this.calculateScroll('right', false));
-	},
-
-	toBottom: function(){
-		return this.start.apply(this, this.calculateScroll(false, 'bottom'));
-	},
-
-	toElement: function(el, axes){
-		axes = axes ? Array.from(axes) : ['x', 'y'];
-		var scroll = isBody(this.element) ? {x: 0, y: 0} : this.element.getScroll();
-		var position = Object.map(document.id(el).getPosition(this.element), function(value, axis){
-			return axes.contains(axis) ? value + scroll[axis] : false;
-		});
-		return this.start.apply(this, this.calculateScroll(position.x, position.y));
-	},
-
-	toElementEdge: function(el, axes, offset){
-		axes = axes ? Array.from(axes) : ['x', 'y'];
-		el = document.id(el);
-		var to = {},
-			position = el.getPosition(this.element),
-			size = el.getSize(),
-			scroll = this.element.getScroll(),
-			containerSize = this.element.getSize(),
-			edge = {
-				x: position.x + size.x,
-				y: position.y + size.y
-			};
-
-		['x', 'y'].each(function(axis){
-			if (axes.contains(axis)){
-				if (edge[axis] > scroll[axis] + containerSize[axis]) to[axis] = edge[axis] - containerSize[axis];
-				if (position[axis] < scroll[axis]) to[axis] = position[axis];
-			}
-			if (to[axis] == null) to[axis] = scroll[axis];
-			if (offset && offset[axis]) to[axis] = to[axis] + offset[axis];
-		}, this);
-
-		if (to.x != scroll.x || to.y != scroll.y) this.start(to.x, to.y);
-		return this;
-	},
-
-	toElementCenter: function(el, axes, offset){
-		axes = axes ? Array.from(axes) : ['x', 'y'];
-		el = document.id(el);
-		var to = {},
-			position = el.getPosition(this.element),
-			size = el.getSize(),
-			scroll = this.element.getScroll(),
-			containerSize = this.element.getSize();
-
-		['x', 'y'].each(function(axis){
-			if (axes.contains(axis)){
-				to[axis] = position[axis] - (containerSize[axis] - size[axis]) / 2;
-			}
-			if (to[axis] == null) to[axis] = scroll[axis];
-			if (offset && offset[axis]) to[axis] = to[axis] + offset[axis];
-		}, this);
-
-		if (to.x != scroll.x || to.y != scroll.y) this.start(to.x, to.y);
-		return this;
-	}
-
-});
-
-//<1.2compat>
-Fx.Scroll.implement({
-	scrollToCenter: function(){
-		return this.toElementCenter.apply(this, arguments);
-	},
-	scrollIntoView: function(){
-		return this.toElementEdge.apply(this, arguments);
-	}
-});
-//</1.2compat>
-
-function isBody(element){
-	return (/^(?:body|html)$/i).test(element.tagName);
-}
-
-})();
-
-
-// Begin: Source/Locale/Locale.pt-PT.Date.js
-/*
----
-
-name: Locale.pt-PT.Date
-
-description: Date messages for Portuguese.
-
-license: MIT-style license
-
-authors:
-  - Fabio Miranda Costa
-
-requires:
-  - /Locale
-
-provides: [Locale.pt-PT.Date]
-
-...
-*/
-
-Locale.define('pt-PT', 'Date', {
-
-	months: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-	months_abbr: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-	days: ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'],
-	days_abbr: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-
-	// Culture's date order: DD-MM-YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d-%m-%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: 'º',
-
-	lessThanMinuteAgo: 'há menos de um minuto',
-	minuteAgo: 'há cerca de um minuto',
-	minutesAgo: 'há {delta} minutos',
-	hourAgo: 'há cerca de uma hora',
-	hoursAgo: 'há cerca de {delta} horas',
-	dayAgo: 'há um dia',
-	daysAgo: 'há {delta} dias',
-	weekAgo: 'há uma semana',
-	weeksAgo: 'há {delta} semanas',
-	monthAgo: 'há um mês',
-	monthsAgo: 'há {delta} meses',
-	yearAgo: 'há um ano',
-	yearsAgo: 'há {delta} anos',
-
-	lessThanMinuteUntil: 'em menos de um minuto',
-	minuteUntil: 'em um minuto',
-	minutesUntil: 'em {delta} minutos',
-	hourUntil: 'em uma hora',
-	hoursUntil: 'em {delta} horas',
-	dayUntil: 'em um dia',
-	daysUntil: 'em {delta} dias',
-	weekUntil: 'em uma semana',
-	weeksUntil: 'em {delta} semanas',
-	monthUntil: 'em um mês',
-	monthsUntil: 'em {delta} meses',
-	yearUntil: 'em um ano',
-	yearsUntil: 'em {delta} anos'
-
-});
-
-
-// Begin: Source/Locale/Locale.es-ES.Date.js
-/*
----
-
-name: Locale.es-ES.Date
-
-description: Date messages for Spanish.
-
-license: MIT-style license
-
-authors:
-  - Ãlfons Sanchez
-
-requires:
-  - /Locale
-
-provides: [Locale.es-ES.Date]
-
-...
-*/
-
-Locale.define('es-ES', 'Date', {
-
-	months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-	months_abbr: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
-	days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-	days_abbr: ['dom', 'lun', 'mar', 'mié', 'juv', 'vie', 'sáb'],
-
-	// Culture's date order: DD/MM/YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d/%m/%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: 'hace menos de un minuto',
-	minuteAgo: 'hace un minuto',
-	minutesAgo: 'hace {delta} minutos',
-	hourAgo: 'hace una hora',
-	hoursAgo: 'hace unas {delta} horas',
-	dayAgo: 'hace un día',
-	daysAgo: 'hace {delta} días',
-	weekAgo: 'hace una semana',
-	weeksAgo: 'hace unas {delta} semanas',
-	monthAgo: 'hace un mes',
-	monthsAgo: 'hace {delta} meses',
-	yearAgo: 'hace un año',
-	yearsAgo: 'hace {delta} años',
-
-	lessThanMinuteUntil: 'menos de un minuto desde ahora',
-	minuteUntil: 'un minuto desde ahora',
-	minutesUntil: '{delta} minutos desde ahora',
-	hourUntil: 'una hora desde ahora',
-	hoursUntil: 'unas {delta} horas desde ahora',
-	dayUntil: 'un día desde ahora',
-	daysUntil: '{delta} días desde ahora',
-	weekUntil: 'una semana desde ahora',
-	weeksUntil: 'unas {delta} semanas desde ahora',
-	monthUntil: 'un mes desde ahora',
-	monthsUntil: '{delta} meses desde ahora',
-	yearUntil: 'un año desde ahora',
-	yearsUntil: '{delta} años desde ahora'
-
-});
-
-
-// Begin: Source/Locale/Locale.es-AR.Date.js
-/*
----
-
-name: Locale.es-AR.Date
-
-description: Date messages for Spanish (Argentina).
-
-license: MIT-style license
-
-authors:
-  - Ãlfons Sanchez
-  - Diego Massanti
-
-requires:
-  - /Locale
-  - /Locale.es-ES.Date
-
-provides: [Locale.es-AR.Date]
-
-...
-*/
-
-Locale.define('es-AR').inherit('es-ES', 'Date');
-
-
-// Begin: Source/Element/Element.Measure.js
-/*
----
-
-script: Element.Measure.js
-
-name: Element.Measure
-
-description: Extends the Element native object to include methods useful in measuring dimensions.
-
-credits: "Element.measure / .expose methods by Daniel Steigerwald License: MIT-style license. Copyright: Copyright (c) 2008 Daniel Steigerwald, daniel.steigerwald.cz"
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Element.Style
-  - Core/Element.Dimensions
-  - /MooTools.More
-
-provides: [Element.Measure]
-
-...
-*/
-
-(function(){
-
-var getStylesList = function(styles, planes){
-	var list = [];
-	Object.each(planes, function(directions){
-		Object.each(directions, function(edge){
-			styles.each(function(style){
-				list.push(style + '-' + edge + (style == 'border' ? '-width' : ''));
-			});
-		});
-	});
-	return list;
-};
-
-var calculateEdgeSize = function(edge, styles){
-	var total = 0;
-	Object.each(styles, function(value, style){
-		if (style.test(edge)) total = total + value.toInt();
-	});
-	return total;
-};
-
-var isVisible = function(el){
-	return !!(!el || el.offsetHeight || el.offsetWidth);
-};
-
-
-Element.implement({
-
-	measure: function(fn){
-		if (isVisible(this)) return fn.call(this);
-		var parent = this.getParent(),
-			toMeasure = [];
-		while (!isVisible(parent) && parent != document.body){
-			toMeasure.push(parent.expose());
-			parent = parent.getParent();
-		}
-		var restore = this.expose(),
-			result = fn.call(this);
-		restore();
-		toMeasure.each(function(restore){
-			restore();
-		});
-		return result;
-	},
-
-	expose: function(){
-		if (this.getStyle('display') != 'none') return function(){};
-		var before = this.style.cssText;
-		this.setStyles({
-			display: 'block',
-			position: 'absolute',
-			visibility: 'hidden'
-		});
-		return function(){
-			this.style.cssText = before;
-		}.bind(this);
-	},
-
-	getDimensions: function(options){
-		options = Object.merge({computeSize: false}, options);
-		var dim = {x: 0, y: 0};
-
-		var getSize = function(el, options){
-			return (options.computeSize) ? el.getComputedSize(options) : el.getSize();
-		};
-
-		var parent = this.getParent('body');
-
-		if (parent && this.getStyle('display') == 'none'){
-			dim = this.measure(function(){
-				return getSize(this, options);
-			});
-		} else if (parent){
-			try { //safari sometimes crashes here, so catch it
-				dim = getSize(this, options);
-			}catch(e){}
-		}
-
-		return Object.append(dim, (dim.x || dim.x === 0) ? {
-				width: dim.x,
-				height: dim.y
-			} : {
-				x: dim.width,
-				y: dim.height
-			}
-		);
-	},
-
-	getComputedSize: function(options){
-		//<1.2compat>
-		//legacy support for my stupid spelling error
-		if (options && options.plains) options.planes = options.plains;
-		//</1.2compat>
-
-		options = Object.merge({
-			styles: ['padding','border'],
-			planes: {
-				height: ['top','bottom'],
-				width: ['left','right']
-			},
-			mode: 'both'
-		}, options);
-
-		var styles = {},
-			size = {width: 0, height: 0},
-			dimensions;
-
-		if (options.mode == 'vertical'){
-			delete size.width;
-			delete options.planes.width;
-		} else if (options.mode == 'horizontal'){
-			delete size.height;
-			delete options.planes.height;
-		}
-
-		getStylesList(options.styles, options.planes).each(function(style){
-			styles[style] = this.getStyle(style).toInt();
-		}, this);
-
-		Object.each(options.planes, function(edges, plane){
-
-			var capitalized = plane.capitalize(),
-				style = this.getStyle(plane);
-
-			if (style == 'auto' && !dimensions) dimensions = this.getDimensions();
-
-			style = styles[plane] = (style == 'auto') ? dimensions[plane] : style.toInt();
-			size['total' + capitalized] = style;
-
-			edges.each(function(edge){
-				var edgesize = calculateEdgeSize(edge, styles);
-				size['computed' + edge.capitalize()] = edgesize;
-				size['total' + capitalized] += edgesize;
-			});
-
-		}, this);
-
-		return Object.append(size, styles);
-	}
-
-});
-
-})();
-
-
-// Begin: Source/Utilities/Table.js
-/*
----
-name: Table
-description: LUA-Style table implementation.
-license: MIT-style license
-authors:
-  - Valerio Proietti
-requires: [Core/Array]
-provides: [Table]
-...
-*/
-
-(function(){
-
-var Table = this.Table = function(){
-
-	this.length = 0;
-	var keys = [],
-	    values = [];
-
-	this.set = function(key, value){
-		var index = keys.indexOf(key);
-		if (index == -1){
-			var length = keys.length;
-			keys[length] = key;
-			values[length] = value;
-			this.length++;
-		} else {
-			values[index] = value;
-		}
-		return this;
-	};
-
-	this.get = function(key){
-		var index = keys.indexOf(key);
-		return (index == -1) ? null : values[index];
-	};
-
-	this.erase = function(key){
-		var index = keys.indexOf(key);
-		if (index != -1){
-			this.length--;
-			keys.splice(index, 1);
-			return values.splice(index, 1)[0];
-		}
-		return null;
-	};
-
-	this.each = this.forEach = function(fn, bind){
-		for (var i = 0, l = this.length; i < l; i++) fn.call(bind, keys[i], values[i], this);
-	};
-
-};
-
-if (this.Type) new Type('Table', Table);
-
-})();
-
-
-// Begin: Source/Element.Data.js
-/*
----
-name: Element.Data
-description: Stores data in HTML5 data properties
-provides: [Element.Data]
-requires: [Core/Element, Core/JSON]
-script: Element.Data.js
-
-...
-*/
-(function(){
-
-	JSON.isSecure = function(string){
-		//this verifies that the string is parsable JSON and not malicious (borrowed from JSON.js in MooTools, which in turn borrowed it from Crockford)
-		//this version is a little more permissive, as it allows single quoted attributes because forcing the use of double quotes
-		//is a pain when this stuff is used as HTML properties
-		return (/^[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]*$/).test(string.replace(/\\./g, '@').replace(/"[^"\\\n\r]*"/g, '').replace(/'[^'\\\n\r]*'/g, ''));
-	};
-
-	Element.implement({
-		/*
-			sets an HTML5 data property.
-			arguments:
-				name - (string) the data name to store; will be automatically prefixed with 'data-'.
-				value - (string, number) the value to store.
-		*/
-		setData: function(name, value){
-			return this.set('data-' + name.hyphenate(), value);
-		},
-
-		getData: function(name, defaultValue){
-			var value = this.get('data-' + name.hyphenate());
-			if (value != undefined){
-				return value;
-			} else if (defaultValue != undefined){
-				this.setData(name, defaultValue);
-				return defaultValue;
-			}
-		},
-
-		/*
-			arguments:
-				name - (string) the data name to store; will be automatically prefixed with 'data-'
-				value - (string, array, or object) if an object or array the object will be JSON encoded; otherwise stored as provided.
-		*/
-		setJSONData: function(name, value){
-			return this.setData(name, JSON.encode(value));
-		},
-
-		/*
-			retrieves a property from HTML5 data property you specify
-
-			arguments:
-				name - (retrieve) the data name to store; will be automatically prefixed with 'data-'
-				strict - (boolean) if true, will set the JSON.decode's secure flag to true; otherwise the value is still tested but allows single quoted attributes.
-				defaultValue - (string, array, or object) the value to set if no value is found (see storeData above)
-		*/
-		getJSONData: function(name, strict, defaultValue){
-			var value = this.get('data-' + name);
-			if (value != undefined){
-				if (value && JSON.isSecure(value)) {
-					return JSON.decode(value, strict);
-				} else {
-					return value;
-				}
-			} else if (defaultValue != undefined){
-				this.setJSONData(name, defaultValue);
-				return defaultValue;
-			}
-		}
-
-	});
-
-})();
-
-// Begin: Source/BehaviorAPI.js
-/*
----
-name: BehaviorAPI
-description: HTML getters for Behavior's API model.
-requires: [Core/Class, /Element.Data]
-provides: [BehaviorAPI]
-...
-*/
-
-
-(function(){
-	//see Docs/BehaviorAPI.md for documentation of public methods.
-
-	var reggy = /[^a-z0-9\-]/gi;
-
-	window.BehaviorAPI = new Class({
-		element: null,
-		prefix: '',
-		defaults: {},
-
-		initialize: function(element, prefix){
-			this.element = element;
-			this.prefix = prefix.toLowerCase().replace('.', '-', 'g').replace(reggy, '');
-		},
-
-		/******************
-		 * PUBLIC METHODS
-		 ******************/
-
-		get: function(/* name[, name, name, etc] */){
-			if (arguments.length > 1) return this._getObj(Array.from(arguments));
-			return this._getValue(arguments[0]);
-		},
-
-		getAs: function(/*returnType, name, defaultValue OR {name: returnType, name: returnType, etc}*/){
-			if (typeOf(arguments[0]) == 'object') return this._getValuesAs.apply(this, arguments);
-			return this._getValueAs.apply(this, arguments);
-		},
-
-		require: function(/* name[, name, name, etc] */){
-			for (var i = 0; i < arguments.length; i++){
-				if (this._getValue(arguments[i]) == undefined) throw new Error('Could not retrieve ' + this.prefix + '-' + arguments[i] + ' option from element.');
-			}
-			return this;
-		},
-
-		requireAs: function(returnType, name /* OR {name: returnType, name: returnType, etc}*/){
-			var val;
-			if (typeOf(arguments[0]) == 'object'){
-				for (var objName in arguments[0]){
-					val = this._getValueAs(arguments[0][objName], objName);
-					if (val === undefined || val === null) throw new Error("Could not retrieve " + this.prefix + '-' + objName + " option from element.");
-				}
-			} else {
-				val = this._getValueAs(returnType, name);
-				if (val === undefined || val === null) throw new Error("Could not retrieve " + this.prefix + '-' + name + " option from element.");
-			}
-			return this;
-		},
-
-		setDefault: function(name, value /* OR {name: value, name: value, etc }*/){
-			if (typeOf(arguments[0]) == 'object'){
-				for (var objName in arguments[0]){
-					this.setDefault(objName, arguments[0][objName]);
-				}
-				return;
-			}
-			name = name.camelCase();
-			this.defaults[name] = value;
-			if (this._getValue(name) == null){
-				var options = this._getOptions();
-				options[name] = value;
-			}
-			return this;
-		},
-
-		refreshAPI: function(){
-			delete this.options;
-			this.setDefault(this.defaults);
-			return;
-		},
-
-		/******************
-		 * PRIVATE METHODS
-		 ******************/
-
-		//given an array of names, returns an object of key/value pairs for each name
-		_getObj: function(names){
-			var obj = {};
-			names.each(function(name){
-				var value = this._getValue(name);
-				if (value !== undefined) obj[name] = value;
-			}, this);
-			return obj;
-		},
-		//gets the data-behaviorname-options object and parses it as JSON
-		_getOptions: function(){
-			try {
-				if (!this.options){
-					var options = this.element.getData(this.prefix + '-options', '{}');
-					if (options && options.substring(0,1) != '{') options = '{' + options + '}';
-					var isSecure = JSON.isSecure(options);
-					if (!isSecure) throw new Error('warning, options value for element is not parsable, check your JSON format for quotes, etc.');
-					this.options = isSecure ? JSON.decode(options) : {};
-					for (option in this.options) {
-						this.options[option.camelCase()] = this.options[option];
-					}
-				}
-			} catch (e){
-				throw new Error('Could not get options from element; check your syntax. ' + this.prefix + '-options: "' + this.element.getData(this.prefix + '-options', '{}') + '"');
-			}
-			return this.options;
-		},
-		//given a name (string) returns the value for it
-		_getValue: function(name){
-			name = name.camelCase();
-			var options = this._getOptions();
-			if (!options.hasOwnProperty(name)){
-				var inline = this.element.getData(this.prefix + '-' + name.hyphenate());
-				if (inline) options[name] = inline;
-			}
-			return options[name];
-		},
-		//given a Type and a name (string) returns the value for it coerced to that type if possible
-		//else returns the defaultValue or null
-		_getValueAs: function(returnType, name, defaultValue){
-			var value = this._getValue(name);
-			if (value == null || value == undefined) return defaultValue;
-			var coerced = this._coerceFromString(returnType, value);
-			if (coerced == null) throw new Error("Could not retrieve value '" + name + "' as the specified type. Its value is: " + value);
-			return coerced;
-		},
-		//given an object of name/Type pairs, returns those as an object of name/value (as specified Type) pairs
-		_getValuesAs: function(obj){
-			var returnObj = {};
-			for (var name in obj){
-				returnObj[name] = this._getValueAs(obj[name], name);
-			}
-			return returnObj;
-		},
-		//attempts to run a value through the JSON parser. If the result is not of that type returns null.
-		_coerceFromString: function(toType, value){
-			if (typeOf(value) == 'string' && toType != String){
-				if (JSON.isSecure(value)) value = JSON.decode(value);
-			}
-			if (instanceOf(value, toType)) return value;
-			return null;
-		}
-	});
-
-})();
-
-// Begin: Source/Behavior.js
-/*
----
-name: Behavior
-description: Auto-instantiates widgets/classes based on parsed, declarative HTML.
-requires: [Core/Class.Extras, Core/Element.Event, Core/Selectors, More/Table, /Element.Data, /BehaviorAPI]
-provides: [Behavior]
-...
-*/
-
-(function(){
-
-	var getLog = function(method){
-		return function(){
-			if (window.console && console[method]){
-				if(console[method].apply) console[method].apply(console, arguments);
-				else console[method](Array.from(arguments).join(' '));
-			}
-		};
-	};
-
-	var PassMethods = new Class({
-		//pass a method pointer through to a filter
-		//by default the methods for add/remove events are passed to the filter
-		//pointed to this instance of behavior. you could use this to pass along
-		//other methods to your filters. For example, a method to close a popup
-		//for filters presented inside popups.
-		passMethod: function(method, fn){
-			if (this.API.prototype[method]) throw new Error('Cannot overwrite API method ' + method + ' as it already exists');
-			this.API.implement(method, fn);
-			return this;
-		},
-
-		passMethods: function(methods){
-			for (method in methods) this.passMethod(method, methods[method]);
-			return this;
-		}
-
-	});
-
-	var spaceOrCommaRegex = /\s*,\s*|\s+/g;
-
-	BehaviorAPI.implement({
-		deprecate: function(deprecated, asJSON){
-			var set,
-			    values = {};
-			Object.each(deprecated, function(prop, key){
-				var value = this.element[ asJSON ? 'getJSONData' : 'getData'](prop);
-				if (value !== undefined){
-					set = true;
-					values[key] = value;
-				}
-			}, this);
-			this.setDefault(values);
-			return this;
-		}
-	});
-
-	this.Behavior = new Class({
-
-		Implements: [Options, Events, PassMethods],
-
-		options: {
-			//by default, errors thrown by filters are caught; the onError event is fired.
-			//set this to *true* to NOT catch these errors to allow them to be handled by the browser.
-			// breakOnErrors: false,
-			// container: document.body,
-
-			//default error behavior when a filter cannot be applied
-			onError: getLog('error'),
-			onWarn: getLog('warn'),
-			enableDeprecation: true,
-			selector: '[data-behavior]'
-		},
-
-		initialize: function(options){
-			this.setOptions(options);
-			this.API = new Class({ Extends: BehaviorAPI });
-			this.passMethods({
-				getDelegator: this.getDelegator.bind(this),
-				addEvent: this.addEvent.bind(this),
-				removeEvent: this.removeEvent.bind(this),
-				addEvents: this.addEvents.bind(this),
-				removeEvents: this.removeEvents.bind(this),
-				fireEvent: this.fireEvent.bind(this),
-				applyFilters: this.apply.bind(this),
-				applyFilter: this.applyFilter.bind(this),
-				getContentElement: this.getContentElement.bind(this),
-				cleanup: this.cleanup.bind(this),
-				getContainerSize: function(){
-					return this.getContentElement().measure(function(){
-						return this.getSize();
-					});
-				}.bind(this),
-				error: function(){ this.fireEvent('error', arguments); }.bind(this),
-				fail: function(){
-					var msg = Array.join(arguments, ' ');
-					throw new Error(msg);
-				},
-				warn: function(){
-					this.fireEvent('warn', arguments);
-				}.bind(this)
-			});
-		},
-
-		getDelegator: function(){
-			return this.delegator;
-		},
-
-		setDelegator: function(delegator){
-			if (!instanceOf(delegator, Delegator)) throw new Error('Behavior.setDelegator only accepts instances of Delegator.');
-			this.delegator = delegator;
-			return this;
-		},
-
-		getContentElement: function(){
-			return this.options.container || document.body;
-		},
-
-		//Applies all the behavior filters for an element.
-		//container - (element) an element to apply the filters registered with this Behavior instance to.
-		//force - (boolean; optional) passed through to applyFilter (see it for docs)
-		apply: function(container, force){
-		  this._getElements(container).each(function(element){
-				var plugins = [];
-				element.getBehaviors().each(function(name){
-					var filter = this.getFilter(name);
-					if (!filter){
-						this.fireEvent('error', ['There is no filter registered with this name: ', name, element]);
-					} else {
-						var config = filter.config;
-						if (config.delay !== undefined){
-							this.applyFilter.delay(filter.config.delay, this, [element, filter, force]);
-						} else if(config.delayUntil){
-							this._delayFilterUntil(element, filter, force);
-						} else if(config.initializer){
-							this._customInit(element, filter, force);
-						} else {
-							plugins.append(this.applyFilter(element, filter, force, true));
-						}
-					}
-				}, this);
-				plugins.each(function(plugin){ plugin(); });
-			}, this);
-			return this;
-		},
-
-		_getElements: function(container){
-			if (typeOf(this.options.selector) == 'function') return this.options.selector(container);
-			else return document.id(container).getElements(this.options.selector);
-		},
-
-		//delays a filter until the event specified in filter.config.delayUntil is fired on the element
-		_delayFilterUntil: function(element, filter, force){
-			var events = filter.config.delayUntil.split(','),
-			    attached = {},
-			    inited = false;
-			var clear = function(){
-				events.each(function(event){
-					element.removeEvent(event, attached[event]);
-				});
-				clear = function(){};
-			};
-			events.each(function(event){
-				var init = function(e){
-					clear();
-					if (inited) return;
-					inited = true;
-					var setup = filter.setup;
-					filter.setup = function(element, api, _pluginResult){
-						api.event = e;
-						return setup.apply(filter, [element, api, _pluginResult]);
-					};
-					this.applyFilter(element, filter, force);
-					filter.setup = setup;
-				}.bind(this);
-				element.addEvent(event, init);
-				attached[event] = init;
-			}, this);
-		},
-
-		//runs custom initiliazer defined in filter.config.initializer
-		_customInit: function(element, filter, force){
-			var api = new this.API(element, filter.name);
-			api.runSetup = this.applyFilter.pass([element, filter, force], this);
-			filter.config.initializer(element, api);
-		},
-
-		//Applies a specific behavior to a specific element.
-		//element - the element to which to apply the behavior
-		//filter - (object) a specific behavior filter, typically one registered with this instance or registered globally.
-		//force - (boolean; optional) apply the behavior to each element it matches, even if it was previously applied. Defaults to *false*.
-		//_returnPlugins - (boolean; optional; internal) if true, plugins are not rendered but instead returned as an array of functions
-		//_pluginTargetResult - (obj; optional internal) if this filter is a plugin for another, this is whatever that target filter returned
-		//                      (an instance of a class for example)
-		applyFilter: function(element, filter, force, _returnPlugins, _pluginTargetResult){
-			var pluginsToReturn = [];
-			if (this.options.breakOnErrors){
-				pluginsToReturn = this._applyFilter.apply(this, arguments);
-			} else {
-				try {
-					pluginsToReturn = this._applyFilter.apply(this, arguments);
-				} catch (e){
-					this.fireEvent('error', ['Could not apply the behavior ' + filter.name, e]);
-				}
-			}
-			return _returnPlugins ? pluginsToReturn : this;
-		},
-
-		//see argument list above for applyFilter
-		_applyFilter: function(element, filter, force, _returnPlugins, _pluginTargetResult){
-			var pluginsToReturn = [];
-			element = document.id(element);
-			//get the filters already applied to this element
-			var applied = getApplied(element);
-			//if this filter is not yet applied to the element, or we are forcing the filter
-			if (!applied[filter.name] || force){
-				//if it was previously applied, garbage collect it
-				if (applied[filter.name]) applied[filter.name].cleanup(element);
-				var api = new this.API(element, filter.name);
-
-				//deprecated
-				api.markForCleanup = filter.markForCleanup.bind(filter);
-				api.onCleanup = function(fn){
-					filter.markForCleanup(element, fn);
-				};
-
-				if (filter.config.deprecated && this.options.enableDeprecation) api.deprecate(filter.config.deprecated);
-				if (filter.config.deprecateAsJSON && this.options.enableDeprecation) api.deprecate(filter.config.deprecatedAsJSON, true);
-
-				//deal with requirements and defaults
-				if (filter.config.requireAs){
-					api.requireAs(filter.config.requireAs);
-				} else if (filter.config.require){
-					api.require.apply(api, Array.from(filter.config.require));
-				}
-
-				if (filter.config.defaults) api.setDefault(filter.config.defaults);
-
-				//apply the filter
-				var result = filter.setup(element, api, _pluginTargetResult);
-				if (filter.config.returns && !instanceOf(result, filter.config.returns)){
-					throw new Error("Filter " + filter.name + " did not return a valid instance.");
-				}
-				element.store('Behavior Filter result:' + filter.name, result);
-				//and mark it as having been previously applied
-				applied[filter.name] = filter;
-				//apply all the plugins for this filter
-				var plugins = this.getPlugins(filter.name);
-				if (plugins){
-					for (var name in plugins){
-						if (_returnPlugins){
-							pluginsToReturn.push(this.applyFilter.pass([element, plugins[name], force, null, result], this));
-						} else {
-							this.applyFilter(element, plugins[name], force, null, result);
-						}
-					}
-				}
-			}
-			return pluginsToReturn;
-		},
-
-		//given a name, returns a registered behavior
-		getFilter: function(name){
-			return this._registered[name] || Behavior.getFilter(name);
-		},
-
-		getPlugins: function(name){
-			return this._plugins[name] || Behavior._plugins[name];
-		},
-
-		//Garbage collects all applied filters for an element and its children.
-		//element - (*element*) container to cleanup
-		//ignoreChildren - (*boolean*; optional) if *true* only the element will be cleaned, otherwise the element and all the
-		//	  children with filters applied will be cleaned. Defaults to *false*.
-		cleanup: function(element, ignoreChildren){
-			element = document.id(element);
-			var applied = getApplied(element);
-			for (var filter in applied){
-				applied[filter].cleanup(element);
-				element.eliminate('Behavior Filter result:' + filter);
-				delete applied[filter];
-			}
-			if (!ignoreChildren) this._getElements(element).each(this.cleanup, this);
-			return this;
-		}
-
-	});
-
-	//Export these for use elsewhere (notabily: Delegator).
-	Behavior.getLog = getLog;
-	Behavior.PassMethods = PassMethods;
-
-
-	//Returns the applied behaviors for an element.
-	var getApplied = function(el){
-		return el.retrieve('_appliedBehaviors', {});
-	};
-
-	//Registers a behavior filter.
-	//name - the name of the filter
-	//fn - a function that applies the filter to the given element
-	//overwrite - (boolean) if true, will overwrite existing filter if one exists; defaults to false.
-	var addFilter = function(name, fn, overwrite){
-		if (!this._registered[name] || overwrite) this._registered[name] = new Behavior.Filter(name, fn);
-		else throw new Error('Could not add the Behavior filter "' + name  +'" as a previous trigger by that same name exists.');
-	};
-
-	var addFilters = function(obj, overwrite){
-		for (var name in obj){
-			addFilter.apply(this, [name, obj[name], overwrite]);
-		}
-	};
-
-	//Registers a behavior plugin
-	//filterName - (*string*) the filter (or plugin) this is a plugin for
-	//name - (*string*) the name of this plugin
-	//setup - a function that applies the filter to the given element
-	var addPlugin = function(filterName, name, setup, overwrite){
-		if (!this._plugins[filterName]) this._plugins[filterName] = {};
-		if (!this._plugins[filterName][name] || overwrite) this._plugins[filterName][name] = new Behavior.Filter(name, setup);
-		else throw new Error('Could not add the Behavior filter plugin "' + name  +'" as a previous trigger by that same name exists.');
-	};
-
-	var addPlugins = function(obj, overwrite){
-		for (var name in obj){
-			addPlugin.apply(this, [obj[name].fitlerName, obj[name].name, obj[name].setup], overwrite);
-		}
-	};
-
-	var setFilterDefaults = function(name, defaults){
-		var filter = this.getFilter(name);
-		if (!filter.config.defaults) filter.config.defaults = {};
-		Object.append(filter.config.defaults, defaults);
-	};
-
-	//Add methods to the Behavior namespace for global registration.
-	Object.append(Behavior, {
-		_registered: {},
-		_plugins: {},
-		addGlobalFilter: addFilter,
-		addGlobalFilters: addFilters,
-		addGlobalPlugin: addPlugin,
-		addGlobalPlugins: addPlugins,
-		setFilterDefaults: setFilterDefaults,
-		getFilter: function(name){
-			return this._registered[name];
-		}
-	});
-	//Add methods to the Behavior class for instance registration.
-	Behavior.implement({
-		_registered: {},
-		_plugins: {},
-		addFilter: addFilter,
-		addFilters: addFilters,
-		addPlugin: addPlugin,
-		addPlugins: addPlugins,
-		setFilterDefaults: setFilterDefaults
-	});
-
-	//This class is an actual filter that, given an element, alters it with specific behaviors.
-	Behavior.Filter = new Class({
-
-		config: {
-			/**
-				returns: Foo,
-				require: ['req1', 'req2'],
-				//or
-				requireAs: {
-					req1: Boolean,
-					req2: Number,
-					req3: String
-				},
-				defaults: {
-					opt1: false,
-					opt2: 2
-				},
-				//simple example:
-				setup: function(element, API){
-					var kids = element.getElements(API.get('selector'));
-					//some validation still has to occur here
-					if (!kids.length) API.fail('there were no child elements found that match ', API.get('selector'));
-					if (kids.length < 2) API.warn("there weren't more than 2 kids that match", API.get('selector'));
-					var fooInstance = new Foo(kids, API.get('opt1', 'opt2'));
-					API.onCleanup(function(){
-						fooInstance.destroy();
-					});
-					return fooInstance;
-				},
-				delayUntil: 'mouseover',
-				//OR
-				delay: 100,
-				//OR
-				initializer: function(element, API){
-					element.addEvent('mouseover', API.runSetup); //same as specifying event
-					//or
-					API.runSetup.delay(100); //same as specifying delay
-					//or something completely esoteric
-					var timer = (function(){
-						if (element.hasClass('foo')){
-							clearInterval(timer);
-							API.runSetup();
-						}
-					}).periodical(100);
-					//or
-					API.addEvent('someBehaviorEvent', API.runSetup);
-				});
-				*/
-		},
-
-		//Pass in an object with the following properties:
-		//name - the name of this filter
-		//setup - a function that applies the filter to the given element
-		initialize: function(name, setup){
-			this.name = name;
-			if (typeOf(setup) == "function"){
-				this.setup = setup;
-			} else {
-				Object.append(this.config, setup);
-				this.setup = this.config.setup;
-			}
-			this._cleanupFunctions = new Table();
-		},
-
-		//Stores a garbage collection pointer for a specific element.
-		//Example: if your filter enhances all the inputs in the container
-		//you might have a function that removes that enhancement for garbage collection.
-		//You would mark each input matched with its own cleanup function.
-		//NOTE: this MUST be the element passed to the filter - the element with this filters
-		//      name in its data-behavior property. I.E.:
-		//<form data-behavior="FormValidator">
-		//  <input type="text" name="email"/>
-		//</form>
-		//If this filter is FormValidator, you can mark the form for cleanup, but not, for example
-		//the input. Only elements that match this filter can be marked.
-		markForCleanup: function(element, fn){
-			var functions = this._cleanupFunctions.get(element);
-			if (!functions) functions = [];
-			functions.include(fn);
-			this._cleanupFunctions.set(element, functions);
-			return this;
-		},
-
-		//Garbage collect a specific element.
-		//NOTE: this should be an element that has a data-behavior property that matches this filter.
-		cleanup: function(element){
-			var marks = this._cleanupFunctions.get(element);
-			if (marks){
-				marks.each(function(fn){ fn(); });
-				this._cleanupFunctions.erase(element);
-			}
-			return this;
-		}
-
-	});
-
-	Behavior.elementDataProperty = 'behavior';
-
-	Element.implement({
-
-		addBehaviorFilter: function(name){
-			return this.setData(Behavior.elementDataProperty, this.getBehaviors().include(name).join(' '));
-		},
-
-		removeBehaviorFilter: function(name){
-			return this.setData(Behavior.elementDataProperty, this.getBehaviors().erase(name).join(' '));
-		},
-
-		getBehaviors: function(){
-			var filters = this.getData(Behavior.elementDataProperty);
-			if (!filters) return [];
-			return filters.trim().split(spaceOrCommaRegex);
-		},
-
-		hasBehavior: function(name){
-			return this.getBehaviors().contains(name);
-		},
-
-		getBehaviorResult: function(name){
-			return this.retrieve('Behavior Filter result:' + name);
-		}
-
-	});
-
-
-})();
-
-
-// Begin: Source/Event.Mock.js
-/*
----
-name: Event.Mock
-
-description: Supplies a Mock Event object for use on fireEvent
-
-license: MIT-style
-
-authors:
-- Arieh Glazer
-
-requires: Core/Event
-
-provides: [Event.Mock]
-
-...
-*/
-
-(function($,window,undef){
-
-/**
- * creates a Mock event to be used with fire event
- * @param Element target an element to set as the target of the event - not required
- *  @param string type the type of the event to be fired. Will not be used by IE - not required.
- *
- */
-Event.Mock = function(target,type){
-	type = type || 'click';
-
-	var e = {
-		type: type,
-		target: target
-	};
-
-	if (document.createEvent){
-		e = document.createEvent('HTMLEvents');
-		e.initEvent(
-			type //event type
-			, false //bubbles - set to false because the event should like normal fireEvent
-			, true //cancelable
-		);
-	}
-
-	e = new Event(e);
-
-	e.target = target;
-
-	return e;
-};
-
-})(document.id,window);
-
-// Begin: Source/Delegator.js
-/*
----
-name: Delegator
-description: Allows for the registration of delegated events on a container.
-requires: [Core/Element.Delegation, Core/Options, Core/Events, /Event.Mock, /Behavior]
-provides: [Delegator]
-...
-*/
-(function(){
-
-	var spaceOrCommaRegex = /\s*,\s*|\s+/g;
-
-	window.Delegator = new Class({
-
-		Implements: [Options, Events, Behavior.PassMethods],
-
-		options: {
-			// breakOnErrors: false,
-			getBehavior: function(){},
-			onError: Behavior.getLog('error'),
-			onWarn: Behavior.getLog('warn')
-		},
-
-		initialize: function(options){
-			this.setOptions(options);
-			this._bound = {
-				eventHandler: this._eventHandler.bind(this)
-			};
-			Delegator._instances.push(this);
-			Object.each(Delegator._triggers, function(trigger){
-				this._eventTypes.combine(trigger.types);
-			}, this);
-			this.API = new Class({ Extends: BehaviorAPI });
-			this.passMethods({
-				addEvent: this.addEvent.bind(this),
-				removeEvent: this.removeEvent.bind(this),
-				addEvents: this.addEvents.bind(this),
-				removeEvents: this.removeEvents.bind(this),
-				fireEvent: this.fireEvent.bind(this),
-				attach: this.attach.bind(this),
-				trigger: this.trigger.bind(this),
-				error: function(){ this.fireEvent('error', arguments); }.bind(this),
-				fail: function(){
-					var msg = Array.join(arguments, ' ');
-					throw new Error(msg);
-				},
-				warn: function(){
-					this.fireEvent('warn', arguments);
-				}.bind(this),
-				getBehavior: function(){
-					return this.options.getBehavior();
-				}.bind(this)
-			});
-
-			this.bindToBehavior(this.options.getBehavior());
-		},
-
-		bindToBehavior: function(behavior){
-			if (!behavior) return;
-			this.unbindFromBehavior();
-			this._behavior = behavior;
-			if (!this._behaviorEvents){
-				var self = this;
-				this._behaviorEvents = {
-					destroyDom: function(elements){
-						Array.from(elements).each(function(element){
-							self._behavior.cleanup(element);
-							self._behavior.fireEvent('destroyDom', element);
-						});
-					},
-					ammendDom: function(container){
-						self._behavior.apply(container);
-						self._behavior.fireEvent('ammendDom', container);
-					}
-				};
-			}
-			this.addEvents(this._behaviorEvents);
-		},
-
-		getBehavior: function(){
-			return this._behavior;
-		},
-
-		unbindFromBehavior: function(){
-			if (this._behaviorEvents && this._behavior){
-				this._behavior.removeEvents(this._behaviorEvents);
-				delete this._behavior;
-			}
-		},
-
-		attach: function(target, _method){
-			_method = _method || 'addEvent';
-			target = document.id(target);
-			if ((_method == 'addEvent' && this._attachedTo.contains(target)) ||
-			    (_method == 'removeEvent') && !this._attachedTo.contains(target)) return this;
-			this._eventTypes.each(function(event){
-				target[_method](event + ':relay([data-trigger])', this._bound.eventHandler);
-			}, this);
-			this._attachedTo.push(target);
-			return this;
-		},
-
-		detach: function(target){
-			if (target){
-				this.attach(target, 'removeEvent');
-			} else {
-				this._attachedTo.each(this.detach, this);
-			}
-			return this;
-		},
-
-		trigger: function(name, element, event){
-			var e = event;
-			if (!e || typeOf(e) == "string") e = new Event.Mock(element, e);
-
-			var trigger = this.getTrigger(name);
-			if (trigger && (!event || (event && trigger.types.contains(e.type)))) {
-				if (this.options.breakOnErrors){
-					this._trigger(trigger, element, e);
-				} else {
-					try {
-						this._trigger(trigger, element, e);
-					} catch(error) {
-						this.fireEvent('error', ['Could not apply the trigger', name, error]);
-					}
-				}
-			}
-			return this;
-		},
-
-		getTrigger: function(name){
-			return this._triggers[name] || Delegator._triggers[name];
-		},
-
-		addEventTypes: function(triggerName, types){
-			this.getTrigger(triggerName).types.combine(Array.from(types));
-			return this;
-		},
-
-		/******************
-		 * PRIVATE METHODS
-		 ******************/
-
-		_trigger: function(trigger, element, event){
-			var api = new this.API(element, trigger.name);
-			if (trigger.requireAs){
-				api.requireAs(trigger.requireAs);
-			} else if (trigger.require){
-				api.require.apply(api, Array.from(trigger.require));
-			} if (trigger.defaults){
-				api.setDefault(trigger.defaults);
-			}
-			trigger.handler.apply(this, [event, element, api]);
-			this.fireEvent('trigger', [trigger, element, event]);
-		},
-
-		_eventHandler: function(event, target){
-			var triggers = target.getTriggers();
-			if (triggers.contains('Stop')) event.stop();
-			if (triggers.contains('PreventDefault')) event.preventDefault();
-			triggers.each(function(trigger){
-				if (trigger != "Stop" && trigger != "PreventDefault") this.trigger(trigger, target, event);
-			}, this);
-		},
-
-		_onRegister: function(eventTypes){
-			eventTypes.each(function(eventType){
-				if (!this._eventTypes.contains(eventType)){
-					this._attachedTo.each(function(element){
-						element.addEvent(eventType + ':relay([data-trigger])', this._bound.eventHandler);
-					}, this);
-				}
-				this._eventTypes.include(eventType);
-			}, this);
-		},
-
-		_attachedTo: [],
-		_eventTypes: [],
-		_triggers: {}
-
-	});
-
-	Delegator._triggers = {};
-	Delegator._instances = [];
-	Delegator._onRegister = function(eventType){
-		this._instances.each(function(instance){
-			instance._onRegister(eventType);
-		});
-	};
-
-	Delegator.register = function(eventTypes, name, handler, overwrite /** or eventType, obj, overwrite */){
-		eventTypes = Array.from(eventTypes);
-		if (typeOf(name) == "object"){
-			var obj = name;
-			for (name in obj){
-				this.register.apply(this, [eventTypes, name, obj[name], handler]);
-			}
-			return this;
-		}
-		if (!this._triggers[name] || overwrite){
-			if (typeOf(handler) == "function"){
-				handler = {
-					handler: handler
-				};
-			}
-			handler.types = eventTypes;
-			handler.name = name;
-			this._triggers[name] = handler;
-			this._onRegister(eventTypes);
-		} else {
-			throw new Error('Could add the trigger "' + name  +'" as a previous trigger by that same name exists.');
-		}
-		return this;
-	};
-
-	Delegator.getTrigger = function(name){
-		return this._triggers[name];
-	};
-
-	Delegator.addEventTypes = function(triggerName, types){
-		this.getTrigger(triggerName).types.combine(Array.from(types));
-		return this;
-	};
-
-
-	Delegator.implement('register', Delegator.register);
-
-	Element.implement({
-
-		addTrigger: function(name){
-			return this.setData('trigger', this.getTriggers().include(name).join(' '));
-		},
-
-		removeTrigger: function(name){
-			return this.setData('trigger', this.getTriggers().erase(name).join(' '));
-		},
-
-		getTriggers: function(){
-			var triggers = this.getData('trigger');
-			if (!triggers) return [];
-			return triggers.trim().split(spaceOrCommaRegex);
-		},
-
-		hasTrigger: function(name){
-			return this.getTriggers().contains(name);
-		}
-
-	});
-
-})();
-
-// Begin: Source/Behavior.Startup.js
-/*
----
-name: Behavior.Startup
-description: Invokes delegators on startup when specified conditions are met.
-requires: [/Behavior, /Delegator]
-provides: [Behavior.Startup]
-...
-*/
-(function(){
-	var check = function(el, conditional, delegator, api){
-		var targets = [];
-		//get the target of these delegators
-		if (conditional.targets){
-			targets = el.getElement(conditional.targets);
-		} else if (conditional.target && conditional.target != 'self'){
-			var target = el.getElement(conditional.target);
-			if (target) targets = new Elements([target]);
-		} else {
-			targets = new Elements([el]);
-		}
-		if (targets.length == 0) api.fail('could not find targets for startup delegator: ', delegator, conditional.targets);
-		//check the targets for the conditionals
-		return targets.some(function(target){
-			if (conditional.property) return target.get(conditional.property) === conditional.value;
-			else if (conditional.method) return target[method].apply(element, conditional.arguments || []) === conditiona.value;
-		});
-	};
-	Behavior.addGlobalFilter('Startup', {
-		setup: function(el, api){
-			//get the delegators to set up
-			var delegators = api.get('delegators');
-			if (delegators){
-				Object.each(delegators, function(conditional, delegator){
-					//if any were true, fire the delegator ON THIS ELEMENT
-					if (check(el, conditional, delegator, api)) api.getDelegator().trigger(delegator, el);
-				});
-			}
-		}
-	});
-})();
-
-// Begin: Source/Class/Class.Occlude.js
-/*
----
-
-script: Class.Occlude.js
-
-name: Class.Occlude
-
-description: Prevents a class from being applied to a DOM element twice.
-
-license: MIT-style license.
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Class
-  - Core/Element
-  - /MooTools.More
-
-provides: [Class.Occlude]
-
-...
-*/
-
-Class.Occlude = new Class({
-
-	occlude: function(property, element){
-		element = document.id(element || this.element);
-		var instance = element.retrieve(property || this.property);
-		if (instance && !this.occluded)
-			return (this.occluded = instance);
-
-		this.occluded = false;
-		element.store(property || this.property, this);
-		return this.occluded;
-	}
-
-});
-
-
-// Begin: Source/Class/Class.Refactor.js
-/*
----
-
-script: Class.Refactor.js
-
-name: Class.Refactor
-
-description: Extends a class onto itself with new property, preserving any items attached to the class's namespace.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Class
-  - /MooTools.More
-
-# Some modules declare themselves dependent on Class.Refactor
-provides: [Class.refactor, Class.Refactor]
-
-...
-*/
-
-Class.refactor = function(original, refactors){
-
-	Object.each(refactors, function(item, name){
-		var origin = original.prototype[name];
-		origin = (origin && origin.$origin) || origin || function(){};
-		original.implement(name, (typeof item == 'function') ? function(){
-			var old = this.previous;
-			this.previous = origin;
-			var value = item.apply(this, arguments);
-			this.previous = old;
-			return value;
-		} : item);
-	});
-
-	return original;
-
-};
-
-
-// Begin: Source/Element/Element.Position.js
-/*
----
-
-script: Element.Position.js
-
-name: Element.Position
-
-description: Extends the Element native object to include methods useful positioning elements relative to others.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-  - Jacob Thornton
-
-requires:
-  - Core/Options
-  - Core/Element.Dimensions
-  - Element.Measure
-
-provides: [Element.Position]
-
-...
-*/
-
-(function(original){
-
-var local = Element.Position = {
-
-	options: {/*
-		edge: false,
-		returnPos: false,
-		minimum: {x: 0, y: 0},
-		maximum: {x: 0, y: 0},
-		relFixedPosition: false,
-		ignoreMargins: false,
-		ignoreScroll: false,
-		allowNegative: false,*/
-		relativeTo: document.body,
-		position: {
-			x: 'center', //left, center, right
-			y: 'center' //top, center, bottom
-		},
-		offset: {x: 0, y: 0}
-	},
-
-	getOptions: function(element, options){
-		options = Object.merge({}, local.options, options);
-		local.setPositionOption(options);
-		local.setEdgeOption(options);
-		local.setOffsetOption(element, options);
-		local.setDimensionsOption(element, options);
-		return options;
-	},
-
-	setPositionOption: function(options){
-		options.position = local.getCoordinateFromValue(options.position);
-	},
-
-	setEdgeOption: function(options){
-		var edgeOption = local.getCoordinateFromValue(options.edge);
-		options.edge = edgeOption ? edgeOption :
-			(options.position.x == 'center' && options.position.y == 'center') ? {x: 'center', y: 'center'} :
-			{x: 'left', y: 'top'};
-	},
-
-	setOffsetOption: function(element, options){
-		var parentOffset = {x: 0, y: 0},
-			offsetParent = element.measure(function(){
-				return document.id(this.getOffsetParent());
-			}),
-			parentScroll = offsetParent.getScroll();
-
-		if (!offsetParent || offsetParent == element.getDocument().body) return;
-		parentOffset = offsetParent.measure(function(){
-			var position = this.getPosition();
-			if (this.getStyle('position') == 'fixed'){
-				var scroll = window.getScroll();
-				position.x += scroll.x;
-				position.y += scroll.y;
-			}
-			return position;
-		});
-
-		options.offset = {
-			parentPositioned: offsetParent != document.id(options.relativeTo),
-			x: options.offset.x - parentOffset.x + parentScroll.x,
-			y: options.offset.y - parentOffset.y + parentScroll.y
-		};
-	},
-
-	setDimensionsOption: function(element, options){
-		options.dimensions = element.getDimensions({
-			computeSize: true,
-			styles: ['padding', 'border', 'margin']
-		});
-	},
-
-	getPosition: function(element, options){
-		var position = {};
-		options = local.getOptions(element, options);
-		var relativeTo = document.id(options.relativeTo) || document.body;
-
-		local.setPositionCoordinates(options, position, relativeTo);
-		if (options.edge) local.toEdge(position, options);
-
-		var offset = options.offset;
-		position.left = ((position.x >= 0 || offset.parentPositioned || options.allowNegative) ? position.x : 0).toInt();
-		position.top = ((position.y >= 0 || offset.parentPositioned || options.allowNegative) ? position.y : 0).toInt();
-
-		local.toMinMax(position, options);
-
-		if (options.relFixedPosition || relativeTo.getStyle('position') == 'fixed') local.toRelFixedPosition(relativeTo, position);
-		if (options.ignoreScroll) local.toIgnoreScroll(relativeTo, position);
-		if (options.ignoreMargins) local.toIgnoreMargins(position, options);
-
-		position.left = Math.ceil(position.left);
-		position.top = Math.ceil(position.top);
-		delete position.x;
-		delete position.y;
-
-		return position;
-	},
-
-	setPositionCoordinates: function(options, position, relativeTo){
-		var offsetY = options.offset.y,
-			offsetX = options.offset.x,
-			calc = (relativeTo == document.body) ? window.getScroll() : relativeTo.getPosition(),
-			top = calc.y,
-			left = calc.x,
-			winSize = window.getSize();
-
-		switch(options.position.x){
-			case 'left': position.x = left + offsetX; break;
-			case 'right': position.x = left + offsetX + relativeTo.offsetWidth; break;
-			default: position.x = left + ((relativeTo == document.body ? winSize.x : relativeTo.offsetWidth) / 2) + offsetX; break;
-		}
-
-		switch(options.position.y){
-			case 'top': position.y = top + offsetY; break;
-			case 'bottom': position.y = top + offsetY + relativeTo.offsetHeight; break;
-			default: position.y = top + ((relativeTo == document.body ? winSize.y : relativeTo.offsetHeight) / 2) + offsetY; break;
-		}
-	},
-
-	toMinMax: function(position, options){
-		var xy = {left: 'x', top: 'y'}, value;
-		['minimum', 'maximum'].each(function(minmax){
-			['left', 'top'].each(function(lr){
-				value = options[minmax] ? options[minmax][xy[lr]] : null;
-				if (value != null && ((minmax == 'minimum') ? position[lr] < value : position[lr] > value)) position[lr] = value;
-			});
-		});
-	},
-
-	toRelFixedPosition: function(relativeTo, position){
-		var winScroll = window.getScroll();
-		position.top += winScroll.y;
-		position.left += winScroll.x;
-	},
-
-	toIgnoreScroll: function(relativeTo, position){
-		var relScroll = relativeTo.getScroll();
-		position.top -= relScroll.y;
-		position.left -= relScroll.x;
-	},
-
-	toIgnoreMargins: function(position, options){
-		position.left += options.edge.x == 'right'
-			? options.dimensions['margin-right']
-			: (options.edge.x != 'center'
-				? -options.dimensions['margin-left']
-				: -options.dimensions['margin-left'] + ((options.dimensions['margin-right'] + options.dimensions['margin-left']) / 2));
-
-		position.top += options.edge.y == 'bottom'
-			? options.dimensions['margin-bottom']
-			: (options.edge.y != 'center'
-				? -options.dimensions['margin-top']
-				: -options.dimensions['margin-top'] + ((options.dimensions['margin-bottom'] + options.dimensions['margin-top']) / 2));
-	},
-
-	toEdge: function(position, options){
-		var edgeOffset = {},
-			dimensions = options.dimensions,
-			edge = options.edge;
-
-		switch(edge.x){
-			case 'left': edgeOffset.x = 0; break;
-			case 'right': edgeOffset.x = -dimensions.x - dimensions.computedRight - dimensions.computedLeft; break;
-			// center
-			default: edgeOffset.x = -(Math.round(dimensions.totalWidth / 2)); break;
-		}
-
-		switch(edge.y){
-			case 'top': edgeOffset.y = 0; break;
-			case 'bottom': edgeOffset.y = -dimensions.y - dimensions.computedTop - dimensions.computedBottom; break;
-			// center
-			default: edgeOffset.y = -(Math.round(dimensions.totalHeight / 2)); break;
-		}
-
-		position.x += edgeOffset.x;
-		position.y += edgeOffset.y;
-	},
-
-	getCoordinateFromValue: function(option){
-		if (typeOf(option) != 'string') return option;
-		option = option.toLowerCase();
-
-		return {
-			x: option.test('left') ? 'left'
-				: (option.test('right') ? 'right' : 'center'),
-			y: option.test(/upper|top/) ? 'top'
-				: (option.test('bottom') ? 'bottom' : 'center')
-		};
-	}
-
-};
-
-Element.implement({
-
-	position: function(options){
-		if (options && (options.x != null || options.y != null)){
-			return (original ? original.apply(this, arguments) : this);
-		}
-		var position = this.setStyle('position', 'absolute').calculatePosition(options);
-		return (options && options.returnPos) ? position : this.setStyles(position);
-	},
-
-	calculatePosition: function(options){
-		return local.getPosition(this, options);
-	}
-
-});
-
-})(Element.prototype.position);
-
-
-// Begin: Source/Utilities/IframeShim.js
-/*
----
-
-script: IframeShim.js
-
-name: IframeShim
-
-description: Defines IframeShim, a class for obscuring select lists and flash objects in IE.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Element.Event
-  - Core/Element.Style
-  - Core/Options
-  - Core/Events
-  - /Element.Position
-  - /Class.Occlude
-
-provides: [IframeShim]
-
-...
-*/
-
-var IframeShim = new Class({
-
-	Implements: [Options, Events, Class.Occlude],
-
-	options: {
-		className: 'iframeShim',
-		src: 'javascript:false;document.write("");',
-		display: false,
-		zIndex: null,
-		margin: 0,
-		offset: {x: 0, y: 0},
-		browsers: (Browser.ie6 || (Browser.firefox && Browser.version < 3 && Browser.Platform.mac))
-	},
-
-	property: 'IframeShim',
-
-	initialize: function(element, options){
-		this.element = document.id(element);
-		if (this.occlude()) return this.occluded;
-		this.setOptions(options);
-		this.makeShim();
-		return this;
-	},
-
-	makeShim: function(){
-		if (this.options.browsers){
-			var zIndex = this.element.getStyle('zIndex').toInt();
-
-			if (!zIndex){
-				zIndex = 1;
-				var pos = this.element.getStyle('position');
-				if (pos == 'static' || !pos) this.element.setStyle('position', 'relative');
-				this.element.setStyle('zIndex', zIndex);
-			}
-			zIndex = ((this.options.zIndex != null || this.options.zIndex === 0) && zIndex > this.options.zIndex) ? this.options.zIndex : zIndex - 1;
-			if (zIndex < 0) zIndex = 1;
-			this.shim = new Element('iframe', {
-				src: this.options.src,
-				scrolling: 'no',
-				frameborder: 0,
-				styles: {
-					zIndex: zIndex,
-					position: 'absolute',
-					border: 'none',
-					filter: 'progid:DXImageTransform.Microsoft.Alpha(style=0,opacity=0)'
-				},
-				'class': this.options.className
-			}).store('IframeShim', this);
-			var inject = (function(){
-				this.shim.inject(this.element, 'after');
-				this[this.options.display ? 'show' : 'hide']();
-				this.fireEvent('inject');
-			}).bind(this);
-			if (!IframeShim.ready) window.addEvent('load', inject);
-			else inject();
-		} else {
-			this.position = this.hide = this.show = this.dispose = Function.from(this);
-		}
-	},
-
-	position: function(){
-		if (!IframeShim.ready || !this.shim) return this;
-		var size = this.element.measure(function(){
-			return this.getSize();
-		});
-		if (this.options.margin != undefined){
-			size.x = size.x - (this.options.margin * 2);
-			size.y = size.y - (this.options.margin * 2);
-			this.options.offset.x += this.options.margin;
-			this.options.offset.y += this.options.margin;
-		}
-		this.shim.set({width: size.x, height: size.y}).position({
-			relativeTo: this.element,
-			offset: this.options.offset
-		});
-		return this;
-	},
-
-	hide: function(){
-		if (this.shim) this.shim.setStyle('display', 'none');
-		return this;
-	},
-
-	show: function(){
-		if (this.shim) this.shim.setStyle('display', 'block');
-		return this.position();
-	},
-
-	dispose: function(){
-		if (this.shim) this.shim.dispose();
-		return this;
-	},
-
-	destroy: function(){
-		if (this.shim) this.shim.destroy();
-		return this;
-	}
-
-});
-
-window.addEvent('load', function(){
-	IframeShim.ready = true;
-});
-
-
-// Begin: Source/Interface/Mask.js
-/*
----
-
-script: Mask.js
-
-name: Mask
-
-description: Creates a mask element to cover another.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Options
-  - Core/Events
-  - Core/Element.Event
-  - /Class.Binds
-  - /Element.Position
-  - /IframeShim
-
-provides: [Mask]
-
-...
-*/
-
-var Mask = new Class({
-
-	Implements: [Options, Events],
-
-	Binds: ['position'],
-
-	options: {/*
-		onShow: function(){},
-		onHide: function(){},
-		onDestroy: function(){},
-		onClick: function(event){},
-		inject: {
-			where: 'after',
-			target: null,
-		},
-		hideOnClick: false,
-		id: null,
-		destroyOnHide: false,*/
-		style: {},
-		'class': 'mask',
-		maskMargins: false,
-		useIframeShim: true,
-		iframeShimOptions: {}
-	},
-
-	initialize: function(target, options){
-		this.target = document.id(target) || document.id(document.body);
-		this.target.store('mask', this);
-		this.setOptions(options);
-		this.render();
-		this.inject();
-	},
-
-	render: function(){
-		this.element = new Element('div', {
-			'class': this.options['class'],
-			id: this.options.id || 'mask-' + String.uniqueID(),
-			styles: Object.merge({}, this.options.style, {
-				display: 'none'
-			}),
-			events: {
-				click: function(event){
-					this.fireEvent('click', event);
-					if (this.options.hideOnClick) this.hide();
-				}.bind(this)
-			}
-		});
-
-		this.hidden = true;
-	},
-
-	toElement: function(){
-		return this.element;
-	},
-
-	inject: function(target, where){
-		where = where || (this.options.inject ? this.options.inject.where : '') || this.target == document.body ? 'inside' : 'after';
-		target = target || (this.options.inject && this.options.inject.target) || this.target;
-
-		this.element.inject(target, where);
-
-		if (this.options.useIframeShim){
-			this.shim = new IframeShim(this.element, this.options.iframeShimOptions);
-
-			this.addEvents({
-				show: this.shim.show.bind(this.shim),
-				hide: this.shim.hide.bind(this.shim),
-				destroy: this.shim.destroy.bind(this.shim)
-			});
-		}
-	},
-
-	position: function(){
-		this.resize(this.options.width, this.options.height);
-
-		this.element.position({
-			relativeTo: this.target,
-			position: 'topLeft',
-			ignoreMargins: !this.options.maskMargins,
-			ignoreScroll: this.target == document.body
-		});
-
-		return this;
-	},
-
-	resize: function(x, y){
-		var opt = {
-			styles: ['padding', 'border']
-		};
-		if (this.options.maskMargins) opt.styles.push('margin');
-
-		var dim = this.target.getComputedSize(opt);
-		if (this.target == document.body){
-			this.element.setStyles({width: 0, height: 0});
-			var win = window.getScrollSize();
-			if (dim.totalHeight < win.y) dim.totalHeight = win.y;
-			if (dim.totalWidth < win.x) dim.totalWidth = win.x;
-		}
-		this.element.setStyles({
-			width: Array.pick([x, dim.totalWidth, dim.x]),
-			height: Array.pick([y, dim.totalHeight, dim.y])
-		});
-
-		return this;
-	},
-
-	show: function(){
-		if (!this.hidden) return this;
-
-		window.addEvent('resize', this.position);
-		this.position();
-		this.showMask.apply(this, arguments);
-
-		return this;
-	},
-
-	showMask: function(){
-		this.element.setStyle('display', 'block');
-		this.hidden = false;
-		this.fireEvent('show');
-	},
-
-	hide: function(){
-		if (this.hidden) return this;
-
-		window.removeEvent('resize', this.position);
-		this.hideMask.apply(this, arguments);
-		if (this.options.destroyOnHide) return this.destroy();
-
-		return this;
-	},
-
-	hideMask: function(){
-		this.element.setStyle('display', 'none');
-		this.hidden = true;
-		this.fireEvent('hide');
-	},
-
-	toggle: function(){
-		this[this.hidden ? 'show' : 'hide']();
-	},
-
-	destroy: function(){
-		this.hide();
-		this.element.destroy();
-		this.fireEvent('destroy');
-		this.target.eliminate('mask');
-	}
-
-});
-
-Element.Properties.mask = {
-
-	set: function(options){
-		var mask = this.retrieve('mask');
-		if (mask) mask.destroy();
-		return this.eliminate('mask').store('mask:options', options);
-	},
-
-	get: function(){
-		var mask = this.retrieve('mask');
-		if (!mask){
-			mask = new Mask(this, this.retrieve('mask:options'));
-			this.store('mask', mask);
-		}
-		return mask;
-	}
-
-};
-
-Element.implement({
-
-	mask: function(options){
-		if (options) this.set('mask', options);
-		this.get('mask').show();
-		return this;
-	},
-
-	unmask: function(){
-		this.get('mask').hide();
-		return this;
-	}
-
-});
-
-
-// Begin: Source/Interface/Spinner.js
-/*
----
-
-script: Spinner.js
-
-name: Spinner
-
-description: Adds a semi-transparent overlay over a dom element with a spinnin ajax icon.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Fx.Tween
-  - Core/Request
-  - /Class.refactor
-  - /Mask
-
-provides: [Spinner]
-
-...
-*/
-
-var Spinner = new Class({
-
-	Extends: Mask,
-
-	Implements: Chain,
-
-	options: {/*
-		message: false,*/
-		'class': 'spinner',
-		containerPosition: {},
-		content: {
-			'class': 'spinner-content'
-		},
-		messageContainer: {
-			'class': 'spinner-msg'
-		},
-		img: {
-			'class': 'spinner-img'
-		},
-		fxOptions: {
-			link: 'chain'
-		}
-	},
-
-	initialize: function(target, options){
-		this.target = document.id(target) || document.id(document.body);
-		this.target.store('spinner', this);
-		this.setOptions(options);
-		this.render();
-		this.inject();
-
-		// Add this to events for when noFx is true; parent methods handle hide/show.
-		var deactivate = function(){ this.active = false; }.bind(this);
-		this.addEvents({
-			hide: deactivate,
-			show: deactivate
-		});
-	},
-
-	render: function(){
-		this.parent();
-
-		this.element.set('id', this.options.id || 'spinner-' + String.uniqueID());
-
-		this.content = document.id(this.options.content) || new Element('div', this.options.content);
-		this.content.inject(this.element);
-
-		if (this.options.message){
-			this.msg = document.id(this.options.message) || new Element('p', this.options.messageContainer).appendText(this.options.message);
-			this.msg.inject(this.content);
-		}
-
-		if (this.options.img){
-			this.img = document.id(this.options.img) || new Element('div', this.options.img);
-			this.img.inject(this.content);
-		}
-
-		this.element.set('tween', this.options.fxOptions);
-	},
-
-	show: function(noFx){
-		if (this.active) return this.chain(this.show.bind(this));
-		if (!this.hidden){
-			this.callChain.delay(20, this);
-			return this;
-		}
-
-		this.active = true;
-
-		return this.parent(noFx);
-	},
-
-	showMask: function(noFx){
-		var pos = function(){
-			this.content.position(Object.merge({
-				relativeTo: this.element
-			}, this.options.containerPosition));
-		}.bind(this);
-
-		if (noFx){
-			this.parent();
-			pos();
-		} else {
-			if (!this.options.style.opacity) this.options.style.opacity = this.element.getStyle('opacity').toFloat();
-			this.element.setStyles({
-				display: 'block',
-				opacity: 0
-			}).tween('opacity', this.options.style.opacity);
-			pos();
-			this.hidden = false;
-			this.fireEvent('show');
-			this.callChain();
-		}
-	},
-
-	hide: function(noFx){
-		if (this.active) return this.chain(this.hide.bind(this));
-		if (this.hidden){
-			this.callChain.delay(20, this);
-			return this;
-		}
-		this.active = true;
-		return this.parent(noFx);
-	},
-
-	hideMask: function(noFx){
-		if (noFx) return this.parent();
-		this.element.tween('opacity', 0).get('tween').chain(function(){
-			this.element.setStyle('display', 'none');
-			this.hidden = true;
-			this.fireEvent('hide');
-			this.callChain();
-		}.bind(this));
-	},
-
-	destroy: function(){
-		this.content.destroy();
-		this.parent();
-		this.target.eliminate('spinner');
-	}
-
-});
-
-Request = Class.refactor(Request, {
-
-	options: {
-		useSpinner: false,
-		spinnerOptions: {},
-		spinnerTarget: false
-	},
-
-	initialize: function(options){
-		this._send = this.send;
-		this.send = function(options){
-			var spinner = this.getSpinner();
-			if (spinner) spinner.chain(this._send.pass(options, this)).show();
-			else this._send(options);
-			return this;
-		};
-		this.previous(options);
-	},
-
-	getSpinner: function(){
-		if (!this.spinner){
-			var update = document.id(this.options.spinnerTarget) || document.id(this.options.update);
-			if (this.options.useSpinner && update){
-				update.set('spinner', this.options.spinnerOptions);
-				var spinner = this.spinner = update.get('spinner');
-				['complete', 'exception', 'cancel'].each(function(event){
-					this.addEvent(event, spinner.hide.bind(spinner));
-				}, this);
-			}
-		}
-		return this.spinner;
-	}
-
-});
-
-Element.Properties.spinner = {
-
-	set: function(options){
-		var spinner = this.retrieve('spinner');
-		if (spinner) spinner.destroy();
-		return this.eliminate('spinner').store('spinner:options', options);
-	},
-
-	get: function(){
-		var spinner = this.retrieve('spinner');
-		if (!spinner){
-			spinner = new Spinner(this, this.retrieve('spinner:options'));
-			this.store('spinner', spinner);
-		}
-		return spinner;
-	}
-
-};
-
-Element.implement({
-
-	spin: function(options){
-		if (options) this.set('spinner', options);
-		this.get('spinner').show();
-		return this;
-	},
-
-	unspin: function(){
-		this.get('spinner').hide();
-		return this;
-	}
-
-});
-
-
-// Begin: Source/Types/String.QueryString.js
-/*
----
-
-script: String.QueryString.js
-
-name: String.QueryString
-
-description: Methods for dealing with URI query strings.
-
-license: MIT-style license
-
-authors:
-  - Sebastian Markbåge
-  - Aaron Newton
-  - Lennart Pilon
-  - Valerio Proietti
-
-requires:
-  - Core/Array
-  - Core/String
-  - /MooTools.More
-
-provides: [String.QueryString]
-
-...
-*/
-
-String.implement({
-
-	parseQueryString: function(decodeKeys, decodeValues){
-		if (decodeKeys == null) decodeKeys = true;
-		if (decodeValues == null) decodeValues = true;
-
-		var vars = this.split(/[&;]/),
-			object = {};
-		if (!vars.length) return object;
-
-		vars.each(function(val){
-			var index = val.indexOf('=') + 1,
-				value = index ? val.substr(index) : '',
-				keys = index ? val.substr(0, index - 1).match(/([^\]\[]+|(\B)(?=\]))/g) : [val],
-				obj = object;
-			if (!keys) return;
-			if (decodeValues) value = decodeURIComponent(value);
-			keys.each(function(key, i){
-				if (decodeKeys) key = decodeURIComponent(key);
-				var current = obj[key];
-
-				if (i < keys.length - 1) obj = obj[key] = current || {};
-				else if (typeOf(current) == 'array') current.push(value);
-				else obj[key] = current != null ? [current, value] : value;
-			});
-		});
-
-		return object;
-	},
-
-	cleanQueryString: function(method){
-		return this.split('&').filter(function(val){
-			var index = val.indexOf('='),
-				key = index < 0 ? '' : val.substr(0, index),
-				value = val.substr(index + 1);
-
-			return method ? method.call(null, key, value) : (value || value === 0);
-		}).join('&');
-	}
-
-});
-
-
-// Begin: Source/Class/Events.Pseudos.js
-/*
----
-
-name: Events.Pseudos
-
-description: Adds the functionality to add pseudo events
-
-license: MIT-style license
-
-authors:
-  - Arian Stolwijk
-
-requires: [Core/Class.Extras, Core/Slick.Parser, More/MooTools.More]
-
-provides: [Events.Pseudos]
-
-...
-*/
-
-(function(){
-
-Events.Pseudos = function(pseudos, addEvent, removeEvent){
-
-	var storeKey = '_monitorEvents:';
-
-	var storageOf = function(object){
-		return {
-			store: object.store ? function(key, value){
-				object.store(storeKey + key, value);
-			} : function(key, value){
-				(object._monitorEvents || (object._monitorEvents = {}))[key] = value;
-			},
-			retrieve: object.retrieve ? function(key, dflt){
-				return object.retrieve(storeKey + key, dflt);
-			} : function(key, dflt){
-				if (!object._monitorEvents) return dflt;
-				return object._monitorEvents[key] || dflt;
-			}
-		};
-	};
-
-	var splitType = function(type){
-		if (type.indexOf(':') == -1 || !pseudos) return null;
-
-		var parsed = Slick.parse(type).expressions[0][0],
-			parsedPseudos = parsed.pseudos,
-			l = parsedPseudos.length,
-			splits = [];
-
-		while (l--){
-			var pseudo = parsedPseudos[l].key,
-				listener = pseudos[pseudo];
-			if (listener != null) splits.push({
-				event: parsed.tag,
-				value: parsedPseudos[l].value,
-				pseudo: pseudo,
-				original: type,
-				listener: listener
-			});
-		}
-		return splits.length ? splits : null;
-	};
-
-	return {
-
-		addEvent: function(type, fn, internal){
-			var split = splitType(type);
-			if (!split) return addEvent.call(this, type, fn, internal);
-
-			var storage = storageOf(this),
-				events = storage.retrieve(type, []),
-				eventType = split[0].event,
-				args = Array.slice(arguments, 2),
-				stack = fn,
-				self = this;
-
-			split.each(function(item){
-				var listener = item.listener,
-					stackFn = stack;
-				if (listener == false) eventType += ':' + item.pseudo + '(' + item.value + ')';
-				else stack = function(){
-					listener.call(self, item, stackFn, arguments, stack);
-				};
-			});
-
-			events.include({type: eventType, event: fn, monitor: stack});
-			storage.store(type, events);
-
-			if (type != eventType) addEvent.apply(this, [type, fn].concat(args));
-			return addEvent.apply(this, [eventType, stack].concat(args));
-		},
-
-		removeEvent: function(type, fn){
-			var split = splitType(type);
-			if (!split) return removeEvent.call(this, type, fn);
-
-			var storage = storageOf(this),
-				events = storage.retrieve(type);
-			if (!events) return this;
-
-			var args = Array.slice(arguments, 2);
-
-			removeEvent.apply(this, [type, fn].concat(args));
-			events.each(function(monitor, i){
-				if (!fn || monitor.event == fn) removeEvent.apply(this, [monitor.type, monitor.monitor].concat(args));
-				delete events[i];
-			}, this);
-
-			storage.store(type, events);
-			return this;
-		}
-
-	};
-
-};
-
-var pseudos = {
-
-	once: function(split, fn, args, monitor){
-		fn.apply(this, args);
-		this.removeEvent(split.event, monitor)
-			.removeEvent(split.original, fn);
-	},
-
-	throttle: function(split, fn, args){
-		if (!fn._throttled){
-			fn.apply(this, args);
-			fn._throttled = setTimeout(function(){
-				fn._throttled = false;
-			}, split.value || 250);
-		}
-	},
-
-	pause: function(split, fn, args){
-		clearTimeout(fn._pause);
-		fn._pause = fn.delay(split.value || 250, this, args);
-	}
-
-};
-
-Events.definePseudo = function(key, listener){
-	pseudos[key] = listener;
-	return this;
-};
-
-Events.lookupPseudo = function(key){
-	return pseudos[key];
-};
-
-var proto = Events.prototype;
-Events.implement(Events.Pseudos(pseudos, proto.addEvent, proto.removeEvent));
-
-['Request', 'Fx'].each(function(klass){
-	if (this[klass]) this[klass].implement(Events.prototype);
-});
-
-})();
-
-
-// Begin: Source/Element/Element.Event.Pseudos.js
-/*
----
-
-name: Element.Event.Pseudos
-
-description: Adds the functionality to add pseudo events for Elements
-
-license: MIT-style license
-
-authors:
-  - Arian Stolwijk
-
-requires: [Core/Element.Event, Core/Element.Delegation, Events.Pseudos]
-
-provides: [Element.Event.Pseudos, Element.Delegation]
-
-...
-*/
-
-(function(){
-
-var pseudos = {relay: false},
-	copyFromEvents = ['once', 'throttle', 'pause'],
-	count = copyFromEvents.length;
-
-while (count--) pseudos[copyFromEvents[count]] = Events.lookupPseudo(copyFromEvents[count]);
-
-DOMEvent.definePseudo = function(key, listener){
-	pseudos[key] = listener;
-	return this;
-};
-
-var proto = Element.prototype;
-[Element, Window, Document].invoke('implement', Events.Pseudos(pseudos, proto.addEvent, proto.removeEvent));
-
-})();
-
-
-// Begin: Source/Forms/Form.Request.js
-/*
----
-
-script: Form.Request.js
-
-name: Form.Request
-
-description: Handles the basic functionality of submitting a form and updating a dom element with the result.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Request.HTML
-  - /Class.Binds
-  - /Class.Occlude
-  - /Spinner
-  - /String.QueryString
-  - /Element.Delegation
-
-provides: [Form.Request]
-
-...
-*/
-
-if (!window.Form) window.Form = {};
-
-(function(){
-
-	Form.Request = new Class({
-
-		Binds: ['onSubmit', 'onFormValidate'],
-
-		Implements: [Options, Events, Class.Occlude],
-
-		options: {/*
-			onFailure: function(){},
-			onSuccess: function(){}, // aliased to onComplete,
-			onSend: function(){}*/
-			requestOptions: {
-				evalScripts: true,
-				useSpinner: true,
-				emulation: false,
-				link: 'ignore'
-			},
-			sendButtonClicked: true,
-			extraData: {},
-			resetForm: true
-		},
-
-		property: 'form.request',
-
-		initialize: function(form, target, options){
-			this.element = document.id(form);
-			if (this.occlude()) return this.occluded;
-			this.setOptions(options)
-				.setTarget(target)
-				.attach();
-		},
-
-		setTarget: function(target){
-			this.target = document.id(target);
-			if (!this.request){
-				this.makeRequest();
-			} else {
-				this.request.setOptions({
-					update: this.target
-				});
-			}
-			return this;
-		},
-
-		toElement: function(){
-			return this.element;
-		},
-
-		makeRequest: function(){
-			var self = this;
-			this.request = new Request.HTML(Object.merge({
-					update: this.target,
-					emulation: false,
-					spinnerTarget: this.element,
-					method: this.element.get('method') || 'post'
-			}, this.options.requestOptions)).addEvents({
-				success: function(tree, elements, html, javascript){
-					['complete', 'success'].each(function(evt){
-						self.fireEvent(evt, [self.target, tree, elements, html, javascript]);
-					});
-				},
-				failure: function(){
-					self.fireEvent('complete', arguments).fireEvent('failure', arguments);
-				},
-				exception: function(){
-					self.fireEvent('failure', arguments);
-				}
-			});
-			return this.attachReset();
-		},
-
-		attachReset: function(){
-			if (!this.options.resetForm) return this;
-			this.request.addEvent('success', function(){
-				Function.attempt(function(){
-					this.element.reset();
-				}.bind(this));
-				if (window.OverText) OverText.update();
-			}.bind(this));
-			return this;
-		},
-
-		attach: function(attach){
-			var method = (attach != false) ? 'addEvent' : 'removeEvent';
-			this.element[method]('click:relay(button, input[type=submit])', this.saveClickedButton.bind(this));
-
-			var fv = this.element.retrieve('validator');
-			if (fv) fv[method]('onFormValidate', this.onFormValidate);
-			else this.element[method]('submit', this.onSubmit);
-
-			return this;
-		},
-
-		detach: function(){
-			return this.attach(false);
-		},
-
-		//public method
-		enable: function(){
-			return this.attach();
-		},
-
-		//public method
-		disable: function(){
-			return this.detach();
-		},
-
-		onFormValidate: function(valid, form, event){
-			//if there's no event, then this wasn't a submit event
-			if (!event) return;
-			var fv = this.element.retrieve('validator');
-			if (valid || (fv && !fv.options.stopOnFailure)){
-				event.stop();
-				this.send();
-			}
-		},
-
-		onSubmit: function(event){
-			var fv = this.element.retrieve('validator');
-			if (fv){
-				//form validator was created after Form.Request
-				this.element.removeEvent('submit', this.onSubmit);
-				fv.addEvent('onFormValidate', this.onFormValidate);
-				this.element.validate();
-				return;
-			}
-			if (event) event.stop();
-			this.send();
-		},
-
-		saveClickedButton: function(event, target){
-			var targetName = target.get('name');
-			if (!targetName || !this.options.sendButtonClicked) return;
-			this.options.extraData[targetName] = target.get('value') || true;
-			this.clickedCleaner = function(){
-				delete this.options.extraData[targetName];
-				this.clickedCleaner = function(){};
-			}.bind(this);
-		},
-
-		clickedCleaner: function(){},
-
-		send: function(){
-			var str = this.element.toQueryString().trim(),
-				data = Object.toQueryString(this.options.extraData);
-
-			if (str) str += "&" + data;
-			else str = data;
-
-			this.fireEvent('send', [this.element, str.parseQueryString()]);
-			this.request.send({
-				data: str,
-				url: this.options.requestOptions.url || this.element.get('action')
-			});
-			this.clickedCleaner();
-			return this;
-		}
-
-	});
-
-	Element.implement('formUpdate', function(update, options){
-		var fq = this.retrieve('form.request');
-		if (!fq){
-			fq = new Form.Request(this, update, options);
-		} else {
-			if (update) fq.setTarget(update);
-			if (options) fq.setOptions(options).makeRequest();
-		}
-		fq.send();
-		return this;
-	});
-
-})();
-
-
-// Begin: Source/Forms/Form.Validator.Inline.js
 /*
 ---
 
@@ -5459,74 +5044,1448 @@ Form.Validator.Inline = new Class({
 });
 
 
-// Begin: Source/Forms/Behavior.FormValidator.js
 /*
 ---
-description: Adds an instance of Form.Validator.Inline to any form with the class .form-validator.
-provides: [Behavior.FormValidator]
-requires: [Behavior/Behavior, More/Form.Validator.Inline, More/Object.Extras]
-script: Behavior.FormValidator.js
-name: Behavior.FormValidator
+
+script: Form.Validator.Extras.js
+
+name: Form.Validator.Extras
+
+description: Additional validators for the Form.Validator class.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - /Form.Validator
+
+provides: [Form.Validator.Extras]
+
+...
+*/
+Form.Validator.addAllThese([
+
+	['validate-enforce-oncheck', {
+		test: function(element, props){
+			var fv = element.getParent('form').retrieve('validator');
+			if (!fv) return true;
+			(props.toEnforce || document.id(props.enforceChildrenOf).getElements('input, select, textarea')).map(function(item){
+				if (element.checked){
+					fv.enforceField(item);
+				} else {
+					fv.ignoreField(item);
+					fv.resetField(item);
+				}
+			});
+			return true;
+		}
+	}],
+
+	['validate-ignore-oncheck', {
+		test: function(element, props){
+			var fv = element.getParent('form').retrieve('validator');
+			if (!fv) return true;
+			(props.toIgnore || document.id(props.ignoreChildrenOf).getElements('input, select, textarea')).each(function(item){
+				if (element.checked){
+					fv.ignoreField(item);
+					fv.resetField(item);
+				} else {
+					fv.enforceField(item);
+				}
+			});
+			return true;
+		}
+	}],
+
+	['validate-nospace', {
+		errorMsg: function(){
+			return Form.Validator.getMsg('noSpace');
+		},
+		test: function(element, props){
+			return !element.get('value').test(/\s/);
+		}
+	}],
+
+	['validate-toggle-oncheck', {
+		test: function(element, props){
+			var fv = element.getParent('form').retrieve('validator');
+			if (!fv) return true;
+			var eleArr = props.toToggle || document.id(props.toToggleChildrenOf).getElements('input, select, textarea');
+			if (!element.checked){
+				eleArr.each(function(item){
+					fv.ignoreField(item);
+					fv.resetField(item);
+				});
+			} else {
+				eleArr.each(function(item){
+					fv.enforceField(item);
+				});
+			}
+			return true;
+		}
+	}],
+
+	['validate-reqchk-bynode', {
+		errorMsg: function(){
+			return Form.Validator.getMsg('reqChkByNode');
+		},
+		test: function(element, props){
+			return (document.id(props.nodeId).getElements(props.selector || 'input[type=checkbox], input[type=radio]')).some(function(item){
+				return item.checked;
+			});
+		}
+	}],
+
+	['validate-required-check', {
+		errorMsg: function(element, props){
+			return props.useTitle ? element.get('title') : Form.Validator.getMsg('requiredChk');
+		},
+		test: function(element, props){
+			return !!element.checked;
+		}
+	}],
+
+	['validate-reqchk-byname', {
+		errorMsg: function(element, props){
+			return Form.Validator.getMsg('reqChkByName').substitute({label: props.label || element.get('type')});
+		},
+		test: function(element, props){
+			var grpName = props.groupName || element.get('name');
+			var oneCheckedItem = $$(document.getElementsByName(grpName)).some(function(item, index){
+				return item.checked;
+			});
+			var fv = element.getParent('form').retrieve('validator');
+			if (oneCheckedItem && fv) fv.resetField(element);
+			return oneCheckedItem;
+		}
+	}],
+
+	['validate-match', {
+		errorMsg: function(element, props){
+			return Form.Validator.getMsg('match').substitute({matchName: props.matchName || document.id(props.matchInput).get('name')});
+		},
+		test: function(element, props){
+			var eleVal = element.get('value');
+			var matchVal = document.id(props.matchInput) && document.id(props.matchInput).get('value');
+			return eleVal && matchVal ? eleVal == matchVal : true;
+		}
+	}],
+
+	['validate-after-date', {
+		errorMsg: function(element, props){
+			return Form.Validator.getMsg('afterDate').substitute({
+				label: props.afterLabel || (props.afterElement ? Form.Validator.getMsg('startDate') : Form.Validator.getMsg('currentDate'))
+			});
+		},
+		test: function(element, props){
+			var start = document.id(props.afterElement) ? Date.parse(document.id(props.afterElement).get('value')) : new Date();
+			var end = Date.parse(element.get('value'));
+			return end && start ? end >= start : true;
+		}
+	}],
+
+	['validate-before-date', {
+		errorMsg: function(element, props){
+			return Form.Validator.getMsg('beforeDate').substitute({
+				label: props.beforeLabel || (props.beforeElement ? Form.Validator.getMsg('endDate') : Form.Validator.getMsg('currentDate'))
+			});
+		},
+		test: function(element, props){
+			var start = Date.parse(element.get('value'));
+			var end = document.id(props.beforeElement) ? Date.parse(document.id(props.beforeElement).get('value')) : new Date();
+			return end && start ? end >= start : true;
+		}
+	}],
+
+	['validate-custom-required', {
+		errorMsg: function(){
+			return Form.Validator.getMsg('required');
+		},
+		test: function(element, props){
+			return element.get('value') != props.emptyValue;
+		}
+	}],
+
+	['validate-same-month', {
+		errorMsg: function(element, props){
+			var startMo = document.id(props.sameMonthAs) && document.id(props.sameMonthAs).get('value');
+			var eleVal = element.get('value');
+			if (eleVal != '') return Form.Validator.getMsg(startMo ? 'sameMonth' : 'startMonth');
+		},
+		test: function(element, props){
+			var d1 = Date.parse(element.get('value'));
+			var d2 = Date.parse(document.id(props.sameMonthAs) && document.id(props.sameMonthAs).get('value'));
+			return d1 && d2 ? d1.format('%B') == d2.format('%B') : true;
+		}
+	}],
+
+
+	['validate-cc-num', {
+		errorMsg: function(element){
+			var ccNum = element.get('value').replace(/[^0-9]/g, '');
+			return Form.Validator.getMsg('creditcard').substitute({length: ccNum.length});
+		},
+		test: function(element){
+			// required is a different test
+			if (Form.Validator.getValidator('IsEmpty').test(element)) return true;
+
+			// Clean number value
+			var ccNum = element.get('value');
+			ccNum = ccNum.replace(/[^0-9]/g, '');
+
+			var valid_type = false;
+
+			if (ccNum.test(/^4[0-9]{12}([0-9]{3})?$/)) valid_type = 'Visa';
+			else if (ccNum.test(/^5[1-5]([0-9]{14})$/)) valid_type = 'Master Card';
+			else if (ccNum.test(/^3[47][0-9]{13}$/)) valid_type = 'American Express';
+			else if (ccNum.test(/^6011[0-9]{12}$/)) valid_type = 'Discover';
+
+			if (valid_type){
+				var sum = 0;
+				var cur = 0;
+
+				for (var i=ccNum.length-1; i>=0; --i){
+					cur = ccNum.charAt(i).toInt();
+					if (cur == 0) continue;
+
+					if ((ccNum.length-i) % 2 == 0) cur += cur;
+					if (cur > 9){
+						cur = cur.toString().charAt(0).toInt() + cur.toString().charAt(1).toInt();
+					}
+
+					sum += cur;
+				}
+				if ((sum % 10) == 0) return true;
+			}
+
+			var chunks = '';
+			while (ccNum != ''){
+				chunks += ' ' + ccNum.substr(0,4);
+				ccNum = ccNum.substr(4);
+			}
+
+			element.getParent('form').retrieve('validator').ignoreField(element);
+			element.set('value', chunks.clean());
+			element.getParent('form').retrieve('validator').enforceField(element);
+			return false;
+		}
+	}]
+
+
+]);
+
+
+/*
+---
+
+script: OverText.js
+
+name: OverText
+
+description: Shows text over an input that disappears when the user clicks into it. The text remains hidden if the user adds a value.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Options
+  - Core/Events
+  - Core/Element.Event
+  - Class.Binds
+  - Class.Occlude
+  - Element.Position
+  - Element.Shortcuts
+
+provides: [OverText]
+
 ...
 */
 
-Behavior.addGlobalFilter('FormValidator', {
-	defaults: {
-		useTitles: true,
-		scrollToErrorsOnSubmit: true,
-		scrollToErrorsOnBlur: false,
-		scrollToErrorsOnChange: false,
-		ignoreHidden: true,
-		ignoreDisabled: true,
-		useTitles: false,
-		evaluateOnSubmit: true,
-		evaluateFieldsOnBlur: true,
-		evaluateFieldsOnChange: true,
-		serial: true,
-		stopOnFailure: true
+var OverText = new Class({
+
+	Implements: [Options, Events, Class.Occlude],
+
+	Binds: ['reposition', 'assert', 'focus', 'hide'],
+
+	options: {/*
+		textOverride: null,
+		onFocus: function(){},
+		onTextHide: function(textEl, inputEl){},
+		onTextShow: function(textEl, inputEl){}, */
+		element: 'label',
+		labelClass: 'overTxtLabel',
+		positionOptions: {
+			position: 'upperLeft',
+			edge: 'upperLeft',
+			offset: {
+				x: 4,
+				y: 2
+			}
+		},
+		poll: false,
+		pollInterval: 250,
+		wrap: false
 	},
-	setup: function(element, api) {
-		//instantiate the form validator
-		var validator = element.retrieve('validator');
-		if (!validator) {
-			validator = new Form.Validator.Inline(element,
-				Object.cleanValues(
-					api.getAs({
-						useTitles: Boolean,
-						scrollToErrorsOnSubmit: Boolean,
-						scrollToErrorsOnBlur: Boolean,
-						scrollToErrorsOnChange: Boolean,
-						ignoreHidden: Boolean,
-						ignoreDisabled: Boolean,
-						useTitles: Boolean,
-						evaluateOnSubmit: Boolean,
-						evaluateFieldsOnBlur: Boolean,
-						evaluateFieldsOnChange: Boolean,
-						serial: Boolean,
-						stopOnFailure: Boolean
-					})
-				)
-			);
+
+	property: 'OverText',
+
+	initialize: function(element, options){
+		element = this.element = document.id(element);
+
+		if (this.occlude()) return this.occluded;
+		this.setOptions(options);
+
+		this.attach(element);
+		OverText.instances.push(this);
+
+		if (this.options.poll) this.poll();
+	},
+
+	toElement: function(){
+		return this.element;
+	},
+
+	attach: function(){
+		var element = this.element,
+			options = this.options,
+			value = options.textOverride || element.get('alt') || element.get('title');
+
+		if (!value) return this;
+
+		var text = this.text = new Element(options.element, {
+			'class': options.labelClass,
+			styles: {
+				lineHeight: 'normal',
+				position: 'absolute',
+				cursor: 'text'
+			},
+			html: value,
+			events: {
+				click: this.hide.pass(options.element == 'label', this)
+			}
+		}).inject(element, 'after');
+
+		if (options.element == 'label'){
+			if (!element.get('id')) element.set('id', 'input_' + String.uniqueID());
+			text.set('for', element.get('id'));
 		}
-		//if the api provides a getScroller method, which should return an instance of
-		//Fx.Scroll, use it instead
-		if (api.getScroller) {
-			validator.setOptions({
-				onShow: function(input, advice, className) {
-					api.getScroller().toElement(input);
-				},
-				scrollToErrorsOnSubmit: false
-			});
+
+		if (options.wrap){
+			this.textHolder = new Element('div.overTxtWrapper', {
+				styles: {
+					lineHeight: 'normal',
+					position: 'relative'
+				}
+			}).grab(text).inject(element, 'before');
 		}
-		api.onCleanup(function(){
-			validator.stop();
+
+		return this.enable();
+	},
+
+	destroy: function(){
+		this.element.eliminate(this.property); // Class.Occlude storage
+		this.disable();
+		if (this.text) this.text.destroy();
+		if (this.textHolder) this.textHolder.destroy();
+		return this;
+	},
+
+	disable: function(){
+		this.element.removeEvents({
+			focus: this.focus,
+			blur: this.assert,
+			change: this.assert
 		});
-		return validator;
+		window.removeEvent('resize', this.reposition);
+		this.hide(true, true);
+		return this;
+	},
+
+	enable: function(){
+		this.element.addEvents({
+			focus: this.focus,
+			blur: this.assert,
+			change: this.assert
+		});
+		window.addEvent('resize', this.reposition);
+		this.reposition();
+		return this;
+	},
+
+	wrap: function(){
+		if (this.options.element == 'label'){
+			if (!this.element.get('id')) this.element.set('id', 'input_' + String.uniqueID());
+			this.text.set('for', this.element.get('id'));
+		}
+	},
+
+	startPolling: function(){
+		this.pollingPaused = false;
+		return this.poll();
+	},
+
+	poll: function(stop){
+		//start immediately
+		//pause on focus
+		//resumeon blur
+		if (this.poller && !stop) return this;
+		if (stop){
+			clearInterval(this.poller);
+		} else {
+			this.poller = (function(){
+				if (!this.pollingPaused) this.assert(true);
+			}).periodical(this.options.pollInterval, this);
+		}
+
+		return this;
+	},
+
+	stopPolling: function(){
+		this.pollingPaused = true;
+		return this.poll(true);
+	},
+
+	focus: function(){
+		if (this.text && (!this.text.isDisplayed() || this.element.get('disabled'))) return this;
+		return this.hide();
+	},
+
+	hide: function(suppressFocus, force){
+		if (this.text && (this.text.isDisplayed() && (!this.element.get('disabled') || force))){
+			this.text.hide();
+			this.fireEvent('textHide', [this.text, this.element]);
+			this.pollingPaused = true;
+			if (!suppressFocus){
+				try {
+					this.element.fireEvent('focus');
+					this.element.focus();
+				} catch(e){} //IE barfs if you call focus on hidden elements
+			}
+		}
+		return this;
+	},
+
+	show: function(){
+		if (this.text && !this.text.isDisplayed()){
+			this.text.show();
+			this.reposition();
+			this.fireEvent('textShow', [this.text, this.element]);
+			this.pollingPaused = false;
+		}
+		return this;
+	},
+
+	test: function(){
+		return !this.element.get('value');
+	},
+
+	assert: function(suppressFocus){
+		return this[this.test() ? 'show' : 'hide'](suppressFocus);
+	},
+
+	reposition: function(){
+		this.assert(true);
+		if (!this.element.isVisible()) return this.stopPolling().hide();
+		if (this.text && this.test()){
+			this.text.position(Object.merge(this.options.positionOptions, {
+				relativeTo: this.element
+			}));
+		}
+		return this;
 	}
 
 });
 
-// Begin: Source/Drag/Drag.js
+OverText.instances = [];
+
+Object.append(OverText, {
+
+	each: function(fn){
+		return OverText.instances.each(function(ot, i){
+			if (ot.element && ot.text) fn.call(OverText, ot, i);
+		});
+	},
+
+	update: function(){
+
+		return OverText.each(function(ot){
+			return ot.reposition();
+		});
+
+	},
+
+	hideAll: function(){
+
+		return OverText.each(function(ot){
+			return ot.hide(true, true);
+		});
+
+	},
+
+	showAll: function(){
+		return OverText.each(function(ot){
+			return ot.show();
+		});
+	}
+
+});
+
+
+
+/*
+---
+
+script: Fx.Elements.js
+
+name: Fx.Elements
+
+description: Effect to change any number of CSS properties of any number of Elements.
+
+license: MIT-style license
+
+authors:
+  - Valerio Proietti
+
+requires:
+  - Core/Fx.CSS
+  - /MooTools.More
+
+provides: [Fx.Elements]
+
+...
+*/
+
+Fx.Elements = new Class({
+
+	Extends: Fx.CSS,
+
+	initialize: function(elements, options){
+		this.elements = this.subject = $$(elements);
+		this.parent(options);
+	},
+
+	compute: function(from, to, delta){
+		var now = {};
+
+		for (var i in from){
+			var iFrom = from[i], iTo = to[i], iNow = now[i] = {};
+			for (var p in iFrom) iNow[p] = this.parent(iFrom[p], iTo[p], delta);
+		}
+
+		return now;
+	},
+
+	set: function(now){
+		for (var i in now){
+			if (!this.elements[i]) continue;
+
+			var iNow = now[i];
+			for (var p in iNow) this.render(this.elements[i], p, iNow[p], this.options.unit);
+		}
+
+		return this;
+	},
+
+	start: function(obj){
+		if (!this.check(obj)) return this;
+		var from = {}, to = {};
+
+		for (var i in obj){
+			if (!this.elements[i]) continue;
+
+			var iProps = obj[i], iFrom = from[i] = {}, iTo = to[i] = {};
+
+			for (var p in iProps){
+				var parsed = this.prepare(this.elements[i], p, iProps[p]);
+				iFrom[p] = parsed.from;
+				iTo[p] = parsed.to;
+			}
+		}
+
+		return this.parent(from, to);
+	}
+
+});
+
+
+/*
+---
+
+script: Fx.Accordion.js
+
+name: Fx.Accordion
+
+description: An Fx.Elements extension which allows you to easily create accordion type controls.
+
+license: MIT-style license
+
+authors:
+  - Valerio Proietti
+
+requires:
+  - Core/Element.Event
+  - /Fx.Elements
+
+provides: [Fx.Accordion]
+
+...
+*/
+
+Fx.Accordion = new Class({
+
+	Extends: Fx.Elements,
+
+	options: {/*
+		onActive: function(toggler, section){},
+		onBackground: function(toggler, section){},*/
+		fixedHeight: false,
+		fixedWidth: false,
+		display: 0,
+		show: false,
+		height: true,
+		width: false,
+		opacity: true,
+		alwaysHide: false,
+		trigger: 'click',
+		initialDisplayFx: true,
+		resetHeight: true
+	},
+
+	initialize: function(){
+		var defined = function(obj){
+			return obj != null;
+		};
+
+		var params = Array.link(arguments, {
+			'container': Type.isElement, //deprecated
+			'options': Type.isObject,
+			'togglers': defined,
+			'elements': defined
+		});
+		this.parent(params.elements, params.options);
+
+		var options = this.options,
+			togglers = this.togglers = $$(params.togglers);
+
+		this.previous = -1;
+		this.internalChain = new Chain();
+
+		if (options.alwaysHide) this.options.link = 'chain';
+
+		if (options.show || this.options.show === 0){
+			options.display = false;
+			this.previous = options.show;
+		}
+
+		if (options.start){
+			options.display = false;
+			options.show = false;
+		}
+
+		var effects = this.effects = {};
+
+		if (options.opacity) effects.opacity = 'fullOpacity';
+		if (options.width) effects.width = options.fixedWidth ? 'fullWidth' : 'offsetWidth';
+		if (options.height) effects.height = options.fixedHeight ? 'fullHeight' : 'scrollHeight';
+
+		for (var i = 0, l = togglers.length; i < l; i++) this.addSection(togglers[i], this.elements[i]);
+
+		this.elements.each(function(el, i){
+			if (options.show === i){
+				this.fireEvent('active', [togglers[i], el]);
+			} else {
+				for (var fx in effects) el.setStyle(fx, 0);
+			}
+		}, this);
+
+		if (options.display || options.display === 0 || options.initialDisplayFx === false){
+			this.display(options.display, options.initialDisplayFx);
+		}
+
+		if (options.fixedHeight !== false) options.resetHeight = false;
+		this.addEvent('complete', this.internalChain.callChain.bind(this.internalChain));
+	},
+
+	addSection: function(toggler, element){
+		toggler = document.id(toggler);
+		element = document.id(element);
+		this.togglers.include(toggler);
+		this.elements.include(element);
+
+		var togglers = this.togglers,
+			options = this.options,
+			test = togglers.contains(toggler),
+			idx = togglers.indexOf(toggler),
+			displayer = this.display.pass(idx, this);
+
+		toggler.store('accordion:display', displayer)
+			.addEvent(options.trigger, displayer);
+
+		if (options.height) element.setStyles({'padding-top': 0, 'border-top': 'none', 'padding-bottom': 0, 'border-bottom': 'none'});
+		if (options.width) element.setStyles({'padding-left': 0, 'border-left': 'none', 'padding-right': 0, 'border-right': 'none'});
+
+		element.fullOpacity = 1;
+		if (options.fixedWidth) element.fullWidth = options.fixedWidth;
+		if (options.fixedHeight) element.fullHeight = options.fixedHeight;
+		element.setStyle('overflow', 'hidden');
+
+		if (!test) for (var fx in this.effects){
+			element.setStyle(fx, 0);
+		}
+		return this;
+	},
+
+	removeSection: function(toggler, displayIndex){
+		var togglers = this.togglers,
+			idx = togglers.indexOf(toggler),
+			element = this.elements[idx];
+
+		var remover = function(){
+			togglers.erase(toggler);
+			this.elements.erase(element);
+			this.detach(toggler);
+		}.bind(this);
+
+		if (this.now == idx || displayIndex != null){
+			this.display(displayIndex != null ? displayIndex : (idx - 1 >= 0 ? idx - 1 : 0)).chain(remover);
+		} else {
+			remover();
+		}
+		return this;
+	},
+
+	detach: function(toggler){
+		var remove = function(toggler){
+			toggler.removeEvent(this.options.trigger, toggler.retrieve('accordion:display'));
+		}.bind(this);
+
+		if (!toggler) this.togglers.each(remove);
+		else remove(toggler);
+		return this;
+	},
+
+	display: function(index, useFx){
+		if (!this.check(index, useFx)) return this;
+
+		var obj = {},
+			elements = this.elements,
+			options = this.options,
+			effects = this.effects;
+
+		if (useFx == null) useFx = true;
+		if (typeOf(index) == 'element') index = elements.indexOf(index);
+		if (index == this.previous && !options.alwaysHide) return this;
+
+		if (options.resetHeight){
+			var prev = elements[this.previous];
+			if (prev && !this.selfHidden){
+				for (var fx in effects) prev.setStyle(fx, prev[effects[fx]]);
+			}
+		}
+
+		if ((this.timer && options.link == 'chain') || (index === this.previous && !options.alwaysHide)) return this;
+
+		this.previous = index;
+		this.selfHidden = false;
+
+		elements.each(function(el, i){
+			obj[i] = {};
+			var hide;
+			if (i != index){
+				hide = true;
+			} else if (options.alwaysHide && ((el.offsetHeight > 0 && options.height) || el.offsetWidth > 0 && options.width)){
+				hide = true;
+				this.selfHidden = true;
+			}
+			this.fireEvent(hide ? 'background' : 'active', [this.togglers[i], el]);
+			for (var fx in effects) obj[i][fx] = hide ? 0 : el[effects[fx]];
+			if (!useFx && !hide && options.resetHeight) obj[i].height = 'auto';
+		}, this);
+
+		this.internalChain.clearChain();
+		this.internalChain.chain(function(){
+			if (options.resetHeight && !this.selfHidden){
+				var el = elements[index];
+				if (el) el.setStyle('height', 'auto');
+			}
+		}.bind(this));
+
+		return useFx ? this.start(obj) : this.set(obj).internalChain.callChain();
+	}
+
+});
+
+
+
+
+/*
+---
+
+script: Fx.Move.js
+
+name: Fx.Move
+
+description: Defines Fx.Move, a class that works with Element.Position.js to transition an element from one location to another.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Fx.Morph
+  - /Element.Position
+
+provides: [Fx.Move]
+
+...
+*/
+
+Fx.Move = new Class({
+
+	Extends: Fx.Morph,
+
+	options: {
+		relativeTo: document.body,
+		position: 'center',
+		edge: false,
+		offset: {x: 0, y: 0}
+	},
+
+	start: function(destination){
+		var element = this.element,
+			topLeft = element.getStyles('top', 'left');
+		if (topLeft.top == 'auto' || topLeft.left == 'auto'){
+			element.setPosition(element.getPosition(element.getOffsetParent()));
+		}
+		return this.parent(element.position(Object.merge({}, this.options, destination, {returnPos: true})));
+	}
+
+});
+
+Element.Properties.move = {
+
+	set: function(options){
+		this.get('move').cancel().setOptions(options);
+		return this;
+	},
+
+	get: function(){
+		var move = this.retrieve('move');
+		if (!move){
+			move = new Fx.Move(this, {link: 'cancel'});
+			this.store('move', move);
+		}
+		return move;
+	}
+
+};
+
+Element.implement({
+
+	move: function(options){
+		this.get('move').start(options);
+		return this;
+	}
+
+});
+
+
+/*
+---
+
+script: Fx.Scroll.js
+
+name: Fx.Scroll
+
+description: Effect to smoothly scroll any element, including the window.
+
+license: MIT-style license
+
+authors:
+  - Valerio Proietti
+
+requires:
+  - Core/Fx
+  - Core/Element.Event
+  - Core/Element.Dimensions
+  - /MooTools.More
+
+provides: [Fx.Scroll]
+
+...
+*/
+
+(function(){
+
+Fx.Scroll = new Class({
+
+	Extends: Fx,
+
+	options: {
+		offset: {x: 0, y: 0},
+		wheelStops: true
+	},
+
+	initialize: function(element, options){
+		this.element = this.subject = document.id(element);
+		this.parent(options);
+
+		if (typeOf(this.element) != 'element') this.element = document.id(this.element.getDocument().body);
+
+		if (this.options.wheelStops){
+			var stopper = this.element,
+				cancel = this.cancel.pass(false, this);
+			this.addEvent('start', function(){
+				stopper.addEvent('mousewheel', cancel);
+			}, true);
+			this.addEvent('complete', function(){
+				stopper.removeEvent('mousewheel', cancel);
+			}, true);
+		}
+	},
+
+	set: function(){
+		var now = Array.flatten(arguments);
+		if (Browser.firefox) now = [Math.round(now[0]), Math.round(now[1])]; // not needed anymore in newer firefox versions
+		this.element.scrollTo(now[0], now[1]);
+		return this;
+	},
+
+	compute: function(from, to, delta){
+		return [0, 1].map(function(i){
+			return Fx.compute(from[i], to[i], delta);
+		});
+	},
+
+	start: function(x, y){
+		if (!this.check(x, y)) return this;
+		var scroll = this.element.getScroll();
+		return this.parent([scroll.x, scroll.y], [x, y]);
+	},
+
+	calculateScroll: function(x, y){
+		var element = this.element,
+			scrollSize = element.getScrollSize(),
+			scroll = element.getScroll(),
+			size = element.getSize(),
+			offset = this.options.offset,
+			values = {x: x, y: y};
+
+		for (var z in values){
+			if (!values[z] && values[z] !== 0) values[z] = scroll[z];
+			if (typeOf(values[z]) != 'number') values[z] = scrollSize[z] - size[z];
+			values[z] += offset[z];
+		}
+
+		return [values.x, values.y];
+	},
+
+	toTop: function(){
+		return this.start.apply(this, this.calculateScroll(false, 0));
+	},
+
+	toLeft: function(){
+		return this.start.apply(this, this.calculateScroll(0, false));
+	},
+
+	toRight: function(){
+		return this.start.apply(this, this.calculateScroll('right', false));
+	},
+
+	toBottom: function(){
+		return this.start.apply(this, this.calculateScroll(false, 'bottom'));
+	},
+
+	toElement: function(el, axes){
+		axes = axes ? Array.from(axes) : ['x', 'y'];
+		var scroll = isBody(this.element) ? {x: 0, y: 0} : this.element.getScroll();
+		var position = Object.map(document.id(el).getPosition(this.element), function(value, axis){
+			return axes.contains(axis) ? value + scroll[axis] : false;
+		});
+		return this.start.apply(this, this.calculateScroll(position.x, position.y));
+	},
+
+	toElementEdge: function(el, axes, offset){
+		axes = axes ? Array.from(axes) : ['x', 'y'];
+		el = document.id(el);
+		var to = {},
+			position = el.getPosition(this.element),
+			size = el.getSize(),
+			scroll = this.element.getScroll(),
+			containerSize = this.element.getSize(),
+			edge = {
+				x: position.x + size.x,
+				y: position.y + size.y
+			};
+
+		['x', 'y'].each(function(axis){
+			if (axes.contains(axis)){
+				if (edge[axis] > scroll[axis] + containerSize[axis]) to[axis] = edge[axis] - containerSize[axis];
+				if (position[axis] < scroll[axis]) to[axis] = position[axis];
+			}
+			if (to[axis] == null) to[axis] = scroll[axis];
+			if (offset && offset[axis]) to[axis] = to[axis] + offset[axis];
+		}, this);
+
+		if (to.x != scroll.x || to.y != scroll.y) this.start(to.x, to.y);
+		return this;
+	},
+
+	toElementCenter: function(el, axes, offset){
+		axes = axes ? Array.from(axes) : ['x', 'y'];
+		el = document.id(el);
+		var to = {},
+			position = el.getPosition(this.element),
+			size = el.getSize(),
+			scroll = this.element.getScroll(),
+			containerSize = this.element.getSize();
+
+		['x', 'y'].each(function(axis){
+			if (axes.contains(axis)){
+				to[axis] = position[axis] - (containerSize[axis] - size[axis]) / 2;
+			}
+			if (to[axis] == null) to[axis] = scroll[axis];
+			if (offset && offset[axis]) to[axis] = to[axis] + offset[axis];
+		}, this);
+
+		if (to.x != scroll.x || to.y != scroll.y) this.start(to.x, to.y);
+		return this;
+	}
+
+});
+
+
+
+function isBody(element){
+	return (/^(?:body|html)$/i).test(element.tagName);
+}
+
+})();
+
+
+/*
+---
+
+script: Fx.Slide.js
+
+name: Fx.Slide
+
+description: Effect to slide an element in and out of view.
+
+license: MIT-style license
+
+authors:
+  - Valerio Proietti
+
+requires:
+  - Core/Fx
+  - Core/Element.Style
+  - /MooTools.More
+
+provides: [Fx.Slide]
+
+...
+*/
+
+Fx.Slide = new Class({
+
+	Extends: Fx,
+
+	options: {
+		mode: 'vertical',
+		wrapper: false,
+		hideOverflow: true,
+		resetHeight: false
+	},
+
+	initialize: function(element, options){
+		element = this.element = this.subject = document.id(element);
+		this.parent(options);
+		options = this.options;
+
+		var wrapper = element.retrieve('wrapper'),
+			styles = element.getStyles('margin', 'position', 'overflow');
+
+		if (options.hideOverflow) styles = Object.append(styles, {overflow: 'hidden'});
+		if (options.wrapper) wrapper = document.id(options.wrapper).setStyles(styles);
+
+		if (!wrapper) wrapper = new Element('div', {
+			styles: styles
+		}).wraps(element);
+
+		element.store('wrapper', wrapper).setStyle('margin', 0);
+		if (element.getStyle('overflow') == 'visible') element.setStyle('overflow', 'hidden');
+
+		this.now = [];
+		this.open = true;
+		this.wrapper = wrapper;
+
+		this.addEvent('complete', function(){
+			this.open = (wrapper['offset' + this.layout.capitalize()] != 0);
+			if (this.open && this.options.resetHeight) wrapper.setStyle('height', '');
+		}, true);
+	},
+
+	vertical: function(){
+		this.margin = 'margin-top';
+		this.layout = 'height';
+		this.offset = this.element.offsetHeight;
+	},
+
+	horizontal: function(){
+		this.margin = 'margin-left';
+		this.layout = 'width';
+		this.offset = this.element.offsetWidth;
+	},
+
+	set: function(now){
+		this.element.setStyle(this.margin, now[0]);
+		this.wrapper.setStyle(this.layout, now[1]);
+		return this;
+	},
+
+	compute: function(from, to, delta){
+		return [0, 1].map(function(i){
+			return Fx.compute(from[i], to[i], delta);
+		});
+	},
+
+	start: function(how, mode){
+		if (!this.check(how, mode)) return this;
+		this[mode || this.options.mode]();
+
+		var margin = this.element.getStyle(this.margin).toInt(),
+			layout = this.wrapper.getStyle(this.layout).toInt(),
+			caseIn = [[margin, layout], [0, this.offset]],
+			caseOut = [[margin, layout], [-this.offset, 0]],
+			start;
+
+		switch (how){
+			case 'in': start = caseIn; break;
+			case 'out': start = caseOut; break;
+			case 'toggle': start = (layout == 0) ? caseIn : caseOut;
+		}
+		return this.parent(start[0], start[1]);
+	},
+
+	slideIn: function(mode){
+		return this.start('in', mode);
+	},
+
+	slideOut: function(mode){
+		return this.start('out', mode);
+	},
+
+	hide: function(mode){
+		this[mode || this.options.mode]();
+		this.open = false;
+		return this.set([-this.offset, 0]);
+	},
+
+	show: function(mode){
+		this[mode || this.options.mode]();
+		this.open = true;
+		return this.set([0, this.offset]);
+	},
+
+	toggle: function(mode){
+		return this.start('toggle', mode);
+	}
+
+});
+
+Element.Properties.slide = {
+
+	set: function(options){
+		this.get('slide').cancel().setOptions(options);
+		return this;
+	},
+
+	get: function(){
+		var slide = this.retrieve('slide');
+		if (!slide){
+			slide = new Fx.Slide(this, {link: 'cancel'});
+			this.store('slide', slide);
+		}
+		return slide;
+	}
+
+};
+
+Element.implement({
+
+	slide: function(how, mode){
+		how = how || 'toggle';
+		var slide = this.get('slide'), toggle;
+		switch (how){
+			case 'hide': slide.hide(mode); break;
+			case 'show': slide.show(mode); break;
+			case 'toggle':
+				var flag = this.retrieve('slide:flag', slide.open);
+				slide[flag ? 'slideOut' : 'slideIn'](mode);
+				this.store('slide:flag', !flag);
+				toggle = true;
+			break;
+			default: slide.start(how, mode);
+		}
+		if (!toggle) this.eliminate('slide:flag');
+		return this;
+	}
+
+});
+
+
+/*
+---
+
+script: Fx.SmoothScroll.js
+
+name: Fx.SmoothScroll
+
+description: Class for creating a smooth scrolling effect to all internal links on the page.
+
+license: MIT-style license
+
+authors:
+  - Valerio Proietti
+
+requires:
+  - Core/Slick.Finder
+  - /Fx.Scroll
+
+provides: [Fx.SmoothScroll]
+
+...
+*/
+
+Fx.SmoothScroll = new Class({
+
+	Extends: Fx.Scroll,
+
+	options: {
+		axes: ['x', 'y']
+	},
+
+	initialize: function(options, context){
+		context = context || document;
+		this.doc = context.getDocument();
+		this.parent(this.doc, options);
+
+		var win = context.getWindow(),
+			location = win.location.href.match(/^[^#]*/)[0] + '#',
+			links = $$(this.options.links || this.doc.links);
+
+		links.each(function(link){
+			if (link.href.indexOf(location) != 0) return;
+			var anchor = link.href.substr(location.length);
+			if (anchor) this.useLink(link, anchor);
+		}, this);
+
+		this.addEvent('complete', function(){
+			win.location.hash = this.anchor;
+			this.element.scrollTo(this.to[0], this.to[1]);
+		}, true);
+	},
+
+	useLink: function(link, anchor){
+
+		link.addEvent('click', function(event){
+			var el = document.id(anchor) || this.doc.getElement('a[name=' + anchor + ']');
+			if (!el) return;
+
+			event.preventDefault();
+			this.toElement(el, this.options.axes).chain(function(){
+				this.fireEvent('scrolledTo', [link, el]);
+			}.bind(this));
+
+			this.anchor = anchor;
+
+		}.bind(this));
+
+		return this;
+	}
+});
+
+
+/*
+---
+
+script: Fx.Sort.js
+
+name: Fx.Sort
+
+description: Defines Fx.Sort, a class that reorders lists with a transition.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Element.Dimensions
+  - /Fx.Elements
+  - /Element.Measure
+
+provides: [Fx.Sort]
+
+...
+*/
+
+Fx.Sort = new Class({
+
+	Extends: Fx.Elements,
+
+	options: {
+		mode: 'vertical'
+	},
+
+	initialize: function(elements, options){
+		this.parent(elements, options);
+		this.elements.each(function(el){
+			if (el.getStyle('position') == 'static') el.setStyle('position', 'relative');
+		});
+		this.setDefaultOrder();
+	},
+
+	setDefaultOrder: function(){
+		this.currentOrder = this.elements.map(function(el, index){
+			return index;
+		});
+	},
+
+	sort: function(){
+		if (!this.check(arguments)) return this;
+		var newOrder = Array.flatten(arguments);
+
+		var top = 0,
+			left = 0,
+			next = {},
+			zero = {},
+			vert = this.options.mode == 'vertical';
+
+		var current = this.elements.map(function(el, index){
+			var size = el.getComputedSize({styles: ['border', 'padding', 'margin']});
+			var val;
+			if (vert){
+				val = {
+					top: top,
+					margin: size['margin-top'],
+					height: size.totalHeight
+				};
+				top += val.height - size['margin-top'];
+			} else {
+				val = {
+					left: left,
+					margin: size['margin-left'],
+					width: size.totalWidth
+				};
+				left += val.width;
+			}
+			var plane = vert ? 'top' : 'left';
+			zero[index] = {};
+			var start = el.getStyle(plane).toInt();
+			zero[index][plane] = start || 0;
+			return val;
+		}, this);
+
+		this.set(zero);
+		newOrder = newOrder.map(function(i){ return i.toInt(); });
+		if (newOrder.length != this.elements.length){
+			this.currentOrder.each(function(index){
+				if (!newOrder.contains(index)) newOrder.push(index);
+			});
+			if (newOrder.length > this.elements.length)
+				newOrder.splice(this.elements.length-1, newOrder.length - this.elements.length);
+		}
+		var margin = 0;
+		top = left = 0;
+		newOrder.each(function(item){
+			var newPos = {};
+			if (vert){
+				newPos.top = top - current[item].top - margin;
+				top += current[item].height;
+			} else {
+				newPos.left = left - current[item].left;
+				left += current[item].width;
+			}
+			margin = margin + current[item].margin;
+			next[item]=newPos;
+		}, this);
+		var mapped = {};
+		Array.clone(newOrder).sort().each(function(index){
+			mapped[index] = next[index];
+		});
+		this.start(mapped);
+		this.currentOrder = newOrder;
+
+		return this;
+	},
+
+	rearrangeDOM: function(newOrder){
+		newOrder = newOrder || this.currentOrder;
+		var parent = this.elements[0].getParent();
+		var rearranged = [];
+		this.elements.setStyle('opacity', 0);
+		//move each element and store the new default order
+		newOrder.each(function(index){
+			rearranged.push(this.elements[index].inject(parent).setStyles({
+				top: 0,
+				left: 0
+			}));
+		}, this);
+		this.elements.setStyle('opacity', 1);
+		this.elements = $$(rearranged);
+		this.setDefaultOrder();
+		return this;
+	},
+
+	getDefaultOrder: function(){
+		return this.elements.map(function(el, index){
+			return index;
+		});
+	},
+
+	getCurrentOrder: function(){
+		return this.currentOrder;
+	},
+
+	forward: function(){
+		return this.sort(this.getDefaultOrder());
+	},
+
+	backward: function(){
+		return this.sort(this.getDefaultOrder().reverse());
+	},
+
+	reverse: function(){
+		return this.sort(this.currentOrder.reverse());
+	},
+
+	sortByElements: function(elements){
+		return this.sort(elements.map(function(el){
+			return this.elements.indexOf(el);
+		}, this));
+	},
+
+	swap: function(one, two){
+		if (typeOf(one) == 'element') one = this.elements.indexOf(one);
+		if (typeOf(two) == 'element') two = this.elements.indexOf(two);
+
+		var newOrder = Array.clone(this.currentOrder);
+		newOrder[this.currentOrder.indexOf(one)] = two;
+		newOrder[this.currentOrder.indexOf(two)] = one;
+
+		return this.sort(newOrder);
+	}
+
+});
+
+
 /*
 ---
 
@@ -5763,7 +6722,205 @@ Element.implement({
 });
 
 
-// Begin: Source/Drag/Slider.js
+/*
+---
+
+script: Drag.Move.js
+
+name: Drag.Move
+
+description: A Drag extension that provides support for the constraining of draggables to containers and droppables.
+
+license: MIT-style license
+
+authors:
+  - Valerio Proietti
+  - Tom Occhinno
+  - Jan Kassens
+  - Aaron Newton
+  - Scott Kyle
+
+requires:
+  - Core/Element.Dimensions
+  - /Drag
+
+provides: [Drag.Move]
+
+...
+*/
+
+Drag.Move = new Class({
+
+	Extends: Drag,
+
+	options: {/*
+		onEnter: function(thisElement, overed){},
+		onLeave: function(thisElement, overed){},
+		onDrop: function(thisElement, overed, event){},*/
+		droppables: [],
+		container: false,
+		precalculate: false,
+		includeMargins: true,
+		checkDroppables: true
+	},
+
+	initialize: function(element, options){
+		this.parent(element, options);
+		element = this.element;
+
+		this.droppables = $$(this.options.droppables);
+		this.container = document.id(this.options.container);
+
+		if (this.container && typeOf(this.container) != 'element')
+			this.container = document.id(this.container.getDocument().body);
+
+		if (this.options.style){
+			if (this.options.modifiers.x == 'left' && this.options.modifiers.y == 'top'){
+				var parent = element.getOffsetParent(),
+					styles = element.getStyles('left', 'top');
+				if (parent && (styles.left == 'auto' || styles.top == 'auto')){
+					element.setPosition(element.getPosition(parent));
+				}
+			}
+
+			if (element.getStyle('position') == 'static') element.setStyle('position', 'absolute');
+		}
+
+		this.addEvent('start', this.checkDroppables, true);
+		this.overed = null;
+	},
+
+	start: function(event){
+		if (this.container) this.options.limit = this.calculateLimit();
+
+		if (this.options.precalculate){
+			this.positions = this.droppables.map(function(el){
+				return el.getCoordinates();
+			});
+		}
+
+		this.parent(event);
+	},
+
+	calculateLimit: function(){
+		var element = this.element,
+			container = this.container,
+
+			offsetParent = document.id(element.getOffsetParent()) || document.body,
+			containerCoordinates = container.getCoordinates(offsetParent),
+			elementMargin = {},
+			elementBorder = {},
+			containerMargin = {},
+			containerBorder = {},
+			offsetParentPadding = {};
+
+		['top', 'right', 'bottom', 'left'].each(function(pad){
+			elementMargin[pad] = element.getStyle('margin-' + pad).toInt();
+			elementBorder[pad] = element.getStyle('border-' + pad).toInt();
+			containerMargin[pad] = container.getStyle('margin-' + pad).toInt();
+			containerBorder[pad] = container.getStyle('border-' + pad).toInt();
+			offsetParentPadding[pad] = offsetParent.getStyle('padding-' + pad).toInt();
+		}, this);
+
+		var width = element.offsetWidth + elementMargin.left + elementMargin.right,
+			height = element.offsetHeight + elementMargin.top + elementMargin.bottom,
+			left = 0,
+			top = 0,
+			right = containerCoordinates.right - containerBorder.right - width,
+			bottom = containerCoordinates.bottom - containerBorder.bottom - height;
+
+		if (this.options.includeMargins){
+			left += elementMargin.left;
+			top += elementMargin.top;
+		} else {
+			right += elementMargin.right;
+			bottom += elementMargin.bottom;
+		}
+
+		if (element.getStyle('position') == 'relative'){
+			var coords = element.getCoordinates(offsetParent);
+			coords.left -= element.getStyle('left').toInt();
+			coords.top -= element.getStyle('top').toInt();
+
+			left -= coords.left;
+			top -= coords.top;
+			if (container.getStyle('position') != 'relative'){
+				left += containerBorder.left;
+				top += containerBorder.top;
+			}
+			right += elementMargin.left - coords.left;
+			bottom += elementMargin.top - coords.top;
+
+			if (container != offsetParent){
+				left += containerMargin.left + offsetParentPadding.left;
+				top += ((Browser.ie6 || Browser.ie7) ? 0 : containerMargin.top) + offsetParentPadding.top;
+			}
+		} else {
+			left -= elementMargin.left;
+			top -= elementMargin.top;
+			if (container != offsetParent){
+				left += containerCoordinates.left + containerBorder.left;
+				top += containerCoordinates.top + containerBorder.top;
+			}
+		}
+
+		return {
+			x: [left, right],
+			y: [top, bottom]
+		};
+	},
+
+	getDroppableCoordinates: function(element){
+		var position = element.getCoordinates();
+		if (element.getStyle('position') == 'fixed'){
+			var scroll = window.getScroll();
+			position.left += scroll.x;
+			position.right += scroll.x;
+			position.top += scroll.y;
+			position.bottom += scroll.y;
+		}
+		return position;
+	},
+
+	checkDroppables: function(){
+		var overed = this.droppables.filter(function(el, i){
+			el = this.positions ? this.positions[i] : this.getDroppableCoordinates(el);
+			var now = this.mouse.now;
+			return (now.x > el.left && now.x < el.right && now.y < el.bottom && now.y > el.top);
+		}, this).getLast();
+
+		if (this.overed != overed){
+			if (this.overed) this.fireEvent('leave', [this.element, this.overed]);
+			if (overed) this.fireEvent('enter', [this.element, overed]);
+			this.overed = overed;
+		}
+	},
+
+	drag: function(event){
+		this.parent(event);
+		if (this.options.checkDroppables && this.droppables.length) this.checkDroppables();
+	},
+
+	stop: function(event){
+		this.checkDroppables();
+		this.fireEvent('drop', [this.element, this.overed, event]);
+		this.overed = null;
+		return this.parent(event);
+	}
+
+});
+
+Element.implement({
+
+	makeDraggable: function(options){
+		var drag = new Drag.Move(this, options);
+		this.store('dragger', drag);
+		return drag;
+	}
+
+});
+
+
 /*
 ---
 
@@ -5991,1132 +7148,644 @@ var Slider = new Class({
 });
 
 
-// Begin: Source/Element/Element.Event.Pseudos.Keys.js
 /*
 ---
 
-name: Element.Event.Pseudos.Keys
+script: Sortables.js
 
-description: Adds functionality fire events if certain keycombinations are pressed
+name: Sortables
+
+description: Class for creating a drag and drop sorting interface for lists of items.
 
 license: MIT-style license
 
 authors:
+  - Tom Occhino
+
+requires:
+  - Core/Fx.Morph
+  - /Drag.Move
+
+provides: [Sortables]
+
+...
+*/
+
+var Sortables = new Class({
+
+	Implements: [Events, Options],
+
+	options: {/*
+		onSort: function(element, clone){},
+		onStart: function(element, clone){},
+		onComplete: function(element){},*/
+		opacity: 1,
+		clone: false,
+		revert: false,
+		handle: false,
+		dragOptions: {}
+	},
+
+	initialize: function(lists, options){
+		this.setOptions(options);
+
+		this.elements = [];
+		this.lists = [];
+		this.idle = true;
+
+		this.addLists($$(document.id(lists) || lists));
+
+		if (!this.options.clone) this.options.revert = false;
+		if (this.options.revert) this.effect = new Fx.Morph(null, Object.merge({
+			duration: 250,
+			link: 'cancel'
+		}, this.options.revert));
+	},
+
+	attach: function(){
+		this.addLists(this.lists);
+		return this;
+	},
+
+	detach: function(){
+		this.lists = this.removeLists(this.lists);
+		return this;
+	},
+
+	addItems: function(){
+		Array.flatten(arguments).each(function(element){
+			this.elements.push(element);
+			var start = element.retrieve('sortables:start', function(event){
+				this.start.call(this, event, element);
+			}.bind(this));
+			(this.options.handle ? element.getElement(this.options.handle) || element : element).addEvent('mousedown', start);
+		}, this);
+		return this;
+	},
+
+	addLists: function(){
+		Array.flatten(arguments).each(function(list){
+			this.lists.include(list);
+			this.addItems(list.getChildren());
+		}, this);
+		return this;
+	},
+
+	removeItems: function(){
+		return $$(Array.flatten(arguments).map(function(element){
+			this.elements.erase(element);
+			var start = element.retrieve('sortables:start');
+			(this.options.handle ? element.getElement(this.options.handle) || element : element).removeEvent('mousedown', start);
+
+			return element;
+		}, this));
+	},
+
+	removeLists: function(){
+		return $$(Array.flatten(arguments).map(function(list){
+			this.lists.erase(list);
+			this.removeItems(list.getChildren());
+
+			return list;
+		}, this));
+	},
+
+	getClone: function(event, element){
+		if (!this.options.clone) return new Element(element.tagName).inject(document.body);
+		if (typeOf(this.options.clone) == 'function') return this.options.clone.call(this, event, element, this.list);
+		var clone = element.clone(true).setStyles({
+			margin: 0,
+			position: 'absolute',
+			visibility: 'hidden',
+			width: element.getStyle('width')
+		}).addEvent('mousedown', function(event){
+			element.fireEvent('mousedown', event);
+		});
+		//prevent the duplicated radio inputs from unchecking the real one
+		if (clone.get('html').test('radio')){
+			clone.getElements('input[type=radio]').each(function(input, i){
+				input.set('name', 'clone_' + i);
+				if (input.get('checked')) element.getElements('input[type=radio]')[i].set('checked', true);
+			});
+		}
+
+		return clone.inject(this.list).setPosition(element.getPosition(element.getOffsetParent()));
+	},
+
+	getDroppables: function(){
+		var droppables = this.list.getChildren().erase(this.clone).erase(this.element);
+		if (!this.options.constrain) droppables.append(this.lists).erase(this.list);
+		return droppables;
+	},
+
+	insert: function(dragging, element){
+		var where = 'inside';
+		if (this.lists.contains(element)){
+			this.list = element;
+			this.drag.droppables = this.getDroppables();
+		} else {
+			where = this.element.getAllPrevious().contains(element) ? 'before' : 'after';
+		}
+		this.element.inject(element, where);
+		this.fireEvent('sort', [this.element, this.clone]);
+	},
+
+	start: function(event, element){
+		if (
+			!this.idle ||
+			event.rightClick ||
+			['button', 'input', 'a', 'textarea'].contains(event.target.get('tag'))
+		) return;
+
+		this.idle = false;
+		this.element = element;
+		this.opacity = element.getStyle('opacity');
+		this.list = element.getParent();
+		this.clone = this.getClone(event, element);
+
+		this.drag = new Drag.Move(this.clone, Object.merge({
+			
+			droppables: this.getDroppables()
+		}, this.options.dragOptions)).addEvents({
+			onSnap: function(){
+				event.stop();
+				this.clone.setStyle('visibility', 'visible');
+				this.element.setStyle('opacity', this.options.opacity || 0);
+				this.fireEvent('start', [this.element, this.clone]);
+			}.bind(this),
+			onEnter: this.insert.bind(this),
+			onCancel: this.end.bind(this),
+			onComplete: this.end.bind(this)
+		});
+
+		this.clone.inject(this.element, 'before');
+		this.drag.start(event);
+	},
+
+	end: function(){
+		this.drag.detach();
+		this.element.setStyle('opacity', this.opacity);
+		if (this.effect){
+			var dim = this.element.getStyles('width', 'height'),
+				clone = this.clone,
+				pos = clone.computePosition(this.element.getPosition(this.clone.getOffsetParent()));
+
+			var destroy = function(){
+				this.removeEvent('cancel', destroy);
+				clone.destroy();
+			};
+
+			this.effect.element = clone;
+			this.effect.start({
+				top: pos.top,
+				left: pos.left,
+				width: dim.width,
+				height: dim.height,
+				opacity: 0.25
+			}).addEvent('cancel', destroy).chain(destroy);
+		} else {
+			this.clone.destroy();
+		}
+		this.reset();
+	},
+
+	reset: function(){
+		this.idle = true;
+		this.fireEvent('complete', this.element);
+	},
+
+	serialize: function(){
+		var params = Array.link(arguments, {
+			modifier: Type.isFunction,
+			index: function(obj){
+				return obj != null;
+			}
+		});
+		var serial = this.lists.map(function(list){
+			return list.getChildren().map(params.modifier || function(element){
+				return element.get('id');
+			}, this);
+		}, this);
+
+		var index = params.index;
+		if (this.lists.length == 1) index = 0;
+		return (index || index === 0) && index >= 0 && index < this.lists.length ? serial[index] : serial;
+	}
+
+});
+
+
+/*
+---
+
+script: Request.JSONP.js
+
+name: Request.JSONP
+
+description: Defines Request.JSONP, a class for cross domain javascript via script injection.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+  - Guillermo Rauch
   - Arian Stolwijk
 
-requires: [Element.Event.Pseudos]
-
-provides: [Element.Event.Pseudos.Keys]
-
-...
-*/
-
-(function(){
-
-var keysStoreKey = '$moo:keys-pressed',
-	keysKeyupStoreKey = '$moo:keys-keyup';
-
-
-DOMEvent.definePseudo('keys', function(split, fn, args){
-
-	var event = args[0],
-		keys = [],
-		pressed = this.retrieve(keysStoreKey, []);
-
-	keys.append(split.value.replace('++', function(){
-		keys.push('+'); // shift++ and shift+++a
-		return '';
-	}).split('+'));
-
-	pressed.include(event.key);
-
-	if (keys.every(function(key){
-		return pressed.contains(key);
-	})) fn.apply(this, args);
-
-	this.store(keysStoreKey, pressed);
-
-	if (!this.retrieve(keysKeyupStoreKey)){
-		var keyup = function(event){
-			(function(){
-				pressed = this.retrieve(keysStoreKey, []).erase(event.key);
-				this.store(keysStoreKey, pressed);
-			}).delay(0, this); // Fix for IE
-		};
-		this.store(keysKeyupStoreKey, keyup).addEvent('keyup', keyup);
-	}
-
-});
-
-DOMEvent.defineKeys({
-	'16': 'shift',
-	'17': 'control',
-	'18': 'alt',
-	'20': 'capslock',
-	'33': 'pageup',
-	'34': 'pagedown',
-	'35': 'end',
-	'36': 'home',
-	'144': 'numlock',
-	'145': 'scrolllock',
-	'186': ';',
-	'187': '=',
-	'188': ',',
-	'190': '.',
-	'191': '/',
-	'192': '`',
-	'219': '[',
-	'220': '\\',
-	'221': ']',
-	'222': "'",
-	'107': '+'
-}).defineKey(Browser.firefox ? 109 : 189, '-');
-
-})();
-
-
-// Begin: Source/Interface/Keyboard.js
-/*
----
-
-script: Keyboard.js
-
-name: Keyboard
-
-description: KeyboardEvents used to intercept events on a class for keyboard and format modifiers in a specific order so as to make alt+shift+c the same as shift+alt+c.
-
-license: MIT-style license
-
-authors:
-  - Perrin Westrich
-  - Aaron Newton
-  - Scott Kyle
-
 requires:
-  - Core/Events
-  - Core/Options
-  - Core/Element.Event
-  - Element.Event.Pseudos.Keys
+  - Core/Element
+  - Core/Request
+  - MooTools.More
 
-provides: [Keyboard]
+provides: [Request.JSONP]
 
 ...
 */
 
-(function(){
+Request.JSONP = new Class({
 
-	var Keyboard = this.Keyboard = new Class({
+	Implements: [Chain, Events, Options],
 
-		Extends: Events,
-
-		Implements: [Options],
-
-		options: {/*
-			onActivate: function(){},
-			onDeactivate: function(){},*/
-			defaultEventType: 'keydown',
-			active: false,
-			manager: null,
-			events: {},
-			nonParsedEvents: ['activate', 'deactivate', 'onactivate', 'ondeactivate', 'changed', 'onchanged']
-		},
-
-		initialize: function(options){
-			if (options && options.manager){
-				this._manager = options.manager;
-				delete options.manager;
+	options: {/*
+		onRequest: function(src, scriptElement){},
+		onComplete: function(data){},
+		onSuccess: function(data){},
+		onCancel: function(){},
+		onTimeout: function(){},
+		onError: function(){}, */
+		onRequest: function(src){
+			if (this.options.log && window.console && console.log){
+				console.log('JSONP retrieving script with url:' + src);
 			}
-			this.setOptions(options);
-			this._setup();
 		},
-
-		addEvent: function(type, fn, internal){
-			return this.parent(Keyboard.parse(type, this.options.defaultEventType, this.options.nonParsedEvents), fn, internal);
-		},
-
-		removeEvent: function(type, fn){
-			return this.parent(Keyboard.parse(type, this.options.defaultEventType, this.options.nonParsedEvents), fn);
-		},
-
-		toggleActive: function(){
-			return this[this.isActive() ? 'deactivate' : 'activate']();
-		},
-
-		activate: function(instance){
-			if (instance){
-				if (instance.isActive()) return this;
-				//if we're stealing focus, store the last keyboard to have it so the relinquish command works
-				if (this._activeKB && instance != this._activeKB){
-					this.previous = this._activeKB;
-					this.previous.fireEvent('deactivate');
-				}
-				//if we're enabling a child, assign it so that events are now passed to it
-				this._activeKB = instance.fireEvent('activate');
-				Keyboard.manager.fireEvent('changed');
-			} else if (this._manager){
-				//else we're enabling ourselves, we must ask our parent to do it for us
-				this._manager.activate(this);
+		onError: function(src){
+			if (this.options.log && window.console && console.warn){
+				console.warn('JSONP '+ src +' will fail in Internet Explorer, which enforces a 2083 bytes length limit on URIs');
 			}
-			return this;
 		},
-
-		isActive: function(){
-			return this._manager ? (this._manager._activeKB == this) : (Keyboard.manager == this);
-		},
-
-		deactivate: function(instance){
-			if (instance){
-				if (instance === this._activeKB){
-					this._activeKB = null;
-					instance.fireEvent('deactivate');
-					Keyboard.manager.fireEvent('changed');
-				}
-			} else if (this._manager){
-				this._manager.deactivate(this);
-			}
-			return this;
-		},
-
-		relinquish: function(){
-			if (this.isActive() && this._manager && this._manager.previous) this._manager.activate(this._manager.previous);
-			else this.deactivate();
-			return this;
-		},
-
-		//management logic
-		manage: function(instance){
-			if (instance._manager) instance._manager.drop(instance);
-			this._instances.push(instance);
-			instance._manager = this;
-			if (!this._activeKB) this.activate(instance);
-			return this;
-		},
-
-		drop: function(instance){
-			instance.relinquish();
-			this._instances.erase(instance);
-			if (this._activeKB == instance){
-				if (this.previous && this._instances.contains(this.previous)) this.activate(this.previous);
-				else this._activeKB = this._instances[0];
-			}
-			return this;
-		},
-
-		trace: function(){
-			Keyboard.trace(this);
-		},
-
-		each: function(fn){
-			Keyboard.each(this, fn);
-		},
-
-		/*
-			PRIVATE METHODS
-		*/
-
-		_instances: [],
-
-		_disable: function(instance){
-			if (this._activeKB == instance) this._activeKB = null;
-		},
-
-		_setup: function(){
-			this.addEvents(this.options.events);
-			//if this is the root manager, nothing manages it
-			if (Keyboard.manager && !this._manager) Keyboard.manager.manage(this);
-			if (this.options.active) this.activate();
-			else this.relinquish();
-		},
-
-		_handle: function(event, type){
-			//Keyboard.stop(event) prevents key propagation
-			if (event.preventKeyboardPropagation) return;
-
-			var bubbles = !!this._manager;
-			if (bubbles && this._activeKB){
-				this._activeKB._handle(event, type);
-				if (event.preventKeyboardPropagation) return;
-			}
-			this.fireEvent(type, event);
-
-			if (!bubbles && this._activeKB) this._activeKB._handle(event, type);
-		}
-
-	});
-
-	var parsed = {};
-	var modifiers = ['shift', 'control', 'alt', 'meta'];
-	var regex = /^(?:shift|control|ctrl|alt|meta)$/;
-
-	Keyboard.parse = function(type, eventType, ignore){
-		if (ignore && ignore.contains(type.toLowerCase())) return type;
-
-		type = type.toLowerCase().replace(/^(keyup|keydown):/, function($0, $1){
-			eventType = $1;
-			return '';
-		});
-
-		if (!parsed[type]){
-			var key, mods = {};
-			type.split('+').each(function(part){
-				if (regex.test(part)) mods[part] = true;
-				else key = part;
-			});
-
-			mods.control = mods.control || mods.ctrl; // allow both control and ctrl
-
-			var keys = [];
-			modifiers.each(function(mod){
-				if (mods[mod]) keys.push(mod);
-			});
-
-			if (key) keys.push(key);
-			parsed[type] = keys.join('+');
-		}
-
-		return eventType + ':keys(' + parsed[type] + ')';
-	};
-
-	Keyboard.each = function(keyboard, fn){
-		var current = keyboard || Keyboard.manager;
-		while (current){
-			fn.run(current);
-			current = current._activeKB;
-		}
-	};
-
-	Keyboard.stop = function(event){
-		event.preventKeyboardPropagation = true;
-	};
-
-	Keyboard.manager = new Keyboard({
-		active: true
-	});
-
-	Keyboard.trace = function(keyboard){
-		keyboard = keyboard || Keyboard.manager;
-		var hasConsole = window.console && console.log;
-		if (hasConsole) console.log('the following items have focus: ');
-		Keyboard.each(keyboard, function(current){
-			if (hasConsole) console.log(document.id(current.widget) || current.wiget || current);
-		});
-	};
-
-	var handler = function(event){
-		var keys = [];
-		modifiers.each(function(mod){
-			if (event[mod]) keys.push(mod);
-		});
-
-		if (!regex.test(event.key)) keys.push(event.key);
-		Keyboard.manager._handle(event, event.type + ':keys(' + keys.join('+') + ')');
-	};
-
-	document.addEvents({
-		'keyup': handler,
-		'keydown': handler
-	});
-
-})();
-
-
-// Begin: Source/Forms/Behavior.FormRequest.js
-/*
----
-description: Makes form elements with a FormRequest data filter automatically update via Ajax.
-provides: [Behavior.FormRequest]
-requires: [Behavior/Behavior, More/Form.Request, Behavior/Element.Data]
-script: Behavior.FormRequest.js
-name: Behavior.FormRequest
-...
-*/
-
-Behavior.addGlobalFilter('FormRequest', {
-	defaults: {
-		resetForm: true
+		url: '',
+		callbackKey: 'callback',
+		injectScript: document.head,
+		data: '',
+		link: 'ignore',
+		timeout: 0,
+		log: false
 	},
-	setup: function(element, api){
-		var updateElement,
-		    update = api.get('update'),
-		    spinner = api.get('spinner');
-		if (update =="self") updateElement = element;
-		else updateElement = element.getElement(update);
 
-		if (spinner == "self") spinner = element;
-		else if (spinner) spinner = element.getElement(spinner);
-		else spinner = updateElement;
+	initialize: function(options){
+		this.setOptions(options);
+	},
 
-		if (!updateElement) api.fail('Could not find target element for form update');
+	send: function(options){
+		if (!Request.prototype.check.call(this, options)) return this;
+		this.running = true;
 
-		var req = new Form.Request(element, updateElement, {
-			requestOptions: {
-				filter: api.get('filter'),
-				spinnerTarget: spinner
-			},
-			resetForm: api.get('resetForm') || /* noReset is deprecated: */ !element.hasClass('noReset')
-		}).addEvent('complete', function(){
-			api.applyFilters(updateElement);
+		var type = typeOf(options);
+		if (type == 'string' || type == 'element') options = {data: options};
+		options = Object.merge(this.options, options || {});
+
+		var data = options.data;
+		switch (typeOf(data)){
+			case 'element': data = document.id(data).toQueryString(); break;
+			case 'object': case 'hash': data = Object.toQueryString(data);
+		}
+
+		var index = this.index = Request.JSONP.counter++;
+
+		var src = options.url +
+			(options.url.test('\\?') ? '&' :'?') +
+			(options.callbackKey) +
+			'=Request.JSONP.request_map.request_'+ index +
+			(data ? '&' + data : '');
+
+		if (src.length > 2083) this.fireEvent('error', src);
+
+		Request.JSONP.request_map['request_' + index] = function(){
+			this.success(arguments, index);
+		}.bind(this);
+
+		var script = this.getScript(src).inject(options.injectScript);
+		this.fireEvent('request', [src, script]);
+
+		if (options.timeout) this.timeout.delay(options.timeout, this);
+
+		return this;
+	},
+
+	getScript: function(src){
+		if (!this.script) this.script = new Element('script', {
+			type: 'text/javascript',
+			async: true,
+			src: src
 		});
-		api.onCleanup(req.detach.bind(req));
-		return req;
+		return this.script;
+	},
+
+	success: function(args, index){
+		if (!this.running) return;
+		this.clear()
+			.fireEvent('complete', args).fireEvent('success', args)
+			.callChain();
+	},
+
+	cancel: function(){
+		if (this.running) this.clear().fireEvent('cancel');
+		return this;
+	},
+
+	isRunning: function(){
+		return !!this.running;
+	},
+
+	clear: function(){
+		this.running = false;
+		if (this.script){
+			this.script.destroy();
+			this.script = null;
+		}
+		return this;
+	},
+
+	timeout: function(){
+		if (this.running){
+			this.running = false;
+			this.fireEvent('timeout', [this.script.get('src'), this.script]).fireEvent('failure').cancel();
+		}
+		return this;
+	}
+
+});
+
+Request.JSONP.counter = 0;
+Request.JSONP.request_map = {};
+
+
+/*
+---
+
+script: Request.Queue.js
+
+name: Request.Queue
+
+description: Controls several instances of Request and its variants to run only one request at a time.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - Core/Element
+  - Core/Request
+  - /Class.Binds
+
+provides: [Request.Queue]
+
+...
+*/
+
+Request.Queue = new Class({
+
+	Implements: [Options, Events],
+
+	Binds: ['attach', 'request', 'complete', 'cancel', 'success', 'failure', 'exception'],
+
+	options: {/*
+		onRequest: function(argsPassedToOnRequest){},
+		onSuccess: function(argsPassedToOnSuccess){},
+		onComplete: function(argsPassedToOnComplete){},
+		onCancel: function(argsPassedToOnCancel){},
+		onException: function(argsPassedToOnException){},
+		onFailure: function(argsPassedToOnFailure){},
+		onEnd: function(){},
+		*/
+		stopOnFailure: true,
+		autoAdvance: true,
+		concurrent: 1,
+		requests: {}
+	},
+
+	initialize: function(options){
+		var requests;
+		if (options){
+			requests = options.requests;
+			delete options.requests;
+		}
+		this.setOptions(options);
+		this.requests = {};
+		this.queue = [];
+		this.reqBinders = {};
+
+		if (requests) this.addRequests(requests);
+	},
+
+	addRequest: function(name, request){
+		this.requests[name] = request;
+		this.attach(name, request);
+		return this;
+	},
+
+	addRequests: function(obj){
+		Object.each(obj, function(req, name){
+			this.addRequest(name, req);
+		}, this);
+		return this;
+	},
+
+	getName: function(req){
+		return Object.keyOf(this.requests, req);
+	},
+
+	attach: function(name, req){
+		if (req._groupSend) return this;
+		['request', 'complete', 'cancel', 'success', 'failure', 'exception'].each(function(evt){
+			if (!this.reqBinders[name]) this.reqBinders[name] = {};
+			this.reqBinders[name][evt] = function(){
+				this['on' + evt.capitalize()].apply(this, [name, req].append(arguments));
+			}.bind(this);
+			req.addEvent(evt, this.reqBinders[name][evt]);
+		}, this);
+		req._groupSend = req.send;
+		req.send = function(options){
+			this.send(name, options);
+			return req;
+		}.bind(this);
+		return this;
+	},
+
+	removeRequest: function(req){
+		var name = typeOf(req) == 'object' ? this.getName(req) : req;
+		if (!name && typeOf(name) != 'string') return this;
+		req = this.requests[name];
+		if (!req) return this;
+		['request', 'complete', 'cancel', 'success', 'failure', 'exception'].each(function(evt){
+			req.removeEvent(evt, this.reqBinders[name][evt]);
+		}, this);
+		req.send = req._groupSend;
+		delete req._groupSend;
+		return this;
+	},
+
+	getRunning: function(){
+		return Object.filter(this.requests, function(r){
+			return r.running;
+		});
+	},
+
+	isRunning: function(){
+		return !!(Object.keys(this.getRunning()).length);
+	},
+
+	send: function(name, options){
+		var q = function(){
+			this.requests[name]._groupSend(options);
+			this.queue.erase(q);
+		}.bind(this);
+
+		q.name = name;
+		if (Object.keys(this.getRunning()).length >= this.options.concurrent || (this.error && this.options.stopOnFailure)) this.queue.push(q);
+		else q();
+		return this;
+	},
+
+	hasNext: function(name){
+		return (!name) ? !!this.queue.length : !!this.queue.filter(function(q){ return q.name == name; }).length;
+	},
+
+	resume: function(){
+		this.error = false;
+		(this.options.concurrent - Object.keys(this.getRunning()).length).times(this.runNext, this);
+		return this;
+	},
+
+	runNext: function(name){
+		if (!this.queue.length) return this;
+		if (!name){
+			this.queue[0]();
+		} else {
+			var found;
+			this.queue.each(function(q){
+				if (!found && q.name == name){
+					found = true;
+					q();
+				}
+			});
+		}
+		return this;
+	},
+
+	runAll: function(){
+		this.queue.each(function(q){
+			q();
+		});
+		return this;
+	},
+
+	clear: function(name){
+		if (!name){
+			this.queue.empty();
+		} else {
+			this.queue = this.queue.map(function(q){
+				if (q.name != name) return q;
+				else return false;
+			}).filter(function(q){
+				return q;
+			});
+		}
+		return this;
+	},
+
+	cancel: function(name){
+		this.requests[name].cancel();
+		return this;
+	},
+
+	onRequest: function(){
+		this.fireEvent('request', arguments);
+	},
+
+	onComplete: function(){
+		this.fireEvent('complete', arguments);
+		if (!this.queue.length) this.fireEvent('end');
+	},
+
+	onCancel: function(){
+		if (this.options.autoAdvance && !this.error) this.runNext();
+		this.fireEvent('cancel', arguments);
+	},
+
+	onSuccess: function(){
+		if (this.options.autoAdvance && !this.error) this.runNext();
+		this.fireEvent('success', arguments);
+	},
+
+	onFailure: function(){
+		this.error = true;
+		if (!this.options.stopOnFailure && this.options.autoAdvance) this.runNext();
+		this.fireEvent('failure', arguments);
+	},
+
+	onException: function(){
+		this.error = true;
+		if (!this.options.stopOnFailure && this.options.autoAdvance) this.runNext();
+		this.fireEvent('exception', arguments);
 	}
 
 });
 
 
-// Begin: Source/Locale/Locale.ca-CA.Date.js
 /*
 ---
 
-name: Locale.ca-CA.Date
+script: Request.Periodical.js
 
-description: Date messages for Catalan.
+name: Request.Periodical
 
-license: MIT-style license
-
-authors:
-  - Ãlfons Sanchez
-
-requires:
-  - /Locale
-
-provides: [Locale.ca-CA.Date]
-
-...
-*/
-
-Locale.define('ca-CA', 'Date', {
-
-	months: ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 'Juli', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'],
-	months_abbr: ['gen.', 'febr.', 'març', 'abr.', 'maig', 'juny', 'jul.', 'ag.', 'set.', 'oct.', 'nov.', 'des.'],
-	days: ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'],
-	days_abbr: ['dg', 'dl', 'dt', 'dc', 'dj', 'dv', 'ds'],
-
-	// Culture's date order: DD/MM/YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d/%m/%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 0,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: 'fa menys d`un minut',
-	minuteAgo: 'fa un minut',
-	minutesAgo: 'fa {delta} minuts',
-	hourAgo: 'fa un hora',
-	hoursAgo: 'fa unes {delta} hores',
-	dayAgo: 'fa un dia',
-	daysAgo: 'fa {delta} dies',
-
-	lessThanMinuteUntil: 'menys d`un minut des d`ara',
-	minuteUntil: 'un minut des d`ara',
-	minutesUntil: '{delta} minuts des d`ara',
-	hourUntil: 'un hora des d`ara',
-	hoursUntil: 'unes {delta} hores des d`ara',
-	dayUntil: '1 dia des d`ara',
-	daysUntil: '{delta} dies des d`ara'
-
-});
-
-
-// Begin: Source/Locale/Locale.ar.Date.js
-/*
----
-
-name: Locale.ar.Date
-
-description: Date messages for Arabic.
-
-license: MIT-style license
-
-authors:
-  - Chafik Barbar
-
-requires:
-  - /Locale
-
-provides: [Locale.ar.Date]
-
-...
-*/
-
-Locale.define('ar', 'Date', {
-
-	// Culture's date order: DD/MM/YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d/%m/%Y',
-	shortTime: '%H:%M'
-
-});
-
-
-// Begin: Source/Locale/Locale.de-DE.Date.js
-/*
----
-
-name: Locale.de-DE.Date
-
-description: Date messages for German.
+description: Requests the same URL to pull data from a server but increases the intervals if no data is returned to reduce the load
 
 license: MIT-style license
 
 authors:
   - Christoph Pojer
-  - Frank Rossi
-  - Ulrich Petri
-  - Fabian Beiner
 
 requires:
-  - /Locale
+  - Core/Request
+  - /MooTools.More
 
-provides: [Locale.de-DE.Date]
-
-...
-*/
-
-Locale.define('de-DE', 'Date', {
-
-	months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-	months_abbr: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
-	days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-	days_abbr: ['So.', 'Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.'],
-
-	// Culture's date order: DD.MM.YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d.%m.%Y',
-	shortTime: '%H:%M',
-	AM: 'vormittags',
-	PM: 'nachmittags',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '.',
-
-	lessThanMinuteAgo: 'vor weniger als einer Minute',
-	minuteAgo: 'vor einer Minute',
-	minutesAgo: 'vor {delta} Minuten',
-	hourAgo: 'vor einer Stunde',
-	hoursAgo: 'vor {delta} Stunden',
-	dayAgo: 'vor einem Tag',
-	daysAgo: 'vor {delta} Tagen',
-	weekAgo: 'vor einer Woche',
-	weeksAgo: 'vor {delta} Wochen',
-	monthAgo: 'vor einem Monat',
-	monthsAgo: 'vor {delta} Monaten',
-	yearAgo: 'vor einem Jahr',
-	yearsAgo: 'vor {delta} Jahren',
-
-	lessThanMinuteUntil: 'in weniger als einer Minute',
-	minuteUntil: 'in einer Minute',
-	minutesUntil: 'in {delta} Minuten',
-	hourUntil: 'in ca. einer Stunde',
-	hoursUntil: 'in ca. {delta} Stunden',
-	dayUntil: 'in einem Tag',
-	daysUntil: 'in {delta} Tagen',
-	weekUntil: 'in einer Woche',
-	weeksUntil: 'in {delta} Wochen',
-	monthUntil: 'in einem Monat',
-	monthsUntil: 'in {delta} Monaten',
-	yearUntil: 'in einem Jahr',
-	yearsUntil: 'in {delta} Jahren'
-
-});
-
-
-// Begin: Source/Delegators/Delegator.SubmitLink.js
-/*
----
-description: When the user clicks a link with this delegator, submit the target form.
-provides: [Delegator.SubmitLink]
-requires: [Behavior/Delegator]
-script: Delegator.SubmitLink.js
-name: Delegator.SubmitLink
+provides: [Request.Periodical]
 
 ...
 */
 
-(function(){
-
-	var injectValues = function(form, data){
-		var injected = new Elements();
-		Object.each(data, function(value, key){
-			if (typeOf(value) == 'array'){
-				value.each(function(val){
-					injected.push(
-						new Element('input', {
-							type: 'hidden',
-							name: key,
-							value: val
-						}).inject(form)
-					);
-				});
-			} else {
-				new Element('input', {
-					type: 'hidden',
-					name: key,
-					value: value
-				}).inject(form);
-			}
-		});
-		return injected;
-	};
-
-	Delegator.register('click', {
-
-		'submitLink': function(event, el, api){
-			var formSelector = api.get('form') || '!form';
-			var form = el.getElement(formSelector);
-			if (!form) api.fail('Cannot find target form: "' +formSelector+ '" for submitLink delegator.');
-			var rq = form.retrieve('form.request');
-			var extraData = api.getAs(Object, 'extra-data');
-			var injected;
-			if (extraData) injected = injectValues(form, extraData);
-			if (rq) rq.send();
-			else form.submit();
-			if (injected) injected.destroy();
-		}
-
-	});
-
-})();
-
-// Begin: Source/Locale/Locale.nl-NL.Form.Validator.js
-/*
----
-
-name: Locale.nl-NL.Form.Validator
-
-description: Form Validator messages for Dutch.
-
-license: MIT-style license
-
-authors:
-  - Lennart Pilon
-  - Arian Stolwijk
-  - Tim Wienk
-
-requires:
-  - /Locale
-
-provides: [Locale.nl-NL.Form.Validator]
-
-...
-*/
-
-Locale.define('nl-NL', 'FormValidator', {
-
-	required: 'Dit veld is verplicht.',
-	length: 'Vul precies {length} karakters in (je hebt {elLength} karakters ingevoerd).',
-	minLength: 'Vul minimaal {minLength} karakters in (je hebt {length} karakters ingevoerd).',
-	maxLength: 'Vul niet meer dan {maxLength} karakters in (je hebt {length} karakters ingevoerd).',
-	integer: 'Vul een getal in. Getallen met decimalen (bijvoorbeeld 1.25) zijn niet toegestaan.',
-	numeric: 'Vul alleen numerieke waarden in (bijvoorbeeld "1" of "1.1" of "-1" of "-1.1").',
-	digits: 'Vul alleen nummers en leestekens in (bijvoorbeeld een telefoonnummer met streepjes is toegestaan).',
-	alpha: 'Vul alleen letters in (a-z). Spaties en andere karakters zijn niet toegestaan.',
-	alphanum: 'Vul alleen letters (a-z) of nummers (0-9) in. Spaties en andere karakters zijn niet toegestaan.',
-	dateSuchAs: 'Vul een geldige datum in, zoals {date}',
-	dateInFormatMDY: 'Vul een geldige datum, in het formaat MM/DD/YYYY (bijvoorbeeld "12/31/1999")',
-	email: 'Vul een geldig e-mailadres in. Bijvoorbeeld "fred@domein.nl".',
-	url: 'Vul een geldige URL in, zoals http://www.example.com.',
-	currencyDollar: 'Vul een geldig $ bedrag in. Bijvoorbeeld $100.00 .',
-	oneRequired: 'Vul iets in bij in ieder geval een van deze velden.',
-	warningPrefix: 'Waarschuwing: ',
-	errorPrefix: 'Fout: ',
-
-	// Form.Validator.Extras
-	noSpace: 'Spaties zijn niet toegestaan in dit veld.',
-	reqChkByNode: 'Er zijn geen items geselecteerd.',
-	requiredChk: 'Dit veld is verplicht.',
-	reqChkByName: 'Selecteer een {label}.',
-	match: 'Dit veld moet overeen komen met het {matchName} veld',
-	startDate: 'de begin datum',
-	endDate: 'de eind datum',
-	currendDate: 'de huidige datum',
-	afterDate: 'De datum moet hetzelfde of na {label} zijn.',
-	beforeDate: 'De datum moet hetzelfde of voor {label} zijn.',
-	startMonth: 'Selecteer een begin maand',
-	sameMonth: 'Deze twee data moeten in dezelfde maand zijn - u moet een van beide aanpassen.',
-	creditcard: 'Het ingevulde creditcardnummer is niet geldig. Controleer het nummer en probeer opnieuw. {length} getallen ingevuld.'
-
-});
-
-
-// Begin: Source/Locale/Locale.fi-FI.Form.Validator.js
-/*
----
-
-name: Locale.fi-FI.Form.Validator
-
-description: Form Validator messages for Finnish.
-
-license: MIT-style license
-
-authors:
-  - ksel
-
-requires:
-  - /Locale
-
-provides: [Locale.fi-FI.Form.Validator]
-
-...
-*/
-
-Locale.define('fi-FI', 'FormValidator', {
-
-	required: 'Tämä kenttä on pakollinen.',
-	minLength: 'Ole hyvä ja anna vähintään {minLength} merkkiä (annoit {length} merkkiä).',
-	maxLength: 'Älä anna enempää kuin {maxLength} merkkiä (annoit {length} merkkiä).',
-	integer: 'Ole hyvä ja anna kokonaisluku. Luvut, joissa on desimaaleja (esim. 1.25) eivät ole sallittuja.',
-	numeric: 'Anna tähän kenttään lukuarvo (kuten "1" tai "1.1" tai "-1" tai "-1.1").',
-	digits: 'Käytä pelkästään numeroita ja välimerkkejä tässä kentässä (syötteet, kuten esim. puhelinnumero, jossa on väliviivoja, pilkkuja tai pisteitä, kelpaa).',
-	alpha: 'Anna tähän kenttään vain kirjaimia (a-z). Välilyönnit tai muut merkit eivät ole sallittuja.',
-	alphanum: 'Anna tähän kenttään vain kirjaimia (a-z) tai numeroita (0-9). Välilyönnit tai muut merkit eivät ole sallittuja.',
-	dateSuchAs: 'Ole hyvä ja anna kelvollinen päivmäärä, kuten esimerkiksi {date}',
-	dateInFormatMDY: 'Ole hyvä ja anna kelvollinen päivämäärä muodossa pp/kk/vvvv (kuten "12/31/1999")',
-	email: 'Ole hyvä ja anna kelvollinen sähköpostiosoite (kuten esimerkiksi "matti@meikalainen.com").',
-	url: 'Ole hyvä ja anna kelvollinen URL, kuten esimerkiksi http://www.example.com.',
-	currencyDollar: 'Ole hyvä ja anna kelvollinen eurosumma (kuten esimerkiksi 100,00 EUR) .',
-	oneRequired: 'Ole hyvä ja syötä jotakin ainakin johonkin näistä kentistä.',
-	errorPrefix: 'Virhe: ',
-	warningPrefix: 'Varoitus: ',
-
-	// Form.Validator.Extras
-	noSpace: 'Tässä syötteessä ei voi olla välilyöntejä',
-	reqChkByNode: 'Ei valintoja.',
-	requiredChk: 'Tämä kenttä on pakollinen.',
-	reqChkByName: 'Ole hyvä ja valitse {label}.',
-	match: 'Tämän kentän tulee vastata kenttää {matchName}',
-	startDate: 'alkupäivämäärä',
-	endDate: 'loppupäivämäärä',
-	currendDate: 'nykyinen päivämäärä',
-	afterDate: 'Päivämäärän tulisi olla sama tai myöhäisempi ajankohta kuin {label}.',
-	beforeDate: 'Päivämäärän tulisi olla sama tai aikaisempi ajankohta kuin {label}.',
-	startMonth: 'Ole hyvä ja valitse aloituskuukausi',
-	sameMonth: 'Näiden kahden päivämäärän tulee olla saman kuun sisällä -- sinun pitää muuttaa jompaa kumpaa.',
-	creditcard: 'Annettu luottokortin numero ei kelpaa. Ole hyvä ja tarkista numero sekä yritä uudelleen. {length} numeroa syötetty.'
-
-});
-
-
-// Begin: Source/Locale/Locale.ja-JP.Date.js
-/*
----
-
-name: Locale.ja-JP.Date
-
-description: Date messages for Japanese.
-
-license: MIT-style license
-
-authors:
-  - Noritaka Horio
-
-requires:
-  - /Locale
-
-provides: [Locale.ja-JP.Date]
-
-...
-*/
-
-Locale.define('ja-JP', 'Date', {
-
-	months: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-	months_abbr: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-	days: ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
-	days_abbr: ['日', '月', '火', '水', '木', '金', '土'],
-
-	// Culture's date order: YYYY/MM/DD
-	dateOrder: ['year', 'month', 'date'],
-	shortDate: '%Y/%m/%d',
-	shortTime: '%H:%M',
-	AM: '午前',
-	PM: '午後',
-	firstDayOfWeek: 0,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: '1分以内前',
-	minuteAgo: '約1分前',
-	minutesAgo: '約{delta}分前',
-	hourAgo: '約1時間前',
-	hoursAgo: '約{delta}時間前',
-	dayAgo: '1日前',
-	daysAgo: '{delta}日前',
-	weekAgo: '1週間前',
-	weeksAgo: '{delta}週間前',
-	monthAgo: '1ヶ月前',
-	monthsAgo: '{delta}ヶ月前',
-	yearAgo: '1年前',
-	yearsAgo: '{delta}年前',
-
-	lessThanMinuteUntil: '今から約1分以内',
-	minuteUntil: '今から約1分',
-	minutesUntil: '今から約{delta}分',
-	hourUntil: '今から約1時間',
-	hoursUntil: '今から約{delta}時間',
-	dayUntil: '今から1日間',
-	daysUntil: '今から{delta}日間',
-	weekUntil: '今から1週間',
-	weeksUntil: '今から{delta}週間',
-	monthUntil: '今から1ヶ月',
-	monthsUntil: '今から{delta}ヶ月',
-	yearUntil: '今から1年',
-	yearsUntil: '今から{delta}年'
-
-});
-
-
-// Begin: Source/Locale/Locale.nl-NL.Date.js
-/*
----
-
-name: Locale.nl-NL.Date
-
-description: Date messages for Dutch.
-
-license: MIT-style license
-
-authors:
-  - Lennart Pilon
-  - Tim Wienk
-
-requires:
-  - /Locale
-
-provides: [Locale.nl-NL.Date]
-
-...
-*/
-
-Locale.define('nl-NL', 'Date', {
-
-	months: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'],
-	months_abbr: ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
-	days: ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'],
-	days_abbr: ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'],
-
-	// Culture's date order: DD-MM-YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d-%m-%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: 'e',
-
-	lessThanMinuteAgo: 'minder dan een minuut geleden',
-	minuteAgo: 'ongeveer een minuut geleden',
-	minutesAgo: '{delta} minuten geleden',
-	hourAgo: 'ongeveer een uur geleden',
-	hoursAgo: 'ongeveer {delta} uur geleden',
-	dayAgo: 'een dag geleden',
-	daysAgo: '{delta} dagen geleden',
-	weekAgo: 'een week geleden',
-	weeksAgo: '{delta} weken geleden',
-	monthAgo: 'een maand geleden',
-	monthsAgo: '{delta} maanden geleden',
-	yearAgo: 'een jaar geleden',
-	yearsAgo: '{delta} jaar geleden',
-
-	lessThanMinuteUntil: 'over minder dan een minuut',
-	minuteUntil: 'over ongeveer een minuut',
-	minutesUntil: 'over {delta} minuten',
-	hourUntil: 'over ongeveer een uur',
-	hoursUntil: 'over {delta} uur',
-	dayUntil: 'over ongeveer een dag',
-	daysUntil: 'over {delta} dagen',
-	weekUntil: 'over een week',
-	weeksUntil: 'over {delta} weken',
-	monthUntil: 'over een maand',
-	monthsUntil: 'over {delta} maanden',
-	yearUntil: 'over een jaar',
-	yearsUntil: 'over {delta} jaar'
-
-});
-
-
-// Begin: Source/Fx/Fx.Move.js
-/*
----
-
-script: Fx.Move.js
-
-name: Fx.Move
-
-description: Defines Fx.Move, a class that works with Element.Position.js to transition an element from one location to another.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Fx.Morph
-  - /Element.Position
-
-provides: [Fx.Move]
-
-...
-*/
-
-Fx.Move = new Class({
-
-	Extends: Fx.Morph,
+Request.implement({
 
 	options: {
-		relativeTo: document.body,
-		position: 'center',
-		edge: false,
-		offset: {x: 0, y: 0}
+		initialDelay: 5000,
+		delay: 5000,
+		limit: 60000
 	},
 
-	start: function(destination){
-		var element = this.element,
-			topLeft = element.getStyles('top', 'left');
-		if (topLeft.top == 'auto' || topLeft.left == 'auto'){
-			element.setPosition(element.getPosition(element.getOffsetParent()));
-		}
-		return this.parent(element.position(Object.merge({}, this.options, destination, {returnPos: true})));
-	}
-
-});
-
-Element.Properties.move = {
-
-	set: function(options){
-		this.get('move').cancel().setOptions(options);
-		return this;
+	startTimer: function(data){
+		var fn = function(){
+			if (!this.running) this.send({data: data});
+		};
+		this.lastDelay = this.options.initialDelay;
+		this.timer = fn.delay(this.lastDelay, this);
+		this.completeCheck = function(response){
+			clearTimeout(this.timer);
+			this.lastDelay = (response) ? this.options.delay : (this.lastDelay + this.options.delay).min(this.options.limit);
+			this.timer = fn.delay(this.lastDelay, this);
+		};
+		return this.addEvent('complete', this.completeCheck);
 	},
 
-	get: function(){
-		var move = this.retrieve('move');
-		if (!move){
-			move = new Fx.Move(this, {link: 'cancel'});
-			this.store('move', move);
-		}
-		return move;
-	}
-
-};
-
-Element.implement({
-
-	move: function(options){
-		this.get('move').start(options);
-		return this;
+	stopTimer: function(){
+		clearTimeout(this.timer);
+		return this.removeEvent('complete', this.completeCheck);
 	}
 
 });
 
 
-// Begin: Source/Locale/Locale.he-IL.Form.Validator.js
-/*
----
-
-name: Locale.he-IL.Form.Validator
-
-description: Form Validator messages for Hebrew.
-
-license: MIT-style license
-
-authors:
-  - Elad Ossadon
-
-requires:
-  - /Locale
-
-provides: [Locale.he-IL.Form.Validator]
-
-...
-*/
-
-Locale.define('he-IL', 'FormValidator', {
-
-	required: 'נא למלא שדה זה.',
-	minLength: 'נא להזין לפחות {minLength} תווים (הזנת {length} תווים).',
-	maxLength: 'נא להזין עד {maxLength} תווים (הזנת {length} תווים).',
-	integer: 'נא להזין מספר שלם לשדה זה. מספרים עשרוניים (כמו 1.25) אינם חוקיים.',
-	numeric: 'נא להזין ערך מספרי בלבד בשדה זה (כמו "1", "1.1", "-1" או "-1.1").',
-	digits: 'נא להזין רק ספרות וסימני הפרדה בשדה זה (למשל, מספר טלפון עם מקפים או נקודות הוא חוקי).',
-	alpha: 'נא להזין רק אותיות באנגלית (a-z) בשדה זה. רווחים או תווים אחרים אינם חוקיים.',
-	alphanum: 'נא להזין רק אותריות באנגלית (a-z) או ספרות (0-9) בשדה זה. אווחרים או תווים אחרים אינם חוקיים.',
-	dateSuchAs: 'נא להזין תאריך חוקי, כמו {date}',
-	dateInFormatMDY: 'נא להזין תאריך חוקי בפורמט MM/DD/YYYY (כמו "12/31/1999")',
-	email: 'נא להזין כתובת אימייל חוקית. לדוגמה: "fred@domain.com".',
-	url: 'נא להזין כתובת אתר חוקית, כמו http://www.example.com.',
-	currencyDollar: 'נא להזין סכום דולרי חוקי. לדוגמה $100.00.',
-	oneRequired: 'נא לבחור לפחות בשדה אחד.',
-	errorPrefix: 'שגיאה: ',
-	warningPrefix: 'אזהרה: ',
-
-	// Form.Validator.Extras
-	noSpace: 'אין להזין רווחים בשדה זה.',
-	reqChkByNode: 'נא לבחור אחת מהאפשרויות.',
-	requiredChk: 'שדה זה נדרש.',
-	reqChkByName: 'נא לבחור {label}.',
-	match: 'שדה זה צריך להתאים לשדה {matchName}',
-	startDate: 'תאריך ההתחלה',
-	endDate: 'תאריך הסיום',
-	currendDate: 'התאריך הנוכחי',
-	afterDate: 'התאריך צריך להיות זהה או אחרי {label}.',
-	beforeDate: 'התאריך צריך להיות זהה או לפני {label}.',
-	startMonth: 'נא לבחור חודש התחלה',
-	sameMonth: 'שני תאריכים אלה צריכים להיות באותו חודש - נא לשנות אחד התאריכים.',
-	creditcard: 'מספר כרטיס האשראי שהוזן אינו חוקי. נא לבדוק שנית. הוזנו {length} ספרות.'
-
-});
-
-
-// Begin: Source/Locale/Locale.cs-CZ.Date.js
-/*
----
-
-name: Locale.cs-CZ.Date
-
-description: Date messages for Czech.
-
-license: MIT-style license
-
-authors:
-  - Jan Černý chemiX
-  - Christopher Zukowski
-
-requires:
-  - /Locale
-
-provides: [Locale.cs-CZ.Date]
-
-...
-*/
-(function(){
-
-// Czech language pluralization rules, see http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html
-// one -> n is 1;            1
-// few -> n in 2..4;         2-4
-// other -> everything else  0, 5-999, 1.31, 2.31, 5.31...
-var pluralize = function (n, one, few, other){
-	if (n == 1) return one;
-	else if (n == 2 || n == 3 || n == 4) return few;
-	else return other;
-};
-
-Locale.define('cs-CZ', 'Date', {
-
-	months: ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'],
-	months_abbr: ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'],
-	days: ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'],
-	days_abbr: ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'],
-
-	// Culture's date order: DD.MM.YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d.%m.%Y',
-	shortTime: '%H:%M',
-	AM: 'dop.',
-	PM: 'odp.',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '.',
-
-	lessThanMinuteAgo: 'před chvílí',
-	minuteAgo: 'přibližně před minutou',
-	minutesAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'minutou', 'minutami', 'minutami'); },
-	hourAgo: 'přibližně před hodinou',
-	hoursAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'hodinou', 'hodinami', 'hodinami'); },
-	dayAgo: 'před dnem',
-	daysAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'dnem', 'dny', 'dny'); },
-	weekAgo: 'před týdnem',
-	weeksAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'týdnem', 'týdny', 'týdny'); },
-	monthAgo: 'před měsícem',
-	monthsAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'měsícem', 'měsíci', 'měsíci'); },
-	yearAgo: 'před rokem',
-	yearsAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'rokem', 'lety', 'lety'); },
-
-	lessThanMinuteUntil: 'za chvíli',
-	minuteUntil: 'přibližně za minutu',
-	minutesUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'minutu', 'minuty', 'minut'); },
-	hourUntil: 'přibližně za hodinu',
-	hoursUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'hodinu', 'hodiny', 'hodin'); },
-	dayUntil: 'za den',
-	daysUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'den', 'dny', 'dnů'); },
-	weekUntil: 'za týden',
-	weeksUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'týden', 'týdny', 'týdnů'); },
-	monthUntil: 'za měsíc',
-	monthsUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'měsíc', 'měsíce', 'měsíců'); },
-	yearUntil: 'za rok',
-	yearsUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'rok', 'roky', 'let'); }
-});
-
-})();
-
-
-// Begin: Source/Locale/Locale.hu-HU.Form.Validator.js
-/*
----
-
-name: Locale.hu-HU.Form.Validator
-
-description: Form Validator messages for Hungarian.
-
-license: MIT-style license
-
-authors:
-  - Zsolt Szegheő
-
-requires:
-  - /Locale
-
-provides: [Locale.hu-HU.Form.Validator]
-
-...
-*/
-
-Locale.define('hu-HU', 'FormValidator', {
-
-	required: 'A mező kitöltése kötelező.',
-	minLength: 'Legalább {minLength} karakter megadása szükséges (megadva {length} karakter).',
-	maxLength: 'Legfeljebb {maxLength} karakter megadása lehetséges (megadva {length} karakter).',
-	integer: 'Egész szám megadása szükséges. A tizedesjegyek (pl. 1.25) nem engedélyezettek.',
-	numeric: 'Szám megadása szükséges (pl. "1" vagy "1.1" vagy "-1" vagy "-1.1").',
-	digits: 'Csak számok és írásjelek megadása lehetséges (pl. telefonszám kötőjelek és/vagy perjelekkel).',
-	alpha: 'Csak betűk (a-z) megadása lehetséges. Szóköz és egyéb karakterek nem engedélyezettek.',
-	alphanum: 'Csak betűk (a-z) vagy számok (0-9) megadása lehetséges. Szóköz és egyéb karakterek nem engedélyezettek.',
-	dateSuchAs: 'Valós dátum megadása szükséges (pl. {date}).',
-	dateInFormatMDY: 'Valós dátum megadása szükséges ÉÉÉÉ.HH.NN. formában. (pl. "1999.12.31.")',
-	email: 'Valós e-mail cím megadása szükséges (pl. "fred@domain.hu").',
-	url: 'Valós URL megadása szükséges (pl. http://www.example.com).',
-	currencyDollar: 'Valós pénzösszeg megadása szükséges (pl. 100.00 Ft.).',
-	oneRequired: 'Az alábbi mezők legalább egyikének kitöltése kötelező.',
-	errorPrefix: 'Hiba: ',
-	warningPrefix: 'Figyelem: ',
-
-	// Form.Validator.Extras
-	noSpace: 'A mező nem tartalmazhat szóközöket.',
-	reqChkByNode: 'Nincs egyetlen kijelölt elem sem.',
-	requiredChk: 'A mező kitöltése kötelező.',
-	reqChkByName: 'Egy {label} kiválasztása szükséges.',
-	match: 'A mezőnek egyeznie kell a(z) {matchName} mezővel.',
-	startDate: 'a kezdet dátuma',
-	endDate: 'a vég dátuma',
-	currendDate: 'jelenlegi dátum',
-	afterDate: 'A dátum nem lehet kisebb, mint {label}.',
-	beforeDate: 'A dátum nem lehet nagyobb, mint {label}.',
-	startMonth: 'Kezdeti hónap megadása szükséges.',
-	sameMonth: 'A két dátumnak ugyanazon hónapban kell lennie.',
-	creditcard: 'A megadott bankkártyaszám nem valódi (megadva {length} számjegy).'
-
-});
-
-
-// Begin: Source/Utilities/Assets.js
 /*
 ---
 
@@ -7250,1568 +7919,348 @@ var Asset = {
 };
 
 
-// Begin: Source/Locale/Locale.ca-CA.Form.Validator.js
 /*
 ---
 
-name: Locale.ca-CA.Form.Validator
+script: Color.js
 
-description: Form Validator messages for Catalan.
+name: Color
+
+description: Class for creating and manipulating colors in JavaScript. Supports HSB -> RGB Conversions and vice versa.
 
 license: MIT-style license
 
 authors:
-  - Miquel Hudin
-  - Ãlfons Sanchez
+  - Valerio Proietti
 
 requires:
-  - /Locale
-
-provides: [Locale.ca-CA.Form.Validator]
-
-...
-*/
-
-Locale.define('ca-CA', 'FormValidator', {
-
-	required: 'Aquest camp es obligatori.',
-	minLength: 'Per favor introdueix al menys {minLength} caracters (has introduit {length} caracters).',
-	maxLength: 'Per favor introdueix no mes de {maxLength} caracters (has introduit {length} caracters).',
-	integer: 'Per favor introdueix un nombre enter en aquest camp. Nombres amb decimals (p.e. 1,25) no estan permesos.',
-	numeric: 'Per favor introdueix sols valors numerics en aquest camp (p.e. "1" o "1,1" o "-1" o "-1,1").',
-	digits: 'Per favor usa sols numeros i puntuacio en aquest camp (per exemple, un nombre de telefon amb guions i punts no esta permes).',
-	alpha: 'Per favor utilitza lletres nomes (a-z) en aquest camp. No s´admiteixen espais ni altres caracters.',
-	alphanum: 'Per favor, utilitza nomes lletres (a-z) o numeros (0-9) en aquest camp. No s´admiteixen espais ni altres caracters.',
-	dateSuchAs: 'Per favor introdueix una data valida com {date}',
-	dateInFormatMDY: 'Per favor introdueix una data valida com DD/MM/YYYY (p.e. "31/12/1999")',
-	email: 'Per favor, introdueix una adreça de correu electronic valida. Per exemple, "fred@domain.com".',
-	url: 'Per favor introdueix una URL valida com http://www.example.com.',
-	currencyDollar: 'Per favor introdueix una quantitat valida de €. Per exemple €100,00 .',
-	oneRequired: 'Per favor introdueix alguna cosa per al menys una d´aquestes entrades.',
-	errorPrefix: 'Error: ',
-	warningPrefix: 'Avis: ',
-
-	// Form.Validator.Extras
-	noSpace: 'No poden haver espais en aquesta entrada.',
-	reqChkByNode: 'No hi han elements seleccionats.',
-	requiredChk: 'Aquest camp es obligatori.',
-	reqChkByName: 'Per favor selecciona una {label}.',
-	match: 'Aquest camp necessita coincidir amb el camp {matchName}',
-	startDate: 'la data de inici',
-	endDate: 'la data de fi',
-	currendDate: 'la data actual',
-	afterDate: 'La data deu ser igual o posterior a {label}.',
-	beforeDate: 'La data deu ser igual o anterior a {label}.',
-	startMonth: 'Per favor selecciona un mes d´orige',
-	sameMonth: 'Aquestes dos dates deuen estar dins del mateix mes - deus canviar una o altra.'
-
-});
-
-
-// Begin: Source/Locale/Locale.ja-JP.Number.js
-/*
----
-
-name: Locale.ja-JP.Number
-
-description: Number messages for Japanese.
-
-license: MIT-style license
-
-authors:
-  - Noritaka Horio
-
-requires:
-  - /Locale
-
-provides: [Locale.ja-JP.Number]
-
-...
-*/
-
-Locale.define('ja-JP', 'Number', {
-
-	decimal: '.',
-	group: ',',
-
-	currency: {
-		decimals: 0,
-		prefix: '\\'
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.da-DK.Date.js
-/*
----
-
-name: Locale.da-DK.Date
-
-description: Date messages for Danish.
-
-license: MIT-style license
-
-authors:
-  - Martin Overgaard
-  - Henrik Hansen
-
-requires:
-  - /Locale
-
-provides: [Locale.da-DK.Date]
-
-...
-*/
-
-Locale.define('da-DK', 'Date', {
-
-	months: ['Januar', 'Februar', 'Marts', 'April', 'Maj', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'December'],
-	months_abbr: ['jan.', 'feb.', 'mar.', 'apr.', 'maj.', 'jun.', 'jul.', 'aug.', 'sep.', 'okt.', 'nov.', 'dec.'],
-	days: ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'],
-	days_abbr: ['søn', 'man', 'tir', 'ons', 'tor', 'fre', 'lør'],
-
-	// Culture's date order: DD-MM-YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d-%m-%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '.',
-
-	lessThanMinuteAgo: 'mindre end et minut siden',
-	minuteAgo: 'omkring et minut siden',
-	minutesAgo: '{delta} minutter siden',
-	hourAgo: 'omkring en time siden',
-	hoursAgo: 'omkring {delta} timer siden',
-	dayAgo: '1 dag siden',
-	daysAgo: '{delta} dage siden',
-	weekAgo: '1 uge siden',
-	weeksAgo: '{delta} uger siden',
-	monthAgo: '1 måned siden',
-	monthsAgo: '{delta} måneder siden',
-	yearAgo: '1 år siden',
-	yearsAgo: '{delta} år siden',
-
-	lessThanMinuteUntil: 'mindre end et minut fra nu',
-	minuteUntil: 'omkring et minut fra nu',
-	minutesUntil: '{delta} minutter fra nu',
-	hourUntil: 'omkring en time fra nu',
-	hoursUntil: 'omkring {delta} timer fra nu',
-	dayUntil: '1 dag fra nu',
-	daysUntil: '{delta} dage fra nu',
-	weekUntil: '1 uge fra nu',
-	weeksUntil: '{delta} uger fra nu',
-	monthUntil: '1 måned fra nu',
-	monthsUntil: '{delta} måneder fra nu',
-	yearUntil: '1 år fra nu',
-	yearsUntil: '{delta} år fra nu'
-
-});
-
-
-// Begin: Source/Delegators/Delegator.Ajax.js
-/*
----
-description: Provides functionality for links that load content into a target element via ajax.
-provides: [Delegator.Ajax]
-requires: [Behavior/Delegator, Core/Request.HTML, More/Spinner, More/Object.Extras]
-script: Delegator.Ajax.js
-name: Delegator.Ajax
-...
-*/
-
-(function(){
-
-	Delegator.register('click', 'Ajax', {
-		require: ['target'],
-		defaults: {
-			action: 'injectBottom'
-		},
-		handler: function(event, link, api){
-			var target,
-				action = api.get('action'),
-				selector = api.get('target');
-			if (selector) {
-				if (selector == "self") {
-					target = link;
-				} else {
-					target = link.getElement(selector);
-				}
-			}
-
-			if (!target) api.fail('ajax trigger error: element matching selector %s was not found', selector);
-
-			var requestTarget = new Element('div');
-
-			var spinnerTarget = api.get('spinner-target');
-			if (spinnerTarget) spinnerTarget = link.getElement(spinnerTarget);
-
-			event.preventDefault();
-			new Request.HTML(
-				Object.cleanValues({
-					method: 'get',
-					evalScripts: api.get('evalScripts'),
-					url: api.get('href') || link.get('href'),
-					spinnerTarget: spinnerTarget || target,
-					useSpinner: api.getAs(Boolean, 'useSpinner'),
-					update: requestTarget,
-					onSuccess: function(){
-						//reverse the elements and inject them
-						//reversal is required since it injects each after the target
-						//pushing down the previously added element
-						var elements = requestTarget.getChildren();
-						if (api.get('filter')){
-							elements = new Element('div').adopt(elements).getElements(api.get('filter'));
-						}
-						switch(action){
-							case 'replace':
-								var container = target.getParent();
-								elements.reverse().injectAfter(target);
-								api.fireEvent('destroyDom', target);
-								target.destroy();
-								api.fireEvent('ammendDom', [container, elements]);
-								break;
-							case 'update':
-								api.fireEvent('destroyDom', target.getChildren());
-								target.empty();
-								elements.inject(target);
-								api.fireEvent('ammendDom', [target, elements]);
-								break;
-							default:
-								//injectTop, injectBottom, injectBefore, injectAfter
-								if (action == "injectTop" || action == "injectAfter") elements.reverse();
-								elements[action](target);
-								api.fireEvent('ammendDom', [target, elements]);
-						}
-					}
-				})
-			).send();
-		}
-	});
-
-})();
-
-
-
-
-// Begin: Source/Element/Elements.From.js
-/*
----
-
-script: Elements.From.js
-
-name: Elements.From
-
-description: Returns a collection of elements from a string of html.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
+  - Core/Array
   - Core/String
-  - Core/Element
-  - /MooTools.More
-
-provides: [Elements.from, Elements.From]
-
-...
-*/
-
-Elements.from = function(text, excludeScripts){
-	if (excludeScripts || excludeScripts == null) text = text.stripScripts();
-
-	var container, match = text.match(/^\s*<(t[dhr]|tbody|tfoot|thead)/i);
-
-	if (match){
-		container = new Element('table');
-		var tag = match[1].toLowerCase();
-		if (['td', 'th', 'tr'].contains(tag)){
-			container = new Element('tbody').inject(container);
-			if (tag != 'tr') container = new Element('tr').inject(container);
-		}
-	}
-
-	return (container || new Element('div')).set('html', text).getChildren();
-};
-
-
-// Begin: Source/Fx/Fx.Elements.js
-/*
----
-
-script: Fx.Elements.js
-
-name: Fx.Elements
-
-description: Effect to change any number of CSS properties of any number of Elements.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-
-requires:
-  - Core/Fx.CSS
-  - /MooTools.More
-
-provides: [Fx.Elements]
-
-...
-*/
-
-Fx.Elements = new Class({
-
-	Extends: Fx.CSS,
-
-	initialize: function(elements, options){
-		this.elements = this.subject = $$(elements);
-		this.parent(options);
-	},
-
-	compute: function(from, to, delta){
-		var now = {};
-
-		for (var i in from){
-			var iFrom = from[i], iTo = to[i], iNow = now[i] = {};
-			for (var p in iFrom) iNow[p] = this.parent(iFrom[p], iTo[p], delta);
-		}
-
-		return now;
-	},
-
-	set: function(now){
-		for (var i in now){
-			if (!this.elements[i]) continue;
-
-			var iNow = now[i];
-			for (var p in iNow) this.render(this.elements[i], p, iNow[p], this.options.unit);
-		}
-
-		return this;
-	},
-
-	start: function(obj){
-		if (!this.check(obj)) return this;
-		var from = {}, to = {};
-
-		for (var i in obj){
-			if (!this.elements[i]) continue;
-
-			var iProps = obj[i], iFrom = from[i] = {}, iTo = to[i] = {};
-
-			for (var p in iProps){
-				var parsed = this.prepare(this.elements[i], p, iProps[p]);
-				iFrom[p] = parsed.from;
-				iTo[p] = parsed.to;
-			}
-		}
-
-		return this.parent(from, to);
-	}
-
-});
-
-
-// Begin: Source/Fx/Fx.Accordion.js
-/*
----
-
-script: Fx.Accordion.js
-
-name: Fx.Accordion
-
-description: An Fx.Elements extension which allows you to easily create accordion type controls.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-
-requires:
-  - Core/Element.Event
-  - /Fx.Elements
-
-provides: [Fx.Accordion]
-
-...
-*/
-
-Fx.Accordion = new Class({
-
-	Extends: Fx.Elements,
-
-	options: {/*
-		onActive: function(toggler, section){},
-		onBackground: function(toggler, section){},*/
-		fixedHeight: false,
-		fixedWidth: false,
-		display: 0,
-		show: false,
-		height: true,
-		width: false,
-		opacity: true,
-		alwaysHide: false,
-		trigger: 'click',
-		initialDisplayFx: true,
-		resetHeight: true
-	},
-
-	initialize: function(){
-		var defined = function(obj){
-			return obj != null;
-		};
-
-		var params = Array.link(arguments, {
-			'container': Type.isElement, //deprecated
-			'options': Type.isObject,
-			'togglers': defined,
-			'elements': defined
-		});
-		this.parent(params.elements, params.options);
-
-		var options = this.options,
-			togglers = this.togglers = $$(params.togglers);
-
-		this.previous = -1;
-		this.internalChain = new Chain();
-
-		if (options.alwaysHide) this.options.link = 'chain';
-
-		if (options.show || this.options.show === 0){
-			options.display = false;
-			this.previous = options.show;
-		}
-
-		if (options.start){
-			options.display = false;
-			options.show = false;
-		}
-
-		var effects = this.effects = {};
-
-		if (options.opacity) effects.opacity = 'fullOpacity';
-		if (options.width) effects.width = options.fixedWidth ? 'fullWidth' : 'offsetWidth';
-		if (options.height) effects.height = options.fixedHeight ? 'fullHeight' : 'scrollHeight';
-
-		for (var i = 0, l = togglers.length; i < l; i++) this.addSection(togglers[i], this.elements[i]);
-
-		this.elements.each(function(el, i){
-			if (options.show === i){
-				this.fireEvent('active', [togglers[i], el]);
-			} else {
-				for (var fx in effects) el.setStyle(fx, 0);
-			}
-		}, this);
-
-		if (options.display || options.display === 0 || options.initialDisplayFx === false){
-			this.display(options.display, options.initialDisplayFx);
-		}
-
-		if (options.fixedHeight !== false) options.resetHeight = false;
-		this.addEvent('complete', this.internalChain.callChain.bind(this.internalChain));
-	},
-
-	addSection: function(toggler, element){
-		toggler = document.id(toggler);
-		element = document.id(element);
-		this.togglers.include(toggler);
-		this.elements.include(element);
-
-		var togglers = this.togglers,
-			options = this.options,
-			test = togglers.contains(toggler),
-			idx = togglers.indexOf(toggler),
-			displayer = this.display.pass(idx, this);
-
-		toggler.store('accordion:display', displayer)
-			.addEvent(options.trigger, displayer);
-
-		if (options.height) element.setStyles({'padding-top': 0, 'border-top': 'none', 'padding-bottom': 0, 'border-bottom': 'none'});
-		if (options.width) element.setStyles({'padding-left': 0, 'border-left': 'none', 'padding-right': 0, 'border-right': 'none'});
-
-		element.fullOpacity = 1;
-		if (options.fixedWidth) element.fullWidth = options.fixedWidth;
-		if (options.fixedHeight) element.fullHeight = options.fixedHeight;
-		element.setStyle('overflow', 'hidden');
-
-		if (!test) for (var fx in this.effects){
-			element.setStyle(fx, 0);
-		}
-		return this;
-	},
-
-	removeSection: function(toggler, displayIndex){
-		var togglers = this.togglers,
-			idx = togglers.indexOf(toggler),
-			element = this.elements[idx];
-
-		var remover = function(){
-			togglers.erase(toggler);
-			this.elements.erase(element);
-			this.detach(toggler);
-		}.bind(this);
-
-		if (this.now == idx || displayIndex != null){
-			this.display(displayIndex != null ? displayIndex : (idx - 1 >= 0 ? idx - 1 : 0)).chain(remover);
-		} else {
-			remover();
-		}
-		return this;
-	},
-
-	detach: function(toggler){
-		var remove = function(toggler){
-			toggler.removeEvent(this.options.trigger, toggler.retrieve('accordion:display'));
-		}.bind(this);
-
-		if (!toggler) this.togglers.each(remove);
-		else remove(toggler);
-		return this;
-	},
-
-	display: function(index, useFx){
-		if (!this.check(index, useFx)) return this;
-
-		var obj = {},
-			elements = this.elements,
-			options = this.options,
-			effects = this.effects;
-
-		if (useFx == null) useFx = true;
-		if (typeOf(index) == 'element') index = elements.indexOf(index);
-		if (index == this.previous && !options.alwaysHide) return this;
-
-		if (options.resetHeight){
-			var prev = elements[this.previous];
-			if (prev && !this.selfHidden){
-				for (var fx in effects) prev.setStyle(fx, prev[effects[fx]]);
-			}
-		}
-
-		if ((this.timer && options.link == 'chain') || (index === this.previous && !options.alwaysHide)) return this;
-
-		this.previous = index;
-		this.selfHidden = false;
-
-		elements.each(function(el, i){
-			obj[i] = {};
-			var hide;
-			if (i != index){
-				hide = true;
-			} else if (options.alwaysHide && ((el.offsetHeight > 0 && options.height) || el.offsetWidth > 0 && options.width)){
-				hide = true;
-				this.selfHidden = true;
-			}
-			this.fireEvent(hide ? 'background' : 'active', [this.togglers[i], el]);
-			for (var fx in effects) obj[i][fx] = hide ? 0 : el[effects[fx]];
-			if (!useFx && !hide && options.resetHeight) obj[i].height = 'auto';
-		}, this);
-
-		this.internalChain.clearChain();
-		this.internalChain.chain(function(){
-			if (options.resetHeight && !this.selfHidden){
-				var el = elements[index];
-				if (el) el.setStyle('height', 'auto');
-			}
-		}.bind(this));
-
-		return useFx ? this.start(obj) : this.set(obj).internalChain.callChain();
-	}
-
-});
-
-/*<1.2compat>*/
-/*
-	Compatibility with 1.2.0
-*/
-var Accordion = new Class({
-
-	Extends: Fx.Accordion,
-
-	initialize: function(){
-		this.parent.apply(this, arguments);
-		var params = Array.link(arguments, {'container': Type.isElement});
-		this.container = params.container;
-	},
-
-	addSection: function(toggler, element, pos){
-		toggler = document.id(toggler);
-		element = document.id(element);
-
-		var test = this.togglers.contains(toggler);
-		var len = this.togglers.length;
-		if (len && (!test || pos)){
-			pos = pos != null ? pos : len - 1;
-			toggler.inject(this.togglers[pos], 'before');
-			element.inject(toggler, 'after');
-		} else if (this.container && !test){
-			toggler.inject(this.container);
-			element.inject(this.container);
-		}
-		return this.parent.apply(this, arguments);
-	}
-
-});
-/*</1.2compat>*/
-
-
-// Begin: Source/Fx/Behavior.FxAccordion.js
-/*
----
-description: Creates an Fx.Accordion from any element with Accordion in its data-behavior property.  Uses the .toggle elements within the element as the toggles and the .target elements as the targets.
-provides: [Behavior.Accordion, Behavior.FxAccordion]
-requires: [Behavior/Behavior, More/Fx.Accordion, Behavior/Element.Data, More/Object.Extras]
-script: Behavior.Accordion.js
-name: Behavior.Accordion
-...
-*/
-
-Behavior.addGlobalFilter('Accordion', {
-	deprecated: {
-		headers:'toggler-elements',
-		sections:'section-elements'
-	},
-	defaults: {
-		// defaults from Fx.Accordion:
-		display: 0,
-		height: true,
-		width: false,
-		opacity: true,
-		alwaysHide: false,
-		trigger: 'click',
-		initialDisplayFx: true,
-		resetHeight: true,
-		headers: '.header',
-		sections: '.section'
-	},
-	setup: function(element, api){
-		var options = Object.cleanValues(
-			api.getAs({
-				fixedHeight: Number,
-				fixedWidth: Number,
-				display: Number,
-				show: Number,
-				height: Boolean,
-				width: Boolean,
-				opacity: Boolean,
-				alwaysHide: Boolean,
-				trigger: String,
-				initialDisplayFx: Boolean,
-				resetHeight: Boolean
-			})
-		);
-		var accordion = new Fx.Accordion(element.getElements(api.get('headers')), element.getElements(api.get('sections')), options);
-		api.onCleanup(accordion.detach.bind(accordion));
-		return accordion;
-	}
-});
-
-// Begin: Source/Drag/Drag.Move.js
-/*
----
-
-script: Drag.Move.js
-
-name: Drag.Move
-
-description: A Drag extension that provides support for the constraining of draggables to containers and droppables.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-  - Tom Occhinno
-  - Jan Kassens
-  - Aaron Newton
-  - Scott Kyle
-
-requires:
-  - Core/Element.Dimensions
-  - /Drag
-
-provides: [Drag.Move]
-
-...
-*/
-
-Drag.Move = new Class({
-
-	Extends: Drag,
-
-	options: {/*
-		onEnter: function(thisElement, overed){},
-		onLeave: function(thisElement, overed){},
-		onDrop: function(thisElement, overed, event){},*/
-		droppables: [],
-		container: false,
-		precalculate: false,
-		includeMargins: true,
-		checkDroppables: true
-	},
-
-	initialize: function(element, options){
-		this.parent(element, options);
-		element = this.element;
-
-		this.droppables = $$(this.options.droppables);
-		this.container = document.id(this.options.container);
-
-		if (this.container && typeOf(this.container) != 'element')
-			this.container = document.id(this.container.getDocument().body);
-
-		if (this.options.style){
-			if (this.options.modifiers.x == 'left' && this.options.modifiers.y == 'top'){
-				var parent = element.getOffsetParent(),
-					styles = element.getStyles('left', 'top');
-				if (parent && (styles.left == 'auto' || styles.top == 'auto')){
-					element.setPosition(element.getPosition(parent));
-				}
-			}
-
-			if (element.getStyle('position') == 'static') element.setStyle('position', 'absolute');
-		}
-
-		this.addEvent('start', this.checkDroppables, true);
-		this.overed = null;
-	},
-
-	start: function(event){
-		if (this.container) this.options.limit = this.calculateLimit();
-
-		if (this.options.precalculate){
-			this.positions = this.droppables.map(function(el){
-				return el.getCoordinates();
-			});
-		}
-
-		this.parent(event);
-	},
-
-	calculateLimit: function(){
-		var element = this.element,
-			container = this.container,
-
-			offsetParent = document.id(element.getOffsetParent()) || document.body,
-			containerCoordinates = container.getCoordinates(offsetParent),
-			elementMargin = {},
-			elementBorder = {},
-			containerMargin = {},
-			containerBorder = {},
-			offsetParentPadding = {};
-
-		['top', 'right', 'bottom', 'left'].each(function(pad){
-			elementMargin[pad] = element.getStyle('margin-' + pad).toInt();
-			elementBorder[pad] = element.getStyle('border-' + pad).toInt();
-			containerMargin[pad] = container.getStyle('margin-' + pad).toInt();
-			containerBorder[pad] = container.getStyle('border-' + pad).toInt();
-			offsetParentPadding[pad] = offsetParent.getStyle('padding-' + pad).toInt();
-		}, this);
-
-		var width = element.offsetWidth + elementMargin.left + elementMargin.right,
-			height = element.offsetHeight + elementMargin.top + elementMargin.bottom,
-			left = 0,
-			top = 0,
-			right = containerCoordinates.right - containerBorder.right - width,
-			bottom = containerCoordinates.bottom - containerBorder.bottom - height;
-
-		if (this.options.includeMargins){
-			left += elementMargin.left;
-			top += elementMargin.top;
-		} else {
-			right += elementMargin.right;
-			bottom += elementMargin.bottom;
-		}
-
-		if (element.getStyle('position') == 'relative'){
-			var coords = element.getCoordinates(offsetParent);
-			coords.left -= element.getStyle('left').toInt();
-			coords.top -= element.getStyle('top').toInt();
-
-			left -= coords.left;
-			top -= coords.top;
-			if (container.getStyle('position') != 'relative'){
-				left += containerBorder.left;
-				top += containerBorder.top;
-			}
-			right += elementMargin.left - coords.left;
-			bottom += elementMargin.top - coords.top;
-
-			if (container != offsetParent){
-				left += containerMargin.left + offsetParentPadding.left;
-				top += ((Browser.ie6 || Browser.ie7) ? 0 : containerMargin.top) + offsetParentPadding.top;
-			}
-		} else {
-			left -= elementMargin.left;
-			top -= elementMargin.top;
-			if (container != offsetParent){
-				left += containerCoordinates.left + containerBorder.left;
-				top += containerCoordinates.top + containerBorder.top;
-			}
-		}
-
-		return {
-			x: [left, right],
-			y: [top, bottom]
-		};
-	},
-
-	getDroppableCoordinates: function(element){
-		var position = element.getCoordinates();
-		if (element.getStyle('position') == 'fixed'){
-			var scroll = window.getScroll();
-			position.left += scroll.x;
-			position.right += scroll.x;
-			position.top += scroll.y;
-			position.bottom += scroll.y;
-		}
-		return position;
-	},
-
-	checkDroppables: function(){
-		var overed = this.droppables.filter(function(el, i){
-			el = this.positions ? this.positions[i] : this.getDroppableCoordinates(el);
-			var now = this.mouse.now;
-			return (now.x > el.left && now.x < el.right && now.y < el.bottom && now.y > el.top);
-		}, this).getLast();
-
-		if (this.overed != overed){
-			if (this.overed) this.fireEvent('leave', [this.element, this.overed]);
-			if (overed) this.fireEvent('enter', [this.element, overed]);
-			this.overed = overed;
-		}
-	},
-
-	drag: function(event){
-		this.parent(event);
-		if (this.options.checkDroppables && this.droppables.length) this.checkDroppables();
-	},
-
-	stop: function(event){
-		this.checkDroppables();
-		this.fireEvent('drop', [this.element, this.overed, event]);
-		this.overed = null;
-		return this.parent(event);
-	}
-
-});
-
-Element.implement({
-
-	makeDraggable: function(options){
-		var drag = new Drag.Move(this, options);
-		this.store('dragger', drag);
-		return drag;
-	}
-
-});
-
-
-// Begin: Source/Drag/Sortables.js
-/*
----
-
-script: Sortables.js
-
-name: Sortables
-
-description: Class for creating a drag and drop sorting interface for lists of items.
-
-license: MIT-style license
-
-authors:
-  - Tom Occhino
-
-requires:
-  - Core/Fx.Morph
-  - /Drag.Move
-
-provides: [Sortables]
-
-...
-*/
-
-var Sortables = new Class({
-
-	Implements: [Events, Options],
-
-	options: {/*
-		onSort: function(element, clone){},
-		onStart: function(element, clone){},
-		onComplete: function(element){},*/
-		opacity: 1,
-		clone: false,
-		revert: false,
-		handle: false,
-		dragOptions: {}/*<1.2compat>*/,
-		snap: 4,
-		constrain: false,
-		preventDefault: false
-		/*</1.2compat>*/
-	},
-
-	initialize: function(lists, options){
-		this.setOptions(options);
-
-		this.elements = [];
-		this.lists = [];
-		this.idle = true;
-
-		this.addLists($$(document.id(lists) || lists));
-
-		if (!this.options.clone) this.options.revert = false;
-		if (this.options.revert) this.effect = new Fx.Morph(null, Object.merge({
-			duration: 250,
-			link: 'cancel'
-		}, this.options.revert));
-	},
-
-	attach: function(){
-		this.addLists(this.lists);
-		return this;
-	},
-
-	detach: function(){
-		this.lists = this.removeLists(this.lists);
-		return this;
-	},
-
-	addItems: function(){
-		Array.flatten(arguments).each(function(element){
-			this.elements.push(element);
-			var start = element.retrieve('sortables:start', function(event){
-				this.start.call(this, event, element);
-			}.bind(this));
-			(this.options.handle ? element.getElement(this.options.handle) || element : element).addEvent('mousedown', start);
-		}, this);
-		return this;
-	},
-
-	addLists: function(){
-		Array.flatten(arguments).each(function(list){
-			this.lists.include(list);
-			this.addItems(list.getChildren());
-		}, this);
-		return this;
-	},
-
-	removeItems: function(){
-		return $$(Array.flatten(arguments).map(function(element){
-			this.elements.erase(element);
-			var start = element.retrieve('sortables:start');
-			(this.options.handle ? element.getElement(this.options.handle) || element : element).removeEvent('mousedown', start);
-
-			return element;
-		}, this));
-	},
-
-	removeLists: function(){
-		return $$(Array.flatten(arguments).map(function(list){
-			this.lists.erase(list);
-			this.removeItems(list.getChildren());
-
-			return list;
-		}, this));
-	},
-
-	getClone: function(event, element){
-		if (!this.options.clone) return new Element(element.tagName).inject(document.body);
-		if (typeOf(this.options.clone) == 'function') return this.options.clone.call(this, event, element, this.list);
-		var clone = element.clone(true).setStyles({
-			margin: 0,
-			position: 'absolute',
-			visibility: 'hidden',
-			width: element.getStyle('width')
-		}).addEvent('mousedown', function(event){
-			element.fireEvent('mousedown', event);
-		});
-		//prevent the duplicated radio inputs from unchecking the real one
-		if (clone.get('html').test('radio')){
-			clone.getElements('input[type=radio]').each(function(input, i){
-				input.set('name', 'clone_' + i);
-				if (input.get('checked')) element.getElements('input[type=radio]')[i].set('checked', true);
-			});
-		}
-
-		return clone.inject(this.list).setPosition(element.getPosition(element.getOffsetParent()));
-	},
-
-	getDroppables: function(){
-		var droppables = this.list.getChildren().erase(this.clone).erase(this.element);
-		if (!this.options.constrain) droppables.append(this.lists).erase(this.list);
-		return droppables;
-	},
-
-	insert: function(dragging, element){
-		var where = 'inside';
-		if (this.lists.contains(element)){
-			this.list = element;
-			this.drag.droppables = this.getDroppables();
-		} else {
-			where = this.element.getAllPrevious().contains(element) ? 'before' : 'after';
-		}
-		this.element.inject(element, where);
-		this.fireEvent('sort', [this.element, this.clone]);
-	},
-
-	start: function(event, element){
-		if (
-			!this.idle ||
-			event.rightClick ||
-			['button', 'input', 'a', 'textarea'].contains(event.target.get('tag'))
-		) return;
-
-		this.idle = false;
-		this.element = element;
-		this.opacity = element.get('opacity');
-		this.list = element.getParent();
-		this.clone = this.getClone(event, element);
-
-		this.drag = new Drag.Move(this.clone, Object.merge({
-			/*<1.2compat>*/
-			preventDefault: this.options.preventDefault,
-			snap: this.options.snap,
-			container: this.options.constrain && this.element.getParent(),
-			/*</1.2compat>*/
-			droppables: this.getDroppables()
-		}, this.options.dragOptions)).addEvents({
-			onSnap: function(){
-				event.stop();
-				this.clone.setStyle('visibility', 'visible');
-				this.element.set('opacity', this.options.opacity || 0);
-				this.fireEvent('start', [this.element, this.clone]);
-			}.bind(this),
-			onEnter: this.insert.bind(this),
-			onCancel: this.end.bind(this),
-			onComplete: this.end.bind(this)
-		});
-
-		this.clone.inject(this.element, 'before');
-		this.drag.start(event);
-	},
-
-	end: function(){
-		this.drag.detach();
-		this.element.set('opacity', this.opacity);
-		if (this.effect){
-			var dim = this.element.getStyles('width', 'height'),
-				clone = this.clone,
-				pos = clone.computePosition(this.element.getPosition(this.clone.getOffsetParent()));
-
-			var destroy = function(){
-				this.removeEvent('cancel', destroy);
-				clone.destroy();
-			};
-
-			this.effect.element = clone;
-			this.effect.start({
-				top: pos.top,
-				left: pos.left,
-				width: dim.width,
-				height: dim.height,
-				opacity: 0.25
-			}).addEvent('cancel', destroy).chain(destroy);
-		} else {
-			this.clone.destroy();
-		}
-		this.reset();
-	},
-
-	reset: function(){
-		this.idle = true;
-		this.fireEvent('complete', this.element);
-	},
-
-	serialize: function(){
-		var params = Array.link(arguments, {
-			modifier: Type.isFunction,
-			index: function(obj){
-				return obj != null;
-			}
-		});
-		var serial = this.lists.map(function(list){
-			return list.getChildren().map(params.modifier || function(element){
-				return element.get('id');
-			}, this);
-		}, this);
-
-		var index = params.index;
-		if (this.lists.length == 1) index = 0;
-		return (index || index === 0) && index >= 0 && index < this.lists.length ? serial[index] : serial;
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.EU.Number.js
-/*
----
-
-name: Locale.EU.Number
-
-description: Number messages for Europe.
-
-license: MIT-style license
-
-authors:
-  - Arian Stolwijk
-
-requires:
-  - /Locale
-
-provides: [Locale.EU.Number]
-
-...
-*/
-
-Locale.define('EU', 'Number', {
-
-	decimal: ',',
-	group: '.',
-
-	currency: {
-		prefix: '€ '
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.de-DE.Number.js
-/*
----
-
-name: Locale.de-DE.Number
-
-description: Number messages for German.
-
-license: MIT-style license
-
-authors:
-  - Christoph Pojer
-
-requires:
-  - /Locale
-  - /Locale.EU.Number
-
-provides: [Locale.de-DE.Number]
-
-...
-*/
-
-Locale.define('de-DE').inherit('EU', 'Number');
-
-
-// Begin: Source/Locale/Locale.fr-FR.Form.Validator.js
-/*
----
-
-name: Locale.fr-FR.Form.Validator
-
-description: Form Validator messages for French.
-
-license: MIT-style license
-
-authors:
-  - Miquel Hudin
-  - Nicolas Sorosac
-
-requires:
-  - /Locale
-
-provides: [Locale.fr-FR.Form.Validator]
-
-...
-*/
-
-Locale.define('fr-FR', 'FormValidator', {
-
-	required: 'Ce champ est obligatoire.',
-	length: 'Veuillez saisir {length} caract&egrave;re(s) (vous avez saisi {elLength} caract&egrave;re(s)',
-	minLength: 'Veuillez saisir un minimum de {minLength} caract&egrave;re(s) (vous avez saisi {length} caract&egrave;re(s)).',
-	maxLength: 'Veuillez saisir un maximum de {maxLength} caract&egrave;re(s) (vous avez saisi {length} caract&egrave;re(s)).',
-	integer: 'Veuillez saisir un nombre entier dans ce champ. Les nombres d&eacute;cimaux (ex : "1,25") ne sont pas autoris&eacute;s.',
-	numeric: 'Veuillez saisir uniquement des chiffres dans ce champ (ex : "1" ou "1,1" ou "-1" ou "-1,1").',
-	digits: "Veuillez saisir uniquement des chiffres et des signes de ponctuation dans ce champ (ex : un num&eacute;ro de t&eacute;l&eacute;phone avec des traits d'union est autoris&eacute;).",
-	alpha: 'Veuillez saisir uniquement des lettres (a-z) dans ce champ. Les espaces ou autres caract&egrave;res ne sont pas autoris&eacute;s.',
-	alphanum: 'Veuillez saisir uniquement des lettres (a-z) ou des chiffres (0-9) dans ce champ. Les espaces ou autres caract&egrave;res ne sont pas autoris&eacute;s.',
-	dateSuchAs: 'Veuillez saisir une date correcte comme {date}',
-	dateInFormatMDY: 'Veuillez saisir une date correcte, au format JJ/MM/AAAA (ex : "31/11/1999").',
-	email: 'Veuillez saisir une adresse de courrier &eacute;lectronique. Par example "fred@domaine.com".',
-	url: 'Veuillez saisir une URL, comme http://www.example.com.',
-	currencyDollar: 'Veuillez saisir une quantit&eacute; correcte. Par example 100,00&euro;.',
-	oneRequired: 'Veuillez s&eacute;lectionner au moins une de ces options.',
-	errorPrefix: 'Erreur : ',
-	warningPrefix: 'Attention : ',
-
-	// Form.Validator.Extras
-	noSpace: "Ce champ n'accepte pas les espaces.",
-	reqChkByNode: "Aucun &eacute;l&eacute;ment n'est s&eacute;lectionn&eacute;.",
-	requiredChk: 'Ce champ est obligatoire.',
-	reqChkByName: 'Veuillez s&eacute;lectionner un(e) {label}.',
-	match: 'Ce champ doit correspondre avec le champ {matchName}.',
-	startDate: 'date de d&eacute;but',
-	endDate: 'date de fin',
-	currendDate: 'date actuelle',
-	afterDate: 'La date doit &ecirc;tre identique ou post&eacute;rieure &agrave; {label}.',
-	beforeDate: 'La date doit &ecirc;tre identique ou ant&eacute;rieure &agrave; {label}.',
-	startMonth: 'Veuillez s&eacute;lectionner un mois de d&eacute;but.',
-	sameMonth: 'Ces deux dates doivent &ecirc;tre dans le m&ecirc;me mois - vous devez en modifier une.',
-	creditcard: 'Le num&eacute;ro de carte de cr&eacute;dit est invalide. Merci de v&eacute;rifier le num&eacute;ro et de r&eacute;essayer. Vous avez entr&eacute; {length} chiffre(s).'
-
-});
-
-
-// Begin: Source/Locale/Locale.it-IT.Date.js
-/*
----
-
-name: Locale.it-IT.Date
-
-description: Date messages for Italian.
-
-license: MIT-style license.
-
-authors:
-  - Andrea Novero
-  - Valerio Proietti
-
-requires:
-  - /Locale
-
-provides: [Locale.it-IT.Date]
-
-...
-*/
-
-Locale.define('it-IT', 'Date', {
-
-	months: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
-	months_abbr: ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'],
-	days: ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'],
-	days_abbr: ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'],
-
-	// Culture's date order: DD/MM/YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d/%m/%Y',
-	shortTime: '%H.%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: 'º',
-
-	lessThanMinuteAgo: 'meno di un minuto fa',
-	minuteAgo: 'circa un minuto fa',
-	minutesAgo: 'circa {delta} minuti fa',
-	hourAgo: "circa un'ora fa",
-	hoursAgo: 'circa {delta} ore fa',
-	dayAgo: 'circa 1 giorno fa',
-	daysAgo: 'circa {delta} giorni fa',
-	weekAgo: 'una settimana fa',
-	weeksAgo: '{delta} settimane fa',
-	monthAgo: 'un mese fa',
-	monthsAgo: '{delta} mesi fa',
-	yearAgo: 'un anno fa',
-	yearsAgo: '{delta} anni fa',
-
-	lessThanMinuteUntil: 'tra meno di un minuto',
-	minuteUntil: 'tra circa un minuto',
-	minutesUntil: 'tra circa {delta} minuti',
-	hourUntil: "tra circa un'ora",
-	hoursUntil: 'tra circa {delta} ore',
-	dayUntil: 'tra circa un giorno',
-	daysUntil: 'tra circa {delta} giorni',
-	weekUntil: 'tra una settimana',
-	weeksUntil: 'tra {delta} settimane',
-	monthUntil: 'tra un mese',
-	monthsUntil: 'tra {delta} mesi',
-	yearUntil: 'tra un anno',
-	yearsUntil: 'tra {delta} anni'
-
-});
-
-
-// Begin: Source/Types/Hash.js
-/*
----
-
-name: Hash
-
-description: Contains Hash Prototypes. Provides a means for overcoming the JavaScript practical impossibility of extending native Objects.
-
-license: MIT-style license.
-
-requires:
-  - Core/Object
-  - /MooTools.More
-
-provides: [Hash]
+  - Core/Number
+  - Core/Hash
+  - Core/Function
+  - MooTools.More
+
+provides: [Color]
 
 ...
 */
 
 (function(){
 
-if (this.Hash) return;
-
-var Hash = this.Hash = new Type('Hash', function(object){
-	if (typeOf(object) == 'hash') object = Object.clone(object.getClean());
-	for (var key in object) this[key] = object[key];
-	return this;
+var Color = this.Color = new Type('Color', function(color, type){
+	if (arguments.length >= 3){
+		type = 'rgb'; color = Array.slice(arguments, 0, 3);
+	} else if (typeof color == 'string'){
+		if (color.match(/rgb/)) color = color.rgbToHex().hexToRgb(true);
+		else if (color.match(/hsb/)) color = color.hsbToRgb();
+		else color = color.hexToRgb(true);
+	}
+	type = type || 'rgb';
+	switch (type){
+		case 'hsb':
+			var old = color;
+			color = color.hsbToRgb();
+			color.hsb = old;
+		break;
+		case 'hex': color = color.hexToRgb(true); break;
+	}
+	color.rgb = color.slice(0, 3);
+	color.hsb = color.hsb || color.rgbToHsb();
+	color.hex = color.rgbToHex();
+	return Object.append(color, this);
 });
 
-this.$H = function(object){
-	return new Hash(object);
+Color.implement({
+
+	mix: function(){
+		var colors = Array.slice(arguments);
+		var alpha = (typeOf(colors.getLast()) == 'number') ? colors.pop() : 50;
+		var rgb = this.slice();
+		colors.each(function(color){
+			color = new Color(color);
+			for (var i = 0; i < 3; i++) rgb[i] = Math.round((rgb[i] / 100 * (100 - alpha)) + (color[i] / 100 * alpha));
+		});
+		return new Color(rgb, 'rgb');
+	},
+
+	invert: function(){
+		return new Color(this.map(function(value){
+			return 255 - value;
+		}));
+	},
+
+	setHue: function(value){
+		return new Color([value, this.hsb[1], this.hsb[2]], 'hsb');
+	},
+
+	setSaturation: function(percent){
+		return new Color([this.hsb[0], percent, this.hsb[2]], 'hsb');
+	},
+
+	setBrightness: function(percent){
+		return new Color([this.hsb[0], this.hsb[1], percent], 'hsb');
+	}
+
+});
+
+this.$RGB = function(r, g, b){
+	return new Color([r, g, b], 'rgb');
 };
 
-Hash.implement({
+this.$HSB = function(h, s, b){
+	return new Color([h, s, b], 'hsb');
+};
 
-	forEach: function(fn, bind){
-		Object.forEach(this, fn, bind);
+this.$HEX = function(hex){
+	return new Color(hex, 'hex');
+};
+
+Array.implement({
+
+	rgbToHsb: function(){
+		var red = this[0],
+				green = this[1],
+				blue = this[2],
+				hue = 0;
+		var max = Math.max(red, green, blue),
+				min = Math.min(red, green, blue);
+		var delta = max - min;
+		var brightness = max / 255,
+				saturation = (max != 0) ? delta / max : 0;
+		if (saturation != 0){
+			var rr = (max - red) / delta;
+			var gr = (max - green) / delta;
+			var br = (max - blue) / delta;
+			if (red == max) hue = br - gr;
+			else if (green == max) hue = 2 + rr - br;
+			else hue = 4 + gr - rr;
+			hue /= 6;
+			if (hue < 0) hue++;
+		}
+		return [Math.round(hue * 360), Math.round(saturation * 100), Math.round(brightness * 100)];
 	},
 
-	getClean: function(){
-		var clean = {};
-		for (var key in this){
-			if (this.hasOwnProperty(key)) clean[key] = this[key];
+	hsbToRgb: function(){
+		var br = Math.round(this[2] / 100 * 255);
+		if (this[1] == 0){
+			return [br, br, br];
+		} else {
+			var hue = this[0] % 360;
+			var f = hue % 60;
+			var p = Math.round((this[2] * (100 - this[1])) / 10000 * 255);
+			var q = Math.round((this[2] * (6000 - this[1] * f)) / 600000 * 255);
+			var t = Math.round((this[2] * (6000 - this[1] * (60 - f))) / 600000 * 255);
+			switch (Math.floor(hue / 60)){
+				case 0: return [br, t, p];
+				case 1: return [q, br, p];
+				case 2: return [p, br, t];
+				case 3: return [p, q, br];
+				case 4: return [t, p, br];
+				case 5: return [br, p, q];
+			}
 		}
-		return clean;
-	},
-
-	getLength: function(){
-		var length = 0;
-		for (var key in this){
-			if (this.hasOwnProperty(key)) length++;
-		}
-		return length;
+		return false;
 	}
 
 });
 
-Hash.alias('each', 'forEach');
+String.implement({
 
-Hash.implement({
-
-	has: Object.prototype.hasOwnProperty,
-
-	keyOf: function(value){
-		return Object.keyOf(this, value);
+	rgbToHsb: function(){
+		var rgb = this.match(/\d{1,3}/g);
+		return (rgb) ? rgb.rgbToHsb() : null;
 	},
 
-	hasValue: function(value){
-		return Object.contains(this, value);
-	},
-
-	extend: function(properties){
-		Hash.each(properties || {}, function(value, key){
-			Hash.set(this, key, value);
-		}, this);
-		return this;
-	},
-
-	combine: function(properties){
-		Hash.each(properties || {}, function(value, key){
-			Hash.include(this, key, value);
-		}, this);
-		return this;
-	},
-
-	erase: function(key){
-		if (this.hasOwnProperty(key)) delete this[key];
-		return this;
-	},
-
-	get: function(key){
-		return (this.hasOwnProperty(key)) ? this[key] : null;
-	},
-
-	set: function(key, value){
-		if (!this[key] || this.hasOwnProperty(key)) this[key] = value;
-		return this;
-	},
-
-	empty: function(){
-		Hash.each(this, function(value, key){
-			delete this[key];
-		}, this);
-		return this;
-	},
-
-	include: function(key, value){
-		if (this[key] == undefined) this[key] = value;
-		return this;
-	},
-
-	map: function(fn, bind){
-		return new Hash(Object.map(this, fn, bind));
-	},
-
-	filter: function(fn, bind){
-		return new Hash(Object.filter(this, fn, bind));
-	},
-
-	every: function(fn, bind){
-		return Object.every(this, fn, bind);
-	},
-
-	some: function(fn, bind){
-		return Object.some(this, fn, bind);
-	},
-
-	getKeys: function(){
-		return Object.keys(this);
-	},
-
-	getValues: function(){
-		return Object.values(this);
-	},
-
-	toQueryString: function(base){
-		return Object.toQueryString(this, base);
+	hsbToRgb: function(){
+		var hsb = this.match(/\d{1,3}/g);
+		return (hsb) ? hsb.hsbToRgb() : null;
 	}
 
 });
-
-Hash.alias({indexOf: 'keyOf', contains: 'hasValue'});
-
 
 })();
 
 
 
-// Begin: Source/Types/Hash.Extras.js
 /*
 ---
 
-script: Hash.Extras.js
+script: Group.js
 
-name: Hash.Extras
+name: Group
 
-description: Extends the Hash Type to include getFromPath which allows a path notation to child elements.
+description: Class for monitoring collections of events
 
 license: MIT-style license
 
 authors:
-  - Aaron Newton
+  - Valerio Proietti
 
 requires:
-  - /Hash
-  - /Object.Extras
+  - Core/Events
+  - /MooTools.More
 
-provides: [Hash.Extras]
+provides: [Group]
 
 ...
 */
 
-Hash.implement({
+(function(){
 
-	getFromPath: function(notation){
-		return Object.getFromPath(this, notation);
+this.Group = new Class({
+
+	initialize: function(){
+		this.instances = Array.flatten(arguments);
 	},
 
-	cleanValues: function(method){
-		return new Hash(Object.cleanValues(this, method));
-	},
+	addEvent: function(type, fn){
+		var instances = this.instances,
+			len = instances.length,
+			togo = len,
+			args = new Array(len),
+			self = this;
 
-	run: function(){
-		Object.run(arguments);
+		instances.each(function(instance, i){
+			instance.addEvent(type, function(){
+				if (!args[i]) togo--;
+				args[i] = arguments;
+				if (!togo){
+					fn.call(self, instances, instance, args);
+					togo = len;
+					args = new Array(len);
+				}
+			});
+		});
 	}
 
 });
 
+})();
 
-// Begin: Source/Locale/Locale.no-NO.Date.js
+
 /*
 ---
 
-name: Locale.no-NO.Date
+script: Hash.Cookie.js
 
-description: Date messages for Norwegian.
+name: Hash.Cookie
+
+description: Class for creating, reading, and deleting Cookies in JSON format.
 
 license: MIT-style license
 
 authors:
-  - Espen 'Rexxars' Hovlandsdal
+  - Valerio Proietti
+  - Aaron Newton
 
 requires:
-  - /Locale
+  - Core/Cookie
+  - Core/JSON
+  - /MooTools.More
+  - /Hash
 
-provides: [Locale.no-NO.Date]
+provides: [Hash.Cookie]
 
 ...
 */
 
-Locale.define('no-NO', 'Date', {
+Hash.Cookie = new Class({
 
-	// Culture's date order: DD.MM.YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d.%m.%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
+	Extends: Cookie,
 
-	lessThanMinuteAgo: 'kortere enn et minutt siden',
-	minuteAgo: 'omtrent et minutt siden',
-	minutesAgo: '{delta} minutter siden',
-	hourAgo: 'omtrent en time siden',
-	hoursAgo: 'omtrent {delta} timer siden',
-	dayAgo: '{delta} dag siden',
-	daysAgo: '{delta} dager siden'
+	options: {
+		autoSave: true
+	},
+
+	initialize: function(name, options){
+		this.parent(name, options);
+		this.load();
+	},
+
+	save: function(){
+		var value = JSON.encode(this.hash);
+		if (!value || value.length > 4096) return false; //cookie would be truncated!
+		if (value == '{}') this.dispose();
+		else this.write(value);
+		return true;
+	},
+
+	load: function(){
+		this.hash = new Hash(JSON.decode(this.read(), true));
+		return this;
+	}
 
 });
 
+Hash.each(Hash.prototype, function(method, name){
+	if (typeof method == 'function') Hash.Cookie.implement(name, function(){
+		var value = method.apply(this.hash, arguments);
+		if (this.options.autoSave) this.save();
+		return value;
+	});
+});
 
-// Begin: Source/Locale/Locale.no-NO.Form.Validator.js
+
 /*
 ---
-
-name: Locale.no-NO.Form.Validator
-
-description: Form Validator messages for Norwegian.
-
+name: Table
+description: LUA-Style table implementation.
 license: MIT-style license
-
 authors:
-  - Espen 'Rexxars' Hovlandsdal
-
-requires:
-  - /Locale
-
-provides: [Locale.no-NO.Form.Validator]
-
+  - Valerio Proietti
+requires: [Core/Array]
+provides: [Table]
 ...
 */
 
-Locale.define('no-NO', 'FormValidator', {
+(function(){
 
-	required: 'Dette feltet er pÃ¥krevd.',
-	minLength: 'Vennligst skriv inn minst {minLength} tegn (du skrev {length} tegn).',
-	maxLength: 'Vennligst skriv inn maksimalt {maxLength} tegn (du skrev {length} tegn).',
-	integer: 'Vennligst skriv inn et tall i dette feltet. Tall med desimaler (for eksempel 1,25) er ikke tillat.',
-	numeric: 'Vennligst skriv inn kun numeriske verdier i dette feltet (for eksempel "1", "1.1", "-1" eller "-1.1").',
-	digits: 'Vennligst bruk kun nummer og skilletegn i dette feltet.',
-	alpha: 'Vennligst bruk kun bokstaver (a-z) i dette feltet. Ingen mellomrom eller andre tegn er tillat.',
-	alphanum: 'Vennligst bruk kun bokstaver (a-z) eller nummer (0-9) i dette feltet. Ingen mellomrom eller andre tegn er tillat.',
-	dateSuchAs: 'Vennligst skriv inn en gyldig dato, som {date}',
-	dateInFormatMDY: 'Vennligst skriv inn en gyldig dato, i formatet MM/DD/YYYY (for eksempel "12/31/1999")',
-	email: 'Vennligst skriv inn en gyldig epost-adresse. For eksempel "espen@domene.no".',
-	url: 'Vennligst skriv inn en gyldig URL, for eksempel http://www.example.com.',
-	currencyDollar: 'Vennligst fyll ut et gyldig $ belÃ¸p. For eksempel $100.00 .',
-	oneRequired: 'Vennligst fyll ut noe i minst ett av disse feltene.',
-	errorPrefix: 'Feil: ',
-	warningPrefix: 'Advarsel: '
+var Table = this.Table = function(){
 
-});
+	this.length = 0;
+	var keys = [],
+	    values = [];
+	
+	this.set = function(key, value){
+		var index = keys.indexOf(key);
+		if (index == -1){
+			var length = keys.length;
+			keys[length] = key;
+			values[length] = value;
+			this.length++;
+		} else {
+			values[index] = value;
+		}
+		return this;
+	};
+
+	this.get = function(key){
+		var index = keys.indexOf(key);
+		return (index == -1) ? null : values[index];
+	};
+
+	this.erase = function(key){
+		var index = keys.indexOf(key);
+		if (index != -1){
+			this.length--;
+			keys.splice(index, 1);
+			return values.splice(index, 1)[0];
+		}
+		return null;
+	};
+
+	this.each = this.forEach = function(fn, bind){
+		for (var i = 0, l = this.length; i < l; i++) fn.call(bind, keys[i], values[i], this);
+	};
+	
+};
+
+if (this.Type) new Type('Table', Table);
+
+})();
 
 
-// Begin: Source/Interface/HtmlTable.js
 /*
 ---
 
@@ -8971,7 +8420,72 @@ var HtmlTable = new Class({
 
 
 
-// Begin: Source/Interface/HtmlTable.Sort.js
+/*
+---
+
+script: HtmlTable.Zebra.js
+
+name: HtmlTable.Zebra
+
+description: Builds a stripy table with methods to add rows.
+
+license: MIT-style license
+
+authors:
+  - Harald Kirschner
+  - Aaron Newton
+
+requires:
+  - /HtmlTable
+  - /Element.Shortcuts
+  - /Class.refactor
+
+provides: [HtmlTable.Zebra]
+
+...
+*/
+
+HtmlTable = Class.refactor(HtmlTable, {
+
+	options: {
+		classZebra: 'table-tr-odd',
+		zebra: true,
+		zebraOnlyVisibleRows: true
+	},
+
+	initialize: function(){
+		this.previous.apply(this, arguments);
+		if (this.occluded) return this.occluded;
+		if (this.options.zebra) this.updateZebras();
+	},
+
+	updateZebras: function(){
+		var index = 0;
+		Array.each(this.body.rows, function(row){
+			if (!this.options.zebraOnlyVisibleRows || row.isDisplayed()){
+				this.zebra(row, index++);
+			}
+		}, this);
+	},
+
+	setRowStyle: function(row, i){
+		if (this.previous) this.previous(row, i);
+		this.zebra(row, i);
+	},
+
+	zebra: function(row, i){
+		return row[((i % 2) ? 'remove' : 'add')+'Class'](this.options.classZebra);
+	},
+
+	push: function(){
+		var pushed = this.previous.apply(this, arguments);
+		if (this.options.zebra) this.updateZebras();
+		return pushed;
+	}
+
+});
+
+
 /*
 ---
 
@@ -9311,9 +8825,7 @@ HtmlTable.Parsers = {
 
 };
 
-//<1.2compat>
-HtmlTable.Parsers = new Hash(HtmlTable.Parsers);
-//</1.2compat>
+
 
 HtmlTable.defineParsers = function(parsers){
 	HtmlTable.Parsers = Object.append(HtmlTable.Parsers, parsers);
@@ -9323,2571 +8835,250 @@ HtmlTable.defineParsers = function(parsers){
 };
 
 
-// Begin: Source/Locale/Locale.en-US.Number.js
 /*
 ---
 
-name: Locale.en-US.Number
+script: Keyboard.js
 
-description: Number messages for US English.
+name: Keyboard
+
+description: KeyboardEvents used to intercept events on a class for keyboard and format modifiers in a specific order so as to make alt+shift+c the same as shift+alt+c.
 
 license: MIT-style license
 
 authors:
-  - Arian Stolwijk
-
-requires:
-  - /Locale
-
-provides: [Locale.en-US.Number]
-
-...
-*/
-
-Locale.define('en-US', 'Number', {
-
-	decimal: '.',
-	group: ',',
-
-/* 	Commented properties are the defaults for Number.format
-	decimals: 0,
-	precision: 0,
-	scientific: null,
-
-	prefix: null,
-	suffic: null,
-
-	// Negative/Currency/percentage will mixin Number
-	negative: {
-		prefix: '-'
-	},*/
-
-	currency: {
-//		decimals: 2,
-		prefix: '$ '
-	}/*,
-
-	percentage: {
-		decimals: 2,
-		suffix: '%'
-	}*/
-
-});
-
-
-
-
-// Begin: Source/Types/Number.Format.js
-/*
----
-name: Number.Format
-description: Extends the Number Type object to include a number formatting method.
-license: MIT-style license
-authors: [Arian Stolwijk]
-requires: [Core/Number, Locale.en-US.Number]
-# Number.Extras is for compatibility
-provides: [Number.Format, Number.Extras]
-...
-*/
-
-
-Number.implement({
-
-	format: function(options){
-		// Thanks dojo and YUI for some inspiration
-		var value = this;
-		options = options ? Object.clone(options) : {};
-		var getOption = function(key){
-			if (options[key] != null) return options[key];
-			return Locale.get('Number.' + key);
-		};
-
-		var negative = value < 0,
-			decimal = getOption('decimal'),
-			precision = getOption('precision'),
-			group = getOption('group'),
-			decimals = getOption('decimals');
-
-		if (negative){
-			var negativeLocale = getOption('negative') || {};
-			if (negativeLocale.prefix == null && negativeLocale.suffix == null) negativeLocale.prefix = '-';
-			['prefix', 'suffix'].each(function(key){
-				if (negativeLocale[key]) options[key] = getOption(key) + negativeLocale[key];
-			});
-
-			value = -value;
-		}
-
-		var prefix = getOption('prefix'),
-			suffix = getOption('suffix');
-
-		if (decimals !== '' && decimals >= 0 && decimals <= 20) value = value.toFixed(decimals);
-		if (precision >= 1 && precision <= 21) value = (+value).toPrecision(precision);
-
-		value += '';
-		var index;
-		if (getOption('scientific') === false && value.indexOf('e') > -1){
-			var match = value.split('e'),
-				zeros = +match[1];
-			value = match[0].replace('.', '');
-
-			if (zeros < 0){
-				zeros = -zeros - 1;
-				index = match[0].indexOf('.');
-				if (index > -1) zeros -= index - 1;
-				while (zeros--) value = '0' + value;
-				value = '0.' + value;
-			} else {
-				index = match[0].lastIndexOf('.');
-				if (index > -1) zeros -= match[0].length - index - 1;
-				while (zeros--) value += '0';
-			}
-		}
-
-		if (decimal != '.') value = value.replace('.', decimal);
-
-		if (group){
-			index = value.lastIndexOf(decimal);
-			index = (index > -1) ? index : value.length;
-			var newOutput = value.substring(index),
-				i = index;
-
-			while (i--){
-				if ((index - i - 1) % 3 == 0 && i != (index - 1)) newOutput = group + newOutput;
-				newOutput = value.charAt(i) + newOutput;
-			}
-
-			value = newOutput;
-		}
-
-		if (prefix) value = prefix + value;
-		if (suffix) value += suffix;
-
-		return value;
-	},
-
-	formatCurrency: function(decimals){
-		var locale = Locale.get('Number.currency') || {};
-		if (locale.scientific == null) locale.scientific = false;
-		locale.decimals = decimals != null ? decimals
-			: (locale.decimals == null ? 2 : locale.decimals);
-
-		return this.format(locale);
-	},
-
-	formatPercentage: function(decimals){
-		var locale = Locale.get('Number.percentage') || {};
-		if (locale.suffix == null) locale.suffix = '%';
-		locale.decimals = decimals != null ? decimals
-			: (locale.decimals == null ? 2 : locale.decimals);
-
-		return this.format(locale);
-	}
-
-});
-
-
-// Begin: Source/Request/Request.Periodical.js
-/*
----
-
-script: Request.Periodical.js
-
-name: Request.Periodical
-
-description: Requests the same URL to pull data from a server but increases the intervals if no data is returned to reduce the load
-
-license: MIT-style license
-
-authors:
-  - Christoph Pojer
-
-requires:
-  - Core/Request
-  - /MooTools.More
-
-provides: [Request.Periodical]
-
-...
-*/
-
-Request.implement({
-
-	options: {
-		initialDelay: 5000,
-		delay: 5000,
-		limit: 60000
-	},
-
-	startTimer: function(data){
-		var fn = function(){
-			if (!this.running) this.send({data: data});
-		};
-		this.lastDelay = this.options.initialDelay;
-		this.timer = fn.delay(this.lastDelay, this);
-		this.completeCheck = function(response){
-			clearTimeout(this.timer);
-			this.lastDelay = (response) ? this.options.delay : (this.lastDelay + this.options.delay).min(this.options.limit);
-			this.timer = fn.delay(this.lastDelay, this);
-		};
-		return this.addEvent('complete', this.completeCheck);
-	},
-
-	stopTimer: function(){
-		clearTimeout(this.timer);
-		return this.removeEvent('complete', this.completeCheck);
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.et-EE.Date.js
-/*
----
-
-name: Locale.et-EE.Date
-
-description: Date messages for Estonian.
-
-license: MIT-style license
-
-authors:
-  - Kevin Valdek
-
-requires:
-  - /Locale
-
-provides: [Locale.et-EE.Date]
-
-...
-*/
-
-Locale.define('et-EE', 'Date', {
-
-	months: ['jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktoober', 'november', 'detsember'],
-	months_abbr: ['jaan', 'veebr', 'märts', 'apr', 'mai', 'juuni', 'juuli', 'aug', 'sept', 'okt', 'nov', 'dets'],
-	days: ['pühapäev', 'esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev'],
-	days_abbr: ['pühap', 'esmasp', 'teisip', 'kolmap', 'neljap', 'reede', 'laup'],
-
-	// Culture's date order: MM.DD.YYYY
-	dateOrder: ['month', 'date', 'year'],
-	shortDate: '%m.%d.%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: 'vähem kui minut aega tagasi',
-	minuteAgo: 'umbes minut aega tagasi',
-	minutesAgo: '{delta} minutit tagasi',
-	hourAgo: 'umbes tund aega tagasi',
-	hoursAgo: 'umbes {delta} tundi tagasi',
-	dayAgo: '1 päev tagasi',
-	daysAgo: '{delta} päeva tagasi',
-	weekAgo: '1 nädal tagasi',
-	weeksAgo: '{delta} nädalat tagasi',
-	monthAgo: '1 kuu tagasi',
-	monthsAgo: '{delta} kuud tagasi',
-	yearAgo: '1 aasta tagasi',
-	yearsAgo: '{delta} aastat tagasi',
-
-	lessThanMinuteUntil: 'vähem kui minuti aja pärast',
-	minuteUntil: 'umbes minuti aja pärast',
-	minutesUntil: '{delta} minuti pärast',
-	hourUntil: 'umbes tunni aja pärast',
-	hoursUntil: 'umbes {delta} tunni pärast',
-	dayUntil: '1 päeva pärast',
-	daysUntil: '{delta} päeva pärast',
-	weekUntil: '1 nädala pärast',
-	weeksUntil: '{delta} nädala pärast',
-	monthUntil: '1 kuu pärast',
-	monthsUntil: '{delta} kuu pärast',
-	yearUntil: '1 aasta pärast',
-	yearsUntil: '{delta} aasta pärast'
-
-});
-
-
-// Begin: Source/Locale/Locale.si-SI.Date.js
-/*
----
-
-name: Locale.si-SI.Date
-
-description: Date messages for Slovenian.
-
-license: MIT-style license
-
-authors:
-  - Radovan Lozej
-
-requires:
-  - /Locale
-
-provides: [Locale.si-SI.Date]
-
-...
-*/
-
-(function(){
-
-var pluralize = function(n, one, two, three, other){
-	return (n >= 1 && n <= 3) ? arguments[n] : other;
-};
-
-Locale.define('si-SI', 'Date', {
-
-	months: ['januar', 'februar', 'marec', 'april', 'maj', 'junij', 'julij', 'avgust', 'september', 'oktober', 'november', 'december'],
-	months_abbr: ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'avg', 'sep', 'okt', 'nov', 'dec'],
-	days: ['nedelja', 'ponedeljek', 'torek', 'sreda', 'četrtek', 'petek', 'sobota'],
-	days_abbr: ['ned', 'pon', 'tor', 'sre', 'čet', 'pet', 'sob'],
-
-	// Culture's date order: DD.MM.YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d.%m.%Y',
-	shortTime: '%H.%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '.',
-
-	lessThanMinuteAgo: 'manj kot minuto nazaj',
-	minuteAgo: 'minuto nazaj',
-	minutesAgo: function(delta){ return '{delta} ' + pluralize(delta, 'minuto', 'minuti', 'minute', 'minut') + ' nazaj'; },
-	hourAgo: 'uro nazaj',
-	hoursAgo: function(delta){ return '{delta} ' + pluralize(delta, 'uro', 'uri', 'ure', 'ur') + ' nazaj'; },
-	dayAgo: 'dan nazaj',
-	daysAgo: function(delta){ return '{delta} ' + pluralize(delta, 'dan', 'dneva', 'dni', 'dni') + ' nazaj'; },
-	weekAgo: 'teden nazaj',
-	weeksAgo: function(delta){ return '{delta} ' + pluralize(delta, 'teden', 'tedna', 'tedne', 'tednov') + ' nazaj'; },
-	monthAgo: 'mesec nazaj',
-	monthsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'mesec', 'meseca', 'mesece', 'mesecov') + ' nazaj'; },
-	yearthAgo: 'leto nazaj',
-	yearsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'leto', 'leti', 'leta', 'let') + ' nazaj'; },
-
-	lessThanMinuteUntil: 'še manj kot minuto',
-	minuteUntil: 'še minuta',
-	minutesUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'minuta', 'minuti', 'minute', 'minut'); },
-	hourUntil: 'še ura',
-	hoursUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'ura', 'uri', 'ure', 'ur'); },
-	dayUntil: 'še dan',
-	daysUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'dan', 'dneva', 'dnevi', 'dni'); },
-	weekUntil: 'še tedn',
-	weeksUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'teden', 'tedna', 'tedni', 'tednov'); },
-	monthUntil: 'še mesec',
-	monthsUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'mesec', 'meseca', 'meseci', 'mesecov'); },
-	yearUntil: 'še leto',
-	yearsUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'leto', 'leti', 'leta', 'let'); }
-
-});
-
-})();
-
-
-// Begin: Source/Fx/Fx.Reveal.js
-/*
----
-
-script: Fx.Reveal.js
-
-name: Fx.Reveal
-
-description: Defines Fx.Reveal, a class that shows and hides elements with a transition.
-
-license: MIT-style license
-
-authors:
+  - Perrin Westrich
   - Aaron Newton
+  - Scott Kyle
 
 requires:
-  - Core/Fx.Morph
-  - /Element.Shortcuts
-  - /Element.Measure
-
-provides: [Fx.Reveal]
-
-...
-*/
-
-(function(){
-
-
-var hideTheseOf = function(object){
-	var hideThese = object.options.hideInputs;
-	if (window.OverText){
-		var otClasses = [null];
-		OverText.each(function(ot){
-			otClasses.include('.' + ot.options.labelClass);
-		});
-		if (otClasses) hideThese += otClasses.join(', ');
-	}
-	return (hideThese) ? object.element.getElements(hideThese) : null;
-};
-
-
-Fx.Reveal = new Class({
-
-	Extends: Fx.Morph,
-
-	options: {/*
-		onShow: function(thisElement){},
-		onHide: function(thisElement){},
-		onComplete: function(thisElement){},
-		heightOverride: null,
-		widthOverride: null,*/
-		link: 'cancel',
-		styles: ['padding', 'border', 'margin'],
-		transitionOpacity: !Browser.ie6,
-		mode: 'vertical',
-		display: function(){
-			return this.element.get('tag') != 'tr' ? 'block' : 'table-row';
-		},
-		opacity: 1,
-		hideInputs: Browser.ie ? 'select, input, textarea, object, embed' : null
-	},
-
-	dissolve: function(){
-		if (!this.hiding && !this.showing){
-			if (this.element.getStyle('display') != 'none'){
-				this.hiding = true;
-				this.showing = false;
-				this.hidden = true;
-				this.cssText = this.element.style.cssText;
-
-				var startStyles = this.element.getComputedSize({
-					styles: this.options.styles,
-					mode: this.options.mode
-				});
-				if (this.options.transitionOpacity) startStyles.opacity = this.options.opacity;
-
-				var zero = {};
-				Object.each(startStyles, function(style, name){
-					zero[name] = [style, 0];
-				});
-
-				this.element.setStyles({
-					display: Function.from(this.options.display).call(this),
-					overflow: 'hidden'
-				});
-
-				var hideThese = hideTheseOf(this);
-				if (hideThese) hideThese.setStyle('visibility', 'hidden');
-
-				this.$chain.unshift(function(){
-					if (this.hidden){
-						this.hiding = false;
-						this.element.style.cssText = this.cssText;
-						this.element.setStyle('display', 'none');
-						if (hideThese) hideThese.setStyle('visibility', 'visible');
-					}
-					this.fireEvent('hide', this.element);
-					this.callChain();
-				}.bind(this));
-
-				this.start(zero);
-			} else {
-				this.callChain.delay(10, this);
-				this.fireEvent('complete', this.element);
-				this.fireEvent('hide', this.element);
-			}
-		} else if (this.options.link == 'chain'){
-			this.chain(this.dissolve.bind(this));
-		} else if (this.options.link == 'cancel' && !this.hiding){
-			this.cancel();
-			this.dissolve();
-		}
-		return this;
-	},
-
-	reveal: function(){
-		if (!this.showing && !this.hiding){
-			if (this.element.getStyle('display') == 'none'){
-				this.hiding = false;
-				this.showing = true;
-				this.hidden = false;
-				this.cssText = this.element.style.cssText;
-
-				var startStyles;
-				this.element.measure(function(){
-					startStyles = this.element.getComputedSize({
-						styles: this.options.styles,
-						mode: this.options.mode
-					});
-				}.bind(this));
-				if (this.options.heightOverride != null) startStyles.height = this.options.heightOverride.toInt();
-				if (this.options.widthOverride != null) startStyles.width = this.options.widthOverride.toInt();
-				if (this.options.transitionOpacity){
-					this.element.setStyle('opacity', 0);
-					startStyles.opacity = this.options.opacity;
-				}
-
-				var zero = {
-					height: 0,
-					display: Function.from(this.options.display).call(this)
-				};
-				Object.each(startStyles, function(style, name){
-					zero[name] = 0;
-				});
-				zero.overflow = 'hidden';
-
-				this.element.setStyles(zero);
-
-				var hideThese = hideTheseOf(this);
-				if (hideThese) hideThese.setStyle('visibility', 'hidden');
-
-				this.$chain.unshift(function(){
-					this.element.style.cssText = this.cssText;
-					this.element.setStyle('display', Function.from(this.options.display).call(this));
-					if (!this.hidden) this.showing = false;
-					if (hideThese) hideThese.setStyle('visibility', 'visible');
-					this.callChain();
-					this.fireEvent('show', this.element);
-				}.bind(this));
-
-				this.start(startStyles);
-			} else {
-				this.callChain();
-				this.fireEvent('complete', this.element);
-				this.fireEvent('show', this.element);
-			}
-		} else if (this.options.link == 'chain'){
-			this.chain(this.reveal.bind(this));
-		} else if (this.options.link == 'cancel' && !this.showing){
-			this.cancel();
-			this.reveal();
-		}
-		return this;
-	},
-
-	toggle: function(){
-		if (this.element.getStyle('display') == 'none'){
-			this.reveal();
-		} else {
-			this.dissolve();
-		}
-		return this;
-	},
-
-	cancel: function(){
-		this.parent.apply(this, arguments);
-		if (this.cssText != null) this.element.style.cssText = this.cssText;
-		this.hiding = false;
-		this.showing = false;
-		return this;
-	}
-
-});
-
-Element.Properties.reveal = {
-
-	set: function(options){
-		this.get('reveal').cancel().setOptions(options);
-		return this;
-	},
-
-	get: function(){
-		var reveal = this.retrieve('reveal');
-		if (!reveal){
-			reveal = new Fx.Reveal(this);
-			this.store('reveal', reveal);
-		}
-		return reveal;
-	}
-
-};
-
-Element.Properties.dissolve = Element.Properties.reveal;
-
-Element.implement({
-
-	reveal: function(options){
-		this.get('reveal').setOptions(options).reveal();
-		return this;
-	},
-
-	dissolve: function(options){
-		this.get('reveal').setOptions(options).dissolve();
-		return this;
-	},
-
-	nix: function(options){
-		var params = Array.link(arguments, {destroy: Type.isBoolean, options: Type.isObject});
-		this.get('reveal').setOptions(options).dissolve().chain(function(){
-			this[params.destroy ? 'destroy' : 'dispose']();
-		}.bind(this));
-		return this;
-	},
-
-	wink: function(){
-		var params = Array.link(arguments, {duration: Type.isNumber, options: Type.isObject});
-		var reveal = this.get('reveal').setOptions(params.options);
-		reveal.reveal().chain(function(){
-			(function(){
-				reveal.dissolve();
-			}).delay(params.duration || 2000);
-		});
-	}
-
-});
-
-})();
-
-
-// Begin: Source/Interface/HtmlTable.Zebra.js
-/*
----
-
-script: HtmlTable.Zebra.js
-
-name: HtmlTable.Zebra
-
-description: Builds a stripy table with methods to add rows.
-
-license: MIT-style license
-
-authors:
-  - Harald Kirschner
-  - Aaron Newton
-
-requires:
-  - /HtmlTable
-  - /Element.Shortcuts
-  - /Class.refactor
-
-provides: [HtmlTable.Zebra]
-
-...
-*/
-
-HtmlTable = Class.refactor(HtmlTable, {
-
-	options: {
-		classZebra: 'table-tr-odd',
-		zebra: true,
-		zebraOnlyVisibleRows: true
-	},
-
-	initialize: function(){
-		this.previous.apply(this, arguments);
-		if (this.occluded) return this.occluded;
-		if (this.options.zebra) this.updateZebras();
-	},
-
-	updateZebras: function(){
-		var index = 0;
-		Array.each(this.body.rows, function(row){
-			if (!this.options.zebraOnlyVisibleRows || row.isDisplayed()){
-				this.zebra(row, index++);
-			}
-		}, this);
-	},
-
-	setRowStyle: function(row, i){
-		if (this.previous) this.previous(row, i);
-		this.zebra(row, i);
-	},
-
-	zebra: function(row, i){
-		return row[((i % 2) ? 'remove' : 'add')+'Class'](this.options.classZebra);
-	},
-
-	push: function(){
-		var pushed = this.previous.apply(this, arguments);
-		if (this.options.zebra) this.updateZebras();
-		return pushed;
-	}
-
-});
-
-
-// Begin: Source/Delegators/Delegator.SetProperty.js
-/*
----
-description: Provides methods to set or toggle properties on target elements.
-provides: [Delegator.setProperty, eraseProperty, toggleProperty]
-requires: [Behavior/Delegator, Core/Element]
-script: Delegator.SetProperty.js
-name: Delegator.SetProperty
-
-...
-*/
-(function(){
-	var triggers = {};
-
-	['set', 'erase', 'toggle'].each(function(action){
-
-		triggers[action + 'Property'] = {
-			require: ['property'],
-			handler: function(event, link, api){
-				var target = link;
-				if (api.get('target') && api.get('target') != 'self') {
-					target = link.getElement(api.get('target'));
-					if (!target) api.fail('could not locate target element to ' + action + ' its property', link);
-				}
-				var current = target.get(api.get('property'));
-				if (current !== null) current = current.toString();
-				if (action == 'set' || (action == 'toggle' && current != api.get('value'))){
-					if (api.get('value') === null) api.fail('Could not retrieve eraseproperty-value option from element.');
-					target.set(api.get('property'), api.get('value'));
-				} else {
-					target.erase(api.get('property'));
-				}
-			}
-		};
-
-	});
-
-	Delegator.register('click', triggers);
-
-})();
-
-// Begin: Source/Request/Request.Queue.js
-/*
----
-
-script: Request.Queue.js
-
-name: Request.Queue
-
-description: Controls several instances of Request and its variants to run only one request at a time.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Element
-  - Core/Request
-  - /Class.Binds
-
-provides: [Request.Queue]
-
-...
-*/
-
-Request.Queue = new Class({
-
-	Implements: [Options, Events],
-
-	Binds: ['attach', 'request', 'complete', 'cancel', 'success', 'failure', 'exception'],
-
-	options: {/*
-		onRequest: function(argsPassedToOnRequest){},
-		onSuccess: function(argsPassedToOnSuccess){},
-		onComplete: function(argsPassedToOnComplete){},
-		onCancel: function(argsPassedToOnCancel){},
-		onException: function(argsPassedToOnException){},
-		onFailure: function(argsPassedToOnFailure){},
-		onEnd: function(){},
-		*/
-		stopOnFailure: true,
-		autoAdvance: true,
-		concurrent: 1,
-		requests: {}
-	},
-
-	initialize: function(options){
-		var requests;
-		if (options){
-			requests = options.requests;
-			delete options.requests;
-		}
-		this.setOptions(options);
-		this.requests = {};
-		this.queue = [];
-		this.reqBinders = {};
-
-		if (requests) this.addRequests(requests);
-	},
-
-	addRequest: function(name, request){
-		this.requests[name] = request;
-		this.attach(name, request);
-		return this;
-	},
-
-	addRequests: function(obj){
-		Object.each(obj, function(req, name){
-			this.addRequest(name, req);
-		}, this);
-		return this;
-	},
-
-	getName: function(req){
-		return Object.keyOf(this.requests, req);
-	},
-
-	attach: function(name, req){
-		if (req._groupSend) return this;
-		['request', 'complete', 'cancel', 'success', 'failure', 'exception'].each(function(evt){
-			if (!this.reqBinders[name]) this.reqBinders[name] = {};
-			this.reqBinders[name][evt] = function(){
-				this['on' + evt.capitalize()].apply(this, [name, req].append(arguments));
-			}.bind(this);
-			req.addEvent(evt, this.reqBinders[name][evt]);
-		}, this);
-		req._groupSend = req.send;
-		req.send = function(options){
-			this.send(name, options);
-			return req;
-		}.bind(this);
-		return this;
-	},
-
-	removeRequest: function(req){
-		var name = typeOf(req) == 'object' ? this.getName(req) : req;
-		if (!name && typeOf(name) != 'string') return this;
-		req = this.requests[name];
-		if (!req) return this;
-		['request', 'complete', 'cancel', 'success', 'failure', 'exception'].each(function(evt){
-			req.removeEvent(evt, this.reqBinders[name][evt]);
-		}, this);
-		req.send = req._groupSend;
-		delete req._groupSend;
-		return this;
-	},
-
-	getRunning: function(){
-		return Object.filter(this.requests, function(r){
-			return r.running;
-		});
-	},
-
-	isRunning: function(){
-		return !!(Object.keys(this.getRunning()).length);
-	},
-
-	send: function(name, options){
-		var q = function(){
-			this.requests[name]._groupSend(options);
-			this.queue.erase(q);
-		}.bind(this);
-
-		q.name = name;
-		if (Object.keys(this.getRunning()).length >= this.options.concurrent || (this.error && this.options.stopOnFailure)) this.queue.push(q);
-		else q();
-		return this;
-	},
-
-	hasNext: function(name){
-		return (!name) ? !!this.queue.length : !!this.queue.filter(function(q){ return q.name == name; }).length;
-	},
-
-	resume: function(){
-		this.error = false;
-		(this.options.concurrent - Object.keys(this.getRunning()).length).times(this.runNext, this);
-		return this;
-	},
-
-	runNext: function(name){
-		if (!this.queue.length) return this;
-		if (!name){
-			this.queue[0]();
-		} else {
-			var found;
-			this.queue.each(function(q){
-				if (!found && q.name == name){
-					found = true;
-					q();
-				}
-			});
-		}
-		return this;
-	},
-
-	runAll: function(){
-		this.queue.each(function(q){
-			q();
-		});
-		return this;
-	},
-
-	clear: function(name){
-		if (!name){
-			this.queue.empty();
-		} else {
-			this.queue = this.queue.map(function(q){
-				if (q.name != name) return q;
-				else return false;
-			}).filter(function(q){
-				return q;
-			});
-		}
-		return this;
-	},
-
-	cancel: function(name){
-		this.requests[name].cancel();
-		return this;
-	},
-
-	onRequest: function(){
-		this.fireEvent('request', arguments);
-	},
-
-	onComplete: function(){
-		this.fireEvent('complete', arguments);
-		if (!this.queue.length) this.fireEvent('end');
-	},
-
-	onCancel: function(){
-		if (this.options.autoAdvance && !this.error) this.runNext();
-		this.fireEvent('cancel', arguments);
-	},
-
-	onSuccess: function(){
-		if (this.options.autoAdvance && !this.error) this.runNext();
-		this.fireEvent('success', arguments);
-	},
-
-	onFailure: function(){
-		this.error = true;
-		if (!this.options.stopOnFailure && this.options.autoAdvance) this.runNext();
-		this.fireEvent('failure', arguments);
-	},
-
-	onException: function(){
-		this.error = true;
-		if (!this.options.stopOnFailure && this.options.autoAdvance) this.runNext();
-		this.fireEvent('exception', arguments);
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.ru-RU.Form.Validator.js
-/*
----
-
-name: Locale.ru-RU-unicode.Form.Validator
-
-description: Form Validator messages for Russian (utf-8).
-
-license: MIT-style license
-
-authors:
-  - Chernodarov Egor
-
-requires:
-  - /Locale
-
-provides: [Locale.ru-RU.Form.Validator]
-
-...
-*/
-
-Locale.define('ru-RU', 'FormValidator', {
-
-	required: 'Это поле обязательно к заполнению.',
-	minLength: 'Пожалуйста, введите хотя бы {minLength} символов (Вы ввели {length}).',
-	maxLength: 'Пожалуйста, введите не больше {maxLength} символов (Вы ввели {length}).',
-	integer: 'Пожалуйста, введите в это поле число. Дробные числа (например 1.25) тут не разрешены.',
-	numeric: 'Пожалуйста, введите в это поле число (например "1" или "1.1", или "-1", или "-1.1").',
-	digits: 'В этом поле Вы можете использовать только цифры и знаки пунктуации (например, телефонный номер со знаками дефиса или с точками).',
-	alpha: 'В этом поле можно использовать только латинские буквы (a-z). Пробелы и другие символы запрещены.',
-	alphanum: 'В этом поле можно использовать только латинские буквы (a-z) и цифры (0-9). Пробелы и другие символы запрещены.',
-	dateSuchAs: 'Пожалуйста, введите корректную дату {date}',
-	dateInFormatMDY: 'Пожалуйста, введите дату в формате ММ/ДД/ГГГГ (например "12/31/1999")',
-	email: 'Пожалуйста, введите корректный емейл-адрес. Для примера "fred@domain.com".',
-	url: 'Пожалуйста, введите правильную ссылку вида http://www.example.com.',
-	currencyDollar: 'Пожалуйста, введите сумму в долларах. Например: $100.00 .',
-	oneRequired: 'Пожалуйста, выберите хоть что-нибудь в одном из этих полей.',
-	errorPrefix: 'Ошибка: ',
-	warningPrefix: 'Внимание: '
-
-});
-
-//<1.2compat>
-
-Locale.define('ru-RU-unicode').inherit('ru-RU', 'FormValidator');
-
-//</1.2compat>
-
-
-// Begin: Source/Fx/Fx.Slide.js
-/*
----
-
-script: Fx.Slide.js
-
-name: Fx.Slide
-
-description: Effect to slide an element in and out of view.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-
-requires:
-  - Core/Fx
-  - Core/Element.Style
-  - /MooTools.More
-
-provides: [Fx.Slide]
-
-...
-*/
-
-Fx.Slide = new Class({
-
-	Extends: Fx,
-
-	options: {
-		mode: 'vertical',
-		wrapper: false,
-		hideOverflow: true,
-		resetHeight: false
-	},
-
-	initialize: function(element, options){
-		element = this.element = this.subject = document.id(element);
-		this.parent(options);
-		options = this.options;
-
-		var wrapper = element.retrieve('wrapper'),
-			styles = element.getStyles('margin', 'position', 'overflow');
-
-		if (options.hideOverflow) styles = Object.append(styles, {overflow: 'hidden'});
-		if (options.wrapper) wrapper = document.id(options.wrapper).setStyles(styles);
-
-		if (!wrapper) wrapper = new Element('div', {
-			styles: styles
-		}).wraps(element);
-
-		element.store('wrapper', wrapper).setStyle('margin', 0);
-		if (element.getStyle('overflow') == 'visible') element.setStyle('overflow', 'hidden');
-
-		this.now = [];
-		this.open = true;
-		this.wrapper = wrapper;
-
-		this.addEvent('complete', function(){
-			this.open = (wrapper['offset' + this.layout.capitalize()] != 0);
-			if (this.open && this.options.resetHeight) wrapper.setStyle('height', '');
-		}, true);
-	},
-
-	vertical: function(){
-		this.margin = 'margin-top';
-		this.layout = 'height';
-		this.offset = this.element.offsetHeight;
-	},
-
-	horizontal: function(){
-		this.margin = 'margin-left';
-		this.layout = 'width';
-		this.offset = this.element.offsetWidth;
-	},
-
-	set: function(now){
-		this.element.setStyle(this.margin, now[0]);
-		this.wrapper.setStyle(this.layout, now[1]);
-		return this;
-	},
-
-	compute: function(from, to, delta){
-		return [0, 1].map(function(i){
-			return Fx.compute(from[i], to[i], delta);
-		});
-	},
-
-	start: function(how, mode){
-		if (!this.check(how, mode)) return this;
-		this[mode || this.options.mode]();
-
-		var margin = this.element.getStyle(this.margin).toInt(),
-			layout = this.wrapper.getStyle(this.layout).toInt(),
-			caseIn = [[margin, layout], [0, this.offset]],
-			caseOut = [[margin, layout], [-this.offset, 0]],
-			start;
-
-		switch (how){
-			case 'in': start = caseIn; break;
-			case 'out': start = caseOut; break;
-			case 'toggle': start = (layout == 0) ? caseIn : caseOut;
-		}
-		return this.parent(start[0], start[1]);
-	},
-
-	slideIn: function(mode){
-		return this.start('in', mode);
-	},
-
-	slideOut: function(mode){
-		return this.start('out', mode);
-	},
-
-	hide: function(mode){
-		this[mode || this.options.mode]();
-		this.open = false;
-		return this.set([-this.offset, 0]);
-	},
-
-	show: function(mode){
-		this[mode || this.options.mode]();
-		this.open = true;
-		return this.set([0, this.offset]);
-	},
-
-	toggle: function(mode){
-		return this.start('toggle', mode);
-	}
-
-});
-
-Element.Properties.slide = {
-
-	set: function(options){
-		this.get('slide').cancel().setOptions(options);
-		return this;
-	},
-
-	get: function(){
-		var slide = this.retrieve('slide');
-		if (!slide){
-			slide = new Fx.Slide(this, {link: 'cancel'});
-			this.store('slide', slide);
-		}
-		return slide;
-	}
-
-};
-
-Element.implement({
-
-	slide: function(how, mode){
-		how = how || 'toggle';
-		var slide = this.get('slide'), toggle;
-		switch (how){
-			case 'hide': slide.hide(mode); break;
-			case 'show': slide.show(mode); break;
-			case 'toggle':
-				var flag = this.retrieve('slide:flag', slide.open);
-				slide[flag ? 'slideOut' : 'slideIn'](mode);
-				this.store('slide:flag', !flag);
-				toggle = true;
-			break;
-			default: slide.start(how, mode);
-		}
-		if (!toggle) this.eliminate('slide:flag');
-		return this;
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.cs-CZ.Form.Validator.js
-/*
----
-
-name: Locale.cs-CZ.Form.Validator
-
-description: Form Validator messages for Czech.
-
-license: MIT-style license
-
-authors:
-  - Jan Černý chemiX
-
-requires:
-  - /Locale
-
-provides: [Locale.cs-CZ.Form.Validator]
-
-...
-*/
-
-Locale.define('cs-CZ', 'FormValidator', {
-
-	required: 'Tato položka je povinná.',
-	minLength: 'Zadejte prosím alespoň {minLength} znaků (napsáno {length} znaků).',
-	maxLength: 'Zadejte prosím méně než {maxLength} znaků (nápsáno {length} znaků).',
-	integer: 'Zadejte prosím celé číslo. Desetinná čísla (např. 1.25) nejsou povolena.',
-	numeric: 'Zadejte jen číselné hodnoty (tj. "1" nebo "1.1" nebo "-1" nebo "-1.1").',
-	digits: 'Zadejte prosím pouze čísla a interpunkční znaménka(například telefonní číslo s pomlčkami nebo tečkami je povoleno).',
-	alpha: 'Zadejte prosím pouze písmena (a-z). Mezery nebo jiné znaky nejsou povoleny.',
-	alphanum: 'Zadejte prosím pouze písmena (a-z) nebo číslice (0-9). Mezery nebo jiné znaky nejsou povoleny.',
-	dateSuchAs: 'Zadejte prosím platné datum jako {date}',
-	dateInFormatMDY: 'Zadejte prosím platné datum jako MM / DD / RRRR (tj. "12/31/1999")',
-	email: 'Zadejte prosím platnou e-mailovou adresu. Například "fred@domain.com".',
-	url: 'Zadejte prosím platnou URL adresu jako http://www.example.com.',
-	currencyDollar: 'Zadejte prosím platnou částku. Například $100.00.',
-	oneRequired: 'Zadejte prosím alespoň jednu hodnotu pro tyto položky.',
-	errorPrefix: 'Chyba: ',
-	warningPrefix: 'Upozornění: ',
-
-	// Form.Validator.Extras
-	noSpace: 'V této položce nejsou povoleny mezery',
-	reqChkByNode: 'Nejsou vybrány žádné položky.',
-	requiredChk: 'Tato položka je vyžadována.',
-	reqChkByName: 'Prosím vyberte {label}.',
-	match: 'Tato položka se musí shodovat s položkou {matchName}',
-	startDate: 'datum zahájení',
-	endDate: 'datum ukončení',
-	currendDate: 'aktuální datum',
-	afterDate: 'Datum by mělo být stejné nebo větší než {label}.',
-	beforeDate: 'Datum by mělo být stejné nebo menší než {label}.',
-	startMonth: 'Vyberte počáteční měsíc.',
-	sameMonth: 'Tyto dva datumy musí být ve stejném měsíci - změňte jeden z nich.',
-	creditcard: 'Zadané číslo kreditní karty je neplatné. Prosím opravte ho. Bylo zadáno {length} čísel.'
-
-});
-
-
-// Begin: Source/Forms/OverText.js
-/*
----
-
-script: OverText.js
-
-name: OverText
-
-description: Shows text over an input that disappears when the user clicks into it. The text remains hidden if the user adds a value.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Options
   - Core/Events
+  - Core/Options
   - Core/Element.Event
-  - Class.Binds
-  - Class.Occlude
-  - Element.Position
-  - Element.Shortcuts
+  - Element.Event.Pseudos.Keys
 
-provides: [OverText]
+provides: [Keyboard]
 
 ...
 */
 
-var OverText = new Class({
+(function(){
 
-	Implements: [Options, Events, Class.Occlude],
+	var Keyboard = this.Keyboard = new Class({
 
-	Binds: ['reposition', 'assert', 'focus', 'hide'],
+		Extends: Events,
 
-	options: {/*
-		textOverride: null,
-		onFocus: function(){},
-		onTextHide: function(textEl, inputEl){},
-		onTextShow: function(textEl, inputEl){}, */
-		element: 'label',
-		labelClass: 'overTxtLabel',
-		positionOptions: {
-			position: 'upperLeft',
-			edge: 'upperLeft',
-			offset: {
-				x: 4,
-				y: 2
-			}
+		Implements: [Options],
+
+		options: {/*
+			onActivate: function(){},
+			onDeactivate: function(){},*/
+			defaultEventType: 'keydown',
+			active: false,
+			manager: null,
+			events: {},
+			nonParsedEvents: ['activate', 'deactivate', 'onactivate', 'ondeactivate', 'changed', 'onchanged']
 		},
-		poll: false,
-		pollInterval: 250,
-		wrap: false
-	},
 
-	property: 'OverText',
-
-	initialize: function(element, options){
-		element = this.element = document.id(element);
-
-		if (this.occlude()) return this.occluded;
-		this.setOptions(options);
-
-		this.attach(element);
-		OverText.instances.push(this);
-
-		if (this.options.poll) this.poll();
-	},
-
-	toElement: function(){
-		return this.element;
-	},
-
-	attach: function(){
-		var element = this.element,
-			options = this.options,
-			value = options.textOverride || element.get('alt') || element.get('title');
-
-		if (!value) return this;
-
-		var text = this.text = new Element(options.element, {
-			'class': options.labelClass,
-			styles: {
-				lineHeight: 'normal',
-				position: 'absolute',
-				cursor: 'text'
-			},
-			html: value,
-			events: {
-				click: this.hide.pass(options.element == 'label', this)
+		initialize: function(options){
+			if (options && options.manager){
+				this._manager = options.manager;
+				delete options.manager;
 			}
-		}).inject(element, 'after');
+			this.setOptions(options);
+			this._setup();
+		},
 
-		if (options.element == 'label'){
-			if (!element.get('id')) element.set('id', 'input_' + String.uniqueID());
-			text.set('for', element.get('id'));
-		}
+		addEvent: function(type, fn, internal){
+			return this.parent(Keyboard.parse(type, this.options.defaultEventType, this.options.nonParsedEvents), fn, internal);
+		},
 
-		if (options.wrap){
-			this.textHolder = new Element('div.overTxtWrapper', {
-				styles: {
-					lineHeight: 'normal',
-					position: 'relative'
+		removeEvent: function(type, fn){
+			return this.parent(Keyboard.parse(type, this.options.defaultEventType, this.options.nonParsedEvents), fn);
+		},
+
+		toggleActive: function(){
+			return this[this.isActive() ? 'deactivate' : 'activate']();
+		},
+
+		activate: function(instance){
+			if (instance){
+				if (instance.isActive()) return this;
+				//if we're stealing focus, store the last keyboard to have it so the relinquish command works
+				if (this._activeKB && instance != this._activeKB){
+					this.previous = this._activeKB;
+					this.previous.fireEvent('deactivate');
 				}
-			}).grab(text).inject(element, 'before');
-		}
-
-		return this.enable();
-	},
-
-	destroy: function(){
-		this.element.eliminate(this.property); // Class.Occlude storage
-		this.disable();
-		if (this.text) this.text.destroy();
-		if (this.textHolder) this.textHolder.destroy();
-		return this;
-	},
-
-	disable: function(){
-		this.element.removeEvents({
-			focus: this.focus,
-			blur: this.assert,
-			change: this.assert
-		});
-		window.removeEvent('resize', this.reposition);
-		this.hide(true, true);
-		return this;
-	},
-
-	enable: function(){
-		this.element.addEvents({
-			focus: this.focus,
-			blur: this.assert,
-			change: this.assert
-		});
-		window.addEvent('resize', this.reposition);
-		this.reposition();
-		return this;
-	},
-
-	wrap: function(){
-		if (this.options.element == 'label'){
-			if (!this.element.get('id')) this.element.set('id', 'input_' + String.uniqueID());
-			this.text.set('for', this.element.get('id'));
-		}
-	},
-
-	startPolling: function(){
-		this.pollingPaused = false;
-		return this.poll();
-	},
-
-	poll: function(stop){
-		//start immediately
-		//pause on focus
-		//resumeon blur
-		if (this.poller && !stop) return this;
-		if (stop){
-			clearInterval(this.poller);
-		} else {
-			this.poller = (function(){
-				if (!this.pollingPaused) this.assert(true);
-			}).periodical(this.options.pollInterval, this);
-		}
-
-		return this;
-	},
-
-	stopPolling: function(){
-		this.pollingPaused = true;
-		return this.poll(true);
-	},
-
-	focus: function(){
-		if (this.text && (!this.text.isDisplayed() || this.element.get('disabled'))) return this;
-		return this.hide();
-	},
-
-	hide: function(suppressFocus, force){
-		if (this.text && (this.text.isDisplayed() && (!this.element.get('disabled') || force))){
-			this.text.hide();
-			this.fireEvent('textHide', [this.text, this.element]);
-			this.pollingPaused = true;
-			if (!suppressFocus){
-				try {
-					this.element.fireEvent('focus');
-					this.element.focus();
-				} catch(e){} //IE barfs if you call focus on hidden elements
+				//if we're enabling a child, assign it so that events are now passed to it
+				this._activeKB = instance.fireEvent('activate');
+				Keyboard.manager.fireEvent('changed');
+			} else if (this._manager){
+				//else we're enabling ourselves, we must ask our parent to do it for us
+				this._manager.activate(this);
 			}
+			return this;
+		},
+
+		isActive: function(){
+			return this._manager ? (this._manager._activeKB == this) : (Keyboard.manager == this);
+		},
+
+		deactivate: function(instance){
+			if (instance){
+				if (instance === this._activeKB){
+					this._activeKB = null;
+					instance.fireEvent('deactivate');
+					Keyboard.manager.fireEvent('changed');
+				}
+			} else if (this._manager){
+				this._manager.deactivate(this);
+			}
+			return this;
+		},
+
+		relinquish: function(){
+			if (this.isActive() && this._manager && this._manager.previous) this._manager.activate(this._manager.previous);
+			else this.deactivate();
+			return this;
+		},
+
+		//management logic
+		manage: function(instance){
+			if (instance._manager) instance._manager.drop(instance);
+			this._instances.push(instance);
+			instance._manager = this;
+			if (!this._activeKB) this.activate(instance);
+			return this;
+		},
+
+		drop: function(instance){
+			instance.relinquish();
+			this._instances.erase(instance);
+			if (this._activeKB == instance){
+				if (this.previous && this._instances.contains(this.previous)) this.activate(this.previous);
+				else this._activeKB = this._instances[0];
+			}
+			return this;
+		},
+
+		trace: function(){
+			Keyboard.trace(this);
+		},
+
+		each: function(fn){
+			Keyboard.each(this, fn);
+		},
+
+		/*
+			PRIVATE METHODS
+		*/
+
+		_instances: [],
+
+		_disable: function(instance){
+			if (this._activeKB == instance) this._activeKB = null;
+		},
+
+		_setup: function(){
+			this.addEvents(this.options.events);
+			//if this is the root manager, nothing manages it
+			if (Keyboard.manager && !this._manager) Keyboard.manager.manage(this);
+			if (this.options.active) this.activate();
+			else this.relinquish();
+		},
+
+		_handle: function(event, type){
+			//Keyboard.stop(event) prevents key propagation
+			if (event.preventKeyboardPropagation) return;
+
+			var bubbles = !!this._manager;
+			if (bubbles && this._activeKB){
+				this._activeKB._handle(event, type);
+				if (event.preventKeyboardPropagation) return;
+			}
+			this.fireEvent(type, event);
+
+			if (!bubbles && this._activeKB) this._activeKB._handle(event, type);
 		}
-		return this;
-	},
 
-	show: function(){
-		if (this.text && !this.text.isDisplayed()){
-			this.text.show();
-			this.reposition();
-			this.fireEvent('textShow', [this.text, this.element]);
-			this.pollingPaused = false;
-		}
-		return this;
-	},
-
-	test: function(){
-		return !this.element.get('value');
-	},
-
-	assert: function(suppressFocus){
-		return this[this.test() ? 'show' : 'hide'](suppressFocus);
-	},
-
-	reposition: function(){
-		this.assert(true);
-		if (!this.element.isVisible()) return this.stopPolling().hide();
-		if (this.text && this.test()){
-			this.text.position(Object.merge(this.options.positionOptions, {
-				relativeTo: this.element
-			}));
-		}
-		return this;
-	}
-
-});
-
-OverText.instances = [];
-
-Object.append(OverText, {
-
-	each: function(fn){
-		return OverText.instances.each(function(ot, i){
-			if (ot.element && ot.text) fn.call(OverText, ot, i);
-		});
-	},
-
-	update: function(){
-
-		return OverText.each(function(ot){
-			return ot.reposition();
-		});
-
-	},
-
-	hideAll: function(){
-
-		return OverText.each(function(ot){
-			return ot.hide(true, true);
-		});
-
-	},
-
-	showAll: function(){
-		return OverText.each(function(ot){
-			return ot.show();
-		});
-	}
-
-});
-
-
-
-// Begin: Source/Forms/Behavior.OverText.js
-/*
----
-description: Sets up an input to have an OverText instance for inline labeling. This is a global filter.
-provides: [Behavior.OverText]
-requires: [Behavior/Behavior, More/OverText]
-script: Behavior.OverText.js
-name: Behavior.OverText
-...
-*/
-Behavior.addGlobalFilter('OverText', function(element, api){
-
-	//create the overtext instance
-	var ot = new OverText(element);
-	if (element.get('class')) {
-		element.get('class').split(' ').each(function(cls) {
-			if (cls) ot.text.addClass('overText-'+cls);
-		});
-	}
-	element.getBehaviors().each(function(filter){
-		if (filter != "OverText") ot.text.addClass('overText-'+filter);
 	});
 
-	//this method updates the text position with a slight delay
-	var updater = function(){
-		ot.reposition.delay(10, ot);
+	var parsed = {};
+	var modifiers = ['shift', 'control', 'alt', 'meta'];
+	var regex = /^(?:shift|control|ctrl|alt|meta)$/;
+
+	Keyboard.parse = function(type, eventType, ignore){
+		if (ignore && ignore.contains(type.toLowerCase())) return type;
+
+		type = type.toLowerCase().replace(/^(keyup|keydown):/, function($0, $1){
+			eventType = $1;
+			return '';
+		});
+
+		if (!parsed[type]){
+			var key, mods = {};
+			type.split('+').each(function(part){
+				if (regex.test(part)) mods[part] = true;
+				else key = part;
+			});
+
+			mods.control = mods.control || mods.ctrl; // allow both control and ctrl
+
+			var keys = [];
+			modifiers.each(function(mod){
+				if (mods[mod]) keys.push(mod);
+			});
+
+			if (key) keys.push(key);
+			parsed[type] = keys.join('+');
+		}
+
+		return eventType + ':keys(' + parsed[type] + ')';
 	};
 
-	//update the position whenever the behavior element is shown
-	api.addEvent('layout:display', updater);
+	Keyboard.each = function(keyboard, fn){
+		var current = keyboard || Keyboard.manager;
+		while (current){
+			fn.run(current);
+			current = current._activeKB;
+		}
+	};
 
-	api.onCleanup(function(){
-		api.removeEvent('layout:display', updater);
-		ot.destroy();
+	Keyboard.stop = function(event){
+		event.preventKeyboardPropagation = true;
+	};
+
+	Keyboard.manager = new Keyboard({
+		active: true
 	});
 
-	return ot;
-
-});
-
-
-// Begin: Source/Locale/Locale.he-IL.Date.js
-/*
----
-
-name: Locale.he-IL.Date
-
-description: Date messages for Hebrew.
-
-license: MIT-style license
-
-authors:
-  - Elad Ossadon
-
-requires:
-  - /Locale
-
-provides: [Locale.he-IL.Date]
-
-...
-*/
-
-Locale.define('he-IL', 'Date', {
-
-	months: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'],
-	months_abbr: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'],
-	days: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'],
-	days_abbr: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'],
-
-	// Culture's date order: MM/DD/YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d/%m/%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 0,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: 'לפני פחות מדקה',
-	minuteAgo: 'לפני כדקה',
-	minutesAgo: 'לפני {delta} דקות',
-	hourAgo: 'לפני כשעה',
-	hoursAgo: 'לפני {delta} שעות',
-	dayAgo: 'לפני יום',
-	daysAgo: 'לפני {delta} ימים',
-	weekAgo: 'לפני שבוע',
-	weeksAgo: 'לפני {delta} שבועות',
-	monthAgo: 'לפני חודש',
-	monthsAgo: 'לפני {delta} חודשים',
-	yearAgo: 'לפני שנה',
-	yearsAgo: 'לפני {delta} שנים',
-
-	lessThanMinuteUntil: 'בעוד פחות מדקה',
-	minuteUntil: 'בעוד כדקה',
-	minutesUntil: 'בעוד {delta} דקות',
-	hourUntil: 'בעוד כשעה',
-	hoursUntil: 'בעוד {delta} שעות',
-	dayUntil: 'בעוד יום',
-	daysUntil: 'בעוד {delta} ימים',
-	weekUntil: 'בעוד שבוע',
-	weeksUntil: 'בעוד {delta} שבועות',
-	monthUntil: 'בעוד חודש',
-	monthsUntil: 'בעוד {delta} חודשים',
-	yearUntil: 'בעוד שנה',
-	yearsUntil: 'בעוד {delta} שנים'
-
-});
-
-
-// Begin: Source/Locale/Locale.pl-PL.Date.js
-/*
----
-
-name: Locale.pl-PL.Date
-
-description: Date messages for Polish.
-
-license: MIT-style license
-
-authors:
-  - Oskar Krawczyk
-
-requires:
-  - /Locale
-
-provides: [Locale.pl-PL.Date]
-
-...
-*/
-
-Locale.define('pl-PL', 'Date', {
-
-	months: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
-	months_abbr: ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'],
-	days: ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'],
-	days_abbr: ['niedz.', 'pon.', 'wt.', 'śr.', 'czw.', 'pt.', 'sob.'],
-
-	// Culture's date order: YYYY-MM-DD
-	dateOrder: ['year', 'month', 'date'],
-	shortDate: '%Y-%m-%d',
-	shortTime: '%H:%M',
-	AM: 'nad ranem',
-	PM: 'po południu',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: function(dayOfMonth){
-		return (dayOfMonth > 3 && dayOfMonth < 21) ? 'ty' : ['ty', 'szy', 'gi', 'ci', 'ty'][Math.min(dayOfMonth % 10, 4)];
-	},
-
-	lessThanMinuteAgo: 'mniej niż minute temu',
-	minuteAgo: 'około minutę temu',
-	minutesAgo: '{delta} minut temu',
-	hourAgo: 'około godzinę temu',
-	hoursAgo: 'około {delta} godzin temu',
-	dayAgo: 'Wczoraj',
-	daysAgo: '{delta} dni temu',
-
-	lessThanMinuteUntil: 'za niecałą minutę',
-	minuteUntil: 'za około minutę',
-	minutesUntil: 'za {delta} minut',
-	hourUntil: 'za około godzinę',
-	hoursUntil: 'za około {delta} godzin',
-	dayUntil: 'za 1 dzień',
-	daysUntil: 'za {delta} dni'
-
-});
-
-
-// Begin: Source/Delegators/Delegator.CheckAllOrNone.js
-/*
----
-description: Checks all or none of a group of checkboxes.
-provides: [Delegator.CheckAllOrNone]
-requires: [Behavior/Delegator]
-script: Delegator.CheckAllOrNone.js
-name: Delegator.CheckAllOrNone
-
-...
-*/
-
-Delegator.register('click', {
-
-	'checkAll': {
-		require: ['targets'],
-		handler: function(event, link, api){
-			var targets = link.getElements(api.get('targets'));
-			if (targets.length) targets.set('checked', true);
-			else api.warn('There were no inputs found to check.');
-		}
-	},
-
-	'checkNone': {
-		require: ['targets'],
-		handler: function(event, link, api){
-			var targets = link.getElements(api.get('targets'));
-			if (targets.length) targets.set('checked', false);
-			else api.warn('There were no inputs found to uncheck.');
-		}
-	}
-
-});
-
-// Begin: Source/Locale/Locale.et-EE.Form.Validator.js
-/*
----
-
-name: Locale.et-EE.Form.Validator
-
-description: Form Validator messages for Estonian.
-
-license: MIT-style license
-
-authors:
-  - Kevin Valdek
-
-requires:
-  - /Locale
-
-provides: [Locale.et-EE.Form.Validator]
-
-...
-*/
-
-Locale.define('et-EE', 'FormValidator', {
-
-	required: 'Väli peab olema täidetud.',
-	minLength: 'Palun sisestage vähemalt {minLength} tähte (te sisestasite {length} tähte).',
-	maxLength: 'Palun ärge sisestage rohkem kui {maxLength} tähte (te sisestasite {length} tähte).',
-	integer: 'Palun sisestage väljale täisarv. Kümnendarvud (näiteks 1.25) ei ole lubatud.',
-	numeric: 'Palun sisestage ainult numbreid väljale (näiteks "1", "1.1", "-1" või "-1.1").',
-	digits: 'Palun kasutage ainult numbreid ja kirjavahemärke (telefoninumbri sisestamisel on lubatud kasutada kriipse ja punkte).',
-	alpha: 'Palun kasutage ainult tähti (a-z). Tühikud ja teised sümbolid on keelatud.',
-	alphanum: 'Palun kasutage ainult tähti (a-z) või numbreid (0-9). Tühikud ja teised sümbolid on keelatud.',
-	dateSuchAs: 'Palun sisestage kehtiv kuupäev kujul {date}',
-	dateInFormatMDY: 'Palun sisestage kehtiv kuupäev kujul MM.DD.YYYY (näiteks: "12.31.1999").',
-	email: 'Palun sisestage kehtiv e-maili aadress (näiteks: "fred@domain.com").',
-	url: 'Palun sisestage kehtiv URL (näiteks: http://www.example.com).',
-	currencyDollar: 'Palun sisestage kehtiv $ summa (näiteks: $100.00).',
-	oneRequired: 'Palun sisestage midagi vähemalt ühele antud väljadest.',
-	errorPrefix: 'Viga: ',
-	warningPrefix: 'Hoiatus: ',
-
-	// Form.Validator.Extras
-	noSpace: 'Väli ei tohi sisaldada tühikuid.',
-	reqChkByNode: 'Ükski väljadest pole valitud.',
-	requiredChk: 'Välja täitmine on vajalik.',
-	reqChkByName: 'Palun valige üks {label}.',
-	match: 'Väli peab sobima {matchName} väljaga',
-	startDate: 'algkuupäev',
-	endDate: 'lõppkuupäev',
-	currendDate: 'praegune kuupäev',
-	afterDate: 'Kuupäev peab olema võrdne või pärast {label}.',
-	beforeDate: 'Kuupäev peab olema võrdne või enne {label}.',
-	startMonth: 'Palun valige algkuupäev.',
-	sameMonth: 'Antud kaks kuupäeva peavad olema samas kuus - peate muutma ühte kuupäeva.'
-
-});
-
-
-// Begin: Source/Locale/Locale.si-SI.Form.Validator.js
-/*
----
-
-name: Locale.si-SI.Form.Validator
-
-description: Form Validator messages for Slovenian.
-
-license: MIT-style license
-
-authors:
-  - Radovan Lozej
-
-requires:
-  - /Locale
-
-provides: [Locale.si-SI.Form.Validator]
-
-...
-*/
-
-Locale.define('si-SI', 'FormValidator', {
-
-	required: 'To polje je obvezno',
-	minLength: 'Prosim, vnesite vsaj {minLength} znakov (vnesli ste {length} znakov).',
-	maxLength: 'Prosim, ne vnesite več kot {maxLength} znakov (vnesli ste {length} znakov).',
-	integer: 'Prosim, vnesite celo število. Decimalna števila (kot 1,25) niso dovoljena.',
-	numeric: 'Prosim, vnesite samo numerične vrednosti (kot "1" ali "1.1" ali "-1" ali "-1.1").',
-	digits: 'Prosim, uporabite številke in ločila le na tem polju (na primer, dovoljena je telefonska številka z pomišlaji ali pikami).',
-	alpha: 'Prosim, uporabite le črke v tem plju. Presledki in drugi znaki niso dovoljeni.',
-	alphanum: 'Prosim, uporabite samo črke ali številke v tem polju. Presledki in drugi znaki niso dovoljeni.',
-	dateSuchAs: 'Prosim, vnesite pravilen datum kot {date}',
-	dateInFormatMDY: 'Prosim, vnesite pravilen datum kot MM.DD.YYYY (primer "12.31.1999")',
-	email: 'Prosim, vnesite pravilen email naslov. Na primer "fred@domain.com".',
-	url: 'Prosim, vnesite pravilen URL kot http://www.example.com.',
-	currencyDollar: 'Prosim, vnesit epravilno vrednost €. Primer 100,00€ .',
-	oneRequired: 'Prosimo, vnesite nekaj za vsaj eno izmed teh polj.',
-	errorPrefix: 'Napaka: ',
-	warningPrefix: 'Opozorilo: ',
-
-	// Form.Validator.Extras
-	noSpace: 'To vnosno polje ne dopušča presledkov.',
-	reqChkByNode: 'Nič niste izbrali.',
-	requiredChk: 'To polje je obvezno',
-	reqChkByName: 'Prosim, izberite {label}.',
-	match: 'To polje se mora ujemati z poljem {matchName}',
-	startDate: 'datum začetka',
-	endDate: 'datum konca',
-	currendDate: 'trenuten datum',
-	afterDate: 'Datum bi moral biti isti ali po {label}.',
-	beforeDate: 'Datum bi moral biti isti ali pred {label}.',
-	startMonth: 'Prosim, vnesite začetni datum',
-	sameMonth: 'Ta dva datuma morata biti v istem mesecu - premeniti morate eno ali drugo.',
-	creditcard: 'Številka kreditne kartice ni pravilna. Preverite številko ali poskusite še enkrat. Vnešenih {length} znakov.'
-
-});
-
-
-// Begin: Source/Delegators/Delegator.FxReveal.js
-/*
----
-description: Provides methods to reveal, dissolve, nix, and toggle using Fx.Reveal.
-provides: [Delegator.FxReveal, Delegator.Reveal, Delegator.ToggleReveal, Delegator.Dissolve, Delegator.Nix]
-requires: [Behavior/Delegator, More/Fx.Reveal]
-script: Delegator.FxReveal.js
-name: Delegator.FxReveal
-
-...
-*/
-(function(){
-
-	var triggers = {};
-
-	['reveal', 'toggleReveal', 'dissolve', 'nix'].each(function(action){
-
-		triggers[action] = {
-			handler: function(event, link, api){
-				var targets;
-				if (api.get('target')){
-					targets = new Elements([link.getElement(api.get('target'))]);
-					if (!targets) api.fail('could not locate target element to ' + action, link);
-				} else if (api.get('targets')){
-					targets = link.getElements(api.get('targets'));
-					if (!targets.length) api.fail('could not locate target elements to ' + action, link);
-				} else {
-					targets = new Elements([link]);
-				}
-
-				var fxOptions = api.get('fxOptions');
-				if (fxOptions) targets.set('reveal', fxOptions);
-				targets.get('reveal');
-				if (action == 'toggleReveal') targets.get('reveal').invoke('toggle');
-				else targets[action]();
-				if (!api.getAs(Boolean, 'allowEvent')) event.preventDefault();
-			}
-		};
-
-	});
-
-	Delegator.register('click', triggers);
-
-})();
-
-// Begin: Source/Interface/Tips.js
-/*
----
-
-script: Tips.js
-
-name: Tips
-
-description: Class for creating nice tips that follow the mouse cursor when hovering an element.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-  - Christoph Pojer
-  - Luis Merino
-
-requires:
-  - Core/Options
-  - Core/Events
-  - Core/Element.Event
-  - Core/Element.Style
-  - Core/Element.Dimensions
-  - /MooTools.More
-
-provides: [Tips]
-
-...
-*/
-
-(function(){
-
-var read = function(option, element){
-	return (option) ? (typeOf(option) == 'function' ? option(element) : element.get(option)) : '';
-};
-
-this.Tips = new Class({
-
-	Implements: [Events, Options],
-
-	options: {/*
-		id: null,
-		onAttach: function(element){},
-		onDetach: function(element){},
-		onBound: function(coords){},*/
-		onShow: function(){
-			this.tip.setStyle('display', 'block');
-		},
-		onHide: function(){
-			this.tip.setStyle('display', 'none');
-		},
-		title: 'title',
-		text: function(element){
-			return element.get('rel') || element.get('href');
-		},
-		showDelay: 100,
-		hideDelay: 100,
-		className: 'tip-wrap',
-		offset: {x: 16, y: 16},
-		windowPadding: {x:0, y:0},
-		fixed: false,
-		waiAria: true
-	},
-
-	initialize: function(){
-		var params = Array.link(arguments, {
-			options: Type.isObject,
-			elements: function(obj){
-				return obj != null;
-			}
+	Keyboard.trace = function(keyboard){
+		keyboard = keyboard || Keyboard.manager;
+		var hasConsole = window.console && console.log;
+		if (hasConsole) console.log('the following items have focus: ');
+		Keyboard.each(keyboard, function(current){
+			if (hasConsole) console.log(document.id(current.widget) || current.wiget || current);
 		});
-		this.setOptions(params.options);
-		if (params.elements) this.attach(params.elements);
-		this.container = new Element('div', {'class': 'tip'});
+	};
 
-		if (this.options.id){
-			this.container.set('id', this.options.id);
-			if (this.options.waiAria) this.attachWaiAria();
-		}
-	},
+	var handler = function(event){
+		var keys = [];
+		modifiers.each(function(mod){
+			if (event[mod]) keys.push(mod);
+		});
 
-	toElement: function(){
-		if (this.tip) return this.tip;
+		if (!regex.test(event.key)) keys.push(event.key);
+		Keyboard.manager._handle(event, event.type + ':keys(' + keys.join('+') + ')');
+	};
 
-		this.tip = new Element('div', {
-			'class': this.options.className,
-			styles: {
-				position: 'absolute',
-				top: 0,
-				left: 0
-			}
-		}).adopt(
-			new Element('div', {'class': 'tip-top'}),
-			this.container,
-			new Element('div', {'class': 'tip-bottom'})
-		);
-
-		return this.tip;
-	},
-
-	attachWaiAria: function(){
-		var id = this.options.id;
-		this.container.set('role', 'tooltip');
-
-		if (!this.waiAria){
-			this.waiAria = {
-				show: function(element){
-					if (id) element.set('aria-describedby', id);
-					this.container.set('aria-hidden', 'false');
-				},
-				hide: function(element){
-					if (id) element.erase('aria-describedby');
-					this.container.set('aria-hidden', 'true');
-				}
-			};
-		}
-		this.addEvents(this.waiAria);
-	},
-
-	detachWaiAria: function(){
-		if (this.waiAria){
-			this.container.erase('role');
-			this.container.erase('aria-hidden');
-			this.removeEvents(this.waiAria);
-		}
-	},
-
-	attach: function(elements){
-		$$(elements).each(function(element){
-			var title = read(this.options.title, element),
-				text = read(this.options.text, element);
-
-			element.set('title', '').store('tip:native', title).retrieve('tip:title', title);
-			element.retrieve('tip:text', text);
-			this.fireEvent('attach', [element]);
-
-			var events = ['enter', 'leave'];
-			if (!this.options.fixed) events.push('move');
-
-			events.each(function(value){
-				var event = element.retrieve('tip:' + value);
-				if (!event) event = function(event){
-					this['element' + value.capitalize()].apply(this, [event, element]);
-				}.bind(this);
-
-				element.store('tip:' + value, event).addEvent('mouse' + value, event);
-			}, this);
-		}, this);
-
-		return this;
-	},
-
-	detach: function(elements){
-		$$(elements).each(function(element){
-			['enter', 'leave', 'move'].each(function(value){
-				element.removeEvent('mouse' + value, element.retrieve('tip:' + value)).eliminate('tip:' + value);
-			});
-
-			this.fireEvent('detach', [element]);
-
-			if (this.options.title == 'title'){ // This is necessary to check if we can revert the title
-				var original = element.retrieve('tip:native');
-				if (original) element.set('title', original);
-			}
-		}, this);
-
-		return this;
-	},
-
-	elementEnter: function(event, element){
-		clearTimeout(this.timer);
-		this.timer = (function(){
-			this.container.empty();
-
-			['title', 'text'].each(function(value){
-				var content = element.retrieve('tip:' + value);
-				var div = this['_' + value + 'Element'] = new Element('div', {
-						'class': 'tip-' + value
-					}).inject(this.container);
-				if (content) this.fill(div, content);
-			}, this);
-			this.show(element);
-			this.position((this.options.fixed) ? {page: element.getPosition()} : event);
-		}).delay(this.options.showDelay, this);
-	},
-
-	elementLeave: function(event, element){
-		clearTimeout(this.timer);
-		this.timer = this.hide.delay(this.options.hideDelay, this, element);
-		this.fireForParent(event, element);
-	},
-
-	setTitle: function(title){
-		if (this._titleElement){
-			this._titleElement.empty();
-			this.fill(this._titleElement, title);
-		}
-		return this;
-	},
-
-	setText: function(text){
-		if (this._textElement){
-			this._textElement.empty();
-			this.fill(this._textElement, text);
-		}
-		return this;
-	},
-
-	fireForParent: function(event, element){
-		element = element.getParent();
-		if (!element || element == document.body) return;
-		if (element.retrieve('tip:enter')) element.fireEvent('mouseenter', event);
-		else this.fireForParent(event, element);
-	},
-
-	elementMove: function(event, element){
-		this.position(event);
-	},
-
-	position: function(event){
-		if (!this.tip) document.id(this);
-
-		var size = window.getSize(), scroll = window.getScroll(),
-			tip = {x: this.tip.offsetWidth, y: this.tip.offsetHeight},
-			props = {x: 'left', y: 'top'},
-			bounds = {y: false, x2: false, y2: false, x: false},
-			obj = {};
-
-		for (var z in props){
-			obj[props[z]] = event.page[z] + this.options.offset[z];
-			if (obj[props[z]] < 0) bounds[z] = true;
-			if ((obj[props[z]] + tip[z] - scroll[z]) > size[z] - this.options.windowPadding[z]){
-				obj[props[z]] = event.page[z] - this.options.offset[z] - tip[z];
-				bounds[z+'2'] = true;
-			}
-		}
-
-		this.fireEvent('bound', bounds);
-		this.tip.setStyles(obj);
-	},
-
-	fill: function(element, contents){
-		if (typeof contents == 'string') element.set('html', contents);
-		else element.adopt(contents);
-	},
-
-	show: function(element){
-		if (!this.tip) document.id(this);
-		if (!this.tip.getParent()) this.tip.inject(document.body);
-		this.fireEvent('show', [this.tip, element]);
-	},
-
-	hide: function(element){
-		if (!this.tip) document.id(this);
-		this.fireEvent('hide', [this.tip, element]);
-	}
-
-});
+	document.addEvents({
+		'keyup': handler,
+		'keydown': handler
+	});
 
 })();
 
 
-// Begin: Source/Locale/Locale.ar.Form.Validator.js
-/*
----
-
-name: Locale.ar.Form.Validator
-
-description: Form Validator messages for Arabic.
-
-license: MIT-style license
-
-authors:
-  - Chafik Barbar
-
-requires:
-  - /Locale
-
-provides: [Locale.ar.Form.Validator]
-
-...
-*/
-
-Locale.define('ar', 'FormValidator', {
-
-	required: 'هذا الحقل مطلوب.',
-	minLength: 'رجاءً إدخال {minLength} أحرف على الأقل (تم إدخال {length} أحرف).',
-	maxLength: 'الرجاء عدم إدخال أكثر من {maxLength} أحرف (تم إدخال {length} أحرف).',
-	integer: 'الرجاء إدخال عدد صحيح في هذا الحقل. أي رقم ذو كسر عشري أو مئوي (مثال 1.25 ) غير مسموح.',
-	numeric: 'الرجاء إدخال قيم رقمية في هذا الحقل (مثال "1" أو "1.1" أو "-1" أو "-1.1").',
-	digits: 'الرجاء أستخدام قيم رقمية وعلامات ترقيمية فقط في هذا الحقل (مثال, رقم هاتف مع نقطة أو شحطة)',
-	alpha: 'الرجاء أستخدام أحرف فقط (ا-ي) في هذا الحقل. أي فراغات أو علامات غير مسموحة.',
-	alphanum: 'الرجاء أستخدام أحرف فقط (ا-ي) أو أرقام (0-9) فقط في هذا الحقل. أي فراغات أو علامات غير مسموحة.',
-	dateSuchAs: 'الرجاء إدخال تاريخ صحيح كالتالي {date}',
-	dateInFormatMDY: 'الرجاء إدخال تاريخ صحيح (مثال, 31-12-1999)',
-	email: 'الرجاء إدخال بريد إلكتروني صحيح.',
-	url: 'الرجاء إدخال عنوان إلكتروني صحيح مثل http://www.example.com',
-	currencyDollar: 'الرجاء إدخال قيمة $ صحيحة. مثال, 100.00$',
-	oneRequired: 'الرجاء إدخال قيمة في أحد هذه الحقول على الأقل.',
-	errorPrefix: 'خطأ: ',
-	warningPrefix: 'تحذير: '
-
-});
-
-
-// Begin: Source/Forms/Form.Request.Append.js
-/*
----
-
-script: Form.Request.Append.js
-
-name: Form.Request.Append
-
-description: Handles the basic functionality of submitting a form and updating a dom element with the result. The result is appended to the DOM element instead of replacing its contents.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - /Form.Request
-  - /Fx.Reveal
-  - /Elements.from
-
-provides: [Form.Request.Append]
-
-...
-*/
-
-Form.Request.Append = new Class({
-
-	Extends: Form.Request,
-
-	options: {
-		//onBeforeEffect: function(){},
-		useReveal: true,
-		revealOptions: {},
-		inject: 'bottom'
-	},
-
-	makeRequest: function(){
-		this.request = new Request.HTML(Object.merge({
-				url: this.element.get('action'),
-				method: this.element.get('method') || 'post',
-				spinnerTarget: this.element
-			}, this.options.requestOptions, {
-				evalScripts: false
-			})
-		).addEvents({
-			success: function(tree, elements, html, javascript){
-				var container;
-				var kids = Elements.from(html);
-				if (kids.length == 1){
-					container = kids[0];
-				} else {
-					 container = new Element('div', {
-						styles: {
-							display: 'none'
-						}
-					}).adopt(kids);
-				}
-				container.inject(this.target, this.options.inject);
-				if (this.options.requestOptions.evalScripts) Browser.exec(javascript);
-				this.fireEvent('beforeEffect', container);
-				var finish = function(){
-					this.fireEvent('success', [container, this.target, tree, elements, html, javascript]);
-				}.bind(this);
-				if (this.options.useReveal){
-					container.set('reveal', this.options.revealOptions).get('reveal').chain(finish);
-					container.reveal();
-				} else {
-					finish();
-				}
-			}.bind(this),
-			failure: function(xhr){
-				this.fireEvent('failure', xhr);
-			}.bind(this)
-		});
-		this.attachReset();
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.fa.Form.Validator.js
-/*
----
-
-name: Locale.fa.Form.Validator
-
-description: Form Validator messages for Persian.
-
-license: MIT-style license
-
-authors:
-  - Amir Hossein Hodjaty Pour
-
-requires:
-  - /Locale
-
-provides: [Locale.fa.Form.Validator]
-
-...
-*/
-
-Locale.define('fa', 'FormValidator', {
-
-	required: 'این فیلد الزامی است.',
-	minLength: 'شما باید حداقل {minLength} حرف وارد کنید ({length} حرف وارد کرده اید).',
-	maxLength: 'لطفا حداکثر {maxLength} حرف وارد کنید (شما {length} حرف وارد کرده اید).',
-	integer: 'لطفا از عدد صحیح استفاده کنید. اعداد اعشاری (مانند 1.25) مجاز نیستند.',
-	numeric: 'لطفا فقط داده عددی وارد کنید (مانند "1" یا "1.1" یا "1-" یا "1.1-").',
-	digits: 'لطفا فقط از اعداد و علامتها در این فیلد استفاده کنید (برای مثال شماره تلفن با خط تیره و نقطه قابل قبول است).',
-	alpha: 'لطفا فقط از حروف الفباء برای این بخش استفاده کنید. کاراکترهای دیگر و فاصله مجاز نیستند.',
-	alphanum: 'لطفا فقط از حروف الفباء و اعداد در این بخش استفاده کنید. کاراکترهای دیگر و فاصله مجاز نیستند.',
-	dateSuchAs: 'لطفا یک تاریخ معتبر مانند {date} وارد کنید.',
-	dateInFormatMDY: 'لطفا یک تاریخ معتبر به شکل MM/DD/YYYY وارد کنید (مانند "12/31/1999").',
-	email: 'لطفا یک آدرس ایمیل معتبر وارد کنید. برای مثال "fred@domain.com".',
-	url: 'لطفا یک URL معتبر مانند http://www.example.com وارد کنید.',
-	currencyDollar: 'لطفا یک محدوده معتبر برای این بخش وارد کنید مانند 100.00$ .',
-	oneRequired: 'لطفا حداقل یکی از فیلدها را پر کنید.',
-	errorPrefix: 'خطا: ',
-	warningPrefix: 'هشدار: ',
-
-	// Form.Validator.Extras
-	noSpace: 'استفاده از فاصله در این بخش مجاز نیست.',
-	reqChkByNode: 'موردی انتخاب نشده است.',
-	requiredChk: 'این فیلد الزامی است.',
-	reqChkByName: 'لطفا یک {label} را انتخاب کنید.',
-	match: 'این فیلد باید با فیلد {matchName} مطابقت داشته باشد.',
-	startDate: 'تاریخ شروع',
-	endDate: 'تاریخ پایان',
-	currendDate: 'تاریخ کنونی',
-	afterDate: 'تاریخ میبایست برابر یا بعد از {label} باشد',
-	beforeDate: 'تاریخ میبایست برابر یا قبل از {label} باشد',
-	startMonth: 'لطفا ماه شروع را انتخاب کنید',
-	sameMonth: 'این دو تاریخ باید در یک ماه باشند - شما باید یکی یا هر دو را تغییر دهید.',
-	creditcard: 'شماره کارت اعتباری که وارد کرده اید معتبر نیست. لطفا شماره را بررسی کنید و مجددا تلاش کنید. {length} رقم وارد شده است.'
-
-});
-
-
-// Begin: Source/Locale/Locale.sv-SE.Form.Validator.js
-/*
----
-
-name: Locale.sv-SE.Form.Validator
-
-description: Form Validator messages for Swedish.
-
-license: MIT-style license
-
-authors:
-  - Martin Lundgren
-
-requires:
-  - /Locale
-
-provides: [Locale.sv-SE.Form.Validator]
-
-...
-*/
-
-Locale.define('sv-SE', 'FormValidator', {
-
-	required: 'Fältet är obligatoriskt.',
-	minLength: 'Ange minst {minLength} tecken (du angav {length} tecken).',
-	maxLength: 'Ange högst {maxLength} tecken (du angav {length} tecken). ',
-	integer: 'Ange ett heltal i fältet. Tal med decimaler (t.ex. 1,25) är inte tillåtna.',
-	numeric: 'Ange endast numeriska värden i detta fält (t.ex. "1" eller "1.1" eller "-1" eller "-1,1").',
-	digits: 'Använd endast siffror och skiljetecken i detta fält (till exempel ett telefonnummer med bindestreck tillåtet).',
-	alpha: 'Använd endast bokstäver (a-ö) i detta fält. Inga mellanslag eller andra tecken är tillåtna.',
-	alphanum: 'Använd endast bokstäver (a-ö) och siffror (0-9) i detta fält. Inga mellanslag eller andra tecken är tillåtna.',
-	dateSuchAs: 'Ange ett giltigt datum som t.ex. {date}',
-	dateInFormatMDY: 'Ange ett giltigt datum som t.ex. YYYY-MM-DD (i.e. "1999-12-31")',
-	email: 'Ange en giltig e-postadress. Till exempel "erik@domain.com".',
-	url: 'Ange en giltig webbadress som http://www.example.com.',
-	currencyDollar: 'Ange en giltig belopp. Exempelvis 100,00.',
-	oneRequired: 'Vänligen ange minst ett av dessa alternativ.',
-	errorPrefix: 'Fel: ',
-	warningPrefix: 'Varning: ',
-
-	// Form.Validator.Extras
-	noSpace: 'Det får inte finnas några mellanslag i detta fält.',
-	reqChkByNode: 'Inga objekt är valda.',
-	requiredChk: 'Detta är ett obligatoriskt fält.',
-	reqChkByName: 'Välj en {label}.',
-	match: 'Detta fält måste matcha {matchName}',
-	startDate: 'startdatumet',
-	endDate: 'slutdatum',
-	currendDate: 'dagens datum',
-	afterDate: 'Datumet bör vara samma eller senare än {label}.',
-	beforeDate: 'Datumet bör vara samma eller tidigare än {label}.',
-	startMonth: 'Välj en start månad',
-	sameMonth: 'Dessa två datum måste vara i samma månad - du måste ändra det ena eller det andra.'
-
-});
-
-
-// Begin: Source/Locale/Locale.he-IL.Number.js
-/*
----
-
-name: Locale.he-IL.Number
-
-description: Number messages for Hebrew.
-
-license: MIT-style license
-
-authors:
-  - Elad Ossadon
-
-requires:
-  - /Locale
-
-provides: [Locale.he-IL.Number]
-
-...
-*/
-
-Locale.define('he-IL', 'Number', {
-
-	decimal: '.',
-	group: ',',
-
-	currency: {
-		suffix: ' ₪'
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.fr-FR.Date.js
-/*
----
-
-name: Locale.fr-FR.Date
-
-description: Date messages for French.
-
-license: MIT-style license
-
-authors:
-  - Nicolas Sorosac
-  - Antoine Abt
-
-requires:
-  - /Locale
-
-provides: [Locale.fr-FR.Date]
-
-...
-*/
-
-Locale.define('fr-FR', 'Date', {
-
-	months: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
-	months_abbr: ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
-	days: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
-	days_abbr: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
-
-	// Culture's date order: DD/MM/YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d/%m/%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: function(dayOfMonth){
-		return (dayOfMonth > 1) ? '' : 'er';
-	},
-
-	lessThanMinuteAgo: "il y a moins d'une minute",
-	minuteAgo: 'il y a une minute',
-	minutesAgo: 'il y a {delta} minutes',
-	hourAgo: 'il y a une heure',
-	hoursAgo: 'il y a {delta} heures',
-	dayAgo: 'il y a un jour',
-	daysAgo: 'il y a {delta} jours',
-	weekAgo: 'il y a une semaine',
-	weeksAgo: 'il y a {delta} semaines',
-	monthAgo: 'il y a 1 mois',
-	monthsAgo: 'il y a {delta} mois',
-	yearthAgo: 'il y a 1 an',
-	yearsAgo: 'il y a {delta} ans',
-
-	lessThanMinuteUntil: "dans moins d'une minute",
-	minuteUntil: 'dans une minute',
-	minutesUntil: 'dans {delta} minutes',
-	hourUntil: 'dans une heure',
-	hoursUntil: 'dans {delta} heures',
-	dayUntil: 'dans un jour',
-	daysUntil: 'dans {delta} jours',
-	weekUntil: 'dans 1 semaine',
-	weeksUntil: 'dans {delta} semaines',
-	monthUntil: 'dans 1 mois',
-	monthsUntil: 'dans {delta} mois',
-	yearUntil: 'dans 1 an',
-	yearsUntil: 'dans {delta} ans'
-
-});
-
-
-// Begin: Source/Locale/Locale.it-IT.Form.Validator.js
-/*
----
-
-name: Locale.it-IT.Form.Validator
-
-description: Form Validator messages for Italian.
-
-license: MIT-style license
-
-authors:
-  - Leonardo Laureti
-  - Andrea Novero
-
-requires:
-  - /Locale
-
-provides: [Locale.it-IT.Form.Validator]
-
-...
-*/
-
-Locale.define('it-IT', 'FormValidator', {
-
-	required: 'Il campo &egrave; obbligatorio.',
-	minLength: 'Inserire almeno {minLength} caratteri (ne sono stati inseriti {length}).',
-	maxLength: 'Inserire al massimo {maxLength} caratteri (ne sono stati inseriti {length}).',
-	integer: 'Inserire un numero intero. Non sono consentiti decimali (es.: 1.25).',
-	numeric: 'Inserire solo valori numerici (es.: "1" oppure "1.1" oppure "-1" oppure "-1.1").',
-	digits: 'Inserire solo numeri e caratteri di punteggiatura. Per esempio &egrave; consentito un numero telefonico con trattini o punti.',
-	alpha: 'Inserire solo lettere (a-z). Non sono consentiti spazi o altri caratteri.',
-	alphanum: 'Inserire solo lettere (a-z) o numeri (0-9). Non sono consentiti spazi o altri caratteri.',
-	dateSuchAs: 'Inserire una data valida del tipo {date}',
-	dateInFormatMDY: 'Inserire una data valida nel formato MM/GG/AAAA (es.: "12/31/1999")',
-	email: 'Inserire un indirizzo email valido. Per esempio "nome@dominio.com".',
-	url: 'Inserire un indirizzo valido. Per esempio "http://www.example.com".',
-	currencyDollar: 'Inserire un importo valido. Per esempio "$100.00".',
-	oneRequired: 'Completare almeno uno dei campi richiesti.',
-	errorPrefix: 'Errore: ',
-	warningPrefix: 'Attenzione: ',
-
-	// Form.Validator.Extras
-	noSpace: 'Non sono consentiti spazi.',
-	reqChkByNode: 'Nessuna voce selezionata.',
-	requiredChk: 'Il campo &egrave; obbligatorio.',
-	reqChkByName: 'Selezionare un(a) {label}.',
-	match: 'Il valore deve corrispondere al campo {matchName}',
-	startDate: "data d'inizio",
-	endDate: 'data di fine',
-	currendDate: 'data attuale',
-	afterDate: 'La data deve corrispondere o essere successiva al {label}.',
-	beforeDate: 'La data deve corrispondere o essere precedente al {label}.',
-	startMonth: "Selezionare un mese d'inizio",
-	sameMonth: 'Le due date devono essere dello stesso mese - occorre modificarne una.'
-
-});
-
-
-// Begin: Source/Locale/Locale.es-AR.Form.Validator.js
-/*
----
-
-name: Locale.es-AR.Form.Validator
-
-description: Form Validator messages for Spanish (Argentina).
-
-license: MIT-style license
-
-authors:
-  - Diego Massanti
-
-requires:
-  - /Locale
-
-provides: [Locale.es-AR.Form.Validator]
-
-...
-*/
-
-Locale.define('es-AR', 'FormValidator', {
-
-	required: 'Este campo es obligatorio.',
-	minLength: 'Por favor ingrese al menos {minLength} caracteres (ha ingresado {length} caracteres).',
-	maxLength: 'Por favor no ingrese más de {maxLength} caracteres (ha ingresado {length} caracteres).',
-	integer: 'Por favor ingrese un número entero en este campo. Números con decimales (p.e. 1,25) no se permiten.',
-	numeric: 'Por favor ingrese solo valores numéricos en este campo (p.e. "1" o "1,1" o "-1" o "-1,1").',
-	digits: 'Por favor use sólo números y puntuación en este campo (por ejemplo, un número de teléfono con guiones y/o puntos no está permitido).',
-	alpha: 'Por favor use sólo letras (a-z) en este campo. No se permiten espacios ni otros caracteres.',
-	alphanum: 'Por favor, usa sólo letras (a-z) o números (0-9) en este campo. No se permiten espacios u otros caracteres.',
-	dateSuchAs: 'Por favor ingrese una fecha válida como {date}',
-	dateInFormatMDY: 'Por favor ingrese una fecha válida, utulizando el formato DD/MM/YYYY (p.e. "31/12/1999")',
-	email: 'Por favor, ingrese una dirección de e-mail válida. Por ejemplo, "fred@dominio.com".',
-	url: 'Por favor ingrese una URL válida como http://www.example.com.',
-	currencyDollar: 'Por favor ingrese una cantidad válida de pesos. Por ejemplo $100,00 .',
-	oneRequired: 'Por favor ingrese algo para por lo menos una de estas entradas.',
-	errorPrefix: 'Error: ',
-	warningPrefix: 'Advertencia: ',
-
-	// Form.Validator.Extras
-	noSpace: 'No se permiten espacios en este campo.',
-	reqChkByNode: 'No hay elementos seleccionados.',
-	requiredChk: 'Este campo es obligatorio.',
-	reqChkByName: 'Por favor selecciona una {label}.',
-	match: 'Este campo necesita coincidir con el campo {matchName}',
-	startDate: 'la fecha de inicio',
-	endDate: 'la fecha de fin',
-	currendDate: 'la fecha actual',
-	afterDate: 'La fecha debe ser igual o posterior a {label}.',
-	beforeDate: 'La fecha debe ser igual o anterior a {label}.',
-	startMonth: 'Por favor selecciona un mes de origen',
-	sameMonth: 'Estas dos fechas deben estar en el mismo mes - debes cambiar una u otra.'
-
-});
-
-
-// Begin: Source/Interface/Keyboard.Extras.js
 /*
 ---
 
@@ -11999,2901 +9190,6 @@ Keyboard.getShortcuts = function(name, keyboard){
 };
 
 
-// Begin: Source/Locale/Locale.da-DK.Form.Validator.js
-/*
----
-
-name: Locale.da-DK.Form.Validator
-
-description: Form Validator messages for Danish.
-
-license: MIT-style license
-
-authors:
-  - Martin Overgaard
-
-requires:
-  - /Locale
-
-provides: [Locale.da-DK.Form.Validator]
-
-...
-*/
-
-Locale.define('da-DK', 'FormValidator', {
-
-	required: 'Feltet skal udfyldes.',
-	minLength: 'Skriv mindst {minLength} tegn (du skrev {length} tegn).',
-	maxLength: 'Skriv maksimalt {maxLength} tegn (du skrev {length} tegn).',
-	integer: 'Skriv et tal i dette felt. Decimal tal (f.eks. 1.25) er ikke tilladt.',
-	numeric: 'Skriv kun tal i dette felt (i.e. "1" eller "1.1" eller "-1" eller "-1.1").',
-	digits: 'Skriv kun tal og tegnsætning i dette felt (eksempel, et telefon nummer med bindestreg eller punktum er tilladt).',
-	alpha: 'Skriv kun bogstaver (a-z) i dette felt. Mellemrum og andre tegn er ikke tilladt.',
-	alphanum: 'Skriv kun bogstaver (a-z) eller tal (0-9) i dette felt. Mellemrum og andre tegn er ikke tilladt.',
-	dateSuchAs: 'Skriv en gyldig dato som {date}',
-	dateInFormatMDY: 'Skriv dato i formatet DD-MM-YYYY (f.eks. "31-12-1999")',
-	email: 'Skriv en gyldig e-mail adresse. F.eks "fred@domain.com".',
-	url: 'Skriv en gyldig URL adresse. F.eks "http://www.example.com".',
-	currencyDollar: 'Skriv et gldigt beløb. F.eks Kr.100.00 .',
-	oneRequired: 'Et eller flere af felterne i denne formular skal udfyldes.',
-	errorPrefix: 'Fejl: ',
-	warningPrefix: 'Advarsel: ',
-
-	// Form.Validator.Extras
-	noSpace: 'Der må ikke benyttes mellemrum i dette felt.',
-	reqChkByNode: 'Foretag et valg.',
-	requiredChk: 'Dette felt skal udfyldes.',
-	reqChkByName: 'Vælg en {label}.',
-	match: 'Dette felt skal matche {matchName} feltet',
-	startDate: 'start dato',
-	endDate: 'slut dato',
-	currendDate: 'dags dato',
-	afterDate: 'Datoen skal være større end eller lig med {label}.',
-	beforeDate: 'Datoen skal være mindre end eller lig med {label}.',
-	startMonth: 'Vælg en start måned',
-	sameMonth: 'De valgte datoer skal være i samme måned - skift en af dem.'
-
-});
-
-
-// Begin: Source/Types/URI.js
-/*
----
-
-script: URI.js
-
-name: URI
-
-description: Provides methods useful in managing the window location and uris.
-
-license: MIT-style license
-
-authors:
-  - Sebastian Markbåge
-  - Aaron Newton
-
-requires:
-  - Core/Object
-  - Core/Class
-  - Core/Class.Extras
-  - Core/Element
-  - /String.QueryString
-
-provides: [URI]
-
-...
-*/
-
-(function(){
-
-var toString = function(){
-	return this.get('value');
-};
-
-var URI = this.URI = new Class({
-
-	Implements: Options,
-
-	options: {
-		/*base: false*/
-	},
-
-	regex: /^(?:(\w+):)?(?:\/\/(?:(?:([^:@\/]*):?([^:@\/]*))?@)?([^:\/?#]*)(?::(\d*))?)?(\.\.?$|(?:[^?#\/]*\/)*)([^?#]*)(?:\?([^#]*))?(?:#(.*))?/,
-	parts: ['scheme', 'user', 'password', 'host', 'port', 'directory', 'file', 'query', 'fragment'],
-	schemes: {http: 80, https: 443, ftp: 21, rtsp: 554, mms: 1755, file: 0},
-
-	initialize: function(uri, options){
-		this.setOptions(options);
-		var base = this.options.base || URI.base;
-		if (!uri) uri = base;
-
-		if (uri && uri.parsed) this.parsed = Object.clone(uri.parsed);
-		else this.set('value', uri.href || uri.toString(), base ? new URI(base) : false);
-	},
-
-	parse: function(value, base){
-		var bits = value.match(this.regex);
-		if (!bits) return false;
-		bits.shift();
-		return this.merge(bits.associate(this.parts), base);
-	},
-
-	merge: function(bits, base){
-		if ((!bits || !bits.scheme) && (!base || !base.scheme)) return false;
-		if (base){
-			this.parts.every(function(part){
-				if (bits[part]) return false;
-				bits[part] = base[part] || '';
-				return true;
-			});
-		}
-		bits.port = bits.port || this.schemes[bits.scheme.toLowerCase()];
-		bits.directory = bits.directory ? this.parseDirectory(bits.directory, base ? base.directory : '') : '/';
-		return bits;
-	},
-
-	parseDirectory: function(directory, baseDirectory){
-		directory = (directory.substr(0, 1) == '/' ? '' : (baseDirectory || '/')) + directory;
-		if (!directory.test(URI.regs.directoryDot)) return directory;
-		var result = [];
-		directory.replace(URI.regs.endSlash, '').split('/').each(function(dir){
-			if (dir == '..' && result.length > 0) result.pop();
-			else if (dir != '.') result.push(dir);
-		});
-		return result.join('/') + '/';
-	},
-
-	combine: function(bits){
-		return bits.value || bits.scheme + '://' +
-			(bits.user ? bits.user + (bits.password ? ':' + bits.password : '') + '@' : '') +
-			(bits.host || '') + (bits.port && bits.port != this.schemes[bits.scheme] ? ':' + bits.port : '') +
-			(bits.directory || '/') + (bits.file || '') +
-			(bits.query ? '?' + bits.query : '') +
-			(bits.fragment ? '#' + bits.fragment : '');
-	},
-
-	set: function(part, value, base){
-		if (part == 'value'){
-			var scheme = value.match(URI.regs.scheme);
-			if (scheme) scheme = scheme[1];
-			if (scheme && this.schemes[scheme.toLowerCase()] == null) this.parsed = { scheme: scheme, value: value };
-			else this.parsed = this.parse(value, (base || this).parsed) || (scheme ? { scheme: scheme, value: value } : { value: value });
-		} else if (part == 'data'){
-			this.setData(value);
-		} else {
-			this.parsed[part] = value;
-		}
-		return this;
-	},
-
-	get: function(part, base){
-		switch (part){
-			case 'value': return this.combine(this.parsed, base ? base.parsed : false);
-			case 'data' : return this.getData();
-		}
-		return this.parsed[part] || '';
-	},
-
-	go: function(){
-		document.location.href = this.toString();
-	},
-
-	toURI: function(){
-		return this;
-	},
-
-	getData: function(key, part){
-		var qs = this.get(part || 'query');
-		if (!(qs || qs === 0)) return key ? null : {};
-		var obj = qs.parseQueryString();
-		return key ? obj[key] : obj;
-	},
-
-	setData: function(values, merge, part){
-		if (typeof values == 'string'){
-			var data = this.getData();
-			data[arguments[0]] = arguments[1];
-			values = data;
-		} else if (merge){
-			values = Object.merge(this.getData(), values);
-		}
-		return this.set(part || 'query', Object.toQueryString(values));
-	},
-
-	clearData: function(part){
-		return this.set(part || 'query', '');
-	},
-
-	toString: toString,
-	valueOf: toString
-
-});
-
-URI.regs = {
-	endSlash: /\/$/,
-	scheme: /^(\w+):/,
-	directoryDot: /\.\/|\.$/
-};
-
-URI.base = new URI(Array.from(document.getElements('base[href]', true)).getLast(), {base: document.location});
-
-String.implement({
-
-	toURI: function(options){
-		return new URI(this, options);
-	}
-
-});
-
-})();
-
-
-// Begin: Source/Types/URI.Relative.js
-/*
----
-
-script: URI.Relative.js
-
-name: URI.Relative
-
-description: Extends the URI class to add methods for computing relative and absolute urls.
-
-license: MIT-style license
-
-authors:
-  - Sebastian Markbåge
-
-
-requires:
-  - /Class.refactor
-  - /URI
-
-provides: [URI.Relative]
-
-...
-*/
-
-URI = Class.refactor(URI, {
-
-	combine: function(bits, base){
-		if (!base || bits.scheme != base.scheme || bits.host != base.host || bits.port != base.port)
-			return this.previous.apply(this, arguments);
-		var end = bits.file + (bits.query ? '?' + bits.query : '') + (bits.fragment ? '#' + bits.fragment : '');
-
-		if (!base.directory) return (bits.directory || (bits.file ? '' : './')) + end;
-
-		var baseDir = base.directory.split('/'),
-			relDir = bits.directory.split('/'),
-			path = '',
-			offset;
-
-		var i = 0;
-		for (offset = 0; offset < baseDir.length && offset < relDir.length && baseDir[offset] == relDir[offset]; offset++);
-		for (i = 0; i < baseDir.length - offset - 1; i++) path += '../';
-		for (i = offset; i < relDir.length - 1; i++) path += relDir[i] + '/';
-
-		return (path || (bits.file ? '' : './')) + end;
-	},
-
-	toAbsolute: function(base){
-		base = new URI(base);
-		if (base) base.set('directory', '').set('file', '');
-		return this.toRelative(base);
-	},
-
-	toRelative: function(base){
-		return this.get('value', new URI(base));
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.fr-FR.Number.js
-/*
----
-
-name: Locale.fr-FR.Number
-
-description: Number messages for French.
-
-license: MIT-style license
-
-authors:
-  - Arian Stolwijk
-  - sv1l
-
-requires:
-  - /Locale
-  - /Locale.EU.Number
-
-provides: [Locale.fr-FR.Number]
-
-...
-*/
-
-Locale.define('fr-FR', 'Number', {
-
-	group: ' ' // In fr-FR localization, group character is a blank space
-
-}).inherit('EU', 'Number');
-
-
-// Begin: Source/Types/Date.Extras.js
-/*
----
-
-script: Date.Extras.js
-
-name: Date.Extras
-
-description: Extends the Date native object to include extra methods (on top of those in Date.js).
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-  - Scott Kyle
-
-requires:
-  - /Date
-
-provides: [Date.Extras]
-
-...
-*/
-
-Date.implement({
-
-	timeDiffInWords: function(to){
-		return Date.distanceOfTimeInWords(this, to || new Date);
-	},
-
-	timeDiff: function(to, separator){
-		if (to == null) to = new Date;
-		var delta = ((to - this) / 1000).floor().abs();
-
-		var vals = [],
-			durations = [60, 60, 24, 365, 0],
-			names = ['s', 'm', 'h', 'd', 'y'],
-			value, duration;
-
-		for (var item = 0; item < durations.length; item++){
-			if (item && !delta) break;
-			value = delta;
-			if ((duration = durations[item])){
-				value = (delta % duration);
-				delta = (delta / duration).floor();
-			}
-			vals.unshift(value + (names[item] || ''));
-		}
-
-		return vals.join(separator || ':');
-	}
-
-}).extend({
-
-	distanceOfTimeInWords: function(from, to){
-		return Date.getTimePhrase(((to - from) / 1000).toInt());
-	},
-
-	getTimePhrase: function(delta){
-		var suffix = (delta < 0) ? 'Until' : 'Ago';
-		if (delta < 0) delta *= -1;
-
-		var units = {
-			minute: 60,
-			hour: 60,
-			day: 24,
-			week: 7,
-			month: 52 / 12,
-			year: 12,
-			eon: Infinity
-		};
-
-		var msg = 'lessThanMinute';
-
-		for (var unit in units){
-			var interval = units[unit];
-			if (delta < 1.5 * interval){
-				if (delta > 0.75 * interval) msg = unit;
-				break;
-			}
-			delta /= interval;
-			msg = unit + 's';
-		}
-
-		delta = delta.round();
-		return Date.getMsg(msg + suffix, delta).substitute({delta: delta});
-	}
-
-}).defineParsers(
-
-	{
-		// "today", "tomorrow", "yesterday"
-		re: /^(?:tod|tom|yes)/i,
-		handler: function(bits){
-			var d = new Date().clearTime();
-			switch (bits[0]){
-				case 'tom': return d.increment();
-				case 'yes': return d.decrement();
-				default: return d;
-			}
-		}
-	},
-
-	{
-		// "next Wednesday", "last Thursday"
-		re: /^(next|last) ([a-z]+)$/i,
-		handler: function(bits){
-			var d = new Date().clearTime();
-			var day = d.getDay();
-			var newDay = Date.parseDay(bits[2], true);
-			var addDays = newDay - day;
-			if (newDay <= day) addDays += 7;
-			if (bits[1] == 'last') addDays -= 7;
-			return d.set('date', d.getDate() + addDays);
-		}
-	}
-
-).alias('timeAgoInWords', 'timeDiffInWords');
-
-
-// Begin: Source/Locale/Locale.de-CH.Date.js
-/*
----
-
-name: Locale.de-CH.Date
-
-description: Date messages for German (Switzerland).
-
-license: MIT-style license
-
-authors:
-  - Michael van der Weg
-
-requires:
-  - /Locale
-  - /Locale.de-DE.Date
-
-provides: [Locale.de-CH.Date]
-
-...
-*/
-
-Locale.define('de-CH').inherit('de-DE', 'Date');
-
-
-// Begin: Source/Utilities/Hash.Cookie.js
-/*
----
-
-script: Hash.Cookie.js
-
-name: Hash.Cookie
-
-description: Class for creating, reading, and deleting Cookies in JSON format.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-  - Aaron Newton
-
-requires:
-  - Core/Cookie
-  - Core/JSON
-  - /MooTools.More
-  - /Hash
-
-provides: [Hash.Cookie]
-
-...
-*/
-
-Hash.Cookie = new Class({
-
-	Extends: Cookie,
-
-	options: {
-		autoSave: true
-	},
-
-	initialize: function(name, options){
-		this.parent(name, options);
-		this.load();
-	},
-
-	save: function(){
-		var value = JSON.encode(this.hash);
-		if (!value || value.length > 4096) return false; //cookie would be truncated!
-		if (value == '{}') this.dispose();
-		else this.write(value);
-		return true;
-	},
-
-	load: function(){
-		this.hash = new Hash(JSON.decode(this.read(), true));
-		return this;
-	}
-
-});
-
-Hash.each(Hash.prototype, function(method, name){
-	if (typeof method == 'function') Hash.Cookie.implement(name, function(){
-		var value = method.apply(this.hash, arguments);
-		if (this.options.autoSave) this.save();
-		return value;
-	});
-});
-
-
-// Begin: Source/Locale/Locale.uk-UA.Date.js
-/*
----
-
-name: Locale.uk-UA.Date
-
-description: Date messages for Ukrainian (utf-8).
-
-license: MIT-style license
-
-authors:
-  - Slik
-
-requires:
-  - /Locale
-
-provides: [Locale.uk-UA.Date]
-
-...
-*/
-
-(function(){
-
-var pluralize = function(n, one, few, many, other){
-	var d = (n / 10).toInt(),
-		z = n % 10,
-		s = (n / 100).toInt();
-
-	if (d == 1 && n > 10) return many;
-	if (z == 1) return one;
-	if (z > 0 && z < 5) return few;
-	return many;
-};
-
-Locale.define('uk-UA', 'Date', {
-
-	months: ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'],
-	months_abbr: ['Січ', 'Лют', 'Бер', 'Квіт', 'Трав', 'Черв', 'Лип', 'Серп', 'Вер', 'Жовт', 'Лист', 'Груд' ],
-	days: ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', "П'ятниця", 'Субота'],
-	days_abbr: ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
-
-	// Culture's date order: DD/MM/YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d/%m/%Y',
-	shortTime: '%H:%M',
-	AM: 'до полудня',
-	PM: 'по полудню',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: 'меньше хвилини тому',
-	minuteAgo: 'хвилину тому',
-	minutesAgo: function(delta){ return '{delta} ' + pluralize(delta, 'хвилину', 'хвилини', 'хвилин') + ' тому'; },
-	hourAgo: 'годину тому',
-	hoursAgo: function(delta){ return '{delta} ' + pluralize(delta, 'годину', 'години', 'годин') + ' тому'; },
-	dayAgo: 'вчора',
-	daysAgo: function(delta){ return '{delta} ' + pluralize(delta, 'день', 'дня', 'днів') + ' тому'; },
-	weekAgo: 'тиждень тому',
-	weeksAgo: function(delta){ return '{delta} ' + pluralize(delta, 'тиждень', 'тижні', 'тижнів') + ' тому'; },
-	monthAgo: 'місяць тому',
-	monthsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'місяць', 'місяці', 'місяців') + ' тому'; },
-	yearAgo: 'рік тому',
-	yearsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'рік', 'роки', 'років') + ' тому'; },
-
-	lessThanMinuteUntil: 'за мить',
-	minuteUntil: 'через хвилину',
-	minutesUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'хвилину', 'хвилини', 'хвилин'); },
-	hourUntil: 'через годину',
-	hoursUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'годину', 'години', 'годин'); },
-	dayUntil: 'завтра',
-	daysUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'день', 'дня', 'днів'); },
-	weekUntil: 'через тиждень',
-	weeksUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'тиждень', 'тижні', 'тижнів'); },
-	monthUntil: 'через місяць',
-	monthesUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'місяць', 'місяці', 'місяців'); },
-	yearUntil: 'через рік',
-	yearsUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'рік', 'роки', 'років'); }
-
-});
-
-})();
-
-
-// Begin: Source/Interface/Scroller.js
-/*
----
-
-script: Scroller.js
-
-name: Scroller
-
-description: Class which scrolls the contents of any Element (including the window) when the mouse reaches the Element's boundaries.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-
-requires:
-  - Core/Events
-  - Core/Options
-  - Core/Element.Event
-  - Core/Element.Dimensions
-  - MooTools.More
-
-provides: [Scroller]
-
-...
-*/
-
-var Scroller = new Class({
-
-	Implements: [Events, Options],
-
-	options: {
-		area: 20,
-		velocity: 1,
-		onChange: function(x, y){
-			this.element.scrollTo(x, y);
-		},
-		fps: 50
-	},
-
-	initialize: function(element, options){
-		this.setOptions(options);
-		this.element = document.id(element);
-		this.docBody = document.id(this.element.getDocument().body);
-		this.listener = (typeOf(this.element) != 'element') ? this.docBody : this.element;
-		this.timer = null;
-		this.bound = {
-			attach: this.attach.bind(this),
-			detach: this.detach.bind(this),
-			getCoords: this.getCoords.bind(this)
-		};
-	},
-
-	start: function(){
-		this.listener.addEvents({
-			mouseover: this.bound.attach,
-			mouseleave: this.bound.detach
-		});
-		return this;
-	},
-
-	stop: function(){
-		this.listener.removeEvents({
-			mouseover: this.bound.attach,
-			mouseleave: this.bound.detach
-		});
-		this.detach();
-		this.timer = clearInterval(this.timer);
-		return this;
-	},
-
-	attach: function(){
-		this.listener.addEvent('mousemove', this.bound.getCoords);
-	},
-
-	detach: function(){
-		this.listener.removeEvent('mousemove', this.bound.getCoords);
-		this.timer = clearInterval(this.timer);
-	},
-
-	getCoords: function(event){
-		this.page = (this.listener.get('tag') == 'body') ? event.client : event.page;
-		if (!this.timer) this.timer = this.scroll.periodical(Math.round(1000 / this.options.fps), this);
-	},
-
-	scroll: function(){
-		var size = this.element.getSize(),
-			scroll = this.element.getScroll(),
-			pos = this.element != this.docBody ? this.element.getOffsets() : {x: 0, y:0},
-			scrollSize = this.element.getScrollSize(),
-			change = {x: 0, y: 0},
-			top = this.options.area.top || this.options.area,
-			bottom = this.options.area.bottom || this.options.area;
-		for (var z in this.page){
-			if (this.page[z] < (top + pos[z]) && scroll[z] != 0){
-				change[z] = (this.page[z] - top - pos[z]) * this.options.velocity;
-			} else if (this.page[z] + bottom > (size[z] + pos[z]) && scroll[z] + size[z] != scrollSize[z]){
-				change[z] = (this.page[z] - size[z] + bottom - pos[z]) * this.options.velocity;
-			}
-			change[z] = change[z].round();
-		}
-		if (change.y || change.x) this.fireEvent('change', [scroll.x + change.x, scroll.y + change.y]);
-	}
-
-});
-
-
-// Begin: Source/Drag/Behavior.Sortable.js
-/*
----
-description: Creates instances of Sortable for sortable lists, optionally updating an input or element with the sort state.
-provides: [Behavior.Sortable]
-requires: [Behavior/Behavior, More/Sortables, More/Scroller]
-script: Behavior.Sortable.js
-name: Behavior.Sortable
-...
-*/
-(function(){
-
-Behavior.addGlobalFilter('Sortable',  {
-
-	defaults: {
-		clone: true,
-		opacity: 0.6
-	},
-	deprecated: {
-		lists: 'sort-lists',
-		state: 'sort-state',
-		property: 'sort-property',
-		'property-child': 'property-child'
-	},
-	setup: function(element, api){
-		//get the list selector
-		var lists = api.get('lists');
-		//if present, get the elements
-		if (lists) lists = element.getElements(lists);
-		//else the target element is the list
-		else lists = element;
-		//get the state target; this is the element (typically an input) to put the new state value on change
-		var target = api.get('state');
-		if (target) target = element.getParent().getElement(target);
-
-		//get the property to read from each sorted element
-		var property = api.get('property');
-		//if the value is on a child element, a selector is specified to find it (see docs)
-		var property_child = api.get('property-child');
-
-		var scrollParent;
-		var sort = new Sortables(lists, {
-			clone: api.getAs(Boolean, 'clone'),
-			opacity: api.getAs(Number, 'opacity'),
-			onStart: function(element, clone){
-				clone.addClass('clone');
-				var scroller,
-				    scrollElement = isScrollable(element) ? element : getScrollParent(element);
-				if (scrollElement && scrollElement != scrollParent) {
-					scroller = new Scroller(scrollElement);
-					scrollElement.store('behavior:scroller', scroller);
-					scrollParent = scrollElement;
-				} else {
-					if (scrollParent) scroller = scrollParent.retrieve('behavior:scroller');
-				}
-				if (scroller) scroller.attach();
-			},
-			onComplete: function(){
-				if (target) {
-					target.set(target.get('tag') == 'input' ? 'value' : 'html', sort.serialize(function(item){
-						if (property_child) item = item.getElement(property_child);
-						var isInput = ['input', 'textarea', 'select'].contains(item.get('tag'));
-						return item.get(property || 'name') || isInput ? item.get('value') : item.get('id');
-					}).join(','));
-				}
-				if (scrollParent) scrollParent.retrieve('behavior:scroller').detach();
-			}
-		});
-		api.onCleanup(sort.detach.bind(sort));
-		return sort;
-	}
-
-});
-
-var isBody = function(element){
-	return (/^(?:body|html)$/i).test(element.tagName);
-};
-
-var isScrollable = function(element){
-	return ['scroll', 'auto'].contains(element.getStyle('overflow'));
-};
-
-var getScrollParent = function(element){
-	var scrollParent,
-	    parent = element.getParent();
-	while (!scrollParent){
-		if (isBody(parent) || isScrollable(parent)){
-			scrollParent = parent;
-		} else {
-			parent = parent.getParent();
-		}
-	}
-	return scrollParent;
-};
-
-})();
-
-// Begin: Source/Locale/Locale.fi-FI.Number.js
-/*
----
-
-name: Locale.fi-FI.Number
-
-description: Finnish number messages
-
-license: MIT-style license
-
-authors:
-  - ksel
-
-requires:
-  - /Locale
-  - /Locale.EU.Number
-
-provides: [Locale.fi-FI.Number]
-
-...
-*/
-
-Locale.define('fi-FI', 'Number', {
-
-	group: ' ' // grouped by space
-
-}).inherit('EU', 'Number');
-
-
-// Begin: Source/Class/Chain.Wait.js
-/*
----
-
-script: Chain.Wait.js
-
-name: Chain.Wait
-
-description: value, Adds a method to inject pauses between chained events.
-
-license: MIT-style license.
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Chain
-  - Core/Element
-  - Core/Fx
-  - /MooTools.More
-
-provides: [Chain.Wait]
-
-...
-*/
-
-(function(){
-
-	var wait = {
-		wait: function(duration){
-			return this.chain(function(){
-				this.callChain.delay(duration == null ? 500 : duration, this);
-				return this;
-			}.bind(this));
-		}
-	};
-
-	Chain.implement(wait);
-
-	if (this.Fx) Fx.implement(wait);
-
-	if (this.Element && Element.implement && this.Fx){
-		Element.implement({
-
-			chains: function(effects){
-				Array.from(effects || ['tween', 'morph', 'reveal']).each(function(effect){
-					effect = this.get(effect);
-					if (!effect) return;
-					effect.setOptions({
-						link:'chain'
-					});
-				}, this);
-				return this;
-			},
-
-			pauseFx: function(duration, effect){
-				this.chains(effect).get(effect || 'tween').wait(duration);
-				return this;
-			}
-
-		});
-	}
-
-})();
-
-
-// Begin: Source/Locale/Locale.ja-JP.Form.Validator.js
-/*
----
-
-name: Locale.ja-JP.Form.Validator
-
-description: Form Validator messages for Japanese.
-
-license: MIT-style license
-
-authors:
-  - Noritaka Horio
-
-requires:
-  - /Locale
-
-provides: [Locale.ja-JP.Form.Validator]
-
-...
-*/
-
-Locale.define("ja-JP", "FormValidator", {
-
-	required: '入力は必須です。',
-	minLength: '入力文字数は{minLength}以上にしてください。({length}文字)',
-	maxLength: '入力文字数は{maxLength}以下にしてください。({length}文字)',
-	integer: '整数を入力してください。',
-	numeric: '入力できるのは数値だけです。(例: "1", "1.1", "-1", "-1.1"....)',
-	digits: '入力できるのは数値と句読記号です。 (例: -や+を含む電話番号など).',
-	alpha: '入力できるのは半角英字だけです。それ以外の文字は入力できません。',
-	alphanum: '入力できるのは半角英数字だけです。それ以外の文字は入力できません。',
-	dateSuchAs: '有効な日付を入力してください。{date}',
-	dateInFormatMDY: '日付の書式に誤りがあります。YYYY/MM/DD (i.e. "1999/12/31")',
-	email: 'メールアドレスに誤りがあります。',
-	url: 'URLアドレスに誤りがあります。',
-	currencyDollar: '金額に誤りがあります。',
-	oneRequired: 'ひとつ以上入力してください。',
-	errorPrefix: 'エラー: ',
-	warningPrefix: '警告: ',
-
-	// FormValidator.Extras
-	noSpace: 'スペースは入力できません。',
-	reqChkByNode: '選択されていません。',
-	requiredChk: 'この項目は必須です。',
-	reqChkByName: '{label}を選択してください。',
-	match: '{matchName}が入力されている場合必須です。',
-	startDate: '開始日',
-	endDate: '終了日',
-	currendDate: '今日',
-	afterDate: '{label}以降の日付にしてください。',
-	beforeDate: '{label}以前の日付にしてください。',
-	startMonth: '開始月を選択してください。',
-	sameMonth: '日付が同一です。どちらかを変更してください。'
-
-});
-
-
-// Begin: Source/Locale/Locale.sv-SE.Date.js
-/*
----
-
-name: Locale.sv-SE.Date
-
-description: Date messages for Swedish.
-
-license: MIT-style license
-
-authors:
-  - Martin Lundgren
-
-requires:
-  - /Locale
-
-provides: [Locale.sv-SE.Date]
-
-...
-*/
-
-Locale.define('sv-SE', 'Date', {
-
-	months: ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december'],
-	months_abbr: ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
-	days: ['söndag', 'måndag', 'tisdag', 'onsdag', 'torsdag', 'fredag', 'lördag'],
-	days_abbr: ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör'],
-
-	// Culture's date order: YYYY-MM-DD
-	dateOrder: ['year', 'month', 'date'],
-	shortDate: '%Y-%m-%d',
-	shortTime: '%H:%M',
-	AM: '',
-	PM: '',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: 'mindre än en minut sedan',
-	minuteAgo: 'ungefär en minut sedan',
-	minutesAgo: '{delta} minuter sedan',
-	hourAgo: 'ungefär en timme sedan',
-	hoursAgo: 'ungefär {delta} timmar sedan',
-	dayAgo: '1 dag sedan',
-	daysAgo: '{delta} dagar sedan',
-
-	lessThanMinuteUntil: 'mindre än en minut sedan',
-	minuteUntil: 'ungefär en minut sedan',
-	minutesUntil: '{delta} minuter sedan',
-	hourUntil: 'ungefär en timme sedan',
-	hoursUntil: 'ungefär {delta} timmar sedan',
-	dayUntil: '1 dag sedan',
-	daysUntil: '{delta} dagar sedan'
-
-});
-
-
-// Begin: Source/Locale/Locale.de-DE.Form.Validator.js
-/*
----
-
-name: Locale.de-DE.Form.Validator
-
-description: Form Validator messages for German.
-
-license: MIT-style license
-
-authors:
-  - Frank Rossi
-  - Ulrich Petri
-  - Fabian Beiner
-
-requires:
-  - /Locale
-
-provides: [Locale.de-DE.Form.Validator]
-
-...
-*/
-
-Locale.define('de-DE', 'FormValidator', {
-
-	required: 'Dieses Eingabefeld muss ausgefüllt werden.',
-	minLength: 'Geben Sie bitte mindestens {minLength} Zeichen ein (Sie haben nur {length} Zeichen eingegeben).',
-	maxLength: 'Geben Sie bitte nicht mehr als {maxLength} Zeichen ein (Sie haben {length} Zeichen eingegeben).',
-	integer: 'Geben Sie in diesem Eingabefeld bitte eine ganze Zahl ein. Dezimalzahlen (z.B. "1.25") sind nicht erlaubt.',
-	numeric: 'Geben Sie in diesem Eingabefeld bitte nur Zahlenwerte (z.B. "1", "1.1", "-1" oder "-1.1") ein.',
-	digits: 'Geben Sie in diesem Eingabefeld bitte nur Zahlen und Satzzeichen ein (z.B. eine Telefonnummer mit Bindestrichen und Punkten ist erlaubt).',
-	alpha: 'Geben Sie in diesem Eingabefeld bitte nur Buchstaben (a-z) ein. Leerzeichen und andere Zeichen sind nicht erlaubt.',
-	alphanum: 'Geben Sie in diesem Eingabefeld bitte nur Buchstaben (a-z) und Zahlen (0-9) ein. Leerzeichen oder andere Zeichen sind nicht erlaubt.',
-	dateSuchAs: 'Geben Sie bitte ein gültiges Datum ein (z.B. "{date}").',
-	dateInFormatMDY: 'Geben Sie bitte ein gültiges Datum im Format TT.MM.JJJJ ein (z.B. "31.12.1999").',
-	email: 'Geben Sie bitte eine gültige E-Mail-Adresse ein (z.B. "max@mustermann.de").',
-	url: 'Geben Sie bitte eine gültige URL ein (z.B. "http://www.example.com").',
-	currencyDollar: 'Geben Sie bitte einen gültigen Betrag in EURO ein (z.B. 100.00€).',
-	oneRequired: 'Bitte füllen Sie mindestens ein Eingabefeld aus.',
-	errorPrefix: 'Fehler: ',
-	warningPrefix: 'Warnung: ',
-
-	// Form.Validator.Extras
-	noSpace: 'Es darf kein Leerzeichen in diesem Eingabefeld sein.',
-	reqChkByNode: 'Es wurden keine Elemente gewählt.',
-	requiredChk: 'Dieses Feld muss ausgefüllt werden.',
-	reqChkByName: 'Bitte wählen Sie ein {label}.',
-	match: 'Dieses Eingabefeld muss mit dem {matchName} Eingabefeld übereinstimmen.',
-	startDate: 'Das Anfangsdatum',
-	endDate: 'Das Enddatum',
-	currendDate: 'Das aktuelle Datum',
-	afterDate: 'Das Datum sollte zur gleichen Zeit oder später sein als {label}.',
-	beforeDate: 'Das Datum sollte zur gleichen Zeit oder früher sein als {label}.',
-	startMonth: 'Wählen Sie bitte einen Anfangsmonat',
-	sameMonth: 'Diese zwei Datumsangaben müssen im selben Monat sein - Sie müssen eines von beiden verändern.',
-	creditcard: 'Die eingegebene Kreditkartennummer ist ungültig. Bitte überprüfen Sie diese und versuchen Sie es erneut. {length} Zahlen eingegeben.'
-
-});
-
-
-// Begin: Source/Locale/Locale.de-CH.Form.Validator.js
-/*
----
-
-name: Locale.de-CH.Form.Validator
-
-description: Form Validator messages for German (Switzerland).
-
-license: MIT-style license
-
-authors:
-  - Michael van der Weg
-
-requires:
-  - /Locale
-
-provides: [Locale.de-CH.Form.Validator]
-
-...
-*/
-
-Locale.define('de-CH', 'FormValidator', {
-
-	required: 'Dieses Feld ist obligatorisch.',
-	minLength: 'Geben Sie bitte mindestens {minLength} Zeichen ein (Sie haben {length} Zeichen eingegeben).',
-	maxLength: 'Bitte geben Sie nicht mehr als {maxLength} Zeichen ein (Sie haben {length} Zeichen eingegeben).',
-	integer: 'Geben Sie bitte eine ganze Zahl ein. Dezimalzahlen (z.B. 1.25) sind nicht erlaubt.',
-	numeric: 'Geben Sie bitte nur Zahlenwerte in dieses Eingabefeld ein (z.B. &quot;1&quot;, &quot;1.1&quot;, &quot;-1&quot; oder &quot;-1.1&quot;).',
-	digits: 'Benutzen Sie bitte nur Zahlen und Satzzeichen in diesem Eingabefeld (erlaubt ist z.B. eine Telefonnummer mit Bindestrichen und Punkten).',
-	alpha: 'Benutzen Sie bitte nur Buchstaben (a-z) in diesem Feld. Leerzeichen und andere Zeichen sind nicht erlaubt.',
-	alphanum: 'Benutzen Sie bitte nur Buchstaben (a-z) und Zahlen (0-9) in diesem Eingabefeld. Leerzeichen und andere Zeichen sind nicht erlaubt.',
-	dateSuchAs: 'Geben Sie bitte ein g&uuml;ltiges Datum ein. Wie zum Beispiel {date}',
-	dateInFormatMDY: 'Geben Sie bitte ein g&uuml;ltiges Datum ein. Wie zum Beispiel TT.MM.JJJJ (z.B. &quot;31.12.1999&quot;)',
-	email: 'Geben Sie bitte eine g&uuml;ltige E-Mail Adresse ein. Wie zum Beispiel &quot;maria@bernasconi.ch&quot;.',
-	url: 'Geben Sie bitte eine g&uuml;ltige URL ein. Wie zum Beispiel http://www.example.com.',
-	currencyDollar: 'Geben Sie bitte einen g&uuml;ltigen Betrag in Schweizer Franken ein. Wie zum Beispiel 100.00 CHF .',
-	oneRequired: 'Machen Sie f&uuml;r mindestens eines der Eingabefelder einen Eintrag.',
-	errorPrefix: 'Fehler: ',
-	warningPrefix: 'Warnung: ',
-
-	// Form.Validator.Extras
-	noSpace: 'In diesem Eingabefeld darf kein Leerzeichen sein.',
-	reqChkByNode: 'Es wurden keine Elemente gew&auml;hlt.',
-	requiredChk: 'Dieses Feld ist obligatorisch.',
-	reqChkByName: 'Bitte w&auml;hlen Sie ein {label}.',
-	match: 'Dieses Eingabefeld muss mit dem Feld {matchName} &uuml;bereinstimmen.',
-	startDate: 'Das Anfangsdatum',
-	endDate: 'Das Enddatum',
-	currendDate: 'Das aktuelle Datum',
-	afterDate: 'Das Datum sollte zur gleichen Zeit oder sp&auml;ter sein {label}.',
-	beforeDate: 'Das Datum sollte zur gleichen Zeit oder fr&uuml;her sein {label}.',
-	startMonth: 'W&auml;hlen Sie bitte einen Anfangsmonat',
-	sameMonth: 'Diese zwei Datumsangaben m&uuml;ssen im selben Monat sein - Sie m&uuml;ssen eine von beiden ver&auml;ndern.',
-	creditcard: 'Die eingegebene Kreditkartennummer ist ung&uuml;ltig. Bitte &uuml;berpr&uuml;fen Sie diese und versuchen Sie es erneut. {length} Zahlen eingegeben.'
-
-});
-
-
-// Begin: Source/Locale/Locale.pt-BR.Date.js
-/*
----
-
-name: Locale.pt-BR.Date
-
-description: Date messages for Portuguese (Brazil).
-
-license: MIT-style license
-
-authors:
-  - Fabio Miranda Costa
-
-requires:
-  - /Locale
-  - /Locale.pt-PT.Date
-
-provides: [Locale.pt-BR.Date]
-
-...
-*/
-
-Locale.define('pt-BR', 'Date', {
-
-	// Culture's date order: DD/MM/YYYY
-	shortDate: '%d/%m/%Y'
-
-}).inherit('pt-PT', 'Date');
-
-
-// Begin: Source/Fx/Fx.Sort.js
-/*
----
-
-script: Fx.Sort.js
-
-name: Fx.Sort
-
-description: Defines Fx.Sort, a class that reorders lists with a transition.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - Core/Element.Dimensions
-  - /Fx.Elements
-  - /Element.Measure
-
-provides: [Fx.Sort]
-
-...
-*/
-
-Fx.Sort = new Class({
-
-	Extends: Fx.Elements,
-
-	options: {
-		mode: 'vertical'
-	},
-
-	initialize: function(elements, options){
-		this.parent(elements, options);
-		this.elements.each(function(el){
-			if (el.getStyle('position') == 'static') el.setStyle('position', 'relative');
-		});
-		this.setDefaultOrder();
-	},
-
-	setDefaultOrder: function(){
-		this.currentOrder = this.elements.map(function(el, index){
-			return index;
-		});
-	},
-
-	sort: function(){
-		if (!this.check(arguments)) return this;
-		var newOrder = Array.flatten(arguments);
-
-		var top = 0,
-			left = 0,
-			next = {},
-			zero = {},
-			vert = this.options.mode == 'vertical';
-
-		var current = this.elements.map(function(el, index){
-			var size = el.getComputedSize({styles: ['border', 'padding', 'margin']});
-			var val;
-			if (vert){
-				val = {
-					top: top,
-					margin: size['margin-top'],
-					height: size.totalHeight
-				};
-				top += val.height - size['margin-top'];
-			} else {
-				val = {
-					left: left,
-					margin: size['margin-left'],
-					width: size.totalWidth
-				};
-				left += val.width;
-			}
-			var plane = vert ? 'top' : 'left';
-			zero[index] = {};
-			var start = el.getStyle(plane).toInt();
-			zero[index][plane] = start || 0;
-			return val;
-		}, this);
-
-		this.set(zero);
-		newOrder = newOrder.map(function(i){ return i.toInt(); });
-		if (newOrder.length != this.elements.length){
-			this.currentOrder.each(function(index){
-				if (!newOrder.contains(index)) newOrder.push(index);
-			});
-			if (newOrder.length > this.elements.length)
-				newOrder.splice(this.elements.length-1, newOrder.length - this.elements.length);
-		}
-		var margin = 0;
-		top = left = 0;
-		newOrder.each(function(item){
-			var newPos = {};
-			if (vert){
-				newPos.top = top - current[item].top - margin;
-				top += current[item].height;
-			} else {
-				newPos.left = left - current[item].left;
-				left += current[item].width;
-			}
-			margin = margin + current[item].margin;
-			next[item]=newPos;
-		}, this);
-		var mapped = {};
-		Array.clone(newOrder).sort().each(function(index){
-			mapped[index] = next[index];
-		});
-		this.start(mapped);
-		this.currentOrder = newOrder;
-
-		return this;
-	},
-
-	rearrangeDOM: function(newOrder){
-		newOrder = newOrder || this.currentOrder;
-		var parent = this.elements[0].getParent();
-		var rearranged = [];
-		this.elements.setStyle('opacity', 0);
-		//move each element and store the new default order
-		newOrder.each(function(index){
-			rearranged.push(this.elements[index].inject(parent).setStyles({
-				top: 0,
-				left: 0
-			}));
-		}, this);
-		this.elements.setStyle('opacity', 1);
-		this.elements = $$(rearranged);
-		this.setDefaultOrder();
-		return this;
-	},
-
-	getDefaultOrder: function(){
-		return this.elements.map(function(el, index){
-			return index;
-		});
-	},
-
-	getCurrentOrder: function(){
-		return this.currentOrder;
-	},
-
-	forward: function(){
-		return this.sort(this.getDefaultOrder());
-	},
-
-	backward: function(){
-		return this.sort(this.getDefaultOrder().reverse());
-	},
-
-	reverse: function(){
-		return this.sort(this.currentOrder.reverse());
-	},
-
-	sortByElements: function(elements){
-		return this.sort(elements.map(function(el){
-			return this.elements.indexOf(el);
-		}, this));
-	},
-
-	swap: function(one, two){
-		if (typeOf(one) == 'element') one = this.elements.indexOf(one);
-		if (typeOf(two) == 'element') two = this.elements.indexOf(two);
-
-		var newOrder = Array.clone(this.currentOrder);
-		newOrder[this.currentOrder.indexOf(one)] = two;
-		newOrder[this.currentOrder.indexOf(two)] = one;
-
-		return this.sort(newOrder);
-	}
-
-});
-
-
-// Begin: Source/Locale/Locale.uk-UA.Form.Validator.js
-/*
----
-
-name: Locale.uk-UA.Form.Validator
-
-description: Form Validator messages for Ukrainian (utf-8).
-
-license: MIT-style license
-
-authors:
-  - Slik
-
-requires:
-  - /Locale
-
-provides: [Locale.uk-UA.Form.Validator]
-
-...
-*/
-
-Locale.define('uk-UA', 'FormValidator', {
-
-	required: 'Це поле повинне бути заповненим.',
-	minLength: 'Введіть хоча б {minLength} символів (Ви ввели {length}).',
-	maxLength: 'Кількість символів не може бути більше {maxLength} (Ви ввели {length}).',
-	integer: 'Введіть в це поле число. Дробові числа (наприклад 1.25) не дозволені.',
-	numeric: 'Введіть в це поле число (наприклад "1" або "1.1", або "-1", або "-1.1").',
-	digits: 'В цьому полі ви можете використовувати лише цифри і знаки пунктіації (наприклад, телефонний номер з знаками дефізу або з крапками).',
-	alpha: 'В цьому полі можна використовувати лише латинські літери (a-z). Пробіли і інші символи заборонені.',
-	alphanum: 'В цьому полі можна використовувати лише латинські літери (a-z) і цифри (0-9). Пробіли і інші символи заборонені.',
-	dateSuchAs: 'Введіть коректну дату {date}.',
-	dateInFormatMDY: 'Введіть дату в форматі ММ/ДД/РРРР (наприклад "12/31/2009").',
-	email: 'Введіть коректну адресу електронної пошти (наприклад "name@domain.com").',
-	url: 'Введіть коректне інтернет-посилання (наприклад http://www.example.com).',
-	currencyDollar: 'Введіть суму в доларах (наприклад "$100.00").',
-	oneRequired: 'Заповніть одне з полів.',
-	errorPrefix: 'Помилка: ',
-	warningPrefix: 'Увага: ',
-
-	noSpace: 'Пробіли заборонені.',
-	reqChkByNode: 'Не відмічено жодного варіанту.',
-	requiredChk: 'Це поле повинне бути віміченим.',
-	reqChkByName: 'Будь ласка, відмітьте {label}.',
-	match: 'Це поле повинно відповідати {matchName}',
-	startDate: 'початкова дата',
-	endDate: 'кінцева дата',
-	currendDate: 'сьогоднішня дата',
-	afterDate: 'Ця дата повинна бути такою ж, або пізнішою за {label}.',
-	beforeDate: 'Ця дата повинна бути такою ж, або ранішою за {label}.',
-	startMonth: 'Будь ласка, виберіть початковий місяць',
-	sameMonth: 'Ці дати повинні відноситись одного і того ж місяця. Будь ласка, змініть одну з них.',
-	creditcard: 'Номер кредитної карти введений неправильно. Будь ласка, перевірте його. Введено {length} символів.'
-
-});
-
-
-// Begin: Source/Delegators/Delegator.AddRemoveClass.js
-/*
----
-description: Provides methods to add/remove/toggle a class on a given target.
-provides: [Delegator.ToggleClass, Delegator.AddClass, Delegator.RemoveClass, Delegator.AddRemoveClass]
-requires: [Behavior/Delegator, Core/Element]
-script: Delegator.AddRemoveClass.js
-name: Delegator.AddRemoveClass
-
-...
-*/
-(function(){
-
-	var triggers = {};
-
-	['add', 'remove', 'toggle'].each(function(action){
-
-		triggers[action + 'Class'] = {
-			require: ['class'],
-			handler: function(event, link, api){
-				var target = link;
-				if (api.get('target')) {
-					target = link.getElement(api.get('target'));
-					if (!target) api.fail('could not locate target element to ' + action + ' its class', link);
-				}
-				target[action + 'Class'](api.get('class'));
-			}
-		};
-
-	});
-
-	Delegator.register('click', triggers);
-
-})();
-
-// Begin: Source/Utilities/Color.js
-/*
----
-
-script: Color.js
-
-name: Color
-
-description: Class for creating and manipulating colors in JavaScript. Supports HSB -> RGB Conversions and vice versa.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-
-requires:
-  - Core/Array
-  - Core/String
-  - Core/Number
-  - Core/Hash
-  - Core/Function
-  - MooTools.More
-
-provides: [Color]
-
-...
-*/
-
-(function(){
-
-var Color = this.Color = new Type('Color', function(color, type){
-	if (arguments.length >= 3){
-		type = 'rgb'; color = Array.slice(arguments, 0, 3);
-	} else if (typeof color == 'string'){
-		if (color.match(/rgb/)) color = color.rgbToHex().hexToRgb(true);
-		else if (color.match(/hsb/)) color = color.hsbToRgb();
-		else color = color.hexToRgb(true);
-	}
-	type = type || 'rgb';
-	switch (type){
-		case 'hsb':
-			var old = color;
-			color = color.hsbToRgb();
-			color.hsb = old;
-		break;
-		case 'hex': color = color.hexToRgb(true); break;
-	}
-	color.rgb = color.slice(0, 3);
-	color.hsb = color.hsb || color.rgbToHsb();
-	color.hex = color.rgbToHex();
-	return Object.append(color, this);
-});
-
-Color.implement({
-
-	mix: function(){
-		var colors = Array.slice(arguments);
-		var alpha = (typeOf(colors.getLast()) == 'number') ? colors.pop() : 50;
-		var rgb = this.slice();
-		colors.each(function(color){
-			color = new Color(color);
-			for (var i = 0; i < 3; i++) rgb[i] = Math.round((rgb[i] / 100 * (100 - alpha)) + (color[i] / 100 * alpha));
-		});
-		return new Color(rgb, 'rgb');
-	},
-
-	invert: function(){
-		return new Color(this.map(function(value){
-			return 255 - value;
-		}));
-	},
-
-	setHue: function(value){
-		return new Color([value, this.hsb[1], this.hsb[2]], 'hsb');
-	},
-
-	setSaturation: function(percent){
-		return new Color([this.hsb[0], percent, this.hsb[2]], 'hsb');
-	},
-
-	setBrightness: function(percent){
-		return new Color([this.hsb[0], this.hsb[1], percent], 'hsb');
-	}
-
-});
-
-this.$RGB = function(r, g, b){
-	return new Color([r, g, b], 'rgb');
-};
-
-this.$HSB = function(h, s, b){
-	return new Color([h, s, b], 'hsb');
-};
-
-this.$HEX = function(hex){
-	return new Color(hex, 'hex');
-};
-
-Array.implement({
-
-	rgbToHsb: function(){
-		var red = this[0],
-				green = this[1],
-				blue = this[2],
-				hue = 0;
-		var max = Math.max(red, green, blue),
-				min = Math.min(red, green, blue);
-		var delta = max - min;
-		var brightness = max / 255,
-				saturation = (max != 0) ? delta / max : 0;
-		if (saturation != 0){
-			var rr = (max - red) / delta;
-			var gr = (max - green) / delta;
-			var br = (max - blue) / delta;
-			if (red == max) hue = br - gr;
-			else if (green == max) hue = 2 + rr - br;
-			else hue = 4 + gr - rr;
-			hue /= 6;
-			if (hue < 0) hue++;
-		}
-		return [Math.round(hue * 360), Math.round(saturation * 100), Math.round(brightness * 100)];
-	},
-
-	hsbToRgb: function(){
-		var br = Math.round(this[2] / 100 * 255);
-		if (this[1] == 0){
-			return [br, br, br];
-		} else {
-			var hue = this[0] % 360;
-			var f = hue % 60;
-			var p = Math.round((this[2] * (100 - this[1])) / 10000 * 255);
-			var q = Math.round((this[2] * (6000 - this[1] * f)) / 600000 * 255);
-			var t = Math.round((this[2] * (6000 - this[1] * (60 - f))) / 600000 * 255);
-			switch (Math.floor(hue / 60)){
-				case 0: return [br, t, p];
-				case 1: return [q, br, p];
-				case 2: return [p, br, t];
-				case 3: return [p, q, br];
-				case 4: return [t, p, br];
-				case 5: return [br, p, q];
-			}
-		}
-		return false;
-	}
-
-});
-
-String.implement({
-
-	rgbToHsb: function(){
-		var rgb = this.match(/\d{1,3}/g);
-		return (rgb) ? rgb.rgbToHsb() : null;
-	},
-
-	hsbToRgb: function(){
-		var hsb = this.match(/\d{1,3}/g);
-		return (hsb) ? hsb.hsbToRgb() : null;
-	}
-
-});
-
-})();
-
-
-
-// Begin: Source/Types/Array.Extras.js
-/*
----
-
-script: Array.Extras.js
-
-name: Array.Extras
-
-description: Extends the Array native object to include useful methods to work with arrays.
-
-license: MIT-style license
-
-authors:
-  - Christoph Pojer
-  - Sebastian Markbåge
-
-requires:
-  - Core/Array
-  - MooTools.More
-
-provides: [Array.Extras]
-
-...
-*/
-
-(function(nil){
-
-Array.implement({
-
-	min: function(){
-		return Math.min.apply(null, this);
-	},
-
-	max: function(){
-		return Math.max.apply(null, this);
-	},
-
-	average: function(){
-		return this.length ? this.sum() / this.length : 0;
-	},
-
-	sum: function(){
-		var result = 0, l = this.length;
-		if (l){
-			while (l--) result += this[l];
-		}
-		return result;
-	},
-
-	unique: function(){
-		return [].combine(this);
-	},
-
-	shuffle: function(){
-		for (var i = this.length; i && --i;){
-			var temp = this[i], r = Math.floor(Math.random() * ( i + 1 ));
-			this[i] = this[r];
-			this[r] = temp;
-		}
-		return this;
-	},
-
-	reduce: function(fn, value){
-		for (var i = 0, l = this.length; i < l; i++){
-			if (i in this) value = value === nil ? this[i] : fn.call(null, value, this[i], i, this);
-		}
-		return value;
-	},
-
-	reduceRight: function(fn, value){
-		var i = this.length;
-		while (i--){
-			if (i in this) value = value === nil ? this[i] : fn.call(null, value, this[i], i, this);
-		}
-		return value;
-	}
-
-});
-
-})();
-
-
-// Begin: Source/Locale/Locale.pt-PT.Form.Validator.js
-/*
----
-
-name: Locale.pt-PT.Form.Validator
-
-description: Form Validator messages for Portuguese.
-
-license: MIT-style license
-
-authors:
-  - Miquel Hudin
-
-requires:
-  - /Locale
-
-provides: [Locale.pt-PT.Form.Validator]
-
-...
-*/
-
-Locale.define('pt-PT', 'FormValidator', {
-
-	required: 'Este campo é necessário.',
-	minLength: 'Digite pelo menos{minLength} caracteres (comprimento {length} caracteres).',
-	maxLength: 'Não insira mais de {maxLength} caracteres (comprimento {length} caracteres).',
-	integer: 'Digite um número inteiro neste domínio. Com números decimais (por exemplo, 1,25), não são permitidas.',
-	numeric: 'Digite apenas valores numéricos neste domínio (p.ex., "1" ou "1.1" ou "-1" ou "-1,1").',
-	digits: 'Por favor, use números e pontuação apenas neste campo (p.ex., um número de telefone com traços ou pontos é permitida).',
-	alpha: 'Por favor use somente letras (a-z), com nesta área. Não utilize espaços nem outros caracteres são permitidos.',
-	alphanum: 'Use somente letras (a-z) ou números (0-9) neste campo. Não utilize espaços nem outros caracteres são permitidos.',
-	dateSuchAs: 'Digite uma data válida, como {date}',
-	dateInFormatMDY: 'Digite uma data válida, como DD/MM/YYYY (p.ex. "31/12/1999")',
-	email: 'Digite um endereço de email válido. Por exemplo "fred@domain.com".',
-	url: 'Digite uma URL válida, como http://www.example.com.',
-	currencyDollar: 'Digite um valor válido $. Por exemplo $ 100,00. ',
-	oneRequired: 'Digite algo para pelo menos um desses insumos.',
-	errorPrefix: 'Erro: ',
-	warningPrefix: 'Aviso: '
-
-});
-
-
-// Begin: Source/Locale/Locale.es-ES.Form.Validator.js
-/*
----
-
-name: Locale.es-ES.Form.Validator
-
-description: Form Validator messages for Spanish.
-
-license: MIT-style license
-
-authors:
-  - Ãlfons Sanchez
-
-requires:
-  - /Locale
-
-provides: [Locale.es-ES.Form.Validator]
-
-...
-*/
-
-Locale.define('es-ES', 'FormValidator', {
-
-	required: 'Este campo es obligatorio.',
-	minLength: 'Por favor introduce al menos {minLength} caracteres (has introducido {length} caracteres).',
-	maxLength: 'Por favor introduce no m&aacute;s de {maxLength} caracteres (has introducido {length} caracteres).',
-	integer: 'Por favor introduce un n&uacute;mero entero en este campo. N&uacute;meros con decimales (p.e. 1,25) no se permiten.',
-	numeric: 'Por favor introduce solo valores num&eacute;ricos en este campo (p.e. "1" o "1,1" o "-1" o "-1,1").',
-	digits: 'Por favor usa solo n&uacute;meros y puntuaci&oacute;n en este campo (por ejemplo, un n&uacute;mero de tel&eacute;fono con guiones y puntos no esta permitido).',
-	alpha: 'Por favor usa letras solo (a-z) en este campo. No se admiten espacios ni otros caracteres.',
-	alphanum: 'Por favor, usa solo letras (a-z) o n&uacute;meros (0-9) en este campo. No se admiten espacios ni otros caracteres.',
-	dateSuchAs: 'Por favor introduce una fecha v&aacute;lida como {date}',
-	dateInFormatMDY: 'Por favor introduce una fecha v&aacute;lida como DD/MM/YYYY (p.e. "31/12/1999")',
-	email: 'Por favor, introduce una direcci&oacute;n de email v&aacute;lida. Por ejemplo, "fred@domain.com".',
-	url: 'Por favor introduce una URL v&aacute;lida como http://www.example.com.',
-	currencyDollar: 'Por favor introduce una cantidad v&aacute;lida de €. Por ejemplo €100,00 .',
-	oneRequired: 'Por favor introduce algo para por lo menos una de estas entradas.',
-	errorPrefix: 'Error: ',
-	warningPrefix: 'Aviso: ',
-
-	// Form.Validator.Extras
-	noSpace: 'No pueden haber espacios en esta entrada.',
-	reqChkByNode: 'No hay elementos seleccionados.',
-	requiredChk: 'Este campo es obligatorio.',
-	reqChkByName: 'Por favor selecciona una {label}.',
-	match: 'Este campo necesita coincidir con el campo {matchName}',
-	startDate: 'la fecha de inicio',
-	endDate: 'la fecha de fin',
-	currendDate: 'la fecha actual',
-	afterDate: 'La fecha debe ser igual o posterior a {label}.',
-	beforeDate: 'La fecha debe ser igual o anterior a {label}.',
-	startMonth: 'Por favor selecciona un mes de origen',
-	sameMonth: 'Estas dos fechas deben estar en el mismo mes - debes cambiar una u otra.'
-
-});
-
-
-// Begin: Source/Utilities/Group.js
-/*
----
-
-script: Group.js
-
-name: Group
-
-description: Class for monitoring collections of events
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-
-requires:
-  - Core/Events
-  - /MooTools.More
-
-provides: [Group]
-
-...
-*/
-
-(function(){
-
-this.Group = new Class({
-
-	initialize: function(){
-		this.instances = Array.flatten(arguments);
-	},
-
-	addEvent: function(type, fn){
-		var instances = this.instances,
-			len = instances.length,
-			togo = len,
-			args = new Array(len),
-			self = this;
-
-		instances.each(function(instance, i){
-			instance.addEvent(type, function(){
-				if (!args[i]) togo--;
-				args[i] = arguments;
-				if (!togo){
-					fn.call(self, instances, instance, args);
-					togo = len;
-					args = new Array(len);
-				}
-			});
-		});
-	}
-
-});
-
-})();
-
-
-// Begin: Source/Forms/Form.Validator.Extras.js
-/*
----
-
-script: Form.Validator.Extras.js
-
-name: Form.Validator.Extras
-
-description: Additional validators for the Form.Validator class.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - /Form.Validator
-
-provides: [Form.Validator.Extras]
-
-...
-*/
-Form.Validator.addAllThese([
-
-	['validate-enforce-oncheck', {
-		test: function(element, props){
-			var fv = element.getParent('form').retrieve('validator');
-			if (!fv) return true;
-			(props.toEnforce || document.id(props.enforceChildrenOf).getElements('input, select, textarea')).map(function(item){
-				if (element.checked){
-					fv.enforceField(item);
-				} else {
-					fv.ignoreField(item);
-					fv.resetField(item);
-				}
-			});
-			return true;
-		}
-	}],
-
-	['validate-ignore-oncheck', {
-		test: function(element, props){
-			var fv = element.getParent('form').retrieve('validator');
-			if (!fv) return true;
-			(props.toIgnore || document.id(props.ignoreChildrenOf).getElements('input, select, textarea')).each(function(item){
-				if (element.checked){
-					fv.ignoreField(item);
-					fv.resetField(item);
-				} else {
-					fv.enforceField(item);
-				}
-			});
-			return true;
-		}
-	}],
-
-	['validate-nospace', {
-		errorMsg: function(){
-			return Form.Validator.getMsg('noSpace');
-		},
-		test: function(element, props){
-			return !element.get('value').test(/\s/);
-		}
-	}],
-
-	['validate-toggle-oncheck', {
-		test: function(element, props){
-			var fv = element.getParent('form').retrieve('validator');
-			if (!fv) return true;
-			var eleArr = props.toToggle || document.id(props.toToggleChildrenOf).getElements('input, select, textarea');
-			if (!element.checked){
-				eleArr.each(function(item){
-					fv.ignoreField(item);
-					fv.resetField(item);
-				});
-			} else {
-				eleArr.each(function(item){
-					fv.enforceField(item);
-				});
-			}
-			return true;
-		}
-	}],
-
-	['validate-reqchk-bynode', {
-		errorMsg: function(){
-			return Form.Validator.getMsg('reqChkByNode');
-		},
-		test: function(element, props){
-			return (document.id(props.nodeId).getElements(props.selector || 'input[type=checkbox], input[type=radio]')).some(function(item){
-				return item.checked;
-			});
-		}
-	}],
-
-	['validate-required-check', {
-		errorMsg: function(element, props){
-			return props.useTitle ? element.get('title') : Form.Validator.getMsg('requiredChk');
-		},
-		test: function(element, props){
-			return !!element.checked;
-		}
-	}],
-
-	['validate-reqchk-byname', {
-		errorMsg: function(element, props){
-			return Form.Validator.getMsg('reqChkByName').substitute({label: props.label || element.get('type')});
-		},
-		test: function(element, props){
-			var grpName = props.groupName || element.get('name');
-			var oneCheckedItem = $$(document.getElementsByName(grpName)).some(function(item, index){
-				return item.checked;
-			});
-			var fv = element.getParent('form').retrieve('validator');
-			if (oneCheckedItem && fv) fv.resetField(element);
-			return oneCheckedItem;
-		}
-	}],
-
-	['validate-match', {
-		errorMsg: function(element, props){
-			return Form.Validator.getMsg('match').substitute({matchName: props.matchName || document.id(props.matchInput).get('name')});
-		},
-		test: function(element, props){
-			var eleVal = element.get('value');
-			var matchVal = document.id(props.matchInput) && document.id(props.matchInput).get('value');
-			return eleVal && matchVal ? eleVal == matchVal : true;
-		}
-	}],
-
-	['validate-after-date', {
-		errorMsg: function(element, props){
-			return Form.Validator.getMsg('afterDate').substitute({
-				label: props.afterLabel || (props.afterElement ? Form.Validator.getMsg('startDate') : Form.Validator.getMsg('currentDate'))
-			});
-		},
-		test: function(element, props){
-			var start = document.id(props.afterElement) ? Date.parse(document.id(props.afterElement).get('value')) : new Date();
-			var end = Date.parse(element.get('value'));
-			return end && start ? end >= start : true;
-		}
-	}],
-
-	['validate-before-date', {
-		errorMsg: function(element, props){
-			return Form.Validator.getMsg('beforeDate').substitute({
-				label: props.beforeLabel || (props.beforeElement ? Form.Validator.getMsg('endDate') : Form.Validator.getMsg('currentDate'))
-			});
-		},
-		test: function(element, props){
-			var start = Date.parse(element.get('value'));
-			var end = document.id(props.beforeElement) ? Date.parse(document.id(props.beforeElement).get('value')) : new Date();
-			return end && start ? end >= start : true;
-		}
-	}],
-
-	['validate-custom-required', {
-		errorMsg: function(){
-			return Form.Validator.getMsg('required');
-		},
-		test: function(element, props){
-			return element.get('value') != props.emptyValue;
-		}
-	}],
-
-	['validate-same-month', {
-		errorMsg: function(element, props){
-			var startMo = document.id(props.sameMonthAs) && document.id(props.sameMonthAs).get('value');
-			var eleVal = element.get('value');
-			if (eleVal != '') return Form.Validator.getMsg(startMo ? 'sameMonth' : 'startMonth');
-		},
-		test: function(element, props){
-			var d1 = Date.parse(element.get('value'));
-			var d2 = Date.parse(document.id(props.sameMonthAs) && document.id(props.sameMonthAs).get('value'));
-			return d1 && d2 ? d1.format('%B') == d2.format('%B') : true;
-		}
-	}],
-
-
-	['validate-cc-num', {
-		errorMsg: function(element){
-			var ccNum = element.get('value').replace(/[^0-9]/g, '');
-			return Form.Validator.getMsg('creditcard').substitute({length: ccNum.length});
-		},
-		test: function(element){
-			// required is a different test
-			if (Form.Validator.getValidator('IsEmpty').test(element)) return true;
-
-			// Clean number value
-			var ccNum = element.get('value');
-			ccNum = ccNum.replace(/[^0-9]/g, '');
-
-			var valid_type = false;
-
-			if (ccNum.test(/^4[0-9]{12}([0-9]{3})?$/)) valid_type = 'Visa';
-			else if (ccNum.test(/^5[1-5]([0-9]{14})$/)) valid_type = 'Master Card';
-			else if (ccNum.test(/^3[47][0-9]{13}$/)) valid_type = 'American Express';
-			else if (ccNum.test(/^6011[0-9]{12}$/)) valid_type = 'Discover';
-
-			if (valid_type){
-				var sum = 0;
-				var cur = 0;
-
-				for (var i=ccNum.length-1; i>=0; --i){
-					cur = ccNum.charAt(i).toInt();
-					if (cur == 0) continue;
-
-					if ((ccNum.length-i) % 2 == 0) cur += cur;
-					if (cur > 9){
-						cur = cur.toString().charAt(0).toInt() + cur.toString().charAt(1).toInt();
-					}
-
-					sum += cur;
-				}
-				if ((sum % 10) == 0) return true;
-			}
-
-			var chunks = '';
-			while (ccNum != ''){
-				chunks += ' ' + ccNum.substr(0,4);
-				ccNum = ccNum.substr(4);
-			}
-
-			element.getParent('form').retrieve('validator').ignoreField(element);
-			element.set('value', chunks.clean());
-			element.getParent('form').retrieve('validator').enforceField(element);
-			return false;
-		}
-	}]
-
-
-]);
-
-
-// Begin: Source/Locale/Locale.hu-HU.Date.js
-/*
----
-
-name: Locale.hu-HU.Date
-
-description: Date messages for Hungarian.
-
-license: MIT-style license
-
-authors:
-  - Zsolt Szegheő
-
-requires:
-  - /Locale
-
-provides: [Locale.hu-HU.Date]
-
-...
-*/
-
-Locale.define('hu-HU', 'Date', {
-
-	months: ['Január', 'Február', 'Március', 'Április', 'Május', 'Június', 'Július', 'Augusztus', 'Szeptember', 'Október', 'November', 'December'],
-	months_abbr: ['jan.', 'febr.', 'márc.', 'ápr.', 'máj.', 'jún.', 'júl.', 'aug.', 'szept.', 'okt.', 'nov.', 'dec.'],
-	days: ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat'],
-	days_abbr: ['V', 'H', 'K', 'Sze', 'Cs', 'P', 'Szo'],
-
-	// Culture's date order: YYYY.MM.DD.
-	dateOrder: ['year', 'month', 'date'],
-	shortDate: '%Y.%m.%d.',
-	shortTime: '%I:%M',
-	AM: 'de.',
-	PM: 'du.',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '.',
-
-	lessThanMinuteAgo: 'alig egy perce',
-	minuteAgo: 'egy perce',
-	minutesAgo: '{delta} perce',
-	hourAgo: 'egy órája',
-	hoursAgo: '{delta} órája',
-	dayAgo: '1 napja',
-	daysAgo: '{delta} napja',
-	weekAgo: '1 hete',
-	weeksAgo: '{delta} hete',
-	monthAgo: '1 hónapja',
-	monthsAgo: '{delta} hónapja',
-	yearAgo: '1 éve',
-	yearsAgo: '{delta} éve',
-
-	lessThanMinuteUntil: 'alig egy perc múlva',
-	minuteUntil: 'egy perc múlva',
-	minutesUntil: '{delta} perc múlva',
-	hourUntil: 'egy óra múlva',
-	hoursUntil: '{delta} óra múlva',
-	dayUntil: '1 nap múlva',
-	daysUntil: '{delta} nap múlva',
-	weekUntil: '1 hét múlva',
-	weeksUntil: '{delta} hét múlva',
-	monthUntil: '1 hónap múlva',
-	monthsUntil: '{delta} hónap múlva',
-	yearUntil: '1 év múlva',
-	yearsUntil: '{delta} év múlva'
-
-});
-
-
-// Begin: Source/Locale/Locale.fi-FI.Date.js
-/*
----
-
-name: Locale.fi-FI.Date
-
-description: Date messages for Finnish.
-
-license: MIT-style license
-
-authors:
-  - ksel
-
-requires:
-  - /Locale
-
-provides: [Locale.fi-FI.Date]
-
-...
-*/
-
-Locale.define('fi-FI', 'Date', {
-
-	// NOTE: months and days are not capitalized in finnish
-	months: ['tammikuu', 'helmikuu', 'maaliskuu', 'huhtikuu', 'toukokuu', 'kesäkuu', 'heinäkuu', 'elokuu', 'syyskuu', 'lokakuu', 'marraskuu', 'joulukuu'],
-
-	// these abbreviations are really not much used in finnish because they obviously won't abbreviate very much. ;)
-	// NOTE: sometimes one can see forms such as "tammi", "helmi", etc. but that is not proper finnish.
-	months_abbr: ['tammik.', 'helmik.', 'maalisk.', 'huhtik.', 'toukok.', 'kesäk.', 'heinäk.', 'elok.', 'syysk.', 'lokak.', 'marrask.', 'jouluk.'],
-
-	days: ['sunnuntai', 'maanantai', 'tiistai', 'keskiviikko', 'torstai', 'perjantai', 'lauantai'],
-	days_abbr: ['su', 'ma', 'ti', 'ke', 'to', 'pe', 'la'],
-
-	// Culture's date order: DD/MM/YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d.%m.%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '.',
-
-	lessThanMinuteAgo: 'vajaa minuutti sitten',
-	minuteAgo: 'noin minuutti sitten',
-	minutesAgo: '{delta} minuuttia sitten',
-	hourAgo: 'noin tunti sitten',
-	hoursAgo: 'noin {delta} tuntia sitten',
-	dayAgo: 'päivä sitten',
-	daysAgo: '{delta} päivää sitten',
-	weekAgo: 'viikko sitten',
-	weeksAgo: '{delta} viikkoa sitten',
-	monthAgo: 'kuukausi sitten',
-	monthsAgo: '{delta} kuukautta sitten',
-	yearAgo: 'vuosi sitten',
-	yearsAgo: '{delta} vuotta sitten',
-
-	lessThanMinuteUntil: 'vajaan minuutin kuluttua',
-	minuteUntil: 'noin minuutin kuluttua',
-	minutesUntil: '{delta} minuutin kuluttua',
-	hourUntil: 'noin tunnin kuluttua',
-	hoursUntil: 'noin {delta} tunnin kuluttua',
-	dayUntil: 'päivän kuluttua',
-	daysUntil: '{delta} päivän kuluttua',
-	weekUntil: 'viikon kuluttua',
-	weeksUntil: '{delta} viikon kuluttua',
-	monthUntil: 'kuukauden kuluttua',
-	monthsUntil: '{delta} kuukauden kuluttua',
-	yearUntil: 'vuoden kuluttua',
-	yearsUntil: '{delta} vuoden kuluttua'
-
-});
-
-
-// Begin: Source/Fx/Fx.SmoothScroll.js
-/*
----
-
-script: Fx.SmoothScroll.js
-
-name: Fx.SmoothScroll
-
-description: Class for creating a smooth scrolling effect to all internal links on the page.
-
-license: MIT-style license
-
-authors:
-  - Valerio Proietti
-
-requires:
-  - Core/Slick.Finder
-  - /Fx.Scroll
-
-provides: [Fx.SmoothScroll]
-
-...
-*/
-
-/*<1.2compat>*/var SmoothScroll = /*</1.2compat>*/Fx.SmoothScroll = new Class({
-
-	Extends: Fx.Scroll,
-
-	options: {
-		axes: ['x', 'y']
-	},
-
-	initialize: function(options, context){
-		context = context || document;
-		this.doc = context.getDocument();
-		this.parent(this.doc, options);
-
-		var win = context.getWindow(),
-			location = win.location.href.match(/^[^#]*/)[0] + '#',
-			links = $$(this.options.links || this.doc.links);
-
-		links.each(function(link){
-			if (link.href.indexOf(location) != 0) return;
-			var anchor = link.href.substr(location.length);
-			if (anchor) this.useLink(link, anchor);
-		}, this);
-
-		this.addEvent('complete', function(){
-			win.location.hash = this.anchor;
-			this.element.scrollTo(this.to[0], this.to[1]);
-		}, true);
-	},
-
-	useLink: function(link, anchor){
-
-		link.addEvent('click', function(event){
-			var el = document.id(anchor) || this.doc.getElement('a[name=' + anchor + ']');
-			if (!el) return;
-
-			event.preventDefault();
-			this.toElement(el, this.options.axes).chain(function(){
-				this.fireEvent('scrolledTo', [link, el]);
-			}.bind(this));
-
-			this.anchor = anchor;
-
-		}.bind(this));
-
-		return this;
-	}
-});
-
-
-// Begin: Source/Locale/Locale.zh-CH.Date.js
-/*
----
-
-name: Locale.zh-CH.Date
-
-description: Date messages for Chinese (simplified and traditional).
-
-license: MIT-style license
-
-authors:
-  - YMind Chan
-
-requires:
-  - /Locale
-
-provides: [Locale.zh-CH.Date]
-
-...
-*/
-
-// Simplified Chinese
-Locale.define('zh-CHS', 'Date', {
-
-	months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
-	months_abbr: ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'],
-	days: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
-	days_abbr: ['日', '一', '二', '三', '四', '五', '六'],
-
-	// Culture's date order: YYYY-MM-DD
-	dateOrder: ['year', 'month', 'date'],
-	shortDate: '%Y-%m-%d',
-	shortTime: '%I:%M%p',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: '不到1分钟前',
-	minuteAgo: '大约1分钟前',
-	minutesAgo: '{delta}分钟之前',
-	hourAgo: '大约1小时前',
-	hoursAgo: '大约{delta}小时前',
-	dayAgo: '1天前',
-	daysAgo: '{delta}天前',
-	weekAgo: '1星期前',
-	weeksAgo: '{delta}星期前',
-	monthAgo: '1个月前',
-	monthsAgo: '{delta}个月前',
-	yearAgo: '1年前',
-	yearsAgo: '{delta}年前',
-
-	lessThanMinuteUntil: '从现在开始不到1分钟',
-	minuteUntil: '从现在开始約1分钟',
-	minutesUntil: '从现在开始约{delta}分钟',
-	hourUntil: '从现在开始1小时',
-	hoursUntil: '从现在开始约{delta}小时',
-	dayUntil: '从现在开始1天',
-	daysUntil: '从现在开始{delta}天',
-	weekUntil: '从现在开始1星期',
-	weeksUntil: '从现在开始{delta}星期',
-	monthUntil: '从现在开始一个月',
-	monthsUntil: '从现在开始{delta}个月',
-	yearUntil: '从现在开始1年',
-	yearsUntil: '从现在开始{delta}年'
-
-});
-
-// Traditional Chinese
-Locale.define('zh-CHT', 'Date', {
-
-	months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
-	months_abbr: ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'],
-	days: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
-	days_abbr: ['日', '一', '二', '三', '四', '五', '六'],
-
-	// Culture's date order: YYYY-MM-DD
-	dateOrder: ['year', 'month', 'date'],
-	shortDate: '%Y-%m-%d',
-	shortTime: '%I:%M%p',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: '不到1分鐘前',
-	minuteAgo: '大約1分鐘前',
-	minutesAgo: '{delta}分鐘之前',
-	hourAgo: '大約1小時前',
-	hoursAgo: '大約{delta}小時前',
-	dayAgo: '1天前',
-	daysAgo: '{delta}天前',
-	weekAgo: '1星期前',
-	weeksAgo: '{delta}星期前',
-	monthAgo: '1个月前',
-	monthsAgo: '{delta}个月前',
-	yearAgo: '1年前',
-	yearsAgo: '{delta}年前',
-
-	lessThanMinuteUntil: '從現在開始不到1分鐘',
-	minuteUntil: '從現在開始約1分鐘',
-	minutesUntil: '從現在開始約{delta}分鐘',
-	hourUntil: '從現在開始1小時',
-	hoursUntil: '從現在開始約{delta}小時',
-	dayUntil: '從現在開始1天',
-	daysUntil: '從現在開始{delta}天',
-	weekUntil: '從現在開始1星期',
-	weeksUntil: '從現在開始{delta}星期',
-	monthUntil: '從現在開始一個月',
-	monthsUntil: '從現在開始{delta}個月',
-	yearUntil: '從現在開始1年',
-	yearsUntil: '從現在開始{delta}年'
-
-});
-
-
-// Begin: Source/Locale/Locale.pl-PL.Form.Validator.js
-/*
----
-
-name: Locale.pl-PL.Form.Validator
-
-description: Form Validator messages for Polish.
-
-license: MIT-style license
-
-authors:
-  - Oskar Krawczyk
-
-requires:
-  - /Locale
-
-provides: [Locale.pl-PL.Form.Validator]
-
-...
-*/
-
-Locale.define('pl-PL', 'FormValidator', {
-
-	required: 'To pole jest wymagane.',
-	minLength: 'Wymagane jest przynajmniej {minLength} znaków (wpisanych zostało tylko {length}).',
-	maxLength: 'Dozwolone jest nie więcej niż {maxLength} znaków (wpisanych zostało {length})',
-	integer: 'To pole wymaga liczb całych. Liczby dziesiętne (np. 1.25) są niedozwolone.',
-	numeric: 'Prosimy używać tylko numerycznych wartości w tym polu (np. "1", "1.1", "-1" lub "-1.1").',
-	digits: 'Prosimy używać liczb oraz zankow punktuacyjnych w typ polu (dla przykładu, przy numerze telefonu myślniki i kropki są dozwolone).',
-	alpha: 'Prosimy używać tylko liter (a-z) w tym polu. Spacje oraz inne znaki są niedozwolone.',
-	alphanum: 'Prosimy używać tylko liter (a-z) lub liczb (0-9) w tym polu. Spacje oraz inne znaki są niedozwolone.',
-	dateSuchAs: 'Prosimy podać prawidłową datę w formacie: {date}',
-	dateInFormatMDY: 'Prosimy podać poprawną date w formacie DD.MM.RRRR (i.e. "12.01.2009")',
-	email: 'Prosimy podać prawidłowy adres e-mail, np. "jan@domena.pl".',
-	url: 'Prosimy podać prawidłowy adres URL, np. http://www.example.com.',
-	currencyDollar: 'Prosimy podać prawidłową sumę w PLN. Dla przykładu: 100.00 PLN.',
-	oneRequired: 'Prosimy wypełnić chociaż jedno z pól.',
-	errorPrefix: 'Błąd: ',
-	warningPrefix: 'Uwaga: ',
-
-	// Form.Validator.Extras
-	noSpace: 'W tym polu nie mogą znajdować się spacje.',
-	reqChkByNode: 'Brak zaznaczonych elementów.',
-	requiredChk: 'To pole jest wymagane.',
-	reqChkByName: 'Prosimy wybrać z {label}.',
-	match: 'To pole musi być takie samo jak {matchName}',
-	startDate: 'data początkowa',
-	endDate: 'data końcowa',
-	currendDate: 'aktualna data',
-	afterDate: 'Podana data poinna być taka sama lub po {label}.',
-	beforeDate: 'Podana data poinna być taka sama lub przed {label}.',
-	startMonth: 'Prosimy wybrać początkowy miesiąc.',
-	sameMonth: 'Te dwie daty muszą być w zakresie tego samego miesiąca - wymagana jest zmiana któregoś z pól.'
-
-});
-
-
-// Begin: Source/Locale/Locale.Set.From.js
-/*
----
-
-script: Locale.Set.From.js
-
-name: Locale.Set.From
-
-description: Provides an alternative way to create Locale.Set objects.
-
-license: MIT-style license
-
-authors:
-  - Tim Wienk
-
-requires:
-  - Core/JSON
-  - /Locale
-
-provides: Locale.Set.From
-
-...
-*/
-
-(function(){
-
-var parsers = {
-	'json': JSON.decode
-};
-
-Locale.Set.defineParser = function(name, fn){
-	parsers[name] = fn;
-};
-
-Locale.Set.from = function(set, type){
-	if (instanceOf(set, Locale.Set)) return set;
-
-	if (!type && typeOf(set) == 'string') type = 'json';
-	if (parsers[type]) set = parsers[type](set);
-
-	var locale = new Locale.Set;
-
-	locale.sets = set.sets || {};
-
-	if (set.inherits){
-		locale.inherits.locales = Array.from(set.inherits.locales);
-		locale.inherits.sets = set.inherits.sets || {};
-	}
-
-	return locale;
-};
-
-})();
-
-
-// Begin: Source/Locale/Locale.ru-RU.Date.js
-/*
----
-
-name: Locale.ru-RU-unicode.Date
-
-description: Date messages for Russian (utf-8).
-
-license: MIT-style license
-
-authors:
-  - Evstigneev Pavel
-  - Kuryanovich Egor
-
-requires:
-  - /Locale
-
-provides: [Locale.ru-RU.Date]
-
-...
-*/
-
-(function(){
-
-// Russian language pluralization rules, taken from CLDR project, http://unicode.org/cldr/
-// one -> n mod 10 is 1 and n mod 100 is not 11;
-// few -> n mod 10 in 2..4 and n mod 100 not in 12..14;
-// many -> n mod 10 is 0 or n mod 10 in 5..9 or n mod 100 in 11..14;
-// other -> everything else (example 3.14)
-var pluralize = function (n, one, few, many, other){
-	var modulo10 = n % 10,
-		modulo100 = n % 100;
-
-	if (modulo10 == 1 && modulo100 != 11){
-		return one;
-	} else if ((modulo10 == 2 || modulo10 == 3 || modulo10 == 4) && !(modulo100 == 12 || modulo100 == 13 || modulo100 == 14)){
-		return few;
-	} else if (modulo10 == 0 || (modulo10 == 5 || modulo10 == 6 || modulo10 == 7 || modulo10 == 8 || modulo10 == 9) || (modulo100 == 11 || modulo100 == 12 || modulo100 == 13 || modulo100 == 14)){
-		return many;
-	} else {
-		return other;
-	}
-};
-
-Locale.define('ru-RU', 'Date', {
-
-	months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
-	months_abbr: ['янв', 'февр', 'март', 'апр', 'май','июнь','июль','авг','сент','окт','нояб','дек'],
-	days: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
-	days_abbr: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
-
-	// Culture's date order: DD.MM.YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d.%m.%Y',
-	shortTime: '%H:%M',
-	AM: 'AM',
-	PM: 'PM',
-	firstDayOfWeek: 1,
-
-	// Date.Extras
-	ordinal: '',
-
-	lessThanMinuteAgo: 'меньше минуты назад',
-	minuteAgo: 'минуту назад',
-	minutesAgo: function(delta){ return '{delta} ' + pluralize(delta, 'минуту', 'минуты', 'минут') + ' назад'; },
-	hourAgo: 'час назад',
-	hoursAgo: function(delta){ return '{delta} ' + pluralize(delta, 'час', 'часа', 'часов') + ' назад'; },
-	dayAgo: 'вчера',
-	daysAgo: function(delta){ return '{delta} ' + pluralize(delta, 'день', 'дня', 'дней') + ' назад'; },
-	weekAgo: 'неделю назад',
-	weeksAgo: function(delta){ return '{delta} ' + pluralize(delta, 'неделя', 'недели', 'недель') + ' назад'; },
-	monthAgo: 'месяц назад',
-	monthsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'месяц', 'месяца', 'месецев') + ' назад'; },
-	yearAgo: 'год назад',
-	yearsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'год', 'года', 'лет') + ' назад'; },
-
-	lessThanMinuteUntil: 'меньше чем через минуту',
-	minuteUntil: 'через минуту',
-	minutesUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'час', 'часа', 'часов') + ''; },
-	hourUntil: 'через час',
-	hoursUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'час', 'часа', 'часов') + ''; },
-	dayUntil: 'завтра',
-	daysUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'день', 'дня', 'дней') + ''; },
-	weekUntil: 'через неделю',
-	weeksUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'неделю', 'недели', 'недель') + ''; },
-	monthUntil: 'через месяц',
-	monthsUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'месяц', 'месяца', 'месецев') + ''; },
-	yearUntil: 'через',
-	yearsUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'год', 'года', 'лет') + ''; }
-
-});
-
-//<1.2compat>
-
-Locale.define('ru-RU-unicode').inherit('ru-RU', 'Date');
-
-//</1.2compat>
-
-})();
-
-
-// Begin: Source/Request/Request.JSONP.js
-/*
----
-
-script: Request.JSONP.js
-
-name: Request.JSONP
-
-description: Defines Request.JSONP, a class for cross domain javascript via script injection.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-  - Guillermo Rauch
-  - Arian Stolwijk
-
-requires:
-  - Core/Element
-  - Core/Request
-  - MooTools.More
-
-provides: [Request.JSONP]
-
-...
-*/
-
-Request.JSONP = new Class({
-
-	Implements: [Chain, Events, Options],
-
-	options: {/*
-		onRequest: function(src, scriptElement){},
-		onComplete: function(data){},
-		onSuccess: function(data){},
-		onCancel: function(){},
-		onTimeout: function(){},
-		onError: function(){}, */
-		onRequest: function(src){
-			if (this.options.log && window.console && console.log){
-				console.log('JSONP retrieving script with url:' + src);
-			}
-		},
-		onError: function(src){
-			if (this.options.log && window.console && console.warn){
-				console.warn('JSONP '+ src +' will fail in Internet Explorer, which enforces a 2083 bytes length limit on URIs');
-			}
-		},
-		url: '',
-		callbackKey: 'callback',
-		injectScript: document.head,
-		data: '',
-		link: 'ignore',
-		timeout: 0,
-		log: false
-	},
-
-	initialize: function(options){
-		this.setOptions(options);
-	},
-
-	send: function(options){
-		if (!Request.prototype.check.call(this, options)) return this;
-		this.running = true;
-
-		var type = typeOf(options);
-		if (type == 'string' || type == 'element') options = {data: options};
-		options = Object.merge(this.options, options || {});
-
-		var data = options.data;
-		switch (typeOf(data)){
-			case 'element': data = document.id(data).toQueryString(); break;
-			case 'object': case 'hash': data = Object.toQueryString(data);
-		}
-
-		var index = this.index = Request.JSONP.counter++;
-
-		var src = options.url +
-			(options.url.test('\\?') ? '&' :'?') +
-			(options.callbackKey) +
-			'=Request.JSONP.request_map.request_'+ index +
-			(data ? '&' + data : '');
-
-		if (src.length > 2083) this.fireEvent('error', src);
-
-		Request.JSONP.request_map['request_' + index] = function(){
-			this.success(arguments, index);
-		}.bind(this);
-
-		var script = this.getScript(src).inject(options.injectScript);
-		this.fireEvent('request', [src, script]);
-
-		if (options.timeout) this.timeout.delay(options.timeout, this);
-
-		return this;
-	},
-
-	getScript: function(src){
-		if (!this.script) this.script = new Element('script', {
-			type: 'text/javascript',
-			async: true,
-			src: src
-		});
-		return this.script;
-	},
-
-	success: function(args, index){
-		if (!this.running) return;
-		this.clear()
-			.fireEvent('complete', args).fireEvent('success', args)
-			.callChain();
-	},
-
-	cancel: function(){
-		if (this.running) this.clear().fireEvent('cancel');
-		return this;
-	},
-
-	isRunning: function(){
-		return !!this.running;
-	},
-
-	clear: function(){
-		this.running = false;
-		if (this.script){
-			this.script.destroy();
-			this.script = null;
-		}
-		return this;
-	},
-
-	timeout: function(){
-		if (this.running){
-			this.running = false;
-			this.fireEvent('timeout', [this.script.get('src'), this.script]).fireEvent('failure').cancel();
-		}
-		return this;
-	}
-
-});
-
-Request.JSONP.counter = 0;
-Request.JSONP.request_map = {};
-
-
-// Begin: Source/Locale/Locale.en-GB.Date.js
-/*
----
-
-name: Locale.en-GB.Date
-
-description: Date messages for British English.
-
-license: MIT-style license
-
-authors:
-  - Aaron Newton
-
-requires:
-  - /Locale
-  - /Locale.en-US.Date
-
-provides: [Locale.en-GB.Date]
-
-...
-*/
-
-Locale.define('en-GB', 'Date', {
-
-	// Culture's date order: DD/MM/YYYY
-	dateOrder: ['date', 'month', 'year'],
-	shortDate: '%d/%m/%Y',
-	shortTime: '%H:%M'
-
-}).inherit('en-US', 'Date');
-
-
-// Begin: Source/Locale/Locale.pt-BR.Form.Validator.js
-/*
----
-
-name: Locale.pt-BR.Form.Validator
-
-description: Form Validator messages for Portuguese (Brazil).
-
-license: MIT-style license
-
-authors:
-  - Fábio Miranda Costa
-
-requires:
-  - /Locale
-
-provides: [Locale.pt-BR.Form.Validator]
-
-...
-*/
-
-Locale.define('pt-BR', 'FormValidator', {
-
-	required: 'Este campo é obrigatório.',
-	minLength: 'Digite pelo menos {minLength} caracteres (tamanho atual: {length}).',
-	maxLength: 'Não digite mais de {maxLength} caracteres (tamanho atual: {length}).',
-	integer: 'Por favor digite apenas um número inteiro neste campo. Não são permitidos números decimais (por exemplo, 1,25).',
-	numeric: 'Por favor digite apenas valores numéricos neste campo (por exemplo, "1" ou "1.1" ou "-1" ou "-1,1").',
-	digits: 'Por favor use apenas números e pontuação neste campo (por exemplo, um número de telefone com traços ou pontos é permitido).',
-	alpha: 'Por favor use somente letras (a-z). Espaço e outros caracteres não são permitidos.',
-	alphanum: 'Use somente letras (a-z) ou números (0-9) neste campo. Espaço e outros caracteres não são permitidos.',
-	dateSuchAs: 'Digite uma data válida, como {date}',
-	dateInFormatMDY: 'Digite uma data válida, como DD/MM/YYYY (por exemplo, "31/12/1999")',
-	email: 'Digite um endereço de email válido. Por exemplo "nome@dominio.com".',
-	url: 'Digite uma URL válida. Exemplo: http://www.example.com.',
-	currencyDollar: 'Digite um valor em dinheiro válido. Exemplo: R$100,00 .',
-	oneRequired: 'Digite algo para pelo menos um desses campos.',
-	errorPrefix: 'Erro: ',
-	warningPrefix: 'Aviso: ',
-
-	// Form.Validator.Extras
-	noSpace: 'Não é possível digitar espaços neste campo.',
-	reqChkByNode: 'Não foi selecionado nenhum item.',
-	requiredChk: 'Este campo é obrigatório.',
-	reqChkByName: 'Por favor digite um {label}.',
-	match: 'Este campo deve ser igual ao campo {matchName}.',
-	startDate: 'a data inicial',
-	endDate: 'a data final',
-	currendDate: 'a data atual',
-	afterDate: 'A data deve ser igual ou posterior a {label}.',
-	beforeDate: 'A data deve ser igual ou anterior a {label}.',
-	startMonth: 'Por favor selecione uma data inicial.',
-	sameMonth: 'Estas duas datas devem ter o mesmo mês - você deve modificar uma das duas.',
-	creditcard: 'O número do cartão de crédito informado é inválido. Por favor verifique o valor e tente novamente. {length} números informados.'
-
-});
-
-
-// Begin: Source/Locale/Locale.nl-NL.Number.js
-/*
----
-
-name: Locale.nl-NL.Number
-
-description: Number messages for Dutch.
-
-license: MIT-style license
-
-authors:
-  - Arian Stolwijk
-
-requires:
-  - /Locale
-  - /Locale.EU.Number
-
-provides: [Locale.nl-NL.Number]
-
-...
-*/
-
-Locale.define('nl-NL').inherit('EU', 'Number');
-
-
-
-
-
-// Begin: Source/Interface/HtmlTable.Select.js
 /*
 ---
 
@@ -15248,145 +9544,3827 @@ HtmlTable = Class.refactor(HtmlTable, {
 });
 
 
-// Begin: Source/Drag/Behavior.Resizable.js
 /*
 ---
-description: Creates instances of Drag for resizable elements.
-provides: [Behavior.Resizable]
-requires: [Behavior/Behavior, More/Drag]
-script: Behavior.Resizable.js
-name: Behavior.Resizable
-...
-*/
-Behavior.addGlobalFilter('Resizable', {
-	//deprecated options
-	deprecated: {
-		handle: 'resize-handle',
-		child: 'resize-child'
-	},
-	deprecatedAsJSON: {
-		modifiers: 'resize-modifiers'
-	},
-	setup: function(element, api){
-		var options = {};
-		if (api.get('handle')) options.handle = element.getElement(api.get('handle'));
-		if (api.get('modifiers')) options.modifiers = api.getAs(Object, 'modifiers');
-		var target = element;
-		if (api.get('child')) target = element.getElement(api.get('child'));
-		var drag = target.makeResizable(options);
-		api.onCleanup(drag.detach.bind(drag));
-		return drag;
-	}
 
-});
+script: Scroller.js
 
+name: Scroller
 
-// Begin: Source/Interface/Behavior.HtmlTable.js
-/*
----
-description: Creates instances of HtmlTable for tables with the HtmlTable filter
-provides: [Behavior.HtmlTable]
-requires: [Behavior/Behavior, More/HtmlTable.Sort, More/HtmlTable.Zebra, More/HtmlTable.Select, More/Object.Extras]
-script: Behavior.HtmlTable.js
-name: Behavior.HtmlTable
+description: Class which scrolls the contents of any Element (including the window) when the mouse reaches the Element's boundaries.
+
+license: MIT-style license
+
+authors:
+  - Valerio Proietti
+
+requires:
+  - Core/Events
+  - Core/Options
+  - Core/Element.Event
+  - Core/Element.Dimensions
+  - MooTools.More
+
+provides: [Scroller]
+
 ...
 */
 
-/*
-	Refactor HtmlTable.Sort functionality:
-	don't detect the parsers on startup
-	wait for click
-	unless the option says to sort on startup
-*/
+var Scroller = new Class({
 
-HtmlTable = Class.refactor(HtmlTable, {
-	detectParsers: function(){
-		//if we are parsing on startup, then set ready to true
-		if (this.options.sortOnStartup) this._readyToParse = true;
-		//otherwise, don't parse until ready
-		if (this._readyToParse) {
-			this._parsed = true;
-			return this.previous();
-		}
-	},
-	headClick: function(event, el){
-		//on click, if we haven't parsed, set ready to true and run the parser
-		if (!this._parsed) {
-			this._readyToParse = true;
-			this.setParsers();
-		}
-		this.previous(event, el);
-	},
-	sort: function(index, reverse, pre){
-		//don't sort if we haven't parsed; this prevents sorting on startup
-		if (this._parsed) return this.previous(index, reverse, pre);
-	}
-});
+	Implements: [Events, Options],
 
-
-Behavior.addGlobalFilter('HtmlTable', {
-
-	deprecatedAsJSON: {
-		resize: 'table-resize'
+	options: {
+		area: 20,
+		velocity: 1,
+		onChange: function(x, y){
+			this.element.scrollTo(x, y);
+		},
+		fps: 50
 	},
 
-	defaults: {
-		classNoSort: 'noSort'
+	initialize: function(element, options){
+		this.setOptions(options);
+		this.element = document.id(element);
+		this.docBody = document.id(this.element.getDocument().body);
+		this.listener = (typeOf(this.element) != 'element') ? this.docBody : this.element;
+		this.timer = null;
+		this.bound = {
+			attach: this.attach.bind(this),
+			detach: this.detach.bind(this),
+			getCoords: this.getCoords.bind(this)
+		};
 	},
 
-	setup: function(element, api){
-		//make all data tables sortable
-		var firstSort;
-		element.getElements('thead th').each(function(th, i){
-			if (firstSort == null && !th.hasClass('noSort')) firstSort = i;
-			if (th.hasClass('defaultSort')) firstSort = i;
+	start: function(){
+		this.listener.addEvents({
+			mouseover: this.bound.attach,
+			mouseleave: this.bound.detach
 		});
-		api.setDefault('firstSort', firstSort);
-		var multiselectable = api.getAs(Boolean, 'multiselect', element.hasClass('multiselect')) || api.getAs(Boolean, 'allowMultiSelect');
-		var table = new HtmlTable(element,
-			Object.cleanValues({
-				parsers: api.getAs(Array, 'parsers'),
-				sortOnStartup: api.getAs(Boolean, 'sortOnStartup'),
-				sortIndex: api.getAs(Number, 'firstSort'),
-				sortable: api.getAs(Boolean, 'sortable', /* deprecated default: */ element.hasClass('sortable')),
-				classNoSort: api.get('noSort'),
-				selectable: api.getAs(Boolean, 'selectable', /* deprecated default: */ element.hasClass('selectable') || multiselectable),
-				allowMultiSelect: multiselectable,
-				useKeyboard: api.getAs(Boolean, 'useKeybaord', /* deprecated default: */ !element.hasClass('noKeyboard'))
-			})
+		return this;
+	},
+
+	stop: function(){
+		this.listener.removeEvents({
+			mouseover: this.bound.attach,
+			mouseleave: this.bound.detach
+		});
+		this.detach();
+		this.timer = clearInterval(this.timer);
+		return this;
+	},
+
+	attach: function(){
+		this.listener.addEvent('mousemove', this.bound.getCoords);
+	},
+
+	detach: function(){
+		this.listener.removeEvent('mousemove', this.bound.getCoords);
+		this.timer = clearInterval(this.timer);
+	},
+
+	getCoords: function(event){
+		this.page = (this.listener.get('tag') == 'body') ? event.client : event.page;
+		if (!this.timer) this.timer = this.scroll.periodical(Math.round(1000 / this.options.fps), this);
+	},
+
+	scroll: function(){
+		var size = this.element.getSize(),
+			scroll = this.element.getScroll(),
+			pos = this.element != this.docBody ? this.element.getOffsets() : {x: 0, y:0},
+			scrollSize = this.element.getScrollSize(),
+			change = {x: 0, y: 0},
+			top = this.options.area.top || this.options.area,
+			bottom = this.options.area.bottom || this.options.area;
+		for (var z in this.page){
+			if (this.page[z] < (top + pos[z]) && scroll[z] != 0){
+				change[z] = (this.page[z] - top - pos[z]) * this.options.velocity;
+			} else if (this.page[z] + bottom > (size[z] + pos[z]) && scroll[z] + size[z] != scrollSize[z]){
+				change[z] = (this.page[z] - size[z] + bottom - pos[z]) * this.options.velocity;
+			}
+			change[z] = change[z].round();
+		}
+		if (change.y || change.x) this.fireEvent('change', [scroll.x + change.x, scroll.y + change.y]);
+	}
+
+});
+
+
+/*
+---
+
+script: Tips.js
+
+name: Tips
+
+description: Class for creating nice tips that follow the mouse cursor when hovering an element.
+
+license: MIT-style license
+
+authors:
+  - Valerio Proietti
+  - Christoph Pojer
+  - Luis Merino
+
+requires:
+  - Core/Options
+  - Core/Events
+  - Core/Element.Event
+  - Core/Element.Style
+  - Core/Element.Dimensions
+  - /MooTools.More
+
+provides: [Tips]
+
+...
+*/
+
+(function(){
+
+var read = function(option, element){
+	return (option) ? (typeOf(option) == 'function' ? option(element) : element.get(option)) : '';
+};
+
+this.Tips = new Class({
+
+	Implements: [Events, Options],
+
+	options: {/*
+		id: null,
+		onAttach: function(element){},
+		onDetach: function(element){},
+		onBound: function(coords){},*/
+		onShow: function(){
+			this.tip.setStyle('display', 'block');
+		},
+		onHide: function(){
+			this.tip.setStyle('display', 'none');
+		},
+		title: 'title',
+		text: function(element){
+			return element.get('rel') || element.get('href');
+		},
+		showDelay: 100,
+		hideDelay: 100,
+		className: 'tip-wrap',
+		offset: {x: 16, y: 16},
+		windowPadding: {x:0, y:0},
+		fixed: false,
+		waiAria: true
+	},
+
+	initialize: function(){
+		var params = Array.link(arguments, {
+			options: Type.isObject,
+			elements: function(obj){
+				return obj != null;
+			}
+		});
+		this.setOptions(params.options);
+		if (params.elements) this.attach(params.elements);
+		this.container = new Element('div', {'class': 'tip'});
+
+		if (this.options.id){
+			this.container.set('id', this.options.id);
+			if (this.options.waiAria) this.attachWaiAria();
+		}
+	},
+
+	toElement: function(){
+		if (this.tip) return this.tip;
+
+		this.tip = new Element('div', {
+			'class': this.options.className,
+			styles: {
+				position: 'absolute',
+				top: 0,
+				left: 0
+			}
+		}).adopt(
+			new Element('div', {'class': 'tip-top'}),
+			this.container,
+			new Element('div', {'class': 'tip-bottom'})
 		);
-		api.onCleanup(function(){
-			if (table.keyboard) table.keyboard.relinquish();
-		});
-		// Hack to make tables not jump around in Chrome.
-		if (Browser.Engine.webkit) {
-			var width = element.style.width;
-			element.setStyle('width', '99%');
-			(function() {
-				element.style.width = width;
-			}).delay(1);
+
+		return this.tip;
+	},
+
+	attachWaiAria: function(){
+		var id = this.options.id;
+		this.container.set('role', 'tooltip');
+
+		if (!this.waiAria){
+			this.waiAria = {
+				show: function(element){
+					if (id) element.set('aria-describedby', id);
+					this.container.set('aria-hidden', 'false');
+				},
+				hide: function(element){
+					if (id) element.erase('aria-describedby');
+					this.container.set('aria-hidden', 'true');
+				}
+			};
 		}
-		return table;
+		this.addEvents(this.waiAria);
+	},
+
+	detachWaiAria: function(){
+		if (this.waiAria){
+			this.container.erase('role');
+			this.container.erase('aria-hidden');
+			this.removeEvents(this.waiAria);
+		}
+	},
+
+	attach: function(elements){
+		$$(elements).each(function(element){
+			var title = read(this.options.title, element),
+				text = read(this.options.text, element);
+
+			element.set('title', '').store('tip:native', title).retrieve('tip:title', title);
+			element.retrieve('tip:text', text);
+			this.fireEvent('attach', [element]);
+
+			var events = ['enter', 'leave'];
+			if (!this.options.fixed) events.push('move');
+
+			events.each(function(value){
+				var event = element.retrieve('tip:' + value);
+				if (!event) event = function(event){
+					this['element' + value.capitalize()].apply(this, [event, element]);
+				}.bind(this);
+
+				element.store('tip:' + value, event).addEvent('mouse' + value, event);
+			}, this);
+		}, this);
+
+		return this;
+	},
+
+	detach: function(elements){
+		$$(elements).each(function(element){
+			['enter', 'leave', 'move'].each(function(value){
+				element.removeEvent('mouse' + value, element.retrieve('tip:' + value)).eliminate('tip:' + value);
+			});
+
+			this.fireEvent('detach', [element]);
+
+			if (this.options.title == 'title'){ // This is necessary to check if we can revert the title
+				var original = element.retrieve('tip:native');
+				if (original) element.set('title', original);
+			}
+		}, this);
+
+		return this;
+	},
+
+	elementEnter: function(event, element){
+		clearTimeout(this.timer);
+		this.timer = (function(){
+			this.container.empty();
+
+			['title', 'text'].each(function(value){
+				var content = element.retrieve('tip:' + value);
+				var div = this['_' + value + 'Element'] = new Element('div', {
+						'class': 'tip-' + value
+					}).inject(this.container);
+				if (content) this.fill(div, content);
+			}, this);
+			this.show(element);
+			this.position((this.options.fixed) ? {page: element.getPosition()} : event);
+		}).delay(this.options.showDelay, this);
+	},
+
+	elementLeave: function(event, element){
+		clearTimeout(this.timer);
+		this.timer = this.hide.delay(this.options.hideDelay, this, element);
+		this.fireForParent(event, element);
+	},
+
+	setTitle: function(title){
+		if (this._titleElement){
+			this._titleElement.empty();
+			this.fill(this._titleElement, title);
+		}
+		return this;
+	},
+
+	setText: function(text){
+		if (this._textElement){
+			this._textElement.empty();
+			this.fill(this._textElement, text);
+		}
+		return this;
+	},
+
+	fireForParent: function(event, element){
+		element = element.getParent();
+		if (!element || element == document.body) return;
+		if (element.retrieve('tip:enter')) element.fireEvent('mouseenter', event);
+		else this.fireForParent(event, element);
+	},
+
+	elementMove: function(event, element){
+		this.position(event);
+	},
+
+	position: function(event){
+		if (!this.tip) document.id(this);
+
+		var size = window.getSize(), scroll = window.getScroll(),
+			tip = {x: this.tip.offsetWidth, y: this.tip.offsetHeight},
+			props = {x: 'left', y: 'top'},
+			bounds = {y: false, x2: false, y2: false, x: false},
+			obj = {};
+
+		for (var z in props){
+			obj[props[z]] = event.page[z] + this.options.offset[z];
+			if (obj[props[z]] < 0) bounds[z] = true;
+			if ((obj[props[z]] + tip[z] - scroll[z]) > size[z] - this.options.windowPadding[z]){
+				obj[props[z]] = event.page[z] - this.options.offset[z] - tip[z];
+				bounds[z+'2'] = true;
+			}
+		}
+
+		this.fireEvent('bound', bounds);
+		this.tip.setStyles(obj);
+	},
+
+	fill: function(element, contents){
+		if (typeof contents == 'string') element.set('html', contents);
+		else element.adopt(contents);
+	},
+
+	show: function(element){
+		if (!this.tip) document.id(this);
+		if (!this.tip.getParent()) this.tip.inject(document.body);
+		this.fireEvent('show', [this.tip, element]);
+	},
+
+	hide: function(element){
+		if (!this.tip) document.id(this);
+		this.fireEvent('hide', [this.tip, element]);
 	}
 
 });
 
-HtmlTable.defineParsers({
-	//A parser to allow numeric sorting by any value.
-	dataSortNumeric: {
-		match: /data-sort-numeric/,
-		convert: function() {
-			return this.getElement('[data-sort-numeric]').getData('sort-numeric').toInt();
-		},
-		number: true
-	},
-	//A parser to allow lexicographical sorting by any string.
-	dataSortString: {
-		match: /data-sort-string/,
-		convert: function() {
-			return this.getElement('[data-sort-string]').getData('sort-string');
-		},
-		number: false
+})();
+
+
+/*
+---
+
+script: Locale.Set.From.js
+
+name: Locale.Set.From
+
+description: Provides an alternative way to create Locale.Set objects.
+
+license: MIT-style license
+
+authors:
+  - Tim Wienk
+
+requires:
+  - Core/JSON
+  - /Locale
+
+provides: Locale.Set.From
+
+...
+*/
+
+(function(){
+
+var parsers = {
+	'json': JSON.decode
+};
+
+Locale.Set.defineParser = function(name, fn){
+	parsers[name] = fn;
+};
+
+Locale.Set.from = function(set, type){
+	if (instanceOf(set, Locale.Set)) return set;
+
+	if (!type && typeOf(set) == 'string') type = 'json';
+	if (parsers[type]) set = parsers[type](set);
+
+	var locale = new Locale.Set;
+
+	locale.sets = set.sets || {};
+
+	if (set.inherits){
+		locale.inherits.locales = Array.from(set.inherits.locales);
+		locale.inherits.sets = set.inherits.sets || {};
 	}
+
+	return locale;
+};
+
+})();
+
+
+/*
+---
+
+name: Locale.ar.Date
+
+description: Date messages for Arabic.
+
+license: MIT-style license
+
+authors:
+  - Chafik Barbar
+
+requires:
+  - /Locale
+
+provides: [Locale.ar.Date]
+
+...
+*/
+
+Locale.define('ar', 'Date', {
+
+	// Culture's date order: DD/MM/YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d/%m/%Y',
+	shortTime: '%H:%M'
+
+});
+
+
+/*
+---
+
+name: Locale.ar.Form.Validator
+
+description: Form Validator messages for Arabic.
+
+license: MIT-style license
+
+authors:
+  - Chafik Barbar
+
+requires:
+  - /Locale
+
+provides: [Locale.ar.Form.Validator]
+
+...
+*/
+
+Locale.define('ar', 'FormValidator', {
+
+	required: 'هذا الحقل مطلوب.',
+	minLength: 'رجاءً إدخال {minLength} أحرف على الأقل (تم إدخال {length} أحرف).',
+	maxLength: 'الرجاء عدم إدخال أكثر من {maxLength} أحرف (تم إدخال {length} أحرف).',
+	integer: 'الرجاء إدخال عدد صحيح في هذا الحقل. أي رقم ذو كسر عشري أو مئوي (مثال 1.25 ) غير مسموح.',
+	numeric: 'الرجاء إدخال قيم رقمية في هذا الحقل (مثال "1" أو "1.1" أو "-1" أو "-1.1").',
+	digits: 'الرجاء أستخدام قيم رقمية وعلامات ترقيمية فقط في هذا الحقل (مثال, رقم هاتف مع نقطة أو شحطة)',
+	alpha: 'الرجاء أستخدام أحرف فقط (ا-ي) في هذا الحقل. أي فراغات أو علامات غير مسموحة.',
+	alphanum: 'الرجاء أستخدام أحرف فقط (ا-ي) أو أرقام (0-9) فقط في هذا الحقل. أي فراغات أو علامات غير مسموحة.',
+	dateSuchAs: 'الرجاء إدخال تاريخ صحيح كالتالي {date}',
+	dateInFormatMDY: 'الرجاء إدخال تاريخ صحيح (مثال, 31-12-1999)',
+	email: 'الرجاء إدخال بريد إلكتروني صحيح.',
+	url: 'الرجاء إدخال عنوان إلكتروني صحيح مثل http://www.example.com',
+	currencyDollar: 'الرجاء إدخال قيمة $ صحيحة. مثال, 100.00$',
+	oneRequired: 'الرجاء إدخال قيمة في أحد هذه الحقول على الأقل.',
+	errorPrefix: 'خطأ: ',
+	warningPrefix: 'تحذير: '
+
+});
+
+
+/*
+---
+
+name: Locale.ca-CA.Date
+
+description: Date messages for Catalan.
+
+license: MIT-style license
+
+authors:
+  - Ãlfons Sanchez
+
+requires:
+  - /Locale
+
+provides: [Locale.ca-CA.Date]
+
+...
+*/
+
+Locale.define('ca-CA', 'Date', {
+
+	months: ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 'Juli', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'],
+	months_abbr: ['gen.', 'febr.', 'març', 'abr.', 'maig', 'juny', 'jul.', 'ag.', 'set.', 'oct.', 'nov.', 'des.'],
+	days: ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'],
+	days_abbr: ['dg', 'dl', 'dt', 'dc', 'dj', 'dv', 'ds'],
+
+	// Culture's date order: DD/MM/YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d/%m/%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 0,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: 'fa menys d`un minut',
+	minuteAgo: 'fa un minut',
+	minutesAgo: 'fa {delta} minuts',
+	hourAgo: 'fa un hora',
+	hoursAgo: 'fa unes {delta} hores',
+	dayAgo: 'fa un dia',
+	daysAgo: 'fa {delta} dies',
+
+	lessThanMinuteUntil: 'menys d`un minut des d`ara',
+	minuteUntil: 'un minut des d`ara',
+	minutesUntil: '{delta} minuts des d`ara',
+	hourUntil: 'un hora des d`ara',
+	hoursUntil: 'unes {delta} hores des d`ara',
+	dayUntil: '1 dia des d`ara',
+	daysUntil: '{delta} dies des d`ara'
+
+});
+
+
+/*
+---
+
+name: Locale.ca-CA.Form.Validator
+
+description: Form Validator messages for Catalan.
+
+license: MIT-style license
+
+authors:
+  - Miquel Hudin
+  - Ãlfons Sanchez
+
+requires:
+  - /Locale
+
+provides: [Locale.ca-CA.Form.Validator]
+
+...
+*/
+
+Locale.define('ca-CA', 'FormValidator', {
+
+	required: 'Aquest camp es obligatori.',
+	minLength: 'Per favor introdueix al menys {minLength} caracters (has introduit {length} caracters).',
+	maxLength: 'Per favor introdueix no mes de {maxLength} caracters (has introduit {length} caracters).',
+	integer: 'Per favor introdueix un nombre enter en aquest camp. Nombres amb decimals (p.e. 1,25) no estan permesos.',
+	numeric: 'Per favor introdueix sols valors numerics en aquest camp (p.e. "1" o "1,1" o "-1" o "-1,1").',
+	digits: 'Per favor usa sols numeros i puntuacio en aquest camp (per exemple, un nombre de telefon amb guions i punts no esta permes).',
+	alpha: 'Per favor utilitza lletres nomes (a-z) en aquest camp. No s´admiteixen espais ni altres caracters.',
+	alphanum: 'Per favor, utilitza nomes lletres (a-z) o numeros (0-9) en aquest camp. No s´admiteixen espais ni altres caracters.',
+	dateSuchAs: 'Per favor introdueix una data valida com {date}',
+	dateInFormatMDY: 'Per favor introdueix una data valida com DD/MM/YYYY (p.e. "31/12/1999")',
+	email: 'Per favor, introdueix una adreça de correu electronic valida. Per exemple, "fred@domain.com".',
+	url: 'Per favor introdueix una URL valida com http://www.example.com.',
+	currencyDollar: 'Per favor introdueix una quantitat valida de €. Per exemple €100,00 .',
+	oneRequired: 'Per favor introdueix alguna cosa per al menys una d´aquestes entrades.',
+	errorPrefix: 'Error: ',
+	warningPrefix: 'Avis: ',
+
+	// Form.Validator.Extras
+	noSpace: 'No poden haver espais en aquesta entrada.',
+	reqChkByNode: 'No hi han elements seleccionats.',
+	requiredChk: 'Aquest camp es obligatori.',
+	reqChkByName: 'Per favor selecciona una {label}.',
+	match: 'Aquest camp necessita coincidir amb el camp {matchName}',
+	startDate: 'la data de inici',
+	endDate: 'la data de fi',
+	currendDate: 'la data actual',
+	afterDate: 'La data deu ser igual o posterior a {label}.',
+	beforeDate: 'La data deu ser igual o anterior a {label}.',
+	startMonth: 'Per favor selecciona un mes d´orige',
+	sameMonth: 'Aquestes dos dates deuen estar dins del mateix mes - deus canviar una o altra.'
+
+});
+
+
+/*
+---
+
+name: Locale.cs-CZ.Date
+
+description: Date messages for Czech.
+
+license: MIT-style license
+
+authors:
+  - Jan Černý chemiX
+  - Christopher Zukowski
+
+requires:
+  - /Locale
+
+provides: [Locale.cs-CZ.Date]
+
+...
+*/
+(function(){
+
+// Czech language pluralization rules, see http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html
+// one -> n is 1;            1
+// few -> n in 2..4;         2-4
+// other -> everything else  0, 5-999, 1.31, 2.31, 5.31...
+var pluralize = function (n, one, few, other){
+	if (n == 1) return one;
+	else if (n == 2 || n == 3 || n == 4) return few;
+	else return other;
+};
+
+Locale.define('cs-CZ', 'Date', {
+
+	months: ['Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen', 'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'],
+	months_abbr: ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'],
+	days: ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'],
+	days_abbr: ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'],
+
+	// Culture's date order: DD.MM.YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d.%m.%Y',
+	shortTime: '%H:%M',
+	AM: 'dop.',
+	PM: 'odp.',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '.',
+
+	lessThanMinuteAgo: 'před chvílí',
+	minuteAgo: 'přibližně před minutou',
+	minutesAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'minutou', 'minutami', 'minutami'); },
+	hourAgo: 'přibližně před hodinou',
+	hoursAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'hodinou', 'hodinami', 'hodinami'); },
+	dayAgo: 'před dnem',
+	daysAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'dnem', 'dny', 'dny'); },
+	weekAgo: 'před týdnem',
+	weeksAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'týdnem', 'týdny', 'týdny'); },
+	monthAgo: 'před měsícem',
+	monthsAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'měsícem', 'měsíci', 'měsíci'); },
+	yearAgo: 'před rokem',
+	yearsAgo: function(delta){ return 'před {delta} ' + pluralize(delta, 'rokem', 'lety', 'lety'); },
+
+	lessThanMinuteUntil: 'za chvíli',
+	minuteUntil: 'přibližně za minutu',
+	minutesUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'minutu', 'minuty', 'minut'); },
+	hourUntil: 'přibližně za hodinu',
+	hoursUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'hodinu', 'hodiny', 'hodin'); },
+	dayUntil: 'za den',
+	daysUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'den', 'dny', 'dnů'); },
+	weekUntil: 'za týden',
+	weeksUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'týden', 'týdny', 'týdnů'); },
+	monthUntil: 'za měsíc',
+	monthsUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'měsíc', 'měsíce', 'měsíců'); },
+	yearUntil: 'za rok',
+	yearsUntil: function(delta){ return 'za {delta} ' + pluralize(delta, 'rok', 'roky', 'let'); }
+});
+
+})();
+
+
+/*
+---
+
+name: Locale.cs-CZ.Form.Validator
+
+description: Form Validator messages for Czech.
+
+license: MIT-style license
+
+authors:
+  - Jan Černý chemiX
+
+requires:
+  - /Locale
+
+provides: [Locale.cs-CZ.Form.Validator]
+
+...
+*/
+
+Locale.define('cs-CZ', 'FormValidator', {
+
+	required: 'Tato položka je povinná.',
+	minLength: 'Zadejte prosím alespoň {minLength} znaků (napsáno {length} znaků).',
+	maxLength: 'Zadejte prosím méně než {maxLength} znaků (nápsáno {length} znaků).',
+	integer: 'Zadejte prosím celé číslo. Desetinná čísla (např. 1.25) nejsou povolena.',
+	numeric: 'Zadejte jen číselné hodnoty (tj. "1" nebo "1.1" nebo "-1" nebo "-1.1").',
+	digits: 'Zadejte prosím pouze čísla a interpunkční znaménka(například telefonní číslo s pomlčkami nebo tečkami je povoleno).',
+	alpha: 'Zadejte prosím pouze písmena (a-z). Mezery nebo jiné znaky nejsou povoleny.',
+	alphanum: 'Zadejte prosím pouze písmena (a-z) nebo číslice (0-9). Mezery nebo jiné znaky nejsou povoleny.',
+	dateSuchAs: 'Zadejte prosím platné datum jako {date}',
+	dateInFormatMDY: 'Zadejte prosím platné datum jako MM / DD / RRRR (tj. "12/31/1999")',
+	email: 'Zadejte prosím platnou e-mailovou adresu. Například "fred@domain.com".',
+	url: 'Zadejte prosím platnou URL adresu jako http://www.example.com.',
+	currencyDollar: 'Zadejte prosím platnou částku. Například $100.00.',
+	oneRequired: 'Zadejte prosím alespoň jednu hodnotu pro tyto položky.',
+	errorPrefix: 'Chyba: ',
+	warningPrefix: 'Upozornění: ',
+
+	// Form.Validator.Extras
+	noSpace: 'V této položce nejsou povoleny mezery',
+	reqChkByNode: 'Nejsou vybrány žádné položky.',
+	requiredChk: 'Tato položka je vyžadována.',
+	reqChkByName: 'Prosím vyberte {label}.',
+	match: 'Tato položka se musí shodovat s položkou {matchName}',
+	startDate: 'datum zahájení',
+	endDate: 'datum ukončení',
+	currendDate: 'aktuální datum',
+	afterDate: 'Datum by mělo být stejné nebo větší než {label}.',
+	beforeDate: 'Datum by mělo být stejné nebo menší než {label}.',
+	startMonth: 'Vyberte počáteční měsíc.',
+	sameMonth: 'Tyto dva datumy musí být ve stejném měsíci - změňte jeden z nich.',
+	creditcard: 'Zadané číslo kreditní karty je neplatné. Prosím opravte ho. Bylo zadáno {length} čísel.'
+
+});
+
+
+/*
+---
+
+name: Locale.da-DK.Date
+
+description: Date messages for Danish.
+
+license: MIT-style license
+
+authors:
+  - Martin Overgaard
+  - Henrik Hansen
+
+requires:
+  - /Locale
+
+provides: [Locale.da-DK.Date]
+
+...
+*/
+
+Locale.define('da-DK', 'Date', {
+
+	months: ['Januar', 'Februar', 'Marts', 'April', 'Maj', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'December'],
+	months_abbr: ['jan.', 'feb.', 'mar.', 'apr.', 'maj.', 'jun.', 'jul.', 'aug.', 'sep.', 'okt.', 'nov.', 'dec.'],
+	days: ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'],
+	days_abbr: ['søn', 'man', 'tir', 'ons', 'tor', 'fre', 'lør'],
+
+	// Culture's date order: DD-MM-YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d-%m-%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '.',
+
+	lessThanMinuteAgo: 'mindre end et minut siden',
+	minuteAgo: 'omkring et minut siden',
+	minutesAgo: '{delta} minutter siden',
+	hourAgo: 'omkring en time siden',
+	hoursAgo: 'omkring {delta} timer siden',
+	dayAgo: '1 dag siden',
+	daysAgo: '{delta} dage siden',
+	weekAgo: '1 uge siden',
+	weeksAgo: '{delta} uger siden',
+	monthAgo: '1 måned siden',
+	monthsAgo: '{delta} måneder siden',
+	yearAgo: '1 år siden',
+	yearsAgo: '{delta} år siden',
+
+	lessThanMinuteUntil: 'mindre end et minut fra nu',
+	minuteUntil: 'omkring et minut fra nu',
+	minutesUntil: '{delta} minutter fra nu',
+	hourUntil: 'omkring en time fra nu',
+	hoursUntil: 'omkring {delta} timer fra nu',
+	dayUntil: '1 dag fra nu',
+	daysUntil: '{delta} dage fra nu',
+	weekUntil: '1 uge fra nu',
+	weeksUntil: '{delta} uger fra nu',
+	monthUntil: '1 måned fra nu',
+	monthsUntil: '{delta} måneder fra nu',
+	yearUntil: '1 år fra nu',
+	yearsUntil: '{delta} år fra nu'
+
+});
+
+
+/*
+---
+
+name: Locale.da-DK.Form.Validator
+
+description: Form Validator messages for Danish.
+
+license: MIT-style license
+
+authors:
+  - Martin Overgaard
+
+requires:
+  - /Locale
+
+provides: [Locale.da-DK.Form.Validator]
+
+...
+*/
+
+Locale.define('da-DK', 'FormValidator', {
+
+	required: 'Feltet skal udfyldes.',
+	minLength: 'Skriv mindst {minLength} tegn (du skrev {length} tegn).',
+	maxLength: 'Skriv maksimalt {maxLength} tegn (du skrev {length} tegn).',
+	integer: 'Skriv et tal i dette felt. Decimal tal (f.eks. 1.25) er ikke tilladt.',
+	numeric: 'Skriv kun tal i dette felt (i.e. "1" eller "1.1" eller "-1" eller "-1.1").',
+	digits: 'Skriv kun tal og tegnsætning i dette felt (eksempel, et telefon nummer med bindestreg eller punktum er tilladt).',
+	alpha: 'Skriv kun bogstaver (a-z) i dette felt. Mellemrum og andre tegn er ikke tilladt.',
+	alphanum: 'Skriv kun bogstaver (a-z) eller tal (0-9) i dette felt. Mellemrum og andre tegn er ikke tilladt.',
+	dateSuchAs: 'Skriv en gyldig dato som {date}',
+	dateInFormatMDY: 'Skriv dato i formatet DD-MM-YYYY (f.eks. "31-12-1999")',
+	email: 'Skriv en gyldig e-mail adresse. F.eks "fred@domain.com".',
+	url: 'Skriv en gyldig URL adresse. F.eks "http://www.example.com".',
+	currencyDollar: 'Skriv et gldigt beløb. F.eks Kr.100.00 .',
+	oneRequired: 'Et eller flere af felterne i denne formular skal udfyldes.',
+	errorPrefix: 'Fejl: ',
+	warningPrefix: 'Advarsel: ',
+
+	// Form.Validator.Extras
+	noSpace: 'Der må ikke benyttes mellemrum i dette felt.',
+	reqChkByNode: 'Foretag et valg.',
+	requiredChk: 'Dette felt skal udfyldes.',
+	reqChkByName: 'Vælg en {label}.',
+	match: 'Dette felt skal matche {matchName} feltet',
+	startDate: 'start dato',
+	endDate: 'slut dato',
+	currendDate: 'dags dato',
+	afterDate: 'Datoen skal være større end eller lig med {label}.',
+	beforeDate: 'Datoen skal være mindre end eller lig med {label}.',
+	startMonth: 'Vælg en start måned',
+	sameMonth: 'De valgte datoer skal være i samme måned - skift en af dem.'
+
+});
+
+
+/*
+---
+
+name: Locale.de-DE.Date
+
+description: Date messages for German.
+
+license: MIT-style license
+
+authors:
+  - Christoph Pojer
+  - Frank Rossi
+  - Ulrich Petri
+  - Fabian Beiner
+
+requires:
+  - /Locale
+
+provides: [Locale.de-DE.Date]
+
+...
+*/
+
+Locale.define('de-DE', 'Date', {
+
+	months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+	months_abbr: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+	days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+	days_abbr: ['So.', 'Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.'],
+
+	// Culture's date order: DD.MM.YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d.%m.%Y',
+	shortTime: '%H:%M',
+	AM: 'vormittags',
+	PM: 'nachmittags',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '.',
+
+	lessThanMinuteAgo: 'vor weniger als einer Minute',
+	minuteAgo: 'vor einer Minute',
+	minutesAgo: 'vor {delta} Minuten',
+	hourAgo: 'vor einer Stunde',
+	hoursAgo: 'vor {delta} Stunden',
+	dayAgo: 'vor einem Tag',
+	daysAgo: 'vor {delta} Tagen',
+	weekAgo: 'vor einer Woche',
+	weeksAgo: 'vor {delta} Wochen',
+	monthAgo: 'vor einem Monat',
+	monthsAgo: 'vor {delta} Monaten',
+	yearAgo: 'vor einem Jahr',
+	yearsAgo: 'vor {delta} Jahren',
+
+	lessThanMinuteUntil: 'in weniger als einer Minute',
+	minuteUntil: 'in einer Minute',
+	minutesUntil: 'in {delta} Minuten',
+	hourUntil: 'in ca. einer Stunde',
+	hoursUntil: 'in ca. {delta} Stunden',
+	dayUntil: 'in einem Tag',
+	daysUntil: 'in {delta} Tagen',
+	weekUntil: 'in einer Woche',
+	weeksUntil: 'in {delta} Wochen',
+	monthUntil: 'in einem Monat',
+	monthsUntil: 'in {delta} Monaten',
+	yearUntil: 'in einem Jahr',
+	yearsUntil: 'in {delta} Jahren'
+
+});
+
+
+/*
+---
+
+name: Locale.de-CH.Date
+
+description: Date messages for German (Switzerland).
+
+license: MIT-style license
+
+authors:
+  - Michael van der Weg
+
+requires:
+  - /Locale
+  - /Locale.de-DE.Date
+
+provides: [Locale.de-CH.Date]
+
+...
+*/
+
+Locale.define('de-CH').inherit('de-DE', 'Date');
+
+
+/*
+---
+
+name: Locale.de-CH.Form.Validator
+
+description: Form Validator messages for German (Switzerland).
+
+license: MIT-style license
+
+authors:
+  - Michael van der Weg
+
+requires:
+  - /Locale
+
+provides: [Locale.de-CH.Form.Validator]
+
+...
+*/
+
+Locale.define('de-CH', 'FormValidator', {
+
+	required: 'Dieses Feld ist obligatorisch.',
+	minLength: 'Geben Sie bitte mindestens {minLength} Zeichen ein (Sie haben {length} Zeichen eingegeben).',
+	maxLength: 'Bitte geben Sie nicht mehr als {maxLength} Zeichen ein (Sie haben {length} Zeichen eingegeben).',
+	integer: 'Geben Sie bitte eine ganze Zahl ein. Dezimalzahlen (z.B. 1.25) sind nicht erlaubt.',
+	numeric: 'Geben Sie bitte nur Zahlenwerte in dieses Eingabefeld ein (z.B. &quot;1&quot;, &quot;1.1&quot;, &quot;-1&quot; oder &quot;-1.1&quot;).',
+	digits: 'Benutzen Sie bitte nur Zahlen und Satzzeichen in diesem Eingabefeld (erlaubt ist z.B. eine Telefonnummer mit Bindestrichen und Punkten).',
+	alpha: 'Benutzen Sie bitte nur Buchstaben (a-z) in diesem Feld. Leerzeichen und andere Zeichen sind nicht erlaubt.',
+	alphanum: 'Benutzen Sie bitte nur Buchstaben (a-z) und Zahlen (0-9) in diesem Eingabefeld. Leerzeichen und andere Zeichen sind nicht erlaubt.',
+	dateSuchAs: 'Geben Sie bitte ein g&uuml;ltiges Datum ein. Wie zum Beispiel {date}',
+	dateInFormatMDY: 'Geben Sie bitte ein g&uuml;ltiges Datum ein. Wie zum Beispiel TT.MM.JJJJ (z.B. &quot;31.12.1999&quot;)',
+	email: 'Geben Sie bitte eine g&uuml;ltige E-Mail Adresse ein. Wie zum Beispiel &quot;maria@bernasconi.ch&quot;.',
+	url: 'Geben Sie bitte eine g&uuml;ltige URL ein. Wie zum Beispiel http://www.example.com.',
+	currencyDollar: 'Geben Sie bitte einen g&uuml;ltigen Betrag in Schweizer Franken ein. Wie zum Beispiel 100.00 CHF .',
+	oneRequired: 'Machen Sie f&uuml;r mindestens eines der Eingabefelder einen Eintrag.',
+	errorPrefix: 'Fehler: ',
+	warningPrefix: 'Warnung: ',
+
+	// Form.Validator.Extras
+	noSpace: 'In diesem Eingabefeld darf kein Leerzeichen sein.',
+	reqChkByNode: 'Es wurden keine Elemente gew&auml;hlt.',
+	requiredChk: 'Dieses Feld ist obligatorisch.',
+	reqChkByName: 'Bitte w&auml;hlen Sie ein {label}.',
+	match: 'Dieses Eingabefeld muss mit dem Feld {matchName} &uuml;bereinstimmen.',
+	startDate: 'Das Anfangsdatum',
+	endDate: 'Das Enddatum',
+	currendDate: 'Das aktuelle Datum',
+	afterDate: 'Das Datum sollte zur gleichen Zeit oder sp&auml;ter sein {label}.',
+	beforeDate: 'Das Datum sollte zur gleichen Zeit oder fr&uuml;her sein {label}.',
+	startMonth: 'W&auml;hlen Sie bitte einen Anfangsmonat',
+	sameMonth: 'Diese zwei Datumsangaben m&uuml;ssen im selben Monat sein - Sie m&uuml;ssen eine von beiden ver&auml;ndern.',
+	creditcard: 'Die eingegebene Kreditkartennummer ist ung&uuml;ltig. Bitte &uuml;berpr&uuml;fen Sie diese und versuchen Sie es erneut. {length} Zahlen eingegeben.'
+
+});
+
+
+/*
+---
+
+name: Locale.de-DE.Form.Validator
+
+description: Form Validator messages for German.
+
+license: MIT-style license
+
+authors:
+  - Frank Rossi
+  - Ulrich Petri
+  - Fabian Beiner
+
+requires:
+  - /Locale
+
+provides: [Locale.de-DE.Form.Validator]
+
+...
+*/
+
+Locale.define('de-DE', 'FormValidator', {
+
+	required: 'Dieses Eingabefeld muss ausgefüllt werden.',
+	minLength: 'Geben Sie bitte mindestens {minLength} Zeichen ein (Sie haben nur {length} Zeichen eingegeben).',
+	maxLength: 'Geben Sie bitte nicht mehr als {maxLength} Zeichen ein (Sie haben {length} Zeichen eingegeben).',
+	integer: 'Geben Sie in diesem Eingabefeld bitte eine ganze Zahl ein. Dezimalzahlen (z.B. "1.25") sind nicht erlaubt.',
+	numeric: 'Geben Sie in diesem Eingabefeld bitte nur Zahlenwerte (z.B. "1", "1.1", "-1" oder "-1.1") ein.',
+	digits: 'Geben Sie in diesem Eingabefeld bitte nur Zahlen und Satzzeichen ein (z.B. eine Telefonnummer mit Bindestrichen und Punkten ist erlaubt).',
+	alpha: 'Geben Sie in diesem Eingabefeld bitte nur Buchstaben (a-z) ein. Leerzeichen und andere Zeichen sind nicht erlaubt.',
+	alphanum: 'Geben Sie in diesem Eingabefeld bitte nur Buchstaben (a-z) und Zahlen (0-9) ein. Leerzeichen oder andere Zeichen sind nicht erlaubt.',
+	dateSuchAs: 'Geben Sie bitte ein gültiges Datum ein (z.B. "{date}").',
+	dateInFormatMDY: 'Geben Sie bitte ein gültiges Datum im Format TT.MM.JJJJ ein (z.B. "31.12.1999").',
+	email: 'Geben Sie bitte eine gültige E-Mail-Adresse ein (z.B. "max@mustermann.de").',
+	url: 'Geben Sie bitte eine gültige URL ein (z.B. "http://www.example.com").',
+	currencyDollar: 'Geben Sie bitte einen gültigen Betrag in EURO ein (z.B. 100.00€).',
+	oneRequired: 'Bitte füllen Sie mindestens ein Eingabefeld aus.',
+	errorPrefix: 'Fehler: ',
+	warningPrefix: 'Warnung: ',
+
+	// Form.Validator.Extras
+	noSpace: 'Es darf kein Leerzeichen in diesem Eingabefeld sein.',
+	reqChkByNode: 'Es wurden keine Elemente gewählt.',
+	requiredChk: 'Dieses Feld muss ausgefüllt werden.',
+	reqChkByName: 'Bitte wählen Sie ein {label}.',
+	match: 'Dieses Eingabefeld muss mit dem {matchName} Eingabefeld übereinstimmen.',
+	startDate: 'Das Anfangsdatum',
+	endDate: 'Das Enddatum',
+	currendDate: 'Das aktuelle Datum',
+	afterDate: 'Das Datum sollte zur gleichen Zeit oder später sein als {label}.',
+	beforeDate: 'Das Datum sollte zur gleichen Zeit oder früher sein als {label}.',
+	startMonth: 'Wählen Sie bitte einen Anfangsmonat',
+	sameMonth: 'Diese zwei Datumsangaben müssen im selben Monat sein - Sie müssen eines von beiden verändern.',
+	creditcard: 'Die eingegebene Kreditkartennummer ist ungültig. Bitte überprüfen Sie diese und versuchen Sie es erneut. {length} Zahlen eingegeben.'
+
+});
+
+
+/*
+---
+
+name: Locale.EU.Number
+
+description: Number messages for Europe.
+
+license: MIT-style license
+
+authors:
+  - Arian Stolwijk
+
+requires:
+  - /Locale
+
+provides: [Locale.EU.Number]
+
+...
+*/
+
+Locale.define('EU', 'Number', {
+
+	decimal: ',',
+	group: '.',
+
+	currency: {
+		prefix: '€ '
+	}
+
+});
+
+
+/*
+---
+
+name: Locale.de-DE.Number
+
+description: Number messages for German.
+
+license: MIT-style license
+
+authors:
+  - Christoph Pojer
+
+requires:
+  - /Locale
+  - /Locale.EU.Number
+
+provides: [Locale.de-DE.Number]
+
+...
+*/
+
+Locale.define('de-DE').inherit('EU', 'Number');
+
+
+/*
+---
+
+name: Locale.en-GB.Date
+
+description: Date messages for British English.
+
+license: MIT-style license
+
+authors:
+  - Aaron Newton
+
+requires:
+  - /Locale
+  - /Locale.en-US.Date
+
+provides: [Locale.en-GB.Date]
+
+...
+*/
+
+Locale.define('en-GB', 'Date', {
+
+	// Culture's date order: DD/MM/YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d/%m/%Y',
+	shortTime: '%H:%M'
+
+}).inherit('en-US', 'Date');
+
+
+/*
+---
+
+name: Locale.es-ES.Date
+
+description: Date messages for Spanish.
+
+license: MIT-style license
+
+authors:
+  - Ãlfons Sanchez
+
+requires:
+  - /Locale
+
+provides: [Locale.es-ES.Date]
+
+...
+*/
+
+Locale.define('es-ES', 'Date', {
+
+	months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+	months_abbr: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
+	days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+	days_abbr: ['dom', 'lun', 'mar', 'mié', 'juv', 'vie', 'sáb'],
+
+	// Culture's date order: DD/MM/YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d/%m/%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: 'hace menos de un minuto',
+	minuteAgo: 'hace un minuto',
+	minutesAgo: 'hace {delta} minutos',
+	hourAgo: 'hace una hora',
+	hoursAgo: 'hace unas {delta} horas',
+	dayAgo: 'hace un día',
+	daysAgo: 'hace {delta} días',
+	weekAgo: 'hace una semana',
+	weeksAgo: 'hace unas {delta} semanas',
+	monthAgo: 'hace un mes',
+	monthsAgo: 'hace {delta} meses',
+	yearAgo: 'hace un año',
+	yearsAgo: 'hace {delta} años',
+
+	lessThanMinuteUntil: 'menos de un minuto desde ahora',
+	minuteUntil: 'un minuto desde ahora',
+	minutesUntil: '{delta} minutos desde ahora',
+	hourUntil: 'una hora desde ahora',
+	hoursUntil: 'unas {delta} horas desde ahora',
+	dayUntil: 'un día desde ahora',
+	daysUntil: '{delta} días desde ahora',
+	weekUntil: 'una semana desde ahora',
+	weeksUntil: 'unas {delta} semanas desde ahora',
+	monthUntil: 'un mes desde ahora',
+	monthsUntil: '{delta} meses desde ahora',
+	yearUntil: 'un año desde ahora',
+	yearsUntil: '{delta} años desde ahora'
+
+});
+
+
+/*
+---
+
+name: Locale.es-AR.Date
+
+description: Date messages for Spanish (Argentina).
+
+license: MIT-style license
+
+authors:
+  - Ãlfons Sanchez
+  - Diego Massanti
+
+requires:
+  - /Locale
+  - /Locale.es-ES.Date
+
+provides: [Locale.es-AR.Date]
+
+...
+*/
+
+Locale.define('es-AR').inherit('es-ES', 'Date');
+
+
+/*
+---
+
+name: Locale.es-AR.Form.Validator
+
+description: Form Validator messages for Spanish (Argentina).
+
+license: MIT-style license
+
+authors:
+  - Diego Massanti
+
+requires:
+  - /Locale
+
+provides: [Locale.es-AR.Form.Validator]
+
+...
+*/
+
+Locale.define('es-AR', 'FormValidator', {
+
+	required: 'Este campo es obligatorio.',
+	minLength: 'Por favor ingrese al menos {minLength} caracteres (ha ingresado {length} caracteres).',
+	maxLength: 'Por favor no ingrese más de {maxLength} caracteres (ha ingresado {length} caracteres).',
+	integer: 'Por favor ingrese un número entero en este campo. Números con decimales (p.e. 1,25) no se permiten.',
+	numeric: 'Por favor ingrese solo valores numéricos en este campo (p.e. "1" o "1,1" o "-1" o "-1,1").',
+	digits: 'Por favor use sólo números y puntuación en este campo (por ejemplo, un número de teléfono con guiones y/o puntos no está permitido).',
+	alpha: 'Por favor use sólo letras (a-z) en este campo. No se permiten espacios ni otros caracteres.',
+	alphanum: 'Por favor, usa sólo letras (a-z) o números (0-9) en este campo. No se permiten espacios u otros caracteres.',
+	dateSuchAs: 'Por favor ingrese una fecha válida como {date}',
+	dateInFormatMDY: 'Por favor ingrese una fecha válida, utulizando el formato DD/MM/YYYY (p.e. "31/12/1999")',
+	email: 'Por favor, ingrese una dirección de e-mail válida. Por ejemplo, "fred@dominio.com".',
+	url: 'Por favor ingrese una URL válida como http://www.example.com.',
+	currencyDollar: 'Por favor ingrese una cantidad válida de pesos. Por ejemplo $100,00 .',
+	oneRequired: 'Por favor ingrese algo para por lo menos una de estas entradas.',
+	errorPrefix: 'Error: ',
+	warningPrefix: 'Advertencia: ',
+
+	// Form.Validator.Extras
+	noSpace: 'No se permiten espacios en este campo.',
+	reqChkByNode: 'No hay elementos seleccionados.',
+	requiredChk: 'Este campo es obligatorio.',
+	reqChkByName: 'Por favor selecciona una {label}.',
+	match: 'Este campo necesita coincidir con el campo {matchName}',
+	startDate: 'la fecha de inicio',
+	endDate: 'la fecha de fin',
+	currendDate: 'la fecha actual',
+	afterDate: 'La fecha debe ser igual o posterior a {label}.',
+	beforeDate: 'La fecha debe ser igual o anterior a {label}.',
+	startMonth: 'Por favor selecciona un mes de origen',
+	sameMonth: 'Estas dos fechas deben estar en el mismo mes - debes cambiar una u otra.'
+
+});
+
+
+/*
+---
+
+name: Locale.es-ES.Form.Validator
+
+description: Form Validator messages for Spanish.
+
+license: MIT-style license
+
+authors:
+  - Ãlfons Sanchez
+
+requires:
+  - /Locale
+
+provides: [Locale.es-ES.Form.Validator]
+
+...
+*/
+
+Locale.define('es-ES', 'FormValidator', {
+
+	required: 'Este campo es obligatorio.',
+	minLength: 'Por favor introduce al menos {minLength} caracteres (has introducido {length} caracteres).',
+	maxLength: 'Por favor introduce no m&aacute;s de {maxLength} caracteres (has introducido {length} caracteres).',
+	integer: 'Por favor introduce un n&uacute;mero entero en este campo. N&uacute;meros con decimales (p.e. 1,25) no se permiten.',
+	numeric: 'Por favor introduce solo valores num&eacute;ricos en este campo (p.e. "1" o "1,1" o "-1" o "-1,1").',
+	digits: 'Por favor usa solo n&uacute;meros y puntuaci&oacute;n en este campo (por ejemplo, un n&uacute;mero de tel&eacute;fono con guiones y puntos no esta permitido).',
+	alpha: 'Por favor usa letras solo (a-z) en este campo. No se admiten espacios ni otros caracteres.',
+	alphanum: 'Por favor, usa solo letras (a-z) o n&uacute;meros (0-9) en este campo. No se admiten espacios ni otros caracteres.',
+	dateSuchAs: 'Por favor introduce una fecha v&aacute;lida como {date}',
+	dateInFormatMDY: 'Por favor introduce una fecha v&aacute;lida como DD/MM/YYYY (p.e. "31/12/1999")',
+	email: 'Por favor, introduce una direcci&oacute;n de email v&aacute;lida. Por ejemplo, "fred@domain.com".',
+	url: 'Por favor introduce una URL v&aacute;lida como http://www.example.com.',
+	currencyDollar: 'Por favor introduce una cantidad v&aacute;lida de €. Por ejemplo €100,00 .',
+	oneRequired: 'Por favor introduce algo para por lo menos una de estas entradas.',
+	errorPrefix: 'Error: ',
+	warningPrefix: 'Aviso: ',
+
+	// Form.Validator.Extras
+	noSpace: 'No pueden haber espacios en esta entrada.',
+	reqChkByNode: 'No hay elementos seleccionados.',
+	requiredChk: 'Este campo es obligatorio.',
+	reqChkByName: 'Por favor selecciona una {label}.',
+	match: 'Este campo necesita coincidir con el campo {matchName}',
+	startDate: 'la fecha de inicio',
+	endDate: 'la fecha de fin',
+	currendDate: 'la fecha actual',
+	afterDate: 'La fecha debe ser igual o posterior a {label}.',
+	beforeDate: 'La fecha debe ser igual o anterior a {label}.',
+	startMonth: 'Por favor selecciona un mes de origen',
+	sameMonth: 'Estas dos fechas deben estar en el mismo mes - debes cambiar una u otra.'
+
+});
+
+
+/*
+---
+
+name: Locale.et-EE.Date
+
+description: Date messages for Estonian.
+
+license: MIT-style license
+
+authors:
+  - Kevin Valdek
+
+requires:
+  - /Locale
+
+provides: [Locale.et-EE.Date]
+
+...
+*/
+
+Locale.define('et-EE', 'Date', {
+
+	months: ['jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktoober', 'november', 'detsember'],
+	months_abbr: ['jaan', 'veebr', 'märts', 'apr', 'mai', 'juuni', 'juuli', 'aug', 'sept', 'okt', 'nov', 'dets'],
+	days: ['pühapäev', 'esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev'],
+	days_abbr: ['pühap', 'esmasp', 'teisip', 'kolmap', 'neljap', 'reede', 'laup'],
+
+	// Culture's date order: MM.DD.YYYY
+	dateOrder: ['month', 'date', 'year'],
+	shortDate: '%m.%d.%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: 'vähem kui minut aega tagasi',
+	minuteAgo: 'umbes minut aega tagasi',
+	minutesAgo: '{delta} minutit tagasi',
+	hourAgo: 'umbes tund aega tagasi',
+	hoursAgo: 'umbes {delta} tundi tagasi',
+	dayAgo: '1 päev tagasi',
+	daysAgo: '{delta} päeva tagasi',
+	weekAgo: '1 nädal tagasi',
+	weeksAgo: '{delta} nädalat tagasi',
+	monthAgo: '1 kuu tagasi',
+	monthsAgo: '{delta} kuud tagasi',
+	yearAgo: '1 aasta tagasi',
+	yearsAgo: '{delta} aastat tagasi',
+
+	lessThanMinuteUntil: 'vähem kui minuti aja pärast',
+	minuteUntil: 'umbes minuti aja pärast',
+	minutesUntil: '{delta} minuti pärast',
+	hourUntil: 'umbes tunni aja pärast',
+	hoursUntil: 'umbes {delta} tunni pärast',
+	dayUntil: '1 päeva pärast',
+	daysUntil: '{delta} päeva pärast',
+	weekUntil: '1 nädala pärast',
+	weeksUntil: '{delta} nädala pärast',
+	monthUntil: '1 kuu pärast',
+	monthsUntil: '{delta} kuu pärast',
+	yearUntil: '1 aasta pärast',
+	yearsUntil: '{delta} aasta pärast'
+
+});
+
+
+/*
+---
+
+name: Locale.et-EE.Form.Validator
+
+description: Form Validator messages for Estonian.
+
+license: MIT-style license
+
+authors:
+  - Kevin Valdek
+
+requires:
+  - /Locale
+
+provides: [Locale.et-EE.Form.Validator]
+
+...
+*/
+
+Locale.define('et-EE', 'FormValidator', {
+
+	required: 'Väli peab olema täidetud.',
+	minLength: 'Palun sisestage vähemalt {minLength} tähte (te sisestasite {length} tähte).',
+	maxLength: 'Palun ärge sisestage rohkem kui {maxLength} tähte (te sisestasite {length} tähte).',
+	integer: 'Palun sisestage väljale täisarv. Kümnendarvud (näiteks 1.25) ei ole lubatud.',
+	numeric: 'Palun sisestage ainult numbreid väljale (näiteks "1", "1.1", "-1" või "-1.1").',
+	digits: 'Palun kasutage ainult numbreid ja kirjavahemärke (telefoninumbri sisestamisel on lubatud kasutada kriipse ja punkte).',
+	alpha: 'Palun kasutage ainult tähti (a-z). Tühikud ja teised sümbolid on keelatud.',
+	alphanum: 'Palun kasutage ainult tähti (a-z) või numbreid (0-9). Tühikud ja teised sümbolid on keelatud.',
+	dateSuchAs: 'Palun sisestage kehtiv kuupäev kujul {date}',
+	dateInFormatMDY: 'Palun sisestage kehtiv kuupäev kujul MM.DD.YYYY (näiteks: "12.31.1999").',
+	email: 'Palun sisestage kehtiv e-maili aadress (näiteks: "fred@domain.com").',
+	url: 'Palun sisestage kehtiv URL (näiteks: http://www.example.com).',
+	currencyDollar: 'Palun sisestage kehtiv $ summa (näiteks: $100.00).',
+	oneRequired: 'Palun sisestage midagi vähemalt ühele antud väljadest.',
+	errorPrefix: 'Viga: ',
+	warningPrefix: 'Hoiatus: ',
+
+	// Form.Validator.Extras
+	noSpace: 'Väli ei tohi sisaldada tühikuid.',
+	reqChkByNode: 'Ükski väljadest pole valitud.',
+	requiredChk: 'Välja täitmine on vajalik.',
+	reqChkByName: 'Palun valige üks {label}.',
+	match: 'Väli peab sobima {matchName} väljaga',
+	startDate: 'algkuupäev',
+	endDate: 'lõppkuupäev',
+	currendDate: 'praegune kuupäev',
+	afterDate: 'Kuupäev peab olema võrdne või pärast {label}.',
+	beforeDate: 'Kuupäev peab olema võrdne või enne {label}.',
+	startMonth: 'Palun valige algkuupäev.',
+	sameMonth: 'Antud kaks kuupäeva peavad olema samas kuus - peate muutma ühte kuupäeva.'
+
+});
+
+
+/*
+---
+
+name: Locale.fa.Date
+
+description: Date messages for Persian.
+
+license: MIT-style license
+
+authors:
+  - Amir Hossein Hodjaty Pour
+
+requires:
+  - /Locale
+
+provides: [Locale.fa.Date]
+
+...
+*/
+
+Locale.define('fa', 'Date', {
+
+	months: ['ژانویه', 'فوریه', 'مارس', 'آپریل', 'مه', 'ژوئن', 'ژوئیه', 'آگوست', 'سپتامبر', 'اکتبر', 'نوامبر', 'دسامبر'],
+	months_abbr: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
+	days: ['یکشنبه', 'دوشنبه', 'سه شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'],
+	days_abbr: ['ي', 'د', 'س', 'چ', 'پ', 'ج', 'ش'],
+
+	// Culture's date order: MM/DD/YYYY
+	dateOrder: ['month', 'date', 'year'],
+	shortDate: '%m/%d/%Y',
+	shortTime: '%I:%M%p',
+	AM: 'ق.ظ',
+	PM: 'ب.ظ',
+
+	// Date.Extras
+	ordinal: 'ام',
+
+	lessThanMinuteAgo: 'کمتر از یک دقیقه پیش',
+	minuteAgo: 'حدود یک دقیقه پیش',
+	minutesAgo: '{delta} دقیقه پیش',
+	hourAgo: 'حدود یک ساعت پیش',
+	hoursAgo: 'حدود {delta} ساعت پیش',
+	dayAgo: '1 روز پیش',
+	daysAgo: '{delta} روز پیش',
+	weekAgo: '1 هفته پیش',
+	weeksAgo: '{delta} هفته پیش',
+	monthAgo: '1 ماه پیش',
+	monthsAgo: '{delta} ماه پیش',
+	yearAgo: '1 سال پیش',
+	yearsAgo: '{delta} سال پیش',
+
+	lessThanMinuteUntil: 'کمتر از یک دقیقه از حالا',
+	minuteUntil: 'حدود یک دقیقه از حالا',
+	minutesUntil: '{delta} دقیقه از حالا',
+	hourUntil: 'حدود یک ساعت از حالا',
+	hoursUntil: 'حدود {delta} ساعت از حالا',
+	dayUntil: '1 روز از حالا',
+	daysUntil: '{delta} روز از حالا',
+	weekUntil: '1 هفته از حالا',
+	weeksUntil: '{delta} هفته از حالا',
+	monthUntil: '1 ماه از حالا',
+	monthsUntil: '{delta} ماه از حالا',
+	yearUntil: '1 سال از حالا',
+	yearsUntil: '{delta} سال از حالا'
+
+});
+
+
+/*
+---
+
+name: Locale.fa.Form.Validator
+
+description: Form Validator messages for Persian.
+
+license: MIT-style license
+
+authors:
+  - Amir Hossein Hodjaty Pour
+
+requires:
+  - /Locale
+
+provides: [Locale.fa.Form.Validator]
+
+...
+*/
+
+Locale.define('fa', 'FormValidator', {
+
+	required: 'این فیلد الزامی است.',
+	minLength: 'شما باید حداقل {minLength} حرف وارد کنید ({length} حرف وارد کرده اید).',
+	maxLength: 'لطفا حداکثر {maxLength} حرف وارد کنید (شما {length} حرف وارد کرده اید).',
+	integer: 'لطفا از عدد صحیح استفاده کنید. اعداد اعشاری (مانند 1.25) مجاز نیستند.',
+	numeric: 'لطفا فقط داده عددی وارد کنید (مانند "1" یا "1.1" یا "1-" یا "1.1-").',
+	digits: 'لطفا فقط از اعداد و علامتها در این فیلد استفاده کنید (برای مثال شماره تلفن با خط تیره و نقطه قابل قبول است).',
+	alpha: 'لطفا فقط از حروف الفباء برای این بخش استفاده کنید. کاراکترهای دیگر و فاصله مجاز نیستند.',
+	alphanum: 'لطفا فقط از حروف الفباء و اعداد در این بخش استفاده کنید. کاراکترهای دیگر و فاصله مجاز نیستند.',
+	dateSuchAs: 'لطفا یک تاریخ معتبر مانند {date} وارد کنید.',
+	dateInFormatMDY: 'لطفا یک تاریخ معتبر به شکل MM/DD/YYYY وارد کنید (مانند "12/31/1999").',
+	email: 'لطفا یک آدرس ایمیل معتبر وارد کنید. برای مثال "fred@domain.com".',
+	url: 'لطفا یک URL معتبر مانند http://www.example.com وارد کنید.',
+	currencyDollar: 'لطفا یک محدوده معتبر برای این بخش وارد کنید مانند 100.00$ .',
+	oneRequired: 'لطفا حداقل یکی از فیلدها را پر کنید.',
+	errorPrefix: 'خطا: ',
+	warningPrefix: 'هشدار: ',
+
+	// Form.Validator.Extras
+	noSpace: 'استفاده از فاصله در این بخش مجاز نیست.',
+	reqChkByNode: 'موردی انتخاب نشده است.',
+	requiredChk: 'این فیلد الزامی است.',
+	reqChkByName: 'لطفا یک {label} را انتخاب کنید.',
+	match: 'این فیلد باید با فیلد {matchName} مطابقت داشته باشد.',
+	startDate: 'تاریخ شروع',
+	endDate: 'تاریخ پایان',
+	currendDate: 'تاریخ کنونی',
+	afterDate: 'تاریخ میبایست برابر یا بعد از {label} باشد',
+	beforeDate: 'تاریخ میبایست برابر یا قبل از {label} باشد',
+	startMonth: 'لطفا ماه شروع را انتخاب کنید',
+	sameMonth: 'این دو تاریخ باید در یک ماه باشند - شما باید یکی یا هر دو را تغییر دهید.',
+	creditcard: 'شماره کارت اعتباری که وارد کرده اید معتبر نیست. لطفا شماره را بررسی کنید و مجددا تلاش کنید. {length} رقم وارد شده است.'
+
+});
+
+
+/*
+---
+
+name: Locale.fi-FI.Date
+
+description: Date messages for Finnish.
+
+license: MIT-style license
+
+authors:
+  - ksel
+
+requires:
+  - /Locale
+
+provides: [Locale.fi-FI.Date]
+
+...
+*/
+
+Locale.define('fi-FI', 'Date', {
+
+	// NOTE: months and days are not capitalized in finnish
+	months: ['tammikuu', 'helmikuu', 'maaliskuu', 'huhtikuu', 'toukokuu', 'kesäkuu', 'heinäkuu', 'elokuu', 'syyskuu', 'lokakuu', 'marraskuu', 'joulukuu'],
+
+	// these abbreviations are really not much used in finnish because they obviously won't abbreviate very much. ;)
+	// NOTE: sometimes one can see forms such as "tammi", "helmi", etc. but that is not proper finnish.
+	months_abbr: ['tammik.', 'helmik.', 'maalisk.', 'huhtik.', 'toukok.', 'kesäk.', 'heinäk.', 'elok.', 'syysk.', 'lokak.', 'marrask.', 'jouluk.'],
+
+	days: ['sunnuntai', 'maanantai', 'tiistai', 'keskiviikko', 'torstai', 'perjantai', 'lauantai'],
+	days_abbr: ['su', 'ma', 'ti', 'ke', 'to', 'pe', 'la'],
+
+	// Culture's date order: DD/MM/YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d.%m.%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '.',
+
+	lessThanMinuteAgo: 'vajaa minuutti sitten',
+	minuteAgo: 'noin minuutti sitten',
+	minutesAgo: '{delta} minuuttia sitten',
+	hourAgo: 'noin tunti sitten',
+	hoursAgo: 'noin {delta} tuntia sitten',
+	dayAgo: 'päivä sitten',
+	daysAgo: '{delta} päivää sitten',
+	weekAgo: 'viikko sitten',
+	weeksAgo: '{delta} viikkoa sitten',
+	monthAgo: 'kuukausi sitten',
+	monthsAgo: '{delta} kuukautta sitten',
+	yearAgo: 'vuosi sitten',
+	yearsAgo: '{delta} vuotta sitten',
+
+	lessThanMinuteUntil: 'vajaan minuutin kuluttua',
+	minuteUntil: 'noin minuutin kuluttua',
+	minutesUntil: '{delta} minuutin kuluttua',
+	hourUntil: 'noin tunnin kuluttua',
+	hoursUntil: 'noin {delta} tunnin kuluttua',
+	dayUntil: 'päivän kuluttua',
+	daysUntil: '{delta} päivän kuluttua',
+	weekUntil: 'viikon kuluttua',
+	weeksUntil: '{delta} viikon kuluttua',
+	monthUntil: 'kuukauden kuluttua',
+	monthsUntil: '{delta} kuukauden kuluttua',
+	yearUntil: 'vuoden kuluttua',
+	yearsUntil: '{delta} vuoden kuluttua'
+
+});
+
+
+/*
+---
+
+name: Locale.fi-FI.Form.Validator
+
+description: Form Validator messages for Finnish.
+
+license: MIT-style license
+
+authors:
+  - ksel
+
+requires:
+  - /Locale
+
+provides: [Locale.fi-FI.Form.Validator]
+
+...
+*/
+
+Locale.define('fi-FI', 'FormValidator', {
+
+	required: 'Tämä kenttä on pakollinen.',
+	minLength: 'Ole hyvä ja anna vähintään {minLength} merkkiä (annoit {length} merkkiä).',
+	maxLength: 'Älä anna enempää kuin {maxLength} merkkiä (annoit {length} merkkiä).',
+	integer: 'Ole hyvä ja anna kokonaisluku. Luvut, joissa on desimaaleja (esim. 1.25) eivät ole sallittuja.',
+	numeric: 'Anna tähän kenttään lukuarvo (kuten "1" tai "1.1" tai "-1" tai "-1.1").',
+	digits: 'Käytä pelkästään numeroita ja välimerkkejä tässä kentässä (syötteet, kuten esim. puhelinnumero, jossa on väliviivoja, pilkkuja tai pisteitä, kelpaa).',
+	alpha: 'Anna tähän kenttään vain kirjaimia (a-z). Välilyönnit tai muut merkit eivät ole sallittuja.',
+	alphanum: 'Anna tähän kenttään vain kirjaimia (a-z) tai numeroita (0-9). Välilyönnit tai muut merkit eivät ole sallittuja.',
+	dateSuchAs: 'Ole hyvä ja anna kelvollinen päivmäärä, kuten esimerkiksi {date}',
+	dateInFormatMDY: 'Ole hyvä ja anna kelvollinen päivämäärä muodossa pp/kk/vvvv (kuten "12/31/1999")',
+	email: 'Ole hyvä ja anna kelvollinen sähköpostiosoite (kuten esimerkiksi "matti@meikalainen.com").',
+	url: 'Ole hyvä ja anna kelvollinen URL, kuten esimerkiksi http://www.example.com.',
+	currencyDollar: 'Ole hyvä ja anna kelvollinen eurosumma (kuten esimerkiksi 100,00 EUR) .',
+	oneRequired: 'Ole hyvä ja syötä jotakin ainakin johonkin näistä kentistä.',
+	errorPrefix: 'Virhe: ',
+	warningPrefix: 'Varoitus: ',
+
+	// Form.Validator.Extras
+	noSpace: 'Tässä syötteessä ei voi olla välilyöntejä',
+	reqChkByNode: 'Ei valintoja.',
+	requiredChk: 'Tämä kenttä on pakollinen.',
+	reqChkByName: 'Ole hyvä ja valitse {label}.',
+	match: 'Tämän kentän tulee vastata kenttää {matchName}',
+	startDate: 'alkupäivämäärä',
+	endDate: 'loppupäivämäärä',
+	currendDate: 'nykyinen päivämäärä',
+	afterDate: 'Päivämäärän tulisi olla sama tai myöhäisempi ajankohta kuin {label}.',
+	beforeDate: 'Päivämäärän tulisi olla sama tai aikaisempi ajankohta kuin {label}.',
+	startMonth: 'Ole hyvä ja valitse aloituskuukausi',
+	sameMonth: 'Näiden kahden päivämäärän tulee olla saman kuun sisällä -- sinun pitää muuttaa jompaa kumpaa.',
+	creditcard: 'Annettu luottokortin numero ei kelpaa. Ole hyvä ja tarkista numero sekä yritä uudelleen. {length} numeroa syötetty.'
+
+});
+
+
+/*
+---
+
+name: Locale.fi-FI.Number
+
+description: Finnish number messages
+
+license: MIT-style license
+
+authors:
+  - ksel
+
+requires:
+  - /Locale
+  - /Locale.EU.Number
+
+provides: [Locale.fi-FI.Number]
+
+...
+*/
+
+Locale.define('fi-FI', 'Number', {
+
+	group: ' ' // grouped by space
+
+}).inherit('EU', 'Number');
+
+
+/*
+---
+
+name: Locale.fr-FR.Date
+
+description: Date messages for French.
+
+license: MIT-style license
+
+authors:
+  - Nicolas Sorosac
+  - Antoine Abt
+
+requires:
+  - /Locale
+
+provides: [Locale.fr-FR.Date]
+
+...
+*/
+
+Locale.define('fr-FR', 'Date', {
+
+	months: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+	months_abbr: ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
+	days: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+	days_abbr: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+
+	// Culture's date order: DD/MM/YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d/%m/%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: function(dayOfMonth){
+		return (dayOfMonth > 1) ? '' : 'er';
+	},
+
+	lessThanMinuteAgo: "il y a moins d'une minute",
+	minuteAgo: 'il y a une minute',
+	minutesAgo: 'il y a {delta} minutes',
+	hourAgo: 'il y a une heure',
+	hoursAgo: 'il y a {delta} heures',
+	dayAgo: 'il y a un jour',
+	daysAgo: 'il y a {delta} jours',
+	weekAgo: 'il y a une semaine',
+	weeksAgo: 'il y a {delta} semaines',
+	monthAgo: 'il y a 1 mois',
+	monthsAgo: 'il y a {delta} mois',
+	yearthAgo: 'il y a 1 an',
+	yearsAgo: 'il y a {delta} ans',
+
+	lessThanMinuteUntil: "dans moins d'une minute",
+	minuteUntil: 'dans une minute',
+	minutesUntil: 'dans {delta} minutes',
+	hourUntil: 'dans une heure',
+	hoursUntil: 'dans {delta} heures',
+	dayUntil: 'dans un jour',
+	daysUntil: 'dans {delta} jours',
+	weekUntil: 'dans 1 semaine',
+	weeksUntil: 'dans {delta} semaines',
+	monthUntil: 'dans 1 mois',
+	monthsUntil: 'dans {delta} mois',
+	yearUntil: 'dans 1 an',
+	yearsUntil: 'dans {delta} ans'
+
+});
+
+
+/*
+---
+
+name: Locale.fr-FR.Form.Validator
+
+description: Form Validator messages for French.
+
+license: MIT-style license
+
+authors:
+  - Miquel Hudin
+  - Nicolas Sorosac
+
+requires:
+  - /Locale
+
+provides: [Locale.fr-FR.Form.Validator]
+
+...
+*/
+
+Locale.define('fr-FR', 'FormValidator', {
+
+	required: 'Ce champ est obligatoire.',
+	length: 'Veuillez saisir {length} caract&egrave;re(s) (vous avez saisi {elLength} caract&egrave;re(s)',
+	minLength: 'Veuillez saisir un minimum de {minLength} caract&egrave;re(s) (vous avez saisi {length} caract&egrave;re(s)).',
+	maxLength: 'Veuillez saisir un maximum de {maxLength} caract&egrave;re(s) (vous avez saisi {length} caract&egrave;re(s)).',
+	integer: 'Veuillez saisir un nombre entier dans ce champ. Les nombres d&eacute;cimaux (ex : "1,25") ne sont pas autoris&eacute;s.',
+	numeric: 'Veuillez saisir uniquement des chiffres dans ce champ (ex : "1" ou "1,1" ou "-1" ou "-1,1").',
+	digits: "Veuillez saisir uniquement des chiffres et des signes de ponctuation dans ce champ (ex : un num&eacute;ro de t&eacute;l&eacute;phone avec des traits d'union est autoris&eacute;).",
+	alpha: 'Veuillez saisir uniquement des lettres (a-z) dans ce champ. Les espaces ou autres caract&egrave;res ne sont pas autoris&eacute;s.',
+	alphanum: 'Veuillez saisir uniquement des lettres (a-z) ou des chiffres (0-9) dans ce champ. Les espaces ou autres caract&egrave;res ne sont pas autoris&eacute;s.',
+	dateSuchAs: 'Veuillez saisir une date correcte comme {date}',
+	dateInFormatMDY: 'Veuillez saisir une date correcte, au format JJ/MM/AAAA (ex : "31/11/1999").',
+	email: 'Veuillez saisir une adresse de courrier &eacute;lectronique. Par example "fred@domaine.com".',
+	url: 'Veuillez saisir une URL, comme http://www.example.com.',
+	currencyDollar: 'Veuillez saisir une quantit&eacute; correcte. Par example 100,00&euro;.',
+	oneRequired: 'Veuillez s&eacute;lectionner au moins une de ces options.',
+	errorPrefix: 'Erreur : ',
+	warningPrefix: 'Attention : ',
+
+	// Form.Validator.Extras
+	noSpace: "Ce champ n'accepte pas les espaces.",
+	reqChkByNode: "Aucun &eacute;l&eacute;ment n'est s&eacute;lectionn&eacute;.",
+	requiredChk: 'Ce champ est obligatoire.',
+	reqChkByName: 'Veuillez s&eacute;lectionner un(e) {label}.',
+	match: 'Ce champ doit correspondre avec le champ {matchName}.',
+	startDate: 'date de d&eacute;but',
+	endDate: 'date de fin',
+	currendDate: 'date actuelle',
+	afterDate: 'La date doit &ecirc;tre identique ou post&eacute;rieure &agrave; {label}.',
+	beforeDate: 'La date doit &ecirc;tre identique ou ant&eacute;rieure &agrave; {label}.',
+	startMonth: 'Veuillez s&eacute;lectionner un mois de d&eacute;but.',
+	sameMonth: 'Ces deux dates doivent &ecirc;tre dans le m&ecirc;me mois - vous devez en modifier une.',
+	creditcard: 'Le num&eacute;ro de carte de cr&eacute;dit est invalide. Merci de v&eacute;rifier le num&eacute;ro et de r&eacute;essayer. Vous avez entr&eacute; {length} chiffre(s).'
+
+});
+
+
+/*
+---
+
+name: Locale.fr-FR.Number
+
+description: Number messages for French.
+
+license: MIT-style license
+
+authors:
+  - Arian Stolwijk
+  - sv1l
+
+requires:
+  - /Locale
+  - /Locale.EU.Number
+
+provides: [Locale.fr-FR.Number]
+
+...
+*/
+
+Locale.define('fr-FR', 'Number', {
+
+	group: ' ' // In fr-FR localization, group character is a blank space
+
+}).inherit('EU', 'Number');
+
+
+/*
+---
+
+name: Locale.he-IL.Date
+
+description: Date messages for Hebrew.
+
+license: MIT-style license
+
+authors:
+  - Elad Ossadon
+
+requires:
+  - /Locale
+
+provides: [Locale.he-IL.Date]
+
+...
+*/
+
+Locale.define('he-IL', 'Date', {
+
+	months: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'],
+	months_abbr: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'],
+	days: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'],
+	days_abbr: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'],
+
+	// Culture's date order: MM/DD/YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d/%m/%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 0,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: 'לפני פחות מדקה',
+	minuteAgo: 'לפני כדקה',
+	minutesAgo: 'לפני {delta} דקות',
+	hourAgo: 'לפני כשעה',
+	hoursAgo: 'לפני {delta} שעות',
+	dayAgo: 'לפני יום',
+	daysAgo: 'לפני {delta} ימים',
+	weekAgo: 'לפני שבוע',
+	weeksAgo: 'לפני {delta} שבועות',
+	monthAgo: 'לפני חודש',
+	monthsAgo: 'לפני {delta} חודשים',
+	yearAgo: 'לפני שנה',
+	yearsAgo: 'לפני {delta} שנים',
+
+	lessThanMinuteUntil: 'בעוד פחות מדקה',
+	minuteUntil: 'בעוד כדקה',
+	minutesUntil: 'בעוד {delta} דקות',
+	hourUntil: 'בעוד כשעה',
+	hoursUntil: 'בעוד {delta} שעות',
+	dayUntil: 'בעוד יום',
+	daysUntil: 'בעוד {delta} ימים',
+	weekUntil: 'בעוד שבוע',
+	weeksUntil: 'בעוד {delta} שבועות',
+	monthUntil: 'בעוד חודש',
+	monthsUntil: 'בעוד {delta} חודשים',
+	yearUntil: 'בעוד שנה',
+	yearsUntil: 'בעוד {delta} שנים'
+
+});
+
+
+/*
+---
+
+name: Locale.he-IL.Form.Validator
+
+description: Form Validator messages for Hebrew.
+
+license: MIT-style license
+
+authors:
+  - Elad Ossadon
+
+requires:
+  - /Locale
+
+provides: [Locale.he-IL.Form.Validator]
+
+...
+*/
+
+Locale.define('he-IL', 'FormValidator', {
+
+	required: 'נא למלא שדה זה.',
+	minLength: 'נא להזין לפחות {minLength} תווים (הזנת {length} תווים).',
+	maxLength: 'נא להזין עד {maxLength} תווים (הזנת {length} תווים).',
+	integer: 'נא להזין מספר שלם לשדה זה. מספרים עשרוניים (כמו 1.25) אינם חוקיים.',
+	numeric: 'נא להזין ערך מספרי בלבד בשדה זה (כמו "1", "1.1", "-1" או "-1.1").',
+	digits: 'נא להזין רק ספרות וסימני הפרדה בשדה זה (למשל, מספר טלפון עם מקפים או נקודות הוא חוקי).',
+	alpha: 'נא להזין רק אותיות באנגלית (a-z) בשדה זה. רווחים או תווים אחרים אינם חוקיים.',
+	alphanum: 'נא להזין רק אותריות באנגלית (a-z) או ספרות (0-9) בשדה זה. אווחרים או תווים אחרים אינם חוקיים.',
+	dateSuchAs: 'נא להזין תאריך חוקי, כמו {date}',
+	dateInFormatMDY: 'נא להזין תאריך חוקי בפורמט MM/DD/YYYY (כמו "12/31/1999")',
+	email: 'נא להזין כתובת אימייל חוקית. לדוגמה: "fred@domain.com".',
+	url: 'נא להזין כתובת אתר חוקית, כמו http://www.example.com.',
+	currencyDollar: 'נא להזין סכום דולרי חוקי. לדוגמה $100.00.',
+	oneRequired: 'נא לבחור לפחות בשדה אחד.',
+	errorPrefix: 'שגיאה: ',
+	warningPrefix: 'אזהרה: ',
+
+	// Form.Validator.Extras
+	noSpace: 'אין להזין רווחים בשדה זה.',
+	reqChkByNode: 'נא לבחור אחת מהאפשרויות.',
+	requiredChk: 'שדה זה נדרש.',
+	reqChkByName: 'נא לבחור {label}.',
+	match: 'שדה זה צריך להתאים לשדה {matchName}',
+	startDate: 'תאריך ההתחלה',
+	endDate: 'תאריך הסיום',
+	currendDate: 'התאריך הנוכחי',
+	afterDate: 'התאריך צריך להיות זהה או אחרי {label}.',
+	beforeDate: 'התאריך צריך להיות זהה או לפני {label}.',
+	startMonth: 'נא לבחור חודש התחלה',
+	sameMonth: 'שני תאריכים אלה צריכים להיות באותו חודש - נא לשנות אחד התאריכים.',
+	creditcard: 'מספר כרטיס האשראי שהוזן אינו חוקי. נא לבדוק שנית. הוזנו {length} ספרות.'
+
+});
+
+
+/*
+---
+
+name: Locale.he-IL.Number
+
+description: Number messages for Hebrew.
+
+license: MIT-style license
+
+authors:
+  - Elad Ossadon
+
+requires:
+  - /Locale
+
+provides: [Locale.he-IL.Number]
+
+...
+*/
+
+Locale.define('he-IL', 'Number', {
+
+	decimal: '.',
+	group: ',',
+
+	currency: {
+		suffix: ' ₪'
+	}
+
+});
+
+
+/*
+---
+
+name: Locale.hu-HU.Date
+
+description: Date messages for Hungarian.
+
+license: MIT-style license
+
+authors:
+  - Zsolt Szegheő
+
+requires:
+  - /Locale
+
+provides: [Locale.hu-HU.Date]
+
+...
+*/
+
+Locale.define('hu-HU', 'Date', {
+
+	months: ['Január', 'Február', 'Március', 'Április', 'Május', 'Június', 'Július', 'Augusztus', 'Szeptember', 'Október', 'November', 'December'],
+	months_abbr: ['jan.', 'febr.', 'márc.', 'ápr.', 'máj.', 'jún.', 'júl.', 'aug.', 'szept.', 'okt.', 'nov.', 'dec.'],
+	days: ['Vasárnap', 'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat'],
+	days_abbr: ['V', 'H', 'K', 'Sze', 'Cs', 'P', 'Szo'],
+
+	// Culture's date order: YYYY.MM.DD.
+	dateOrder: ['year', 'month', 'date'],
+	shortDate: '%Y.%m.%d.',
+	shortTime: '%I:%M',
+	AM: 'de.',
+	PM: 'du.',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '.',
+
+	lessThanMinuteAgo: 'alig egy perce',
+	minuteAgo: 'egy perce',
+	minutesAgo: '{delta} perce',
+	hourAgo: 'egy órája',
+	hoursAgo: '{delta} órája',
+	dayAgo: '1 napja',
+	daysAgo: '{delta} napja',
+	weekAgo: '1 hete',
+	weeksAgo: '{delta} hete',
+	monthAgo: '1 hónapja',
+	monthsAgo: '{delta} hónapja',
+	yearAgo: '1 éve',
+	yearsAgo: '{delta} éve',
+
+	lessThanMinuteUntil: 'alig egy perc múlva',
+	minuteUntil: 'egy perc múlva',
+	minutesUntil: '{delta} perc múlva',
+	hourUntil: 'egy óra múlva',
+	hoursUntil: '{delta} óra múlva',
+	dayUntil: '1 nap múlva',
+	daysUntil: '{delta} nap múlva',
+	weekUntil: '1 hét múlva',
+	weeksUntil: '{delta} hét múlva',
+	monthUntil: '1 hónap múlva',
+	monthsUntil: '{delta} hónap múlva',
+	yearUntil: '1 év múlva',
+	yearsUntil: '{delta} év múlva'
+
+});
+
+
+/*
+---
+
+name: Locale.hu-HU.Form.Validator
+
+description: Form Validator messages for Hungarian.
+
+license: MIT-style license
+
+authors:
+  - Zsolt Szegheő
+
+requires:
+  - /Locale
+
+provides: [Locale.hu-HU.Form.Validator]
+
+...
+*/
+
+Locale.define('hu-HU', 'FormValidator', {
+
+	required: 'A mező kitöltése kötelező.',
+	minLength: 'Legalább {minLength} karakter megadása szükséges (megadva {length} karakter).',
+	maxLength: 'Legfeljebb {maxLength} karakter megadása lehetséges (megadva {length} karakter).',
+	integer: 'Egész szám megadása szükséges. A tizedesjegyek (pl. 1.25) nem engedélyezettek.',
+	numeric: 'Szám megadása szükséges (pl. "1" vagy "1.1" vagy "-1" vagy "-1.1").',
+	digits: 'Csak számok és írásjelek megadása lehetséges (pl. telefonszám kötőjelek és/vagy perjelekkel).',
+	alpha: 'Csak betűk (a-z) megadása lehetséges. Szóköz és egyéb karakterek nem engedélyezettek.',
+	alphanum: 'Csak betűk (a-z) vagy számok (0-9) megadása lehetséges. Szóköz és egyéb karakterek nem engedélyezettek.',
+	dateSuchAs: 'Valós dátum megadása szükséges (pl. {date}).',
+	dateInFormatMDY: 'Valós dátum megadása szükséges ÉÉÉÉ.HH.NN. formában. (pl. "1999.12.31.")',
+	email: 'Valós e-mail cím megadása szükséges (pl. "fred@domain.hu").',
+	url: 'Valós URL megadása szükséges (pl. http://www.example.com).',
+	currencyDollar: 'Valós pénzösszeg megadása szükséges (pl. 100.00 Ft.).',
+	oneRequired: 'Az alábbi mezők legalább egyikének kitöltése kötelező.',
+	errorPrefix: 'Hiba: ',
+	warningPrefix: 'Figyelem: ',
+
+	// Form.Validator.Extras
+	noSpace: 'A mező nem tartalmazhat szóközöket.',
+	reqChkByNode: 'Nincs egyetlen kijelölt elem sem.',
+	requiredChk: 'A mező kitöltése kötelező.',
+	reqChkByName: 'Egy {label} kiválasztása szükséges.',
+	match: 'A mezőnek egyeznie kell a(z) {matchName} mezővel.',
+	startDate: 'a kezdet dátuma',
+	endDate: 'a vég dátuma',
+	currendDate: 'jelenlegi dátum',
+	afterDate: 'A dátum nem lehet kisebb, mint {label}.',
+	beforeDate: 'A dátum nem lehet nagyobb, mint {label}.',
+	startMonth: 'Kezdeti hónap megadása szükséges.',
+	sameMonth: 'A két dátumnak ugyanazon hónapban kell lennie.',
+	creditcard: 'A megadott bankkártyaszám nem valódi (megadva {length} számjegy).'
+
+});
+
+
+/*
+---
+
+name: Locale.it-IT.Date
+
+description: Date messages for Italian.
+
+license: MIT-style license.
+
+authors:
+  - Andrea Novero
+  - Valerio Proietti
+
+requires:
+  - /Locale
+
+provides: [Locale.it-IT.Date]
+
+...
+*/
+
+Locale.define('it-IT', 'Date', {
+
+	months: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
+	months_abbr: ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'],
+	days: ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'],
+	days_abbr: ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'],
+
+	// Culture's date order: DD/MM/YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d/%m/%Y',
+	shortTime: '%H.%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: 'º',
+
+	lessThanMinuteAgo: 'meno di un minuto fa',
+	minuteAgo: 'circa un minuto fa',
+	minutesAgo: 'circa {delta} minuti fa',
+	hourAgo: "circa un'ora fa",
+	hoursAgo: 'circa {delta} ore fa',
+	dayAgo: 'circa 1 giorno fa',
+	daysAgo: 'circa {delta} giorni fa',
+	weekAgo: 'una settimana fa',
+	weeksAgo: '{delta} settimane fa',
+	monthAgo: 'un mese fa',
+	monthsAgo: '{delta} mesi fa',
+	yearAgo: 'un anno fa',
+	yearsAgo: '{delta} anni fa',
+
+	lessThanMinuteUntil: 'tra meno di un minuto',
+	minuteUntil: 'tra circa un minuto',
+	minutesUntil: 'tra circa {delta} minuti',
+	hourUntil: "tra circa un'ora",
+	hoursUntil: 'tra circa {delta} ore',
+	dayUntil: 'tra circa un giorno',
+	daysUntil: 'tra circa {delta} giorni',
+	weekUntil: 'tra una settimana',
+	weeksUntil: 'tra {delta} settimane',
+	monthUntil: 'tra un mese',
+	monthsUntil: 'tra {delta} mesi',
+	yearUntil: 'tra un anno',
+	yearsUntil: 'tra {delta} anni'
+
+});
+
+
+/*
+---
+
+name: Locale.it-IT.Form.Validator
+
+description: Form Validator messages for Italian.
+
+license: MIT-style license
+
+authors:
+  - Leonardo Laureti
+  - Andrea Novero
+
+requires:
+  - /Locale
+
+provides: [Locale.it-IT.Form.Validator]
+
+...
+*/
+
+Locale.define('it-IT', 'FormValidator', {
+
+	required: 'Il campo &egrave; obbligatorio.',
+	minLength: 'Inserire almeno {minLength} caratteri (ne sono stati inseriti {length}).',
+	maxLength: 'Inserire al massimo {maxLength} caratteri (ne sono stati inseriti {length}).',
+	integer: 'Inserire un numero intero. Non sono consentiti decimali (es.: 1.25).',
+	numeric: 'Inserire solo valori numerici (es.: "1" oppure "1.1" oppure "-1" oppure "-1.1").',
+	digits: 'Inserire solo numeri e caratteri di punteggiatura. Per esempio &egrave; consentito un numero telefonico con trattini o punti.',
+	alpha: 'Inserire solo lettere (a-z). Non sono consentiti spazi o altri caratteri.',
+	alphanum: 'Inserire solo lettere (a-z) o numeri (0-9). Non sono consentiti spazi o altri caratteri.',
+	dateSuchAs: 'Inserire una data valida del tipo {date}',
+	dateInFormatMDY: 'Inserire una data valida nel formato MM/GG/AAAA (es.: "12/31/1999")',
+	email: 'Inserire un indirizzo email valido. Per esempio "nome@dominio.com".',
+	url: 'Inserire un indirizzo valido. Per esempio "http://www.example.com".',
+	currencyDollar: 'Inserire un importo valido. Per esempio "$100.00".',
+	oneRequired: 'Completare almeno uno dei campi richiesti.',
+	errorPrefix: 'Errore: ',
+	warningPrefix: 'Attenzione: ',
+
+	// Form.Validator.Extras
+	noSpace: 'Non sono consentiti spazi.',
+	reqChkByNode: 'Nessuna voce selezionata.',
+	requiredChk: 'Il campo &egrave; obbligatorio.',
+	reqChkByName: 'Selezionare un(a) {label}.',
+	match: 'Il valore deve corrispondere al campo {matchName}',
+	startDate: "data d'inizio",
+	endDate: 'data di fine',
+	currendDate: 'data attuale',
+	afterDate: 'La data deve corrispondere o essere successiva al {label}.',
+	beforeDate: 'La data deve corrispondere o essere precedente al {label}.',
+	startMonth: "Selezionare un mese d'inizio",
+	sameMonth: 'Le due date devono essere dello stesso mese - occorre modificarne una.'
+
+});
+
+
+/*
+---
+
+name: Locale.ja-JP.Date
+
+description: Date messages for Japanese.
+
+license: MIT-style license
+
+authors:
+  - Noritaka Horio
+
+requires:
+  - /Locale
+
+provides: [Locale.ja-JP.Date]
+
+...
+*/
+
+Locale.define('ja-JP', 'Date', {
+
+	months: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+	months_abbr: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+	days: ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
+	days_abbr: ['日', '月', '火', '水', '木', '金', '土'],
+
+	// Culture's date order: YYYY/MM/DD
+	dateOrder: ['year', 'month', 'date'],
+	shortDate: '%Y/%m/%d',
+	shortTime: '%H:%M',
+	AM: '午前',
+	PM: '午後',
+	firstDayOfWeek: 0,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: '1分以内前',
+	minuteAgo: '約1分前',
+	minutesAgo: '約{delta}分前',
+	hourAgo: '約1時間前',
+	hoursAgo: '約{delta}時間前',
+	dayAgo: '1日前',
+	daysAgo: '{delta}日前',
+	weekAgo: '1週間前',
+	weeksAgo: '{delta}週間前',
+	monthAgo: '1ヶ月前',
+	monthsAgo: '{delta}ヶ月前',
+	yearAgo: '1年前',
+	yearsAgo: '{delta}年前',
+
+	lessThanMinuteUntil: '今から約1分以内',
+	minuteUntil: '今から約1分',
+	minutesUntil: '今から約{delta}分',
+	hourUntil: '今から約1時間',
+	hoursUntil: '今から約{delta}時間',
+	dayUntil: '今から1日間',
+	daysUntil: '今から{delta}日間',
+	weekUntil: '今から1週間',
+	weeksUntil: '今から{delta}週間',
+	monthUntil: '今から1ヶ月',
+	monthsUntil: '今から{delta}ヶ月',
+	yearUntil: '今から1年',
+	yearsUntil: '今から{delta}年'
+
+});
+
+
+/*
+---
+
+name: Locale.ja-JP.Form.Validator
+
+description: Form Validator messages for Japanese.
+
+license: MIT-style license
+
+authors:
+  - Noritaka Horio
+
+requires:
+  - /Locale
+
+provides: [Locale.ja-JP.Form.Validator]
+
+...
+*/
+
+Locale.define("ja-JP", "FormValidator", {
+
+	required: '入力は必須です。',
+	minLength: '入力文字数は{minLength}以上にしてください。({length}文字)',
+	maxLength: '入力文字数は{maxLength}以下にしてください。({length}文字)',
+	integer: '整数を入力してください。',
+	numeric: '入力できるのは数値だけです。(例: "1", "1.1", "-1", "-1.1"....)',
+	digits: '入力できるのは数値と句読記号です。 (例: -や+を含む電話番号など).',
+	alpha: '入力できるのは半角英字だけです。それ以外の文字は入力できません。',
+	alphanum: '入力できるのは半角英数字だけです。それ以外の文字は入力できません。',
+	dateSuchAs: '有効な日付を入力してください。{date}',
+	dateInFormatMDY: '日付の書式に誤りがあります。YYYY/MM/DD (i.e. "1999/12/31")',
+	email: 'メールアドレスに誤りがあります。',
+	url: 'URLアドレスに誤りがあります。',
+	currencyDollar: '金額に誤りがあります。',
+	oneRequired: 'ひとつ以上入力してください。',
+	errorPrefix: 'エラー: ',
+	warningPrefix: '警告: ',
+
+	// FormValidator.Extras
+	noSpace: 'スペースは入力できません。',
+	reqChkByNode: '選択されていません。',
+	requiredChk: 'この項目は必須です。',
+	reqChkByName: '{label}を選択してください。',
+	match: '{matchName}が入力されている場合必須です。',
+	startDate: '開始日',
+	endDate: '終了日',
+	currendDate: '今日',
+	afterDate: '{label}以降の日付にしてください。',
+	beforeDate: '{label}以前の日付にしてください。',
+	startMonth: '開始月を選択してください。',
+	sameMonth: '日付が同一です。どちらかを変更してください。'
+
+});
+
+
+/*
+---
+
+name: Locale.ja-JP.Number
+
+description: Number messages for Japanese.
+
+license: MIT-style license
+
+authors:
+  - Noritaka Horio
+
+requires:
+  - /Locale
+
+provides: [Locale.ja-JP.Number]
+
+...
+*/
+
+Locale.define('ja-JP', 'Number', {
+
+	decimal: '.',
+	group: ',',
+
+	currency: {
+		decimals: 0,
+		prefix: '\\'
+	}
+
+});
+
+
+/*
+---
+
+name: Locale.nl-NL.Date
+
+description: Date messages for Dutch.
+
+license: MIT-style license
+
+authors:
+  - Lennart Pilon
+  - Tim Wienk
+
+requires:
+  - /Locale
+
+provides: [Locale.nl-NL.Date]
+
+...
+*/
+
+Locale.define('nl-NL', 'Date', {
+
+	months: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'],
+	months_abbr: ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
+	days: ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'],
+	days_abbr: ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'],
+
+	// Culture's date order: DD-MM-YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d-%m-%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: 'e',
+
+	lessThanMinuteAgo: 'minder dan een minuut geleden',
+	minuteAgo: 'ongeveer een minuut geleden',
+	minutesAgo: '{delta} minuten geleden',
+	hourAgo: 'ongeveer een uur geleden',
+	hoursAgo: 'ongeveer {delta} uur geleden',
+	dayAgo: 'een dag geleden',
+	daysAgo: '{delta} dagen geleden',
+	weekAgo: 'een week geleden',
+	weeksAgo: '{delta} weken geleden',
+	monthAgo: 'een maand geleden',
+	monthsAgo: '{delta} maanden geleden',
+	yearAgo: 'een jaar geleden',
+	yearsAgo: '{delta} jaar geleden',
+
+	lessThanMinuteUntil: 'over minder dan een minuut',
+	minuteUntil: 'over ongeveer een minuut',
+	minutesUntil: 'over {delta} minuten',
+	hourUntil: 'over ongeveer een uur',
+	hoursUntil: 'over {delta} uur',
+	dayUntil: 'over ongeveer een dag',
+	daysUntil: 'over {delta} dagen',
+	weekUntil: 'over een week',
+	weeksUntil: 'over {delta} weken',
+	monthUntil: 'over een maand',
+	monthsUntil: 'over {delta} maanden',
+	yearUntil: 'over een jaar',
+	yearsUntil: 'over {delta} jaar'
+
+});
+
+
+/*
+---
+
+name: Locale.nl-NL.Form.Validator
+
+description: Form Validator messages for Dutch.
+
+license: MIT-style license
+
+authors:
+  - Lennart Pilon
+  - Arian Stolwijk
+  - Tim Wienk
+
+requires:
+  - /Locale
+
+provides: [Locale.nl-NL.Form.Validator]
+
+...
+*/
+
+Locale.define('nl-NL', 'FormValidator', {
+
+	required: 'Dit veld is verplicht.',
+	length: 'Vul precies {length} karakters in (je hebt {elLength} karakters ingevoerd).',
+	minLength: 'Vul minimaal {minLength} karakters in (je hebt {length} karakters ingevoerd).',
+	maxLength: 'Vul niet meer dan {maxLength} karakters in (je hebt {length} karakters ingevoerd).',
+	integer: 'Vul een getal in. Getallen met decimalen (bijvoorbeeld 1.25) zijn niet toegestaan.',
+	numeric: 'Vul alleen numerieke waarden in (bijvoorbeeld "1" of "1.1" of "-1" of "-1.1").',
+	digits: 'Vul alleen nummers en leestekens in (bijvoorbeeld een telefoonnummer met streepjes is toegestaan).',
+	alpha: 'Vul alleen letters in (a-z). Spaties en andere karakters zijn niet toegestaan.',
+	alphanum: 'Vul alleen letters (a-z) of nummers (0-9) in. Spaties en andere karakters zijn niet toegestaan.',
+	dateSuchAs: 'Vul een geldige datum in, zoals {date}',
+	dateInFormatMDY: 'Vul een geldige datum, in het formaat MM/DD/YYYY (bijvoorbeeld "12/31/1999")',
+	email: 'Vul een geldig e-mailadres in. Bijvoorbeeld "fred@domein.nl".',
+	url: 'Vul een geldige URL in, zoals http://www.example.com.',
+	currencyDollar: 'Vul een geldig $ bedrag in. Bijvoorbeeld $100.00 .',
+	oneRequired: 'Vul iets in bij in ieder geval een van deze velden.',
+	warningPrefix: 'Waarschuwing: ',
+	errorPrefix: 'Fout: ',
+
+	// Form.Validator.Extras
+	noSpace: 'Spaties zijn niet toegestaan in dit veld.',
+	reqChkByNode: 'Er zijn geen items geselecteerd.',
+	requiredChk: 'Dit veld is verplicht.',
+	reqChkByName: 'Selecteer een {label}.',
+	match: 'Dit veld moet overeen komen met het {matchName} veld',
+	startDate: 'de begin datum',
+	endDate: 'de eind datum',
+	currendDate: 'de huidige datum',
+	afterDate: 'De datum moet hetzelfde of na {label} zijn.',
+	beforeDate: 'De datum moet hetzelfde of voor {label} zijn.',
+	startMonth: 'Selecteer een begin maand',
+	sameMonth: 'Deze twee data moeten in dezelfde maand zijn - u moet een van beide aanpassen.',
+	creditcard: 'Het ingevulde creditcardnummer is niet geldig. Controleer het nummer en probeer opnieuw. {length} getallen ingevuld.'
+
+});
+
+
+/*
+---
+
+name: Locale.nl-NL.Number
+
+description: Number messages for Dutch.
+
+license: MIT-style license
+
+authors:
+  - Arian Stolwijk
+
+requires:
+  - /Locale
+  - /Locale.EU.Number
+
+provides: [Locale.nl-NL.Number]
+
+...
+*/
+
+Locale.define('nl-NL').inherit('EU', 'Number');
+
+
+
+
+
+/*
+---
+
+name: Locale.no-NO.Date
+
+description: Date messages for Norwegian.
+
+license: MIT-style license
+
+authors:
+  - Espen 'Rexxars' Hovlandsdal
+
+requires:
+  - /Locale
+
+provides: [Locale.no-NO.Date]
+
+...
+*/
+
+Locale.define('no-NO', 'Date', {
+
+	// Culture's date order: DD.MM.YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d.%m.%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	lessThanMinuteAgo: 'kortere enn et minutt siden',
+	minuteAgo: 'omtrent et minutt siden',
+	minutesAgo: '{delta} minutter siden',
+	hourAgo: 'omtrent en time siden',
+	hoursAgo: 'omtrent {delta} timer siden',
+	dayAgo: '{delta} dag siden',
+	daysAgo: '{delta} dager siden'
+
+});
+
+
+/*
+---
+
+name: Locale.no-NO.Form.Validator
+
+description: Form Validator messages for Norwegian.
+
+license: MIT-style license
+
+authors:
+  - Espen 'Rexxars' Hovlandsdal
+
+requires:
+  - /Locale
+
+provides: [Locale.no-NO.Form.Validator]
+
+...
+*/
+
+Locale.define('no-NO', 'FormValidator', {
+
+	required: 'Dette feltet er pÃ¥krevd.',
+	minLength: 'Vennligst skriv inn minst {minLength} tegn (du skrev {length} tegn).',
+	maxLength: 'Vennligst skriv inn maksimalt {maxLength} tegn (du skrev {length} tegn).',
+	integer: 'Vennligst skriv inn et tall i dette feltet. Tall med desimaler (for eksempel 1,25) er ikke tillat.',
+	numeric: 'Vennligst skriv inn kun numeriske verdier i dette feltet (for eksempel "1", "1.1", "-1" eller "-1.1").',
+	digits: 'Vennligst bruk kun nummer og skilletegn i dette feltet.',
+	alpha: 'Vennligst bruk kun bokstaver (a-z) i dette feltet. Ingen mellomrom eller andre tegn er tillat.',
+	alphanum: 'Vennligst bruk kun bokstaver (a-z) eller nummer (0-9) i dette feltet. Ingen mellomrom eller andre tegn er tillat.',
+	dateSuchAs: 'Vennligst skriv inn en gyldig dato, som {date}',
+	dateInFormatMDY: 'Vennligst skriv inn en gyldig dato, i formatet MM/DD/YYYY (for eksempel "12/31/1999")',
+	email: 'Vennligst skriv inn en gyldig epost-adresse. For eksempel "espen@domene.no".',
+	url: 'Vennligst skriv inn en gyldig URL, for eksempel http://www.example.com.',
+	currencyDollar: 'Vennligst fyll ut et gyldig $ belÃ¸p. For eksempel $100.00 .',
+	oneRequired: 'Vennligst fyll ut noe i minst ett av disse feltene.',
+	errorPrefix: 'Feil: ',
+	warningPrefix: 'Advarsel: '
+
+});
+
+
+/*
+---
+
+name: Locale.pl-PL.Date
+
+description: Date messages for Polish.
+
+license: MIT-style license
+
+authors:
+  - Oskar Krawczyk
+
+requires:
+  - /Locale
+
+provides: [Locale.pl-PL.Date]
+
+...
+*/
+
+Locale.define('pl-PL', 'Date', {
+
+	months: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
+	months_abbr: ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'],
+	days: ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'],
+	days_abbr: ['niedz.', 'pon.', 'wt.', 'śr.', 'czw.', 'pt.', 'sob.'],
+
+	// Culture's date order: YYYY-MM-DD
+	dateOrder: ['year', 'month', 'date'],
+	shortDate: '%Y-%m-%d',
+	shortTime: '%H:%M',
+	AM: 'nad ranem',
+	PM: 'po południu',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: function(dayOfMonth){
+		return (dayOfMonth > 3 && dayOfMonth < 21) ? 'ty' : ['ty', 'szy', 'gi', 'ci', 'ty'][Math.min(dayOfMonth % 10, 4)];
+	},
+
+	lessThanMinuteAgo: 'mniej niż minute temu',
+	minuteAgo: 'około minutę temu',
+	minutesAgo: '{delta} minut temu',
+	hourAgo: 'około godzinę temu',
+	hoursAgo: 'około {delta} godzin temu',
+	dayAgo: 'Wczoraj',
+	daysAgo: '{delta} dni temu',
+
+	lessThanMinuteUntil: 'za niecałą minutę',
+	minuteUntil: 'za około minutę',
+	minutesUntil: 'za {delta} minut',
+	hourUntil: 'za około godzinę',
+	hoursUntil: 'za około {delta} godzin',
+	dayUntil: 'za 1 dzień',
+	daysUntil: 'za {delta} dni'
+
+});
+
+
+/*
+---
+
+name: Locale.pl-PL.Form.Validator
+
+description: Form Validator messages for Polish.
+
+license: MIT-style license
+
+authors:
+  - Oskar Krawczyk
+
+requires:
+  - /Locale
+
+provides: [Locale.pl-PL.Form.Validator]
+
+...
+*/
+
+Locale.define('pl-PL', 'FormValidator', {
+
+	required: 'To pole jest wymagane.',
+	minLength: 'Wymagane jest przynajmniej {minLength} znaków (wpisanych zostało tylko {length}).',
+	maxLength: 'Dozwolone jest nie więcej niż {maxLength} znaków (wpisanych zostało {length})',
+	integer: 'To pole wymaga liczb całych. Liczby dziesiętne (np. 1.25) są niedozwolone.',
+	numeric: 'Prosimy używać tylko numerycznych wartości w tym polu (np. "1", "1.1", "-1" lub "-1.1").',
+	digits: 'Prosimy używać liczb oraz zankow punktuacyjnych w typ polu (dla przykładu, przy numerze telefonu myślniki i kropki są dozwolone).',
+	alpha: 'Prosimy używać tylko liter (a-z) w tym polu. Spacje oraz inne znaki są niedozwolone.',
+	alphanum: 'Prosimy używać tylko liter (a-z) lub liczb (0-9) w tym polu. Spacje oraz inne znaki są niedozwolone.',
+	dateSuchAs: 'Prosimy podać prawidłową datę w formacie: {date}',
+	dateInFormatMDY: 'Prosimy podać poprawną date w formacie DD.MM.RRRR (i.e. "12.01.2009")',
+	email: 'Prosimy podać prawidłowy adres e-mail, np. "jan@domena.pl".',
+	url: 'Prosimy podać prawidłowy adres URL, np. http://www.example.com.',
+	currencyDollar: 'Prosimy podać prawidłową sumę w PLN. Dla przykładu: 100.00 PLN.',
+	oneRequired: 'Prosimy wypełnić chociaż jedno z pól.',
+	errorPrefix: 'Błąd: ',
+	warningPrefix: 'Uwaga: ',
+
+	// Form.Validator.Extras
+	noSpace: 'W tym polu nie mogą znajdować się spacje.',
+	reqChkByNode: 'Brak zaznaczonych elementów.',
+	requiredChk: 'To pole jest wymagane.',
+	reqChkByName: 'Prosimy wybrać z {label}.',
+	match: 'To pole musi być takie samo jak {matchName}',
+	startDate: 'data początkowa',
+	endDate: 'data końcowa',
+	currendDate: 'aktualna data',
+	afterDate: 'Podana data poinna być taka sama lub po {label}.',
+	beforeDate: 'Podana data poinna być taka sama lub przed {label}.',
+	startMonth: 'Prosimy wybrać początkowy miesiąc.',
+	sameMonth: 'Te dwie daty muszą być w zakresie tego samego miesiąca - wymagana jest zmiana któregoś z pól.'
+
+});
+
+
+/*
+---
+
+name: Locale.pt-PT.Date
+
+description: Date messages for Portuguese.
+
+license: MIT-style license
+
+authors:
+  - Fabio Miranda Costa
+
+requires:
+  - /Locale
+
+provides: [Locale.pt-PT.Date]
+
+...
+*/
+
+Locale.define('pt-PT', 'Date', {
+
+	months: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+	months_abbr: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+	days: ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'],
+	days_abbr: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+
+	// Culture's date order: DD-MM-YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d-%m-%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: 'º',
+
+	lessThanMinuteAgo: 'há menos de um minuto',
+	minuteAgo: 'há cerca de um minuto',
+	minutesAgo: 'há {delta} minutos',
+	hourAgo: 'há cerca de uma hora',
+	hoursAgo: 'há cerca de {delta} horas',
+	dayAgo: 'há um dia',
+	daysAgo: 'há {delta} dias',
+	weekAgo: 'há uma semana',
+	weeksAgo: 'há {delta} semanas',
+	monthAgo: 'há um mês',
+	monthsAgo: 'há {delta} meses',
+	yearAgo: 'há um ano',
+	yearsAgo: 'há {delta} anos',
+
+	lessThanMinuteUntil: 'em menos de um minuto',
+	minuteUntil: 'em um minuto',
+	minutesUntil: 'em {delta} minutos',
+	hourUntil: 'em uma hora',
+	hoursUntil: 'em {delta} horas',
+	dayUntil: 'em um dia',
+	daysUntil: 'em {delta} dias',
+	weekUntil: 'em uma semana',
+	weeksUntil: 'em {delta} semanas',
+	monthUntil: 'em um mês',
+	monthsUntil: 'em {delta} meses',
+	yearUntil: 'em um ano',
+	yearsUntil: 'em {delta} anos'
+
+});
+
+
+/*
+---
+
+name: Locale.pt-BR.Date
+
+description: Date messages for Portuguese (Brazil).
+
+license: MIT-style license
+
+authors:
+  - Fabio Miranda Costa
+
+requires:
+  - /Locale
+  - /Locale.pt-PT.Date
+
+provides: [Locale.pt-BR.Date]
+
+...
+*/
+
+Locale.define('pt-BR', 'Date', {
+
+	// Culture's date order: DD/MM/YYYY
+	shortDate: '%d/%m/%Y'
+
+}).inherit('pt-PT', 'Date');
+
+
+/*
+---
+
+name: Locale.pt-BR.Form.Validator
+
+description: Form Validator messages for Portuguese (Brazil).
+
+license: MIT-style license
+
+authors:
+  - Fábio Miranda Costa
+
+requires:
+  - /Locale
+
+provides: [Locale.pt-BR.Form.Validator]
+
+...
+*/
+
+Locale.define('pt-BR', 'FormValidator', {
+
+	required: 'Este campo é obrigatório.',
+	minLength: 'Digite pelo menos {minLength} caracteres (tamanho atual: {length}).',
+	maxLength: 'Não digite mais de {maxLength} caracteres (tamanho atual: {length}).',
+	integer: 'Por favor digite apenas um número inteiro neste campo. Não são permitidos números decimais (por exemplo, 1,25).',
+	numeric: 'Por favor digite apenas valores numéricos neste campo (por exemplo, "1" ou "1.1" ou "-1" ou "-1,1").',
+	digits: 'Por favor use apenas números e pontuação neste campo (por exemplo, um número de telefone com traços ou pontos é permitido).',
+	alpha: 'Por favor use somente letras (a-z). Espaço e outros caracteres não são permitidos.',
+	alphanum: 'Use somente letras (a-z) ou números (0-9) neste campo. Espaço e outros caracteres não são permitidos.',
+	dateSuchAs: 'Digite uma data válida, como {date}',
+	dateInFormatMDY: 'Digite uma data válida, como DD/MM/YYYY (por exemplo, "31/12/1999")',
+	email: 'Digite um endereço de email válido. Por exemplo "nome@dominio.com".',
+	url: 'Digite uma URL válida. Exemplo: http://www.example.com.',
+	currencyDollar: 'Digite um valor em dinheiro válido. Exemplo: R$100,00 .',
+	oneRequired: 'Digite algo para pelo menos um desses campos.',
+	errorPrefix: 'Erro: ',
+	warningPrefix: 'Aviso: ',
+
+	// Form.Validator.Extras
+	noSpace: 'Não é possível digitar espaços neste campo.',
+	reqChkByNode: 'Não foi selecionado nenhum item.',
+	requiredChk: 'Este campo é obrigatório.',
+	reqChkByName: 'Por favor digite um {label}.',
+	match: 'Este campo deve ser igual ao campo {matchName}.',
+	startDate: 'a data inicial',
+	endDate: 'a data final',
+	currendDate: 'a data atual',
+	afterDate: 'A data deve ser igual ou posterior a {label}.',
+	beforeDate: 'A data deve ser igual ou anterior a {label}.',
+	startMonth: 'Por favor selecione uma data inicial.',
+	sameMonth: 'Estas duas datas devem ter o mesmo mês - você deve modificar uma das duas.',
+	creditcard: 'O número do cartão de crédito informado é inválido. Por favor verifique o valor e tente novamente. {length} números informados.'
+
+});
+
+
+/*
+---
+
+name: Locale.pt-PT.Form.Validator
+
+description: Form Validator messages for Portuguese.
+
+license: MIT-style license
+
+authors:
+  - Miquel Hudin
+
+requires:
+  - /Locale
+
+provides: [Locale.pt-PT.Form.Validator]
+
+...
+*/
+
+Locale.define('pt-PT', 'FormValidator', {
+
+	required: 'Este campo é necessário.',
+	minLength: 'Digite pelo menos{minLength} caracteres (comprimento {length} caracteres).',
+	maxLength: 'Não insira mais de {maxLength} caracteres (comprimento {length} caracteres).',
+	integer: 'Digite um número inteiro neste domínio. Com números decimais (por exemplo, 1,25), não são permitidas.',
+	numeric: 'Digite apenas valores numéricos neste domínio (p.ex., "1" ou "1.1" ou "-1" ou "-1,1").',
+	digits: 'Por favor, use números e pontuação apenas neste campo (p.ex., um número de telefone com traços ou pontos é permitida).',
+	alpha: 'Por favor use somente letras (a-z), com nesta área. Não utilize espaços nem outros caracteres são permitidos.',
+	alphanum: 'Use somente letras (a-z) ou números (0-9) neste campo. Não utilize espaços nem outros caracteres são permitidos.',
+	dateSuchAs: 'Digite uma data válida, como {date}',
+	dateInFormatMDY: 'Digite uma data válida, como DD/MM/YYYY (p.ex. "31/12/1999")',
+	email: 'Digite um endereço de email válido. Por exemplo "fred@domain.com".',
+	url: 'Digite uma URL válida, como http://www.example.com.',
+	currencyDollar: 'Digite um valor válido $. Por exemplo $ 100,00. ',
+	oneRequired: 'Digite algo para pelo menos um desses insumos.',
+	errorPrefix: 'Erro: ',
+	warningPrefix: 'Aviso: '
+
+});
+
+
+/*
+---
+
+name: Locale.ru-RU-unicode.Date
+
+description: Date messages for Russian (utf-8).
+
+license: MIT-style license
+
+authors:
+  - Evstigneev Pavel
+  - Kuryanovich Egor
+
+requires:
+  - /Locale
+
+provides: [Locale.ru-RU.Date]
+
+...
+*/
+
+(function(){
+
+// Russian language pluralization rules, taken from CLDR project, http://unicode.org/cldr/
+// one -> n mod 10 is 1 and n mod 100 is not 11;
+// few -> n mod 10 in 2..4 and n mod 100 not in 12..14;
+// many -> n mod 10 is 0 or n mod 10 in 5..9 or n mod 100 in 11..14;
+// other -> everything else (example 3.14)
+var pluralize = function (n, one, few, many, other){
+	var modulo10 = n % 10,
+		modulo100 = n % 100;
+
+	if (modulo10 == 1 && modulo100 != 11){
+		return one;
+	} else if ((modulo10 == 2 || modulo10 == 3 || modulo10 == 4) && !(modulo100 == 12 || modulo100 == 13 || modulo100 == 14)){
+		return few;
+	} else if (modulo10 == 0 || (modulo10 == 5 || modulo10 == 6 || modulo10 == 7 || modulo10 == 8 || modulo10 == 9) || (modulo100 == 11 || modulo100 == 12 || modulo100 == 13 || modulo100 == 14)){
+		return many;
+	} else {
+		return other;
+	}
+};
+
+Locale.define('ru-RU', 'Date', {
+
+	months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+	months_abbr: ['янв', 'февр', 'март', 'апр', 'май','июнь','июль','авг','сент','окт','нояб','дек'],
+	days: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+	days_abbr: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+
+	// Culture's date order: DD.MM.YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d.%m.%Y',
+	shortTime: '%H:%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: 'меньше минуты назад',
+	minuteAgo: 'минуту назад',
+	minutesAgo: function(delta){ return '{delta} ' + pluralize(delta, 'минуту', 'минуты', 'минут') + ' назад'; },
+	hourAgo: 'час назад',
+	hoursAgo: function(delta){ return '{delta} ' + pluralize(delta, 'час', 'часа', 'часов') + ' назад'; },
+	dayAgo: 'вчера',
+	daysAgo: function(delta){ return '{delta} ' + pluralize(delta, 'день', 'дня', 'дней') + ' назад'; },
+	weekAgo: 'неделю назад',
+	weeksAgo: function(delta){ return '{delta} ' + pluralize(delta, 'неделя', 'недели', 'недель') + ' назад'; },
+	monthAgo: 'месяц назад',
+	monthsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'месяц', 'месяца', 'месецев') + ' назад'; },
+	yearAgo: 'год назад',
+	yearsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'год', 'года', 'лет') + ' назад'; },
+
+	lessThanMinuteUntil: 'меньше чем через минуту',
+	minuteUntil: 'через минуту',
+	minutesUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'час', 'часа', 'часов') + ''; },
+	hourUntil: 'через час',
+	hoursUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'час', 'часа', 'часов') + ''; },
+	dayUntil: 'завтра',
+	daysUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'день', 'дня', 'дней') + ''; },
+	weekUntil: 'через неделю',
+	weeksUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'неделю', 'недели', 'недель') + ''; },
+	monthUntil: 'через месяц',
+	monthsUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'месяц', 'месяца', 'месецев') + ''; },
+	yearUntil: 'через',
+	yearsUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'год', 'года', 'лет') + ''; }
+
+});
+
+
+
+})();
+
+
+/*
+---
+
+name: Locale.ru-RU-unicode.Form.Validator
+
+description: Form Validator messages for Russian (utf-8).
+
+license: MIT-style license
+
+authors:
+  - Chernodarov Egor
+
+requires:
+  - /Locale
+
+provides: [Locale.ru-RU.Form.Validator]
+
+...
+*/
+
+Locale.define('ru-RU', 'FormValidator', {
+
+	required: 'Это поле обязательно к заполнению.',
+	minLength: 'Пожалуйста, введите хотя бы {minLength} символов (Вы ввели {length}).',
+	maxLength: 'Пожалуйста, введите не больше {maxLength} символов (Вы ввели {length}).',
+	integer: 'Пожалуйста, введите в это поле число. Дробные числа (например 1.25) тут не разрешены.',
+	numeric: 'Пожалуйста, введите в это поле число (например "1" или "1.1", или "-1", или "-1.1").',
+	digits: 'В этом поле Вы можете использовать только цифры и знаки пунктуации (например, телефонный номер со знаками дефиса или с точками).',
+	alpha: 'В этом поле можно использовать только латинские буквы (a-z). Пробелы и другие символы запрещены.',
+	alphanum: 'В этом поле можно использовать только латинские буквы (a-z) и цифры (0-9). Пробелы и другие символы запрещены.',
+	dateSuchAs: 'Пожалуйста, введите корректную дату {date}',
+	dateInFormatMDY: 'Пожалуйста, введите дату в формате ММ/ДД/ГГГГ (например "12/31/1999")',
+	email: 'Пожалуйста, введите корректный емейл-адрес. Для примера "fred@domain.com".',
+	url: 'Пожалуйста, введите правильную ссылку вида http://www.example.com.',
+	currencyDollar: 'Пожалуйста, введите сумму в долларах. Например: $100.00 .',
+	oneRequired: 'Пожалуйста, выберите хоть что-нибудь в одном из этих полей.',
+	errorPrefix: 'Ошибка: ',
+	warningPrefix: 'Внимание: '
+
+});
+
+
+
+
+/*
+---
+
+name: Locale.si-SI.Date
+
+description: Date messages for Slovenian.
+
+license: MIT-style license
+
+authors:
+  - Radovan Lozej
+
+requires:
+  - /Locale
+
+provides: [Locale.si-SI.Date]
+
+...
+*/
+
+(function(){
+
+var pluralize = function(n, one, two, three, other){
+	return (n >= 1 && n <= 3) ? arguments[n] : other;
+};
+
+Locale.define('si-SI', 'Date', {
+
+	months: ['januar', 'februar', 'marec', 'april', 'maj', 'junij', 'julij', 'avgust', 'september', 'oktober', 'november', 'december'],
+	months_abbr: ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'avg', 'sep', 'okt', 'nov', 'dec'],
+	days: ['nedelja', 'ponedeljek', 'torek', 'sreda', 'četrtek', 'petek', 'sobota'],
+	days_abbr: ['ned', 'pon', 'tor', 'sre', 'čet', 'pet', 'sob'],
+
+	// Culture's date order: DD.MM.YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d.%m.%Y',
+	shortTime: '%H.%M',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '.',
+
+	lessThanMinuteAgo: 'manj kot minuto nazaj',
+	minuteAgo: 'minuto nazaj',
+	minutesAgo: function(delta){ return '{delta} ' + pluralize(delta, 'minuto', 'minuti', 'minute', 'minut') + ' nazaj'; },
+	hourAgo: 'uro nazaj',
+	hoursAgo: function(delta){ return '{delta} ' + pluralize(delta, 'uro', 'uri', 'ure', 'ur') + ' nazaj'; },
+	dayAgo: 'dan nazaj',
+	daysAgo: function(delta){ return '{delta} ' + pluralize(delta, 'dan', 'dneva', 'dni', 'dni') + ' nazaj'; },
+	weekAgo: 'teden nazaj',
+	weeksAgo: function(delta){ return '{delta} ' + pluralize(delta, 'teden', 'tedna', 'tedne', 'tednov') + ' nazaj'; },
+	monthAgo: 'mesec nazaj',
+	monthsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'mesec', 'meseca', 'mesece', 'mesecov') + ' nazaj'; },
+	yearthAgo: 'leto nazaj',
+	yearsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'leto', 'leti', 'leta', 'let') + ' nazaj'; },
+
+	lessThanMinuteUntil: 'še manj kot minuto',
+	minuteUntil: 'še minuta',
+	minutesUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'minuta', 'minuti', 'minute', 'minut'); },
+	hourUntil: 'še ura',
+	hoursUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'ura', 'uri', 'ure', 'ur'); },
+	dayUntil: 'še dan',
+	daysUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'dan', 'dneva', 'dnevi', 'dni'); },
+	weekUntil: 'še tedn',
+	weeksUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'teden', 'tedna', 'tedni', 'tednov'); },
+	monthUntil: 'še mesec',
+	monthsUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'mesec', 'meseca', 'meseci', 'mesecov'); },
+	yearUntil: 'še leto',
+	yearsUntil: function(delta){ return 'še {delta} ' + pluralize(delta, 'leto', 'leti', 'leta', 'let'); }
+
+});
+
+})();
+
+
+/*
+---
+
+name: Locale.si-SI.Form.Validator
+
+description: Form Validator messages for Slovenian.
+
+license: MIT-style license
+
+authors:
+  - Radovan Lozej
+
+requires:
+  - /Locale
+
+provides: [Locale.si-SI.Form.Validator]
+
+...
+*/
+
+Locale.define('si-SI', 'FormValidator', {
+
+	required: 'To polje je obvezno',
+	minLength: 'Prosim, vnesite vsaj {minLength} znakov (vnesli ste {length} znakov).',
+	maxLength: 'Prosim, ne vnesite več kot {maxLength} znakov (vnesli ste {length} znakov).',
+	integer: 'Prosim, vnesite celo število. Decimalna števila (kot 1,25) niso dovoljena.',
+	numeric: 'Prosim, vnesite samo numerične vrednosti (kot "1" ali "1.1" ali "-1" ali "-1.1").',
+	digits: 'Prosim, uporabite številke in ločila le na tem polju (na primer, dovoljena je telefonska številka z pomišlaji ali pikami).',
+	alpha: 'Prosim, uporabite le črke v tem plju. Presledki in drugi znaki niso dovoljeni.',
+	alphanum: 'Prosim, uporabite samo črke ali številke v tem polju. Presledki in drugi znaki niso dovoljeni.',
+	dateSuchAs: 'Prosim, vnesite pravilen datum kot {date}',
+	dateInFormatMDY: 'Prosim, vnesite pravilen datum kot MM.DD.YYYY (primer "12.31.1999")',
+	email: 'Prosim, vnesite pravilen email naslov. Na primer "fred@domain.com".',
+	url: 'Prosim, vnesite pravilen URL kot http://www.example.com.',
+	currencyDollar: 'Prosim, vnesit epravilno vrednost €. Primer 100,00€ .',
+	oneRequired: 'Prosimo, vnesite nekaj za vsaj eno izmed teh polj.',
+	errorPrefix: 'Napaka: ',
+	warningPrefix: 'Opozorilo: ',
+
+	// Form.Validator.Extras
+	noSpace: 'To vnosno polje ne dopušča presledkov.',
+	reqChkByNode: 'Nič niste izbrali.',
+	requiredChk: 'To polje je obvezno',
+	reqChkByName: 'Prosim, izberite {label}.',
+	match: 'To polje se mora ujemati z poljem {matchName}',
+	startDate: 'datum začetka',
+	endDate: 'datum konca',
+	currendDate: 'trenuten datum',
+	afterDate: 'Datum bi moral biti isti ali po {label}.',
+	beforeDate: 'Datum bi moral biti isti ali pred {label}.',
+	startMonth: 'Prosim, vnesite začetni datum',
+	sameMonth: 'Ta dva datuma morata biti v istem mesecu - premeniti morate eno ali drugo.',
+	creditcard: 'Številka kreditne kartice ni pravilna. Preverite številko ali poskusite še enkrat. Vnešenih {length} znakov.'
+
+});
+
+
+/*
+---
+
+name: Locale.sv-SE.Date
+
+description: Date messages for Swedish.
+
+license: MIT-style license
+
+authors:
+  - Martin Lundgren
+
+requires:
+  - /Locale
+
+provides: [Locale.sv-SE.Date]
+
+...
+*/
+
+Locale.define('sv-SE', 'Date', {
+
+	months: ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december'],
+	months_abbr: ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
+	days: ['söndag', 'måndag', 'tisdag', 'onsdag', 'torsdag', 'fredag', 'lördag'],
+	days_abbr: ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör'],
+
+	// Culture's date order: YYYY-MM-DD
+	dateOrder: ['year', 'month', 'date'],
+	shortDate: '%Y-%m-%d',
+	shortTime: '%H:%M',
+	AM: '',
+	PM: '',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: 'mindre än en minut sedan',
+	minuteAgo: 'ungefär en minut sedan',
+	minutesAgo: '{delta} minuter sedan',
+	hourAgo: 'ungefär en timme sedan',
+	hoursAgo: 'ungefär {delta} timmar sedan',
+	dayAgo: '1 dag sedan',
+	daysAgo: '{delta} dagar sedan',
+
+	lessThanMinuteUntil: 'mindre än en minut sedan',
+	minuteUntil: 'ungefär en minut sedan',
+	minutesUntil: '{delta} minuter sedan',
+	hourUntil: 'ungefär en timme sedan',
+	hoursUntil: 'ungefär {delta} timmar sedan',
+	dayUntil: '1 dag sedan',
+	daysUntil: '{delta} dagar sedan'
+
+});
+
+
+/*
+---
+
+name: Locale.sv-SE.Form.Validator
+
+description: Form Validator messages for Swedish.
+
+license: MIT-style license
+
+authors:
+  - Martin Lundgren
+
+requires:
+  - /Locale
+
+provides: [Locale.sv-SE.Form.Validator]
+
+...
+*/
+
+Locale.define('sv-SE', 'FormValidator', {
+
+	required: 'Fältet är obligatoriskt.',
+	minLength: 'Ange minst {minLength} tecken (du angav {length} tecken).',
+	maxLength: 'Ange högst {maxLength} tecken (du angav {length} tecken). ',
+	integer: 'Ange ett heltal i fältet. Tal med decimaler (t.ex. 1,25) är inte tillåtna.',
+	numeric: 'Ange endast numeriska värden i detta fält (t.ex. "1" eller "1.1" eller "-1" eller "-1,1").',
+	digits: 'Använd endast siffror och skiljetecken i detta fält (till exempel ett telefonnummer med bindestreck tillåtet).',
+	alpha: 'Använd endast bokstäver (a-ö) i detta fält. Inga mellanslag eller andra tecken är tillåtna.',
+	alphanum: 'Använd endast bokstäver (a-ö) och siffror (0-9) i detta fält. Inga mellanslag eller andra tecken är tillåtna.',
+	dateSuchAs: 'Ange ett giltigt datum som t.ex. {date}',
+	dateInFormatMDY: 'Ange ett giltigt datum som t.ex. YYYY-MM-DD (i.e. "1999-12-31")',
+	email: 'Ange en giltig e-postadress. Till exempel "erik@domain.com".',
+	url: 'Ange en giltig webbadress som http://www.example.com.',
+	currencyDollar: 'Ange en giltig belopp. Exempelvis 100,00.',
+	oneRequired: 'Vänligen ange minst ett av dessa alternativ.',
+	errorPrefix: 'Fel: ',
+	warningPrefix: 'Varning: ',
+
+	// Form.Validator.Extras
+	noSpace: 'Det får inte finnas några mellanslag i detta fält.',
+	reqChkByNode: 'Inga objekt är valda.',
+	requiredChk: 'Detta är ett obligatoriskt fält.',
+	reqChkByName: 'Välj en {label}.',
+	match: 'Detta fält måste matcha {matchName}',
+	startDate: 'startdatumet',
+	endDate: 'slutdatum',
+	currendDate: 'dagens datum',
+	afterDate: 'Datumet bör vara samma eller senare än {label}.',
+	beforeDate: 'Datumet bör vara samma eller tidigare än {label}.',
+	startMonth: 'Välj en start månad',
+	sameMonth: 'Dessa två datum måste vara i samma månad - du måste ändra det ena eller det andra.'
+
+});
+
+
+/*
+---
+
+name: Locale.uk-UA.Date
+
+description: Date messages for Ukrainian (utf-8).
+
+license: MIT-style license
+
+authors:
+  - Slik
+
+requires:
+  - /Locale
+
+provides: [Locale.uk-UA.Date]
+
+...
+*/
+
+(function(){
+
+var pluralize = function(n, one, few, many, other){
+	var d = (n / 10).toInt(),
+		z = n % 10,
+		s = (n / 100).toInt();
+
+	if (d == 1 && n > 10) return many;
+	if (z == 1) return one;
+	if (z > 0 && z < 5) return few;
+	return many;
+};
+
+Locale.define('uk-UA', 'Date', {
+
+	months: ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'],
+	months_abbr: ['Січ', 'Лют', 'Бер', 'Квіт', 'Трав', 'Черв', 'Лип', 'Серп', 'Вер', 'Жовт', 'Лист', 'Груд' ],
+	days: ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', "П'ятниця", 'Субота'],
+	days_abbr: ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+
+	// Culture's date order: DD/MM/YYYY
+	dateOrder: ['date', 'month', 'year'],
+	shortDate: '%d/%m/%Y',
+	shortTime: '%H:%M',
+	AM: 'до полудня',
+	PM: 'по полудню',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: 'меньше хвилини тому',
+	minuteAgo: 'хвилину тому',
+	minutesAgo: function(delta){ return '{delta} ' + pluralize(delta, 'хвилину', 'хвилини', 'хвилин') + ' тому'; },
+	hourAgo: 'годину тому',
+	hoursAgo: function(delta){ return '{delta} ' + pluralize(delta, 'годину', 'години', 'годин') + ' тому'; },
+	dayAgo: 'вчора',
+	daysAgo: function(delta){ return '{delta} ' + pluralize(delta, 'день', 'дня', 'днів') + ' тому'; },
+	weekAgo: 'тиждень тому',
+	weeksAgo: function(delta){ return '{delta} ' + pluralize(delta, 'тиждень', 'тижні', 'тижнів') + ' тому'; },
+	monthAgo: 'місяць тому',
+	monthsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'місяць', 'місяці', 'місяців') + ' тому'; },
+	yearAgo: 'рік тому',
+	yearsAgo: function(delta){ return '{delta} ' + pluralize(delta, 'рік', 'роки', 'років') + ' тому'; },
+
+	lessThanMinuteUntil: 'за мить',
+	minuteUntil: 'через хвилину',
+	minutesUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'хвилину', 'хвилини', 'хвилин'); },
+	hourUntil: 'через годину',
+	hoursUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'годину', 'години', 'годин'); },
+	dayUntil: 'завтра',
+	daysUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'день', 'дня', 'днів'); },
+	weekUntil: 'через тиждень',
+	weeksUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'тиждень', 'тижні', 'тижнів'); },
+	monthUntil: 'через місяць',
+	monthesUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'місяць', 'місяці', 'місяців'); },
+	yearUntil: 'через рік',
+	yearsUntil: function(delta){ return 'через {delta} ' + pluralize(delta, 'рік', 'роки', 'років'); }
+
+});
+
+})();
+
+
+/*
+---
+
+name: Locale.uk-UA.Form.Validator
+
+description: Form Validator messages for Ukrainian (utf-8).
+
+license: MIT-style license
+
+authors:
+  - Slik
+
+requires:
+  - /Locale
+
+provides: [Locale.uk-UA.Form.Validator]
+
+...
+*/
+
+Locale.define('uk-UA', 'FormValidator', {
+
+	required: 'Це поле повинне бути заповненим.',
+	minLength: 'Введіть хоча б {minLength} символів (Ви ввели {length}).',
+	maxLength: 'Кількість символів не може бути більше {maxLength} (Ви ввели {length}).',
+	integer: 'Введіть в це поле число. Дробові числа (наприклад 1.25) не дозволені.',
+	numeric: 'Введіть в це поле число (наприклад "1" або "1.1", або "-1", або "-1.1").',
+	digits: 'В цьому полі ви можете використовувати лише цифри і знаки пунктіації (наприклад, телефонний номер з знаками дефізу або з крапками).',
+	alpha: 'В цьому полі можна використовувати лише латинські літери (a-z). Пробіли і інші символи заборонені.',
+	alphanum: 'В цьому полі можна використовувати лише латинські літери (a-z) і цифри (0-9). Пробіли і інші символи заборонені.',
+	dateSuchAs: 'Введіть коректну дату {date}.',
+	dateInFormatMDY: 'Введіть дату в форматі ММ/ДД/РРРР (наприклад "12/31/2009").',
+	email: 'Введіть коректну адресу електронної пошти (наприклад "name@domain.com").',
+	url: 'Введіть коректне інтернет-посилання (наприклад http://www.example.com).',
+	currencyDollar: 'Введіть суму в доларах (наприклад "$100.00").',
+	oneRequired: 'Заповніть одне з полів.',
+	errorPrefix: 'Помилка: ',
+	warningPrefix: 'Увага: ',
+
+	noSpace: 'Пробіли заборонені.',
+	reqChkByNode: 'Не відмічено жодного варіанту.',
+	requiredChk: 'Це поле повинне бути віміченим.',
+	reqChkByName: 'Будь ласка, відмітьте {label}.',
+	match: 'Це поле повинно відповідати {matchName}',
+	startDate: 'початкова дата',
+	endDate: 'кінцева дата',
+	currendDate: 'сьогоднішня дата',
+	afterDate: 'Ця дата повинна бути такою ж, або пізнішою за {label}.',
+	beforeDate: 'Ця дата повинна бути такою ж, або ранішою за {label}.',
+	startMonth: 'Будь ласка, виберіть початковий місяць',
+	sameMonth: 'Ці дати повинні відноситись одного і того ж місяця. Будь ласка, змініть одну з них.',
+	creditcard: 'Номер кредитної карти введений неправильно. Будь ласка, перевірте його. Введено {length} символів.'
+
+});
+
+
+/*
+---
+
+name: Locale.zh-CH.Date
+
+description: Date messages for Chinese (simplified and traditional).
+
+license: MIT-style license
+
+authors:
+  - YMind Chan
+
+requires:
+  - /Locale
+
+provides: [Locale.zh-CH.Date]
+
+...
+*/
+
+// Simplified Chinese
+Locale.define('zh-CHS', 'Date', {
+
+	months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+	months_abbr: ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'],
+	days: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
+	days_abbr: ['日', '一', '二', '三', '四', '五', '六'],
+
+	// Culture's date order: YYYY-MM-DD
+	dateOrder: ['year', 'month', 'date'],
+	shortDate: '%Y-%m-%d',
+	shortTime: '%I:%M%p',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: '不到1分钟前',
+	minuteAgo: '大约1分钟前',
+	minutesAgo: '{delta}分钟之前',
+	hourAgo: '大约1小时前',
+	hoursAgo: '大约{delta}小时前',
+	dayAgo: '1天前',
+	daysAgo: '{delta}天前',
+	weekAgo: '1星期前',
+	weeksAgo: '{delta}星期前',
+	monthAgo: '1个月前',
+	monthsAgo: '{delta}个月前',
+	yearAgo: '1年前',
+	yearsAgo: '{delta}年前',
+
+	lessThanMinuteUntil: '从现在开始不到1分钟',
+	minuteUntil: '从现在开始約1分钟',
+	minutesUntil: '从现在开始约{delta}分钟',
+	hourUntil: '从现在开始1小时',
+	hoursUntil: '从现在开始约{delta}小时',
+	dayUntil: '从现在开始1天',
+	daysUntil: '从现在开始{delta}天',
+	weekUntil: '从现在开始1星期',
+	weeksUntil: '从现在开始{delta}星期',
+	monthUntil: '从现在开始一个月',
+	monthsUntil: '从现在开始{delta}个月',
+	yearUntil: '从现在开始1年',
+	yearsUntil: '从现在开始{delta}年'
+
+});
+
+// Traditional Chinese
+Locale.define('zh-CHT', 'Date', {
+
+	months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+	months_abbr: ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'],
+	days: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
+	days_abbr: ['日', '一', '二', '三', '四', '五', '六'],
+
+	// Culture's date order: YYYY-MM-DD
+	dateOrder: ['year', 'month', 'date'],
+	shortDate: '%Y-%m-%d',
+	shortTime: '%I:%M%p',
+	AM: 'AM',
+	PM: 'PM',
+	firstDayOfWeek: 1,
+
+	// Date.Extras
+	ordinal: '',
+
+	lessThanMinuteAgo: '不到1分鐘前',
+	minuteAgo: '大約1分鐘前',
+	minutesAgo: '{delta}分鐘之前',
+	hourAgo: '大約1小時前',
+	hoursAgo: '大約{delta}小時前',
+	dayAgo: '1天前',
+	daysAgo: '{delta}天前',
+	weekAgo: '1星期前',
+	weeksAgo: '{delta}星期前',
+	monthAgo: '1个月前',
+	monthsAgo: '{delta}个月前',
+	yearAgo: '1年前',
+	yearsAgo: '{delta}年前',
+
+	lessThanMinuteUntil: '從現在開始不到1分鐘',
+	minuteUntil: '從現在開始約1分鐘',
+	minutesUntil: '從現在開始約{delta}分鐘',
+	hourUntil: '從現在開始1小時',
+	hoursUntil: '從現在開始約{delta}小時',
+	dayUntil: '從現在開始1天',
+	daysUntil: '從現在開始{delta}天',
+	weekUntil: '從現在開始1星期',
+	weeksUntil: '從現在開始{delta}星期',
+	monthUntil: '從現在開始一個月',
+	monthsUntil: '從現在開始{delta}個月',
+	yearUntil: '從現在開始1年',
+	yearsUntil: '從現在開始{delta}年'
+
+});
+
+
+/*
+---
+
+name: Locale.zh-CH.Form.Validator
+
+description: Form Validator messages for Chinese (simplified and traditional).
+
+license: MIT-style license
+
+authors:
+  - YMind Chan
+
+requires:
+  - /Locale
+  - /Form.Validator
+
+provides: [Form.zh-CH.Form.Validator, Form.Validator.CurrencyYuanValidator]
+
+...
+*/
+
+// Simplified Chinese
+Locale.define('zh-CHS', 'FormValidator', {
+
+	required: '此项必填。',
+	minLength: '请至少输入 {minLength} 个字符 (已输入 {length} 个)。',
+	maxLength: '最多只能输入 {maxLength} 个字符 (已输入 {length} 个)。',
+	integer: '请输入一个整数，不能包含小数点。例如："1", "200"。',
+	numeric: '请输入一个数字，例如："1", "1.1", "-1", "-1.1"。',
+	digits: '请输入由数字和标点符号组成的内容。例如电话号码。',
+	alpha: '请输入 A-Z 的 26 个字母，不能包含空格或任何其他字符。',
+	alphanum: '请输入 A-Z 的 26 个字母或 0-9 的 10 个数字，不能包含空格或任何其他字符。',
+	dateSuchAs: '请输入合法的日期格式，如：{date}。',
+	dateInFormatMDY: '请输入合法的日期格式，例如：YYYY-MM-DD ("2010-12-31")。',
+	email: '请输入合法的电子信箱地址，例如："fred@domain.com"。',
+	url: '请输入合法的 Url 地址，例如：http://www.example.com。',
+	currencyDollar: '请输入合法的货币符号，例如：￥100.0',
+	oneRequired: '请至少选择一项。',
+	errorPrefix: '错误：',
+	warningPrefix: '警告：',
+
+	// Form.Validator.Extras
+	noSpace: '不能包含空格。',
+	reqChkByNode: '未选择任何内容。',
+	requiredChk: '此项必填。',
+	reqChkByName: '请选择 {label}.',
+	match: '必须与{matchName}相匹配',
+	startDate: '起始日期',
+	endDate: '结束日期',
+	currendDate: '当前日期',
+	afterDate: '日期必须等于或晚于 {label}.',
+	beforeDate: '日期必须早于或等于 {label}.',
+	startMonth: '请选择起始月份',
+	sameMonth: '您必须修改两个日期中的一个，以确保它们在同一月份。',
+	creditcard: '您输入的信用卡号码不正确。当前已输入{length}个字符。'
+
+});
+
+// Traditional Chinese
+Locale.define('zh-CHT', 'FormValidator', {
+
+	required: '此項必填。 ',
+	minLength: '請至少輸入{minLength} 個字符(已輸入{length} 個)。 ',
+	maxLength: '最多只能輸入{maxLength} 個字符(已輸入{length} 個)。 ',
+	integer: '請輸入一個整數，不能包含小數點。例如："1", "200"。 ',
+	numeric: '請輸入一個數字，例如："1", "1.1", "-1", "-1.1"。 ',
+	digits: '請輸入由數字和標點符號組成的內容。例如電話號碼。 ',
+	alpha: '請輸入AZ 的26 個字母，不能包含空格或任何其他字符。 ',
+	alphanum: '請輸入AZ 的26 個字母或0-9 的10 個數字，不能包含空格或任何其他字符。 ',
+	dateSuchAs: '請輸入合法的日期格式，如：{date}。 ',
+	dateInFormatMDY: '請輸入合法的日期格式，例如：YYYY-MM-DD ("2010-12-31")。 ',
+	email: '請輸入合法的電子信箱地址，例如："fred@domain.com"。 ',
+	url: '請輸入合法的Url 地址，例如：http://www.example.com。 ',
+	currencyDollar: '請輸入合法的貨幣符號，例如：￥100.0',
+	oneRequired: '請至少選擇一項。 ',
+	errorPrefix: '錯誤：',
+	warningPrefix: '警告：',
+
+	// Form.Validator.Extras
+	noSpace: '不能包含空格。 ',
+	reqChkByNode: '未選擇任何內容。 ',
+	requiredChk: '此項必填。 ',
+	reqChkByName: '請選擇 {label}.',
+	match: '必須與{matchName}相匹配',
+	startDate: '起始日期',
+	endDate: '結束日期',
+	currendDate: '當前日期',
+	afterDate: '日期必須等於或晚於{label}.',
+	beforeDate: '日期必須早於或等於{label}.',
+	startMonth: '請選擇起始月份',
+	sameMonth: '您必須修改兩個日期中的一個，以確保它們在同一月份。 ',
+	creditcard: '您輸入的信用卡號碼不正確。當前已輸入{length}個字符。 '
+
+});
+
+Form.Validator.add('validate-currency-yuan', {
+
+	errorMsg: function(){
+		return Form.Validator.getMsg('currencyYuan');
+	},
+
+	test: function(element){
+		// [￥]1[##][,###]+[.##]
+		// [￥]1###+[.##]
+		// [￥]0.##
+		// [￥].##
+		return Form.Validator.getValidator('IsEmpty').test(element) || (/^￥?\-?([1-9]{1}[0-9]{0,2}(\,[0-9]{3})*(\.[0-9]{0,2})?|[1-9]{1}\d*(\.[0-9]{0,2})?|0(\.[0-9]{0,2})?|(\.[0-9]{1,2})?)$/).test(element.get('value'));
+	}
+
 });
 

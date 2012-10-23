@@ -23,4 +23,9 @@ if(LOCALHOST){
     ));
 }
 
+    $objPage->addJSFile(array(
+        'src' => '/'.root().'assets/javascript/bootstrap.mootools.js',
+        'priority' => HIGH
+    ), 'footer');
+
 ?>
