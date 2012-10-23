@@ -9,7 +9,7 @@ include_once('core/core.php');
 $objPage->setTheme();
 $objPage->setTitle('Test');
 $objPage->buildPage();
-$objPage->showHeader(); 
+$objPage->showHeader();
 
 
 /**
@@ -17,11 +17,10 @@ throw some session stuff in here8
 +
 **/
 
-$var = $objSession->createSession( 0 );
+$var = $objSessions->cleanSessions();
 
 echo dump( $var );
 
-echo dump($_SESSION);
 
-$objPage->showFooter(); 
+$objPage->showFooter();
 ?>
