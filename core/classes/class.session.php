@@ -72,7 +72,7 @@ class Session extends coreObj{
         }
 
         $objSQL   = coreObj::getDBO();
-        // echo dump( $objSQL );
+
         $uid = ( !is_number( $uid ) ? false : $uid );
 
         if( $uid === false ){
@@ -91,16 +91,16 @@ class Session extends coreObj{
 
         // Just a check
         if( empty( $session_id ) ){
-            $offset = rand( 1, 86400 );
+            $offset     = rand( 1, 86400 );
             $session_id = md5( time() + $offset );
         }
 
         $check = $objSQL->queryBuilder()
-                              ->select('sid')
-                              ->from('#__sessions')
-                              ->where('sid', '=', $session_id)
-                                ->andWhere('hostname', '=', $objUser->getIP())
-                              ->build();
+                          ->select('sid')
+                          ->from('#__sessions')
+                          ->where('sid', '=', $session_id)
+                            ->andWhere('hostname', '=', $objUser->getIP())
+                          ->build();
 
 
         $checkResult = $objSQL->fetchAll( $check );
@@ -152,7 +152,7 @@ class Session extends coreObj{
             $_SESSION['user']['session_id'] = $session_id;
             $_SESSION['user']['user_id']    = md5( $uid );
             $_SESSION['user']['timestamp']  = (time() + 3600); // Give it an hour
-
+            
             return true;
         }
 
@@ -396,15 +396,16 @@ class Session extends coreObj{
         $getSessions = $objSQL->queryBuilder()
                                 ->select('sid', 'uid')
                                 ->from('#__sessions')
-                                ->where('DATE_ADD(`timestamp`, INTERVAL '. $expire .' SECOND) < NOW()')
+                                ->where('DATE_ADD(timestamp, INTERVAL '. $expire .' SECOND)', '<', 'NOW()')
                                 ->build();
 
-        $sessions = $getSessions->fetchAll();
+        $sessions = $objSQL->fetchAll($getSessions);
 
         if( !is_array( $sessions ) || count( $sessions, COUNT_RECURSIVE ) ){
             return $blOut;
         }
 
+        // Loop through the sessions
         foreach( $sessions as $session ){
             if( isset( $session['uid'] ) && isset( $session['sid'] ) ){
                 // Kill the sessions

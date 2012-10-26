@@ -17,9 +17,10 @@ throw some session stuff in here8
 +
 **/
 
-$var = $objSessions->cleanSessions();
+$var = $objSession->createSession();
 
 echo dump( $var );
+
 
 
 $objPage->showFooter();
