@@ -316,7 +316,7 @@ class mysql_queryBuilder extends coreObj{
             foreach($this->_values as $field => $val){
                 $val = $this->_sanitizeValue($val);
 
-                $values[] = sprintf('%s', ($val === NULL ? 'NULL' : $val));
+                $values[] = sprintf('"%s"', ($val === NULL ? 'NULL' : $val));
             }
             $statement[] = sprintf('(%s)', implode(', ', $values));
         }
@@ -400,11 +400,11 @@ class mysql_queryBuilder extends coreObj{
             $tmp[1] = $this->_buildFields($tmp[1]);
 
             if($where['operand'] != 'IN'){
-                // if($type == 'where'){
-                //     $tmp[] = $this->_sanitizeValue($where['cond2'], $where['operand'] == 'LIKE');
-                // }else{
+                if($type == 'where'){
+                    $tmp[] = $this->_sanitizeValue($where['cond2'], $where['operand'] == 'LIKE');
+                }else{
                     $tmp[] = $where['cond2'];
-                // }
+                }
             }else{
 
                 $ins = array();
@@ -418,6 +418,7 @@ class mysql_queryBuilder extends coreObj{
 
                 $tmp[2] = sprintf('%s ("%s")', $tmp[2], implode(', ', $ins));
             }
+
             $statement[] = implode(' ', $tmp);
         }
 
@@ -508,12 +509,15 @@ class mysql_queryBuilder extends coreObj{
     protected function _sanitizeValue($val) {
         if(is_number($val)){
             return $val;
-        }
-        if(in_array($val, array('NULL', 'true', 'false', null))){
-            return $val;
+
         }
 
-        return addslashes($val);
+        if( in_array( $val, array( 'NULL', 'true', 'false', null ) ) ) {
+            return $val;
+
+        }
+
+        return '"' . $val . '"'; ///addslashes($val);
     }
 
     private function setQueryType($queryType){

@@ -82,19 +82,19 @@ class User extends coreObj {
 
             $objSQL = coreObj::getDBO();
             //figure out if they gave us a username or a user id
-            $user = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = upper("%s")');
-
+            $user = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = %s');
+            $x = sprintf($user, strtoupper($uid));
             $query = $objSQL->queryBuilder()
                 ->select(array('u.*', 'ux.*', 'id'=>'u.id', 's.timestamp'))
                 ->from(array('u' => '#__users'))
 
                 ->leftJoin(array('ux' => '#__users_extras'))
-                    ->on('u.id', '=', 'ux.uid')
+                    ->on('u.id = ux.uid')
 
                 ->leftJoin(array('s' => '#__sessions'))
-                    ->on('u.id', '=', 's.uid')
+                    ->on('u.id = s.uid')
 
-                ->where(sprintf($user, $uid))
+                ->where($x)
                 ->limit(1)
                 ->build();
 
@@ -186,7 +186,7 @@ class User extends coreObj {
 
     public function getIDByUsername( $username ){
         if( is_empty($username) || !$this->validateUsername($username, true) ){
-            return false;
+            return 0;
         }
 
         $return = $this->get($username, 'id');
@@ -196,6 +196,7 @@ class User extends coreObj {
 
 
     public function validateUsername( $username, $exists=false ){
+
         if( strlen($username) > 25 || strlen($username) < 2 ){
             $this->setError('Username dosen\'t fall within usable length parameters. Between 2 and 25 characters long.');
             return false;
@@ -268,6 +269,43 @@ class User extends coreObj {
     public function canLogin( $username, $password ){
 
     }
+
+
+    public function mkPassword( $password, $salt ) {
+        $objPass = new phpass( 8, true );
+
+        $hashed = $objPass->hashPassword( $salt . $password );
+
+        if( $hashed < 20  ) {
+
+        }
+    }
+
+    public function verifyUserCredentials( $username, $password ) {
+        $objSQL = coreObj::getDBO();
+
+        // Grab the phpass library
+        $phpass = new phpass( 8, true );
+
+        // Grab the user's id
+        $uid = $this->getIDByUsername( $username );
+
+        // if the username doesn't exist, return false;
+        if( $uid === 0 ) {
+            return false;
+        }
+
+        // Fetch the hashed password from the database
+        $hash = $this->get( $uid, 'password' );
+        if( $phpass->CheckPassword( $password, $hash ) ) {
+            return true;
+
+        } else {
+            return false;
+
+        }
+    }
+
 /**
   //
   //-- Auth Functions
@@ -376,7 +414,6 @@ class User extends coreObj {
         //apparently the checks didnt return true, so we'll go for false
         return false;
     }
-
 }
 
 ?>

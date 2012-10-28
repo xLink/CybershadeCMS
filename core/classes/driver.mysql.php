@@ -167,6 +167,8 @@ class driver_mysql extends core_SQL implements base_SQL{
         $this->results = mysql_query($query, $this->DBH) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
 
 
+        echo dump($this->dbSettings, 'options', 'red');
+        
         if($this->dbSettings['debug']){
             $backtrace = debug_backtrace();
             $callee = next($backtrace);

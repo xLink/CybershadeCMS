@@ -142,6 +142,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
             $debug['total_time']    = $this->totalTime;
         }
         $this->debug[] = $debug;
+        
         return $this->results;
     }
 
