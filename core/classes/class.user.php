@@ -265,7 +265,9 @@ class User extends coreObj {
 
     }
 
+    public function canLogin( $username, $password ){
 
+    }
 /**
   //
   //-- Auth Functions

@@ -1,9 +1,9 @@
 <?php
 /**
  * Front controller for default Minify implementation
- * 
+ *
  * DO NOT EDIT! Configure this utility via config.php and groupsConfig.php
- * 
+ *
  * @package Minify
  */
 define('INDEX_CHECK', 1);
@@ -70,14 +70,14 @@ if(isset($_GET['g']) && isset($_GET['t'])){
 }
 //CSCMS Edit
 if (isset($_GET['f']) || isset($_GET['g'])) {
-    // serve!   
+    // serve!
 
     if (! isset($min_serveController)) {
         require 'Minify/Controller/MinApp.php';
         $min_serveController = new Minify_Controller_MinApp();
     }
     Minify::serve($min_serveController, $min_serveOptions);
-        
+
 } elseif ($min_enableBuilder) {
     header('Location: builder/');
     exit();

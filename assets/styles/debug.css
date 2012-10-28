@@ -39,11 +39,11 @@
     }
     div[class^="debug"] ul li:hover{
     }
-    
+
     div[class^="debug"] .row{
         display: block;
         margin: 0;
-    }    
+    }
 
 	div[class^="debug"] div.header{
 		background-color: #0E5B72;
@@ -53,9 +53,55 @@
         margin: 0 0 5px;
 	}
 
-
 ul, ul ul {
    list-style-type: none;
    color: black;
    margin: 0 10px;
 }
+
+    div#debug-tabs > ul{
+        border: none;
+        margin: 0 0 0 3px;
+    }
+    div#debug-tabs ul li a{
+    }
+
+    div#debug-tabs ul li.active a{
+        background: #F5F5F5;
+    }
+
+
+
+/**
+ *  Debug Code Table in the bottom.
+ */
+
+table.debugCode{
+    background-color: #F7F7F9;
+    box-shadow: 40px 0 0 #FBFBFC inset, 41px 0 0 #ECECF0 inset;
+}
+
+    table.debugCode tr{
+
+    }
+
+        table.debugCode tr td{
+            border-top: none;
+            padding: 0;
+        }
+
+        table.debugCode tr td.error{
+            border: 1px solid red;
+            background-color: #F2CECD;
+        }
+
+        table.debugCode tr td:first-child{
+            padding-left: 10px;
+        }
+
+        table.debugCode tr td:last-child{
+            color: #BEBEC5;
+            line-height: 20px;
+            padding-left: 12px;
+            text-shadow: 0 1px 0 #FFFFFF;
+        }

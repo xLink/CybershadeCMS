@@ -14,54 +14,6 @@ class debug extends coreObj{
 
     }
 
-
-    /**
-     * Calculates Memory useage and Execution time between calls
-     *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      Dan Aldridge
-     *
-     * @param       string $info
-     * @param       string $nl
-     *
-     * @return      string
-     */
-    function memoryUsage($info = null, $nl = '<br />') {
-        global $START_CMS_LOAD;
-        static $start_code_line = 0;
-        static $memoryUsage = array();
-
-        $start_time = $START_CMS_LOAD;
-
-        $debug = debug_backtrace();
-        $call_info = array_shift($debug);
-        $code_line = $call_info['line'];
-        $file = explode((stristr(PHP_OS, 'WIN') ? '\\' : '/'), $call_info['file']);
-        $file = array_pop($file);
-
-        if ($start_time === null) {
-            print 'debug ['.($info === null ? null : $info).']<strong>'.$file.'</strong>> init'.$nl;
-            $start_time = time() + microtime();
-            $start_code_line = $code_line;
-            return 0;
-        }
-
-        $memoryUsage[] = array(
-            'info'        => ($info === null ? null : $info),
-            'file_exec'   => $file,
-            'start_exec'  => $start_code_line,
-            'end_exec'    => $code_line,
-            'time_exec'   => round(time() + microtime() - $start_time, 4),
-            'memory_exec' => formatBytes(memory_get_usage())
-        );
-
-        $start_time = time() + microtime();
-        $start_code_line = $code_line;
-
-        return $memoryUsage;
-    }
-
 /**
   //
   // Debug Output Functionality
@@ -189,6 +141,17 @@ class debug extends coreObj{
         return sprintf( '<ul>%s</ul>', $output );
     }
 
+    /**
+     * Generates output for the Memory Usage Tab
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       bool        $output     If True, The function will output the HTML
+     *
+     * @return      string
+     */
     public function getMemoryUse( $output = false ){
         if( $output !== true ){
             return false;
@@ -229,6 +192,79 @@ class debug extends coreObj{
     }
 
     /**
+     * Silently grabs all the PHP errors and throws them into the Errors Tab
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     */
+    public function errorHandler( $errno, $errstr, $errfile, $errline, $errcontext){
+        if(!(error_reporting() & $errno)){ return; }
+
+        $a = func_get_args();
+
+        $this->errors[] = $a;
+    }
+
+    /**
+     * Silently grabs all the PHP errors and throws them into the Errors Tab
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       bool        $output     If True, The function will output the HTML
+     *
+     * @return      string
+     */
+    public function getPHPErrors( $output = false ){
+        $definition = array(
+                        E_ERROR             => 'Error',
+                        E_WARNING           => 'Warning',
+                        E_PARSE             => 'Parsing Error',
+                        E_NOTICE            => 'Notice',
+                        E_CORE_ERROR        => 'Core Error',
+                        E_CORE_WARNING      => 'Core Warning',
+                        E_COMPILE_ERROR     => 'Compile Error',
+                        E_COMPILE_WARNING   => 'Compile Warning',
+                        E_USER_ERROR        => 'User Error',
+                        E_USER_WARNING      => 'User Warning',
+                        E_USER_NOTICE       => 'User Notice',
+                        E_STRICT            => 'Runtime Notice',
+                        E_RECOVERABLE_ERROR => 'Catchable Fatal Error',
+                        E_DEPRECATED        => 'Deprecated',
+                        E_USER_DEPRECATED   => 'User Deprecated'
+        );
+
+        $output = '<ul>';
+        foreach($this->errors as $error){
+            $_errorOutput = '<table class="table table-bordered">';
+            $_errorOutput .= '<colgroup><col width="1%"><col width="99%"></colgroup><tr>';
+            $_errorOutput .= sprintf('<td>%s</td>', 'Type: ');
+            $_errorOutput .= sprintf('<td>%s</td>', $definition[$error[0]]);
+            $_errorOutput .= '</tr><tr>';
+            $_errorOutput .= sprintf('<td>%s</td>', 'Message: ');
+            $_errorOutput .= sprintf('<td>%s</td>', htmlentities($error[1]));
+            $_errorOutput .= '</tr><tr>';
+            $_errorOutput .= sprintf('<td>%s</td>', 'Line: ');
+            $_errorOutput .= sprintf('<td>%s</td>', $error[3]);
+            $_errorOutput .= '</tr><td colspan="2">';
+            $_errorOutput .= $this->getSource(file($error[2]), $error[3], 0, 10);
+            $_errorOutput .= '</td></tr></table>';
+
+
+            $output .= sprintf('<li>%s</li>', $_errorOutput);
+        }
+        $output .= '</ul>';
+
+
+
+        return $output;
+    }
+
+
+
+    /**
      * Outputs the debug onto the page
      *
      * @version     1.0
@@ -252,7 +288,7 @@ class debug extends coreObj{
         );
         $debugTabs['errors']    = array(
             'title'     => 'PHP / CMS Errors',
-            'content'   => ''
+            'content'   => $this->getPHPErrors(true),
         );
         $debugTabs['memory']    = array(
             'title'     => 'Memory Usage',
@@ -280,23 +316,91 @@ class debug extends coreObj{
 
         $counter = 0;
         foreach( $debugTabs as $k => $tab ) {
-            $tabs .= sprintf( '<li class="tab" id="%1$s" data-index="%3$d"><a href="#%1$s">%2$s</a></li>',
+            $tabs .= sprintf( '<li class="tab" id="%1$s" data-toggle="tab"><a href="#%1$s">%2$s</a></li>',
                 $k,
-                $tab['title'],
-                $counter++
+                $tab['title']
             );
 
-            $content .= sprintf( '<div class="content">%s</div>',
+            $content .= sprintf( '<div class="tab-pane content">%s</div>',
                 $tab['content']
             );
         }
-        $tabs .= '<li class="tab pull-right"><div id="debug_button"><i class="socicon-cogs"></i></div></li>';
-        return sprintf( '<div id="debug-tabs"><ul class="nav nav-tabs">%s</ul><div class="tab-content">%s</div></div>',
+        return sprintf( '<div id="debug-tabs" data-tabs="true"><ul class="nav nav-tabs">%s</ul><div class="tab-content well">%s</div></div>',
             $tabs,
             $content
         );
     }
 
+
+    /**
+     * Get source and highlight it for output
+     *
+     * @param string $source Line source
+     * @param int $error Error on line
+     * @param int $level (0 = error / 1 = warn)
+     * @param int $lines Source lines to show
+     *
+     * @return string
+     */
+    private function getSource($source, $error, $level = 0, $lines = 10) {
+        $output = null;
+        $found = false;
+        $begin = $e = $error - $lines > 0 ? $error - $lines : 1;
+        $end = $error + $lines <= count($source) ? $error + $lines : count($source);
+        $mark = $level == 0 ? 'error' : 'warn';
+
+        // colorize
+        foreach($source as $idx => &$line) {
+            $colorize = null;
+
+            if ( preg_match('/\/\*/', $line) ){ $found = true; }// fix comments
+            if ( preg_match('/<\?(php)?[^[:graph:]]/', $line) ) {
+                $colorize .= str_replace(array('<code>', '</code>'), '', highlight_string($line, true)); // fix colors
+            } else {
+                if ( $found ) {
+                    $colorize .= preg_replace(
+                                    array('/(&lt;\?php&nbsp;)+/', '/\/\//'),
+                                    '',
+                                    str_replace(
+                                        array('<code>', '</code>'),
+                                        array(''),
+                                        highlight_string('<?php //'.$line, true)
+                                    )
+                                ); // fix comment
+                } else {
+                    $colorize .= preg_replace(
+                                    '/(&lt;\?php&nbsp;)+/',
+                                    '',
+                                    str_replace(
+                                        array('<code>', '</code>'),
+                                        array(''),
+                                        highlight_string('<?php '.$line, true)
+                                    )
+                                ); // fix colors
+                }
+            }
+            if (preg_match('/\*\//', $line)){
+                $found = false; // end fix comments
+            }
+
+            // output the marked line or the normal lines
+            if ( ($idx + 1) === $error ) {
+                $line = "<tr><td class='{$mark}'>".($idx + 1).".</div></td><td class='{$mark}'>{$colorize}</div></td></tr>";
+            } else {
+                $line = "<tr><td>".($idx + 1).".</td><td>{$colorize}</td></tr>";
+            }
+        }
+
+        // only get a certain number of lines to show
+        for($i = $begin - 1; $i < $end; $i++) {
+            $output .= $source[$i];
+        }
+
+        return '<table class="debugCode" cellspacing="0" cellpadding="0">
+                <col width="1%" /><col width="99%" />
+                '. $output .'
+                </table>';
+    }
 
 }
 

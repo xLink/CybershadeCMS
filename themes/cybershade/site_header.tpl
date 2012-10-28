@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="no-js">
+<html lang="en" class="{_CSS_SELECTORS}">
 <head>
 {_META}
 <title>{PAGE_TITLE} || {SITE_TITLE}</title>
