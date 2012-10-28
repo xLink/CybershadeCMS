@@ -63,7 +63,8 @@ ul, ul ul {
         border: none;
         margin: 0 0 0 3px;
     }
-    div#debug-tabs ul li a{
+    div#debug-tabs ul li div.label, div#debug-tabs ul li a{
+        display: inline-block;
     }
 
     div#debug-tabs ul li.active a{

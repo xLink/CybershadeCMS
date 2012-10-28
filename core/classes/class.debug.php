@@ -44,7 +44,7 @@ class debug extends coreObj{
             $output .= sprintf('<li>%s</li>', $file);
         }
 
-        return sprintf( '<ul>%s</ul>', $output );
+        return array('count' => count($this->includedFiles), 'content' => sprintf( '<ul>%s</ul>', $output ));
     }
 
     /**
@@ -74,7 +74,7 @@ class debug extends coreObj{
             }
         }
 
-        return sprintf( '<ul>%s</ul>', $output );
+        return array('count' => count($objCache->loadedCaches), 'content' => sprintf( '<ul>%s</ul>', $output ));
     }
 
     /**
@@ -108,7 +108,7 @@ class debug extends coreObj{
             }
         }
 
-        return sprintf( '<ul>%s</ul>', $output );
+        return array('count' => count($debug), 'content' => sprintf( '<ul>%s</ul>', $output ));
     }
 
     /**
@@ -138,7 +138,7 @@ class debug extends coreObj{
             }
         }
 
-        return sprintf( '<ul>%s</ul>', $output );
+        return array('count' => count($files), 'content' => sprintf( '<ul>%s</ul>', $output ));
     }
 
     /**
@@ -188,7 +188,8 @@ class debug extends coreObj{
         }
 
         $output .= '</tr></tbody></table>';
-        return $output;
+
+        return array('count' => formatBytes(memory_get_usage()), 'content' => $output);
     }
 
     /**
@@ -259,7 +260,7 @@ class debug extends coreObj{
 
 
 
-        return $output;
+        return array('count' => count($this->errors), 'content' => $output);
     }
 
 
@@ -282,33 +283,45 @@ class debug extends coreObj{
         $objPage   = coreObj::getPage();
 
         // Setup the tabs
-        $debugTabs['console']   = array(
+        /*$debugTabs['console']   = array(
             'title'     => 'Console Log',
             'content'   => ''
-        );
+        );*/
+
+        $tab = $this->getPHPErrors(true);
         $debugTabs['errors']    = array(
-            'title'     => 'PHP / CMS Errors',
-            'content'   => $this->getPHPErrors(true),
+            'title'     => sprintf('PHP / CMS Errors <div class="label">%s</div>', $tab['count']),
+            'content'   => $tab['content'],
         );
+
+        $tab = $this->getMemoryUse(true);
         $debugTabs['memory']    = array(
-            'title'     => 'Memory Usage',
-            'content'   => $this->getMemoryUse(true),
+            'title'     => sprintf('Memory Usage <div class="label">%s</div>', $tab['count']),
+            'content'   => $tab['content'],
         );
+
+        $tab = $this->getSQLQueries(true);
         $debugTabs['queries']   = array(
-            'title'     => 'SQL Queries',
-            'content'   => $this->getSQLQueries(true)
+            'title'     => sprintf('SQL Queries <div class="label">%s</div>', $tab['count']),
+            'content'   => $tab['content'],
         );
+
+        $tab = $this->getIncludedFiles(true);
         $debugTabs['included']  = array(
-            'title'     => 'Included Files',
-            'content'   => $this->getIncludedFiles(true)
+            'title'     => sprintf('Included Files <div class="label">%s</div>', $tab['count']),
+            'content'   => $tab['content'],
         );
+
+        $tab = $this->getTemplates(true);
         $debugTabs['templates'] = array(
-            'title'     => 'Template Files',
-            'content'   => $this->getTemplates(true),
+            'title'     => sprintf('Template Files <div class="label">%s</div>', $tab['count']),
+            'content'   => $tab['content'],
         );
+
+        $tab = $this->getInitdCaches(true);
         $debugTabs['cache']     = array(
-            'title'     => 'Cache\'s in use',
-            'content'   => $this->getInitdCaches(true)
+            'title'     => sprintf('Cache\'s in use <div class="label">%s</div>', $tab['count']),
+            'content'   => $tab['content'],
         );
 
         // Allow developers to hook into the debug bar
