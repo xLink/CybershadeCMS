@@ -1,10 +1,17 @@
- <?php
-  $src = $_SERVER['REDIRECT_URL'];
-  $src = $_SERVER['DOCUMENT_ROOT'].substr($src, 0 ,  strrpos($src,".") ).".php";
-  if(file_exists($src)){
-    #echo "$src<hr>\n";
-    echo highlight_file($src,1);
-  }else{
-    echo "Error: $src not found";
-  }
+<?php
+/*======================================================================*\
+||                 Cybershade CMS - Your CMS, Your Way                  ||
+\*======================================================================*/
+define('INDEX_CHECK', true);
+define('cmsDEBUG', true);
+include_once('core/core.php');
+
+$objUser = coreObj::getUser();
+$tests = array();
+
+$uid = 'jez';
+
+    $test[$uid][] = $objUser->validateUsername($uid, true);
+
+echo dump($test[$uid][0]);
 ?>

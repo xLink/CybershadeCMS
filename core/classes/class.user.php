@@ -270,7 +270,6 @@ class User extends coreObj {
 
     }
 
-
     public function mkPassword( $password, $salt ) {
         $objPass = new phpass( 8, true );
 
@@ -305,7 +304,6 @@ class User extends coreObj {
 
         }
     }
-
 /**
   //
   //-- Auth Functions
