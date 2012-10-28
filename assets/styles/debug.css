@@ -120,6 +120,7 @@ table.debugCode{
         table.debugCode tr td{
             border-top: none;
             padding: 0;
+            color: black;
         }
 
         table.debugCode tr td.error{
