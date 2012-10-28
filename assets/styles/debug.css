@@ -59,16 +59,47 @@ ul, ul ul {
    margin: 0 10px;
 }
 
+    div#debug-tabs{
+        background-color: #272727;
+        border-radius: 3px;
+    }
+
     div#debug-tabs > ul{
         border: none;
         margin: 0 0 0 3px;
     }
-    div#debug-tabs ul li div.label, div#debug-tabs ul li a{
+    div#debug-tabs > li{
+        margin-bottom: 0;
+    }
+    div#debug-tabs ul li div.label,
+    div#debug-tabs ul li a{
         display: inline-block;
     }
 
+    div#debug-tabs ul li a{
+        color: white;
+        border-radius: 0;
+        background: #2D2D2D;
+        margin-right: 0;
+
+        border-top: 0;
+        border-right: 1px solid #343434;
+        border-left: 1px solid #191919;
+        border-bottom: 5px solid #232323;
+    }
     div#debug-tabs ul li.active a{
-        background: #F5F5F5;
+        background: #436188;
+        border-bottom: 5px solid #344E71;
+    }
+    div#debug-tabs .well{
+        background: #272822;
+        border: 0;
+        border-color: none;
+        border-radius: none;
+        color: white;
+    }
+    div#debug-tabs .well ul li{
+        color: white;
     }
 
 
