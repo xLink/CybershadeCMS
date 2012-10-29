@@ -109,7 +109,7 @@ ul, ul ul {
         margin-bottom: 10px;
         border-radius: 0;
     }
-    div#debug-tabs div.tab-pane.queries table td{
+    div#debug-tabs div.tab-pane.queries table td:not(.error){
         border-top: 0;
     }
 

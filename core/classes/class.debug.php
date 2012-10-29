@@ -58,11 +58,11 @@ class debug extends coreObj{
      *
      * @version     1.0
      * @since       1.0.0
-     * @author      Daniel Noel-Davies
+     * @author      Dan Aldridge
      *
      * @param       bool        $output     If True, The function will output the HTML
      *
-     * @return      string
+     * @return      array
      */
     public function getSQLQueries( $output = false ) {
         if( $output !== true ) {
@@ -81,24 +81,34 @@ class debug extends coreObj{
                 $output .= '</tr>';
                     $output .= sprintf('<tr class="%s"><td colspan="11" style="height: 5px; padding: 0;"></td></tr>', ($query['affected_rows']=='-1' ? 'error' : 'success'));
 
-                $output .= '<tr>';
-                    $output .= sprintf('<tr><td style="background-color: #1E1E1E; color: white;"> %s </td></tr>', $query['query']);
+                $replace = array('FROM', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'ON', 'WHERE', 'LIMIT', 'GROUP BY', 'ORDER BY', );
 
-                $output .= '</tr><tr>';
-                    $output .= sprintf('<td style="background-color: #1E1E1E; color: white;"> <strong>%1$s</strong> @ <strong>%2$s</strong> // Affected %3$d Rows </td>',
-                                    realpath($query['file']),
-                                    $query['line'],
-                                    $query['affected_rows']
-                                );
+                foreach($replace as $r){
+                    $replace = "\n";
+                    $r = ' '.$r;
 
-                if( $query['affected_rows'] == '-1' ){
-                    $output .= '</tr><tr>';
-                    $output .= sprintf('<td style="background-color: #1E1E1E; color: white;"> %s </td>', $query['error']);
+                    $query['query'] = str_replace($r, $replace.$r, $query['query']);
                 }
 
-                $output .= '</tr><tr>';
+                $geshi = new GeSHi($query['query'], 'sql');
 
-                    $output .= sprintf('<td> %s </td>', $this->getSource(file(realpath($query['file'])), $query['line'], 0, 2));
+                $output .= '</tr><tr>';
+                    $output .= sprintf('<tr><td style="background-color: #1E1E1E; color: white;"> <strong>%1$s</strong> @ <strong>%2$s</strong> // Affected %3$d Rows <br /> %4$s </td></tr>',
+                                    realpath($query['file']),
+                                    $query['line'],
+                                    $query['affected_rows'],
+                                    $geshi->parse_code()
+                                );
+
+
+                // if( $query['affected_rows'] == '-1' ){
+                //     $output .= '</tr><tr>';
+                //     $output .= sprintf('<td style="background-color: #1E1E1E; color: white;"> %s </td>', $query['error']);
+                // }
+
+                // $output .= '</tr><tr>';
+
+                //     $output .= sprintf('<td> %s </td>', $this->getSource(file(realpath($query['file'])), $query['line'], 0, 5));
 
                 $output .= '</tr>';
             $output .= '</tbody></table>';
@@ -124,7 +134,7 @@ class debug extends coreObj{
      *
      * @param       bool        $output     If True, The function will output the HTML
      *
-     * @return      string
+     * @return      array
      */
     public function getTemplates( $output = false ) {
         if( $output !== true ) {
@@ -160,7 +170,7 @@ class debug extends coreObj{
      *
      * @param       bool        $output     If True, The function will output the HTML
      *
-     * @return      string
+     * @return      array
      */
     public function getMemoryUse( $output = false ){
         if( $output !== true ){
@@ -236,7 +246,7 @@ class debug extends coreObj{
      *
      * @param       bool        $output     If True, The function will output the HTML
      *
-     * @return      string
+     * @return      array
      */
     public function getPHPErrors( $output = false ){
         $definition = array(
@@ -293,7 +303,15 @@ class debug extends coreObj{
   //
 **/
 
-
+    /**
+     * Gathers Output info for the Globals
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @return      array
+     */
     public function getGlobals(){
         $count = 0;
 
@@ -327,7 +345,15 @@ class debug extends coreObj{
   //
 **/
 
-
+    /**
+     * Throws some misc stuff into a tab
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @return      array
+     */
     public function getOtherTab(){
 
         $count = 0;
@@ -345,12 +371,6 @@ class debug extends coreObj{
             $content .= dump($cache['content'], 'Hooks avaliable on this page');
         }
 
-        /*$cache = $this->getInitdCaches(true);
-        if( is_array($cache) && !is_empty($cache) ){
-            $count += $cache['count'];
-            $content .= $cache['content'];
-        }*/
-
 
         return array('count' => $count, 'content' => $content );
     }
@@ -364,7 +384,7 @@ class debug extends coreObj{
          *
          * @param       bool        $output     If True, The function will output the HTML
          *
-         * @return      string
+         * @return      array
          */
         public function getInitdCaches( $output = false ) {
             if( $output !== true ) {
@@ -388,11 +408,11 @@ class debug extends coreObj{
          *
          * @version     1.0
          * @since       1.0.0
-         * @author      Daniel Noel-Davies
+         * @author      Dan Aldridge
          *
          * @param       bool        $output     If True, The function will output the HTML
          *
-         * @return      string
+         * @return      array
          */
         public function getAvailableHooks( $output = false ) {
             if( $output !== true ) {
@@ -486,6 +506,8 @@ class debug extends coreObj{
                 $tab['content']
             );
         }
+
+
         return sprintf( '<div id="debug-tabs" data-tabs="true"><ul class="nav nav-tabs">%s</ul><div class="tab-content well">%s</div></div>',
             $tabs,
             $content
