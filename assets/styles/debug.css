@@ -36,6 +36,7 @@
 
     div[class^="debug"] ul li{
         display: block;
+        color: black !important;
     }
     div[class^="debug"] ul li:hover{
     }
@@ -100,6 +101,16 @@ ul, ul ul {
     }
     div#debug-tabs .well ul li{
         color: white;
+    }
+
+    div#debug-tabs div.tab-pane.queries table{
+        border: 1px solid #343434;
+        padding: 3px;
+        margin-bottom: 10px;
+        border-radius: 0;
+    }
+    div#debug-tabs div.tab-pane.queries table td{
+        border-top: 0;
     }
 
 

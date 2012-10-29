@@ -31,16 +31,12 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         if(is_object($objPage)){
 
             if($specialFX){
-                $objPage->addJSFile(array(
+                /*$objPage->addJSFile(array(
                     'src'      => '/'.root().'assets/javascript/tree.js',
                     'priority' => LOW,
-                ));
+                ));*/
             }
 
-            $objPage->addCSSFile(array(
-                'href'     => '/'.root().'assets/styles/debug.css',
-                'priority' => HIGH,
-            ));
         }else{
             static $run;
             if(!isset($run) || $run != true){

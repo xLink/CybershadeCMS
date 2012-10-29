@@ -20,7 +20,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to locate/read the constants file.'));
         }else{ require_once($file); }
 
-    error_reporting(LOCALHOST ? E_ALL & ~E_NOTICE | E_STRICT : 0);
+    //error_reporting(LOCALHOST ? E_ALL & ~E_NOTICE | E_STRICT : 0);
+    error_reporting(E_ALL & ~E_NOTICE | E_STRICT);
 
     $file = cmsROOT.'core/debugFunctions.php';
         if(!is_readable($file) || !cmsDEBUG){

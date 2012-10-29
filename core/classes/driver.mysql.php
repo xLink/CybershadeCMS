@@ -136,8 +136,7 @@ class driver_mysql extends core_SQL implements base_SQL{
      * @return      bool
      */
     public function getError(){
-        $backtrace = debug_backtrace();
-        $callee = next($backtrace);
+        return mysql_error();
     }
 
 /**
@@ -164,11 +163,9 @@ class driver_mysql extends core_SQL implements base_SQL{
         $query = $this->_query = $this->_replacePrefix($query);
 
         //exec the query and cache it
-        $this->results = mysql_query($query, $this->DBH) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
+        $this->results = mysql_query($query, $this->DBH);
 
-
-        echo dump($this->dbSettings, 'options', 'red');
-        
+        $debug = array();
         if($this->dbSettings['debug']){
             $backtrace = debug_backtrace();
             $callee = next($backtrace);
@@ -184,8 +181,16 @@ class driver_mysql extends core_SQL implements base_SQL{
 
             $this->totalTime        += $debug['time_taken'];
             $debug['total_time']    = $this->totalTime;
+            $debug['status']        = 'ok';
+            $debug['error']         = '';
+
         }
         $this->debug[] = $debug;
+
+        if( $this->results === false ){
+            $this->recordMessage(mysql_error(), 'WARNING');
+        }
+
         return $this->results;
     }
 
@@ -216,6 +221,17 @@ class driver_mysql extends core_SQL implements base_SQL{
         return mysql_affected_rows($this->DBH);
     }
 
+
+    public function recordMessage($message, $mode){
+        if($this->dbSettings['debug']){
+            return false;
+        }
+
+        $max = count($this->debug);
+        $this->debug[($max - 1)]['status'] = 'error';
+        $this->debug[($max - 1)]['error'] = $this->getError();
+
+    }
 }
 
 ?>

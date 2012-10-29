@@ -617,7 +617,7 @@ class page extends coreObj{
 
         //throw a hook here, so they have the ability to do...whatever
         $cssFiles = array();
-        $objPlugins->hook('CMS_Page_cssFiles', $cssFiles);
+        $objPlugins->hook('CMS_PAGE_CSSFILES', $cssFiles);
 
             if(count($cssFiles)){
                 foreach($cssFiles as $file){
@@ -643,7 +643,7 @@ class page extends coreObj{
 
         //throw a hook here, so they have the ability to do...whatever
         $jsFiles = array();
-        $objPlugins->hook('CMS_Page_jsFiles', $jsFiles);
+        $objPlugins->hook('CMS_PAGE_JSFILES', $jsFiles);
 
         if( defined('cmsDEBUG') && cmsDEBUG === true ){
             $this->addJSFile(array(
@@ -681,7 +681,6 @@ class page extends coreObj{
 
         //see if we are gonna get the simple one or the full blown one
         $header = ($simple ? 'simple_header.tpl' : 'site_header.tpl');
-        // $header = ('simple_header.tpl');
 
         $objTPL->set_filenames(array( 'siteHeader' => self::$THEME_ROOT . $header ));
 
@@ -703,9 +702,9 @@ class page extends coreObj{
 
         //see if we are gonna get the simple one or the full blown one
         $footer = ($simple ? 'simple_footer.tpl' : 'site_footer.tpl');
-        // $footer = ('simple_footer.tpl');
 
         $objTPL->set_filenames(array( 'siteFooter' => self::$THEME_ROOT . $footer ));
+
 
         if( defined('cmsDEBUG') && cmsDEBUG === true ){
 
@@ -715,6 +714,7 @@ class page extends coreObj{
             ));
 
         }
+
 
         $objTPL->parse('siteFooter');
     }

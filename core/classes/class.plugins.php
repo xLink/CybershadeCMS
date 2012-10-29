@@ -83,6 +83,8 @@ class plugins extends coreObj{
                 //make sure we have something to run with
                 if(!is_array($hooks) || is_empty($hooks)){ return; }
 
+                $this->availableHooks[] = $hook;
+
                 //loop though each 'priority'
                 foreach(array('1', '2', '3') as $prio){
                     if(!is_array($hooks[$hook][$prio]) || is_empty($hooks[$hook][$prio])){ continue; }
@@ -147,6 +149,21 @@ class plugins extends coreObj{
      */
     public function delHook($hook, $callback, $priority=MED){
         $this->hook($hook, $callback, 'rm', $priority);
+    }
+
+    /**
+     * Returns a list of all the available hooks on this page.
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       string  $hook
+     * @param       string  $callback
+     * @param       int     $priority
+     */
+    public function getAvailableHooks(){
+        return $this->availableHooks;
     }
 }
 ?>

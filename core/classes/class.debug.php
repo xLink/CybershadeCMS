@@ -16,7 +16,7 @@ class debug extends coreObj{
 
 /**
   //
-  // Debug Output Functionality
+  //-- Included Files Tab
   //
 **/
 
@@ -32,7 +32,7 @@ class debug extends coreObj{
      * @return      array
      */
     public function getIncludedFiles( $output = false ) {
-        $this->includedFiles = get_included_files ();
+        $this->includedFiles = get_included_files();
 
         if( $output !== true ) {
             return;
@@ -47,35 +47,11 @@ class debug extends coreObj{
         return array('count' => count($this->includedFiles), 'content' => sprintf( '<ul>%s</ul>', $output ));
     }
 
-    /**
-     * Retrieves all the included files in the current page
-     *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      Daniel Noel-Davies
-     *
-     * @param       bool        $output     If True, The function will output the HTML
-     *
-     * @todo
-     *
-     * @return      string
-     */
-    public function getInitdCaches( $output = false ) {
-        if( $output !== true ) {
-            return '';
-        }
-
-        $output   = '';
-        $objCache = coreObj::getCache();
-
-        if( !empty( $objCache->loadedCaches ) ) {
-            foreach( $objCache->loadedCaches as $cache ) {
-                $output .= sprintf('<li>%s</li>', $cache);
-            }
-        }
-
-        return array('count' => count($objCache->loadedCaches), 'content' => sprintf( '<ul>%s</ul>', $output ));
-    }
+/**
+  //
+  //-- SQL Queries Tab
+  //
+**/
 
     /**
      * Retrieves all the SQL Queries and pumps them out
@@ -98,18 +74,46 @@ class debug extends coreObj{
 
         $debug = $objSQL->getVar('debug');
         if( !empty( $debug ) ) {
+
             foreach( $debug as $query ) {
-                $output .= sprintf('<li>%1$s (%2$f)<br /><span class="file">%3$s:%4$s</span></li>',
-                    $query['query'],
-                    $query['time_taken'],
-                    $query['file'],
-                    $query['line']
-                );
+            $output .= '<table class="table"><tbody>';
+
+                $output .= '</tr>';
+                    $output .= sprintf('<tr class="%s"><td colspan="11" style="height: 5px; padding: 0;"></td></tr>', ($query['affected_rows']=='-1' ? 'error' : 'success'));
+
+                $output .= '<tr>';
+                    $output .= sprintf('<tr><td style="background-color: #1E1E1E; color: white;"> %s </td></tr>', $query['query']);
+
+                $output .= '</tr><tr>';
+                    $output .= sprintf('<td style="background-color: #1E1E1E; color: white;"> <strong>%1$s</strong> @ <strong>%2$s</strong> // Affected %3$d Rows </td>',
+                                    realpath($query['file']),
+                                    $query['line'],
+                                    $query['affected_rows']
+                                );
+
+                if( $query['affected_rows'] == '-1' ){
+                    $output .= '</tr><tr>';
+                    $output .= sprintf('<td style="background-color: #1E1E1E; color: white;"> %s </td>', $query['error']);
+                }
+
+                $output .= '</tr><tr>';
+
+                    $output .= sprintf('<td> %s </td>', $this->getSource(file(realpath($query['file'])), $query['line'], 0, 2));
+
+                $output .= '</tr>';
+            $output .= '</tbody></table>';
             }
+
         }
 
         return array('count' => count($debug), 'content' => sprintf( '<ul>%s</ul>', $output ));
     }
+
+/**
+  //
+  //-- Template Files Tab
+  //
+**/
 
     /**
      * Retrieves all the used template files
@@ -140,6 +144,12 @@ class debug extends coreObj{
 
         return array('count' => count($files), 'content' => sprintf( '<ul>%s</ul>', $output ));
     }
+
+/**
+  //
+  //-- Memory Usage Tab
+  //
+**/
 
     /**
      * Generates output for the Memory Usage Tab
@@ -175,9 +185,9 @@ class debug extends coreObj{
                 $header = $info[0];
                 $output .= '</tr><tr><td colspan="11" style="height: 2px; padding: 0;"></td>';
             }
-            $output .= '</tr><tr>';
 
             $mem = ($row['memory_exec'] - $memory);
+            $output .= '</tr><tr>';
 
             $output .= sprintf('<td width="10%%">%s</td>',          $row['time_exec']);
             $output .= sprintf('<td width="20%%">%s <br />%s</td>', $row['file_exec'], $row['start_exec'] .' - '.$row['end_exec']);
@@ -192,6 +202,12 @@ class debug extends coreObj{
         return array('count' => formatBytes(memory_get_usage()), 'content' => $output);
     }
 
+/**
+  //
+  //-- PHP / CMS Errors Tab
+  //
+**/
+
     /**
      * Silently grabs all the PHP errors and throws them into the Errors Tab
      *
@@ -202,9 +218,13 @@ class debug extends coreObj{
     public function errorHandler( $errno, $errstr, $errfile, $errline, $errcontext){
         if(!(error_reporting() & $errno)){ return; }
 
-        $a = func_get_args();
+        if( substr($errstr, 0, strlen('MYSQL Error:')) == 'MYSQL Error:') {
+            $a = debug_backtrace();
+            $this->errors[] = $a[3];
 
-        $this->errors[] = $a;
+        } else {
+            $this->errors[] = func_get_args();
+        }
     }
 
     /**
@@ -220,37 +240,41 @@ class debug extends coreObj{
      */
     public function getPHPErrors( $output = false ){
         $definition = array(
-                        E_ERROR             => 'Error',
-                        E_WARNING           => 'Warning',
-                        E_PARSE             => 'Parsing Error',
-                        E_NOTICE            => 'Notice',
-                        E_CORE_ERROR        => 'Core Error',
-                        E_CORE_WARNING      => 'Core Warning',
-                        E_COMPILE_ERROR     => 'Compile Error',
-                        E_COMPILE_WARNING   => 'Compile Warning',
-                        E_USER_ERROR        => 'User Error',
-                        E_USER_WARNING      => 'User Warning',
-                        E_USER_NOTICE       => 'User Notice',
-                        E_STRICT            => 'Runtime Notice',
-                        E_RECOVERABLE_ERROR => 'Catchable Fatal Error',
-                        E_DEPRECATED        => 'Deprecated',
-                        E_USER_DEPRECATED   => 'User Deprecated'
+            E_ERROR             => 'Error',
+            E_WARNING           => 'Warning',
+            E_PARSE             => 'Parsing Error',
+            E_NOTICE            => 'Notice',
+            E_CORE_ERROR        => 'Core Error',
+            E_CORE_WARNING      => 'Core Warning',
+            E_COMPILE_ERROR     => 'Compile Error',
+            E_COMPILE_WARNING   => 'Compile Warning',
+            E_USER_ERROR        => 'User Error',
+            E_USER_WARNING      => 'User Warning',
+            E_USER_NOTICE       => 'User Notice',
+            E_STRICT            => 'Runtime Notice',
+            E_RECOVERABLE_ERROR => 'Catchable Fatal Error',
+            E_DEPRECATED        => 'Deprecated',
+            E_USER_DEPRECATED   => 'User Deprecated'
         );
 
         $output = '<ul>';
         foreach($this->errors as $error){
             $_errorOutput = '<table class="table table-bordered">';
             $_errorOutput .= '<colgroup><col width="1%"><col width="99%"></colgroup><tr>';
+
             $_errorOutput .= sprintf('<td>%s</td>', 'Type: ');
             $_errorOutput .= sprintf('<td>%s</td>', $definition[$error[0]]);
+
             $_errorOutput .= '</tr><tr>';
             $_errorOutput .= sprintf('<td>%s</td>', 'Message: ');
-            $_errorOutput .= sprintf('<td>%s</td>', htmlentities($error[1]));
+            $_errorOutput .= sprintf('<td>%s</td>', $error[1]);
+
             $_errorOutput .= '</tr><tr>';
             $_errorOutput .= sprintf('<td>%s</td>', 'Line: ');
             $_errorOutput .= sprintf('<td>%s</td>', $error[3]);
+
             $_errorOutput .= '</tr><td colspan="2">';
-            $_errorOutput .= $this->getSource(file($error[2]), $error[3], 0, 10);
+            $_errorOutput .= $this->getSource(file($error[2]), $error[3], 0, 6);
             $_errorOutput .= '</td></tr></table>';
 
 
@@ -263,7 +287,129 @@ class debug extends coreObj{
         return array('count' => count($this->errors), 'content' => $output);
     }
 
+/**
+  //
+  //-- Globals Tab
+  //
+**/
 
+
+    public function getGlobals(){
+        $count = 0;
+
+        if( !is_empty($_GET) ){
+            $content .= dump($_GET, '_GET');
+        }
+
+        if( !is_empty($_POST) ){
+            $content .= dump($_POST, '_POST');
+        }
+
+        if( !is_empty($_SESSION) ){
+            $content .= dump($_SESSION, '_SESSION');
+        }
+
+        if( !is_empty($_COOKIE) ){
+            $content .= dump($_COOKIE, '_COOKIE');
+        }
+
+        if( !is_empty($_SERVER) ){
+            $content .= dump($_SERVER, '_SERVER');
+        }
+
+
+        return array('count' => $count, 'content' => $content );
+    }
+
+/**
+  //
+  //-- Other Tab
+  //
+**/
+
+
+    public function getOtherTab(){
+
+        $count = 0;
+        $content = null;
+
+        $cache = $this->getInitdCaches(true);
+        if( is_array($cache) && !is_empty($cache) ){
+            $count += $cache['count'];
+            $content .= dump($cache['content'], 'Cache\'s in use');
+        }
+
+        $cache = $this->getAvailableHooks(true);
+        if( is_array($cache) && !is_empty($cache) ){
+            $count += $cache['count'];
+            $content .= dump($cache['content'], 'Hooks avaliable on this page');
+        }
+
+        /*$cache = $this->getInitdCaches(true);
+        if( is_array($cache) && !is_empty($cache) ){
+            $count += $cache['count'];
+            $content .= $cache['content'];
+        }*/
+
+
+        return array('count' => $count, 'content' => $content );
+    }
+
+        /**
+         * Retrieves all the included files in the current page
+         *
+         * @version     1.0
+         * @since       1.0.0
+         * @author      Daniel Noel-Davies
+         *
+         * @param       bool        $output     If True, The function will output the HTML
+         *
+         * @return      string
+         */
+        public function getInitdCaches( $output = false ) {
+            if( $output !== true ) {
+                return '';
+            }
+
+            $output   = '';
+            $objCache = coreObj::getCache();
+
+            if( !empty( $objCache->loadedCaches ) ) {
+                foreach( $objCache->loadedCaches as $cache ) {
+                    $output[] = $cache;
+                }
+            }
+
+            return array('count' => count($output), 'content' => $output );
+        }
+
+        /**
+         * Retrieves all the available hooks on the page
+         *
+         * @version     1.0
+         * @since       1.0.0
+         * @author      Daniel Noel-Davies
+         *
+         * @param       bool        $output     If True, The function will output the HTML
+         *
+         * @return      string
+         */
+        public function getAvailableHooks( $output = false ) {
+            if( $output !== true ) {
+                return '';
+            }
+
+            $objPlugin = coreObj::getPlugins();
+            $hooks = $objPlugin->getAvailableHooks();
+
+            return array('count' => count($hooks), 'content' => $hooks );
+        }
+
+/**
+  //
+  //-- OUTPUT!
+  //
+**/
 
     /**
      * Outputs the debug onto the page
@@ -283,10 +429,11 @@ class debug extends coreObj{
         $objPage   = coreObj::getPage();
 
         // Setup the tabs
-        /*$debugTabs['console']   = array(
-            'title'     => 'Console Log',
-            'content'   => ''
-        );*/
+        $tab = $this->getGlobals(true);
+        $debugTabs['globals']   = array(
+            'title'     => 'Globals',
+            'content'   => $tab['content'],
+        );
 
         $tab = $this->getPHPErrors(true);
         $debugTabs['errors']    = array(
@@ -318,9 +465,9 @@ class debug extends coreObj{
             'content'   => $tab['content'],
         );
 
-        $tab = $this->getInitdCaches(true);
-        $debugTabs['cache']     = array(
-            'title'     => sprintf('Cache\'s in use <div class="label">%s</div>', $tab['count']),
+        $tab = $this->getOtherTab(true);
+        $debugTabs['other']     = array(
+            'title'     => sprintf('Others <div class="label">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
@@ -334,7 +481,8 @@ class debug extends coreObj{
                 $tab['title']
             );
 
-            $content .= sprintf( '<div class="tab-pane content">%s</div>',
+            $content .= sprintf( '<div class="tab-pane content %s">%s</div>',
+                $k,
                 $tab['content']
             );
         }

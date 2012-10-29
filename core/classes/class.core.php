@@ -297,18 +297,18 @@ class coreObj {
   //-- Get Class Instances
   //
 **/
-    public static function getDBO($driver=null){
+    public static function getDBO(){
         global $errorTPL;
 
-        if(!isset(coreObj::$_classes['database'][$driver])){
+
+        if(!isset(coreObj::$_classes['database'])){
             $options = self::config('db');
                 if(!$options){ trigger_error('Error: Could not obtain values from teh configuration file. Please ensure it is present.', E_USER_ERROR); }
 
             $name = $options['driver'];
 
             //see if we have an override
-            $driver = strtolower($driver);
-            if(in_array($driver, array('mysql', 'mysqli'))){
+            if( in_array( $driver, array('mysql', 'mysqli') ) ){
                 $name = $driver;
             } $name = 'driver_'.$name;
 
@@ -333,10 +333,10 @@ class coreObj {
                     )
                 );
             }
-            coreObj::$_classes['database'][$name] = $objSQL;
+            coreObj::$_classes['database'] = $objSQL;
         }
 
-        return coreObj::$_classes['database'][$name];
+        return coreObj::$_classes['database'];
     }
 
     public static function getTPL(){
