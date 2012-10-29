@@ -375,8 +375,8 @@ class route extends coreObj{
         $values['status']       = '1';
         $values['module']       = ( $module === null ? $route['moduleID'] : $module );
         $values['pattern']      = $route['pattern'];
-        $values['arguments']    = json_encode( !empty( $route['arguments'] )    ? $route['arguments']    : array() );
-        $values['requirements'] = json_encode( !empty( $route['requirements'] ) ? $route['requirements'] : array() );
+        $values['arguments']    = addslashes( json_encode( !empty( $route['arguments'] )    ? $route['arguments']    : array() ) );
+        $values['requirements'] = addslashes( json_encode( !empty( $route['requirements'] ) ? $route['requirements'] : array() ) );
         $values['method']       = ( in_array( $route['method'], $methods ) ? $route['method'] : 'ANY' );
         // To Add Logic for: Status && Redirection
 

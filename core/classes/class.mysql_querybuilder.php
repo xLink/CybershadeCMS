@@ -517,7 +517,7 @@ class mysql_queryBuilder extends coreObj{
 
         }
 
-        return '"' . $val . '"'; ///addslashes($val);
+        return $val; ///addslashes($val);
     }
 
     private function setQueryType($queryType){
