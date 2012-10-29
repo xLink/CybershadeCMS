@@ -1217,5 +1217,91 @@ function bbcode_quote($bbcode, $action, $name, $default, $params, $content) {
     . $content . "</div>\n</div>\n";
 }
 
+/**
+ * Execute a method within a module / class that you wouldn't normally have access to.
+ *
+ * @version 1.0
+ * @since   1.0
+ * @author  Daniel Noel-Davies
+ *
+ * @param   string  $class
+ * @param   string  $method
+ * @param   array   $parameters
+ *
+ * @return  mixed
+ */
+function reflectMethod( $class, $method, $parameters) {
+  // Check the class and subsequent method are callable, else trigger an error
+    if ( !is_callable( array( $class, $method ) ) ) {
+        trigger_error( 'The class or method you are trying to call, dosen\'t exist.' );
+        return false;
+    }
+
+    // Retrieve the info we need about the class and method
+    $refMethod = new ReflectionMethod( $class, $method );
+    $params    = $refMethod->getParameters( );
+    $args = array();
+
+    // Loop through the parameters the method asks for,
+    //  and match them up with our arguments where possible
+    foreach( $params as $k => $name ) {
+        $var = $name->getName();
+
+        // check if the var they asked for is in the params
+        if(!isset($parameters[$var])){
+            $args[$var] = null;
+            continue;
+        }
+
+        // and then check if we have to throw the var at them as a reference
+        if($name->isPassedByReference()){
+            $args[$var] = &$parameters[$var];
+        }else{
+            $args[$var] = $parameters[$var];
+        }
+    }
+
+    $objModule = new $class;
+    $objModule->setVars(array(
+        '_method' => $method,
+        '_module' => $class,
+    ));
+
+    try {
+        return $refMethod->invokeArgs( $objModule , $args );
+    
+    } catch( Exception $e ) {
+        trigger_error( $e->getMessage() );
+    }
+}
+
+/**
+ * Return a new instance of a class usually out of current scope
+ *
+ * @version 1.0
+ * @since   1.0
+ * @author  Daniel Noel-Davies
+ *
+ * @param   string  $class
+ *
+ * @return  object
+ */
+function reflectClass( $class ) {
+  
+    try {
+        $object = new ReflectionClass( $class );
+    
+    } catch( Exception $e ) {
+        trigger_error( $e->getMessage() );
+    }
+
+    if( is_object( $object ) ) {
+        return $object->newInstance();
+
+    } else {
+        trigger_error( $e->getMessage() );
+    }
+}
+
 
 ?>

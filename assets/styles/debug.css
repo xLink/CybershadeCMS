@@ -122,6 +122,7 @@ ul, ul ul {
 table.debugCode{
     background-color: #F7F7F9;
     box-shadow: 40px 0 0 #FBFBFC inset, 41px 0 0 #ECECF0 inset;
+    width: 100%;
 }
 
     table.debugCode tr{

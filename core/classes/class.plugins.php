@@ -13,7 +13,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 */
 class plugins extends coreObj{
     private $dontBother     = false,
-            $hooks          = array();
+            $hooks          = array(),
+            $availableHooks = array();
 
     /**
      * Get plugin list from the database, and attempt to load them in
@@ -83,7 +84,9 @@ class plugins extends coreObj{
                 //make sure we have something to run with
                 if(!is_array($hooks) || is_empty($hooks)){ return; }
 
-                $this->availableHooks[] = $hook;
+                if( !in_array( $hook, $this->availableHooks ) ) {
+                    $this->availableHooks[] = $hook;
+                }
 
                 //loop though each 'priority'
                 foreach(array('1', '2', '3') as $prio){

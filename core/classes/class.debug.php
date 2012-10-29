@@ -280,8 +280,8 @@ class debug extends coreObj{
             $_errorOutput .= sprintf('<td>%s</td>', $error[1]);
 
             $_errorOutput .= '</tr><tr>';
-            $_errorOutput .= sprintf('<td>%s</td>', 'Line: ');
-            $_errorOutput .= sprintf('<td>%s</td>', $error[3]);
+            $_errorOutput .= sprintf('<td>%s</td>', 'File: ');
+            $_errorOutput .= sprintf('<td>%s : %s</td>', $error[2], $error[3]);
 
             $_errorOutput .= '</tr><td colspan="2">';
             $_errorOutput .= $this->getSource(file($error[2]), $error[3], 0, 6);
