@@ -6,7 +6,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class Session extends coreObj{
 
-    public function __construct($store='none', $options = array()){
+    public function __construct(){
     }
 
     public function __destruct(){
@@ -376,48 +376,6 @@ class Session extends coreObj{
         return $sessions;
     }
 
-    /**
-     * Cleans all expired sessions
-     *
-     * @version 1.0.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @param   int $expire The timestamp when the sessions should expire
-     *
-     * @return  bool
-     */
-    public function cleanSessions( $expire = 0 ){
-
-        $blOut = false;
-        $objSQL = coreObj::getDBO();
-        $expire = ( $expire === 0 ? time() : $expire );
-
-        $getSessions = $objSQL->queryBuilder()
-                                ->select('sid', 'uid')
-                                ->from('#__sessions')
-                                ->where('DATE_ADD(timestamp, INTERVAL '. $expire .' SECOND)', '<', 'NOW()')
-                                ->build();
-
-        $sessions = $objSQL->fetchAll($getSessions);
-
-        if( !is_array( $sessions ) || count( $sessions, COUNT_RECURSIVE ) ){
-            return $blOut;
-        }
-
-        // Loop through the sessions
-        foreach( $sessions as $session ){
-            if( isset( $session['uid'] ) && isset( $session['sid'] ) ){
-                // Kill the sessions
-                $kill = $this->killSession( $session );
-                if( $kill ){
-                    $blOut = true;
-                }
-            }
-        }
-
-        return $blOut;
-    }
 
     /**
      * Renews a set of sessions specified as an array
