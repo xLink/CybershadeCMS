@@ -1220,9 +1220,9 @@ function bbcode_quote($bbcode, $action, $name, $default, $params, $content) {
 /**
  * Execute a method within a module / class that you wouldn't normally have access to.
  *
- * @author  Daniel Noel-Davies
  * @version 1.0
- * @since   0.6
+ * @since   1.0
+ * @author  Daniel Noel-Davies
  *
  * @param   string  $class
  * @param   string  $method
@@ -1271,7 +1271,6 @@ function reflectMethod( $class, $method, $parameters) {
         return $refMethod->invokeArgs( $objModule , $args );
     
     } catch( Exception $e ) {
-        // echo dump($e->getMessage());
         trigger_error( $e->getMessage() );
     }
 }
@@ -1279,9 +1278,9 @@ function reflectMethod( $class, $method, $parameters) {
 /**
  * Return a new instance of a class usually out of current scope
  *
- * @author  Daniel Noel-Davies
  * @version 1.0
- * @since   0.6
+ * @since   1.0
+ * @author  Daniel Noel-Davies
  *
  * @param   string  $class
  *
