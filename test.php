@@ -27,6 +27,7 @@ echo $form->button('submit', 'submit', array('type' => 'submit'));
 
 echo $form->finish();
 
+
 $objPage->showFooter();
 
 ?>

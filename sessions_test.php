@@ -11,17 +11,9 @@ $objPage->setTitle('Test');
 $objPage->buildPage();
 $objPage->showHeader();
 
-
-/**
-throw some session stuff in here8
-+
-**/
-
-$var = $objSession->createSession();
+$var = $objSession->cleanSessions();
 
 echo dump( $var );
-
-
 
 $objPage->showFooter();
 ?>
