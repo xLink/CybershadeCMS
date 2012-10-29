@@ -36,7 +36,7 @@ class form extends coreClass{
             'autocomplete'  => doArgs('autocomplete',   true,       $args),
         );
 
-        if($this->config('global', 'browser')=='Chrome'){
+        if( $this->config('global', 'browser') == 'Chrome' ){
             $args['autocomplete'] = false;
         }
 
