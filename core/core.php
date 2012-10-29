@@ -123,6 +123,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objTPL      = coreObj::getTPL();
     $objPage     = coreObj::getPage();
     $objDebug    = coreObj::getDebug();
+    $objForm     = coreObj::getForm();
+
+    
         if( is_object($objDebug) ){
             set_error_handler(array($objDebug, 'errorHandler'));
         }

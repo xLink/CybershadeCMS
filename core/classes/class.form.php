@@ -11,7 +11,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 * @since    1.0.0
 * @author   Dan Aldridge
 */
-class form extends coreObj {
+class Form extends coreObj {
 
     /**
      * Starts a new form off
@@ -25,15 +25,15 @@ class form extends coreObj {
      *
      * @return      string
      */
-    public function start($name, $args=array()){
+    public function start($name, $args = array()){
         $args = array(
             'method'        => strtolower(doArgs('method','get',    $args)),
             'action'        => doArgs('action',         null,       $args),
             'onsubmit'      => doArgs('onsubmit',       false,      $args),
             'extra'         => doArgs('extra',          null,       $args),
             'validate'      => doArgs('validate',       true,       $args),
-
             'autocomplete'  => doArgs('autocomplete',   true,       $args),
+            'upload'        => doArgs('enctype',        null,       $args),
         );
 
         if( $this->config('global', 'browser') == 'Chrome' ){
@@ -44,11 +44,12 @@ class form extends coreObj {
             $name,
             (
                 (!is_empty($args['method'])     ? ' method="'.$args['method'].'"'       : null).
-                (!is_empty($args['action'])     ? ' action="'.$args['action'].'"'       : 'action="'.$_SERVER['PHP_SELF'].'" ').
+                (!is_empty($args['action'])     ? ' action="'.$args['action'].'"'       : 'action="'.htmlentities($_SERVER['PHP_SELF']).'" ').
                 ($args['onsubmit']              ? ' onsubmit="'.$args['onsubmit'].'"'   : null).
                 (!$args['validate']             ? ' novalidate'                         : null).
                 (!$args['autocomplete']         ? ' autocomplete="off"'                 : null).
-                (!is_empty($args['extra'])      ? $args['extra']                        : null)
+                (!is_empty($args['extra'])      ? $args['extra']                        : null).
+                (!is_empty($args['upload'])     ? 'enctype="multipart/form-data"'       : null)
             )
         )."\n";
     }
@@ -80,7 +81,7 @@ class form extends coreObj {
      *
      * @return      string
      */
-    public function inputbox($name, $type='text', $value='', $args=array()){
+    public function inputBox($name, $type='text', $value='', $args=array()){
         $args = array(
             'id'           => doArgs('id',               $name,  $args),
             'name'         => doArgs('name',             $name,  $args),
@@ -109,7 +110,9 @@ class form extends coreObj {
                             'email', 'url', 'number', 'range', 'search', 'datetime-local', 'datetime', 'date', 'time', 'week', 'month', 'tel' );
 
 
-        $return = null; $inputVal = '<input type="%1$s" name="%2$s" id="%3$s"%4$s/>'."\n";
+        $return = null; 
+        $inputVal = '<input type="%1$s" name="%2$s" id="%3$s"%4$s/>'."\n";
+
         return  sprintf($inputVal,
                     (in_array($type, $typeVali) ? $type : 'text'),
                     $name, $args['id'],
@@ -195,7 +198,7 @@ class form extends coreObj {
      *
      * @return      string
      */
-    public function button($name=null, $value, $args=array()){
+    public function button($name=null, $value='submit', $args=array()){
         $args['name']  = doArgs('name', $name, $args);
         $args['class'] = (!isset($args['class']) ? 'button' : $args['class'].' button');
         $type          = doArgs('type', 'button', $args);
@@ -427,7 +430,6 @@ class form extends coreObj {
 
 
     public function outputForm($vars, $elements, $options=array()){
-        //echo dump($elements);
         //make sure we have something to use before continuing
         if(is_empty($elements)){ $this->setError('Nothing to output'); return false; }
 
@@ -462,6 +464,7 @@ class form extends coreObj {
 
         $count = 0;
         $this->objTPL->reset_block_vars('field');
+
         //loop thru each element
         foreach($elements['field'] as $label => $field){
             if(is_empty($field)){ continue; }
@@ -512,7 +515,8 @@ class form extends coreObj {
     }
 
     function loadCaptcha($var){
-        return $this->objPlugins->hook('CMSForm_Captcha', $var);
+        $objPlugins = $this->getPlugins();
+        return $objPlugins->hook('CMSForm_Captcha', $var);
     }
 }
 ?>

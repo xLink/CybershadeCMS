@@ -433,6 +433,14 @@ class coreObj {
 
         return coreObj::$_classes['user'];
     }
+
+    public static function getForm(){
+        if(!isset( coreObj::$_classes['form'] )){
+            user::getInstance('form');
+        }
+
+        return coreObj::$_classes['form'];   
+    }
 }
 
 ?>
