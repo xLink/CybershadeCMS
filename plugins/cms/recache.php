@@ -1,13 +1,13 @@
-<?php
+				<?php
 
-function recache(){
-    if(isset($_GET['_nocache'])){
-        echo dump($a, 'RECACHE BOOM!');
-        $objCache = coreObj::getCache();
+				function recache(){
+				    if(isset($_GET['_recache'])){
+				        echo dump($a, 'RECACHE BOOM!');
+				        $objCache = coreObj::getCaache();
 
-        $objCache->remove('stores');
-    }
-}
+				        $objCache->remove('stores');
+				    }
+				}
 
-$this->addHook('CMS_START', 'recache');
-?>
+				$this->addHook('CMS_START', 'recache');
+				?>
