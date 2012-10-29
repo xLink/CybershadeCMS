@@ -9,9 +9,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 *
 * @version  1.2
 * @since    1.0.0
-* @author   Dan Aldridge
+* @author   Dan Aldridge / Kev Bowler
 */
-class form extends coreClass{
+class form extends coreObj{
 
     /**
      * Starts a new form off
