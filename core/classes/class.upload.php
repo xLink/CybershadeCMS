@@ -18,7 +18,7 @@ class Upload extends coreObj {
 
     public function __destruct(){
     }
-    
+
 /**
      * Process uploads
      *
@@ -27,9 +27,13 @@ class Upload extends coreObj {
      * @author      Kevin Bowler
      *
      * @param       string  $filename
-     * @param       string  $destination
+     * @param       string  $destination (optional)
      *
      * @return      boolean
      */
-     public function doUpload($filename, $destination) {
+     public function doUpload($filename, $destination='') {
+        if( trim( $destination ) == '' ){
+            $destination = sprintf( '%sassets/uploads/', root() );
+        }
+        // Do other stuff
      }
