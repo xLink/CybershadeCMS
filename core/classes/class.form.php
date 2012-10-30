@@ -32,8 +32,10 @@ class Form extends coreObj {
             'onsubmit'      => doArgs('onsubmit',       false,      $args),
             'extra'         => doArgs('extra',          null,       $args),
             'validate'      => doArgs('validate',       true,       $args),
+            'style'         => doArgs('style',          null,       $args),
+            'class'         => doArgs('class',          null,       $args),
             'autocomplete'  => doArgs('autocomplete',   true,       $args),
-            'upload'        => doArgs('enctype',        null,       $args),
+            'upload'        => doArgs('upload',         null,       $args),
         );
 
         if( $this->config('global', 'browser') == 'Chrome' ){
@@ -48,8 +50,10 @@ class Form extends coreObj {
                 ($args['onsubmit']              ? ' onsubmit="'.$args['onsubmit'].'"'   : null).
                 (!$args['validate']             ? ' novalidate'                         : null).
                 (!$args['autocomplete']         ? ' autocomplete="off"'                 : null).
+                (!is_empty($args['style'])      ? ' style="'.$args['style'].'"'         : null).
+                (!is_empty($args['class'])      ? ' class="'.$args['class'].'"'         : null).
+                (!is_empty($args['upload'])     ? ' enctype="multipart/form-data"'      : null).
                 (!is_empty($args['extra'])      ? $args['extra']                        : null).
-                (!is_empty($args['upload'])     ? 'enctype="multipart/form-data"'       : null)
             )
         )."\n";
     }
@@ -226,15 +230,15 @@ class Form extends coreObj {
      */
     public function radio($name='radio', $values=array(), $defaultSetting=null, $args=array()){
         $args = array(
-            'id'         => doArgs('id', $name, $args),
-            'class'      => doArgs('class', null, $args),
-            'style'      => doArgs('style', null, $args),
-            'disabled'   => doArgs('disabled', false, $args),
-            'br'         => doArgs('br', false, $args),
-            'xssFilter'  => doArgs('xssFilter', true, $args),
-            'showLabels' => doArgs('showLabels', true, $args),
+            'id'         => doArgs('id',            $name,  $args),
+            'class'      => doArgs('class',         null,   $args),
+            'style'      => doArgs('style',         null,   $args),
+            'disabled'   => doArgs('disabled',      false,  $args),
+            'br'         => doArgs('br',            false,  $args),
+            'xssFilter'  => doArgs('xssFilter',     true,   $args),
+            'showLabels' => doArgs('showLabels',    true,   $args),
 
-            'showValue'  => doArgs('showValue', true, $args),
+            'showValue'  => doArgs('showValue',     true,   $args),
         );
 
         $return = null; $inputVal = '<input type="radio" name="%1$s" id="%2$s"%3$s/>'."\n"; $count = 0;
@@ -265,10 +269,10 @@ class Form extends coreObj {
      * @since       1.0.0
      * @author      Dan Aldridge
      *
-     * @param       string     $name
-     * @param       string     $value
-     * @param       bool     $checked
-     * @param       array     $args
+     * @param       string      $name
+     * @param       string      $value
+     * @param       bool        $checked
+     * @param       array       $args
      *
      * @return      string
      */
@@ -309,7 +313,7 @@ class Form extends coreObj {
         );
 
         //added support for multiple selections
-        if($args['multi']===true){
+        if($args['multi'] === true){
             $name = $name.'[]';
             $args['extra'] .= ' multiple="multiple"';
         }
@@ -349,14 +353,14 @@ class Form extends coreObj {
                         $val .= sprintf($option,
                                     (md5($a)==md5($selected) ? ' selected' : null),
                                     $a,
-                                    doArgs('opt_extra', null, $args)
+                                    $args['opt_extra']
                                 );
                     }
                 } else {
                     $val .= sprintf($option,
                         (md5($k)==md5($selected) ? ' selected' : null),
                         ($noKeys===true ? $k : $v),
-                        doArgs('opt_extra', null, $args)
+                        $args['opt_extra']
                     );
 
                 }
