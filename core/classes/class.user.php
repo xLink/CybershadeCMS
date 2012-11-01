@@ -78,22 +78,20 @@ class User extends coreObj {
             }
 
         // we don't so we shall grab it
-        }else{
+        } else {
 
             $objSQL = coreObj::getDBO();
             //figure out if they gave us a username or a user id
             $user = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = %s');
-            $x = sprintf($user, strtoupper($uid));
+            $x    = sprintf($user, strtoupper($uid));
+
             $query = $objSQL->queryBuilder()
                 ->select(array('u.*', 'ux.*', 'id'=>'u.id', 's.timestamp'))
                 ->from(array('u' => '#__users'))
-
                 ->leftJoin(array('ux' => '#__users_extras'))
                     ->on('u.id = ux.uid')
-
                 ->leftJoin(array('s' => '#__sessions'))
                     ->on('u.id = s.uid')
-
                 ->where($x)
                 ->limit(1)
                 ->build();
@@ -175,6 +173,18 @@ class User extends coreObj {
         return $info;
     }
 
+
+    /**
+     * Retreives a Username by the given ID.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   int   $uid        
+     *
+     * @return  string
+     */
     public function getUsernameByID( $uid=0 ){
         if( is_empty($uid) || !is_number($uid) || $uid == 0){
             return false;
@@ -184,6 +194,18 @@ class User extends coreObj {
         return ($return === false ? 'Guest' : $return);
     }
 
+
+    /**
+     * Retreives a ID by the given username.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string   $username        
+     *
+     * @return  int
+     */
     public function getIDByUsername( $username ){
         if( is_empty($username) || !$this->validateUsername($username, true) ){
             return 0;
@@ -194,7 +216,18 @@ class User extends coreObj {
     }
 
 
-
+    /**
+     * Validates a Username to ensure it's the correct charset and to ensure it doesn't already exist 
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string   $username    
+     * @param   bool     $exists   
+     *
+     * @return  int
+     */
     public function validateUsername( $username, $exists=false ){
 
         if( strlen($username) > 25 || strlen($username) < 2 ){
@@ -215,10 +248,54 @@ class User extends coreObj {
         return true;
     }
 
-    public function getAjaxSetting( $setting ){
 
+    /**
+     * Recieves specified ajax settings
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string   $setting   The key name of the setting ('all' if all is required)    
+     *
+     * @return  array
+     */
+    public function getAjaxSetting( $setting, $uid = null ){
+        if( is_empty( $setting ) ){
+            return array();
+        }
+
+        $objSQL = coreObj::getDBO();
+
+        $uid = ( is_null( $uid ) ? $objSession->getCurrentUser() : $uid );
+
+        // Do the query
+        $getAjax = $this->get( $uid, 'ajax_settings' );
+
+        // If the query was successful and the array is not empty
+        if( $getAjax && !is_empty( $getAjax ) ){
+            
+            // Retrieve all settings
+            if( $setting === 'all' ){
+                return unserialize($getAjax);
+            }
+
+            // Retrieved specified key of settings 
+            return ( isset( $getAjax[$setting] ) ? unserialize($getAjax[$setting]) : array() );
+        }
+
+        return array();
     }
 
+    /**
+     * Gets the remote external IP address
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @return  array
+     */
     public static function getIP(){
         if      ($_SERVER['HTTP_X_FORWARDED_FOR']){ $ip = $_SERVER['HTTP_X_FORWARDED_FOR']; }
         else if ($_SERVER['HTTP_X_FORWARDED']){     $ip = $_SERVER['HTTP_X_FORWARDED']; }
@@ -235,17 +312,96 @@ class User extends coreObj {
   //
 **/
 
+    /**
+     * Updates user settings in both 'users' and 'users_extras' tables
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     * 
+     * @param   int     $uid
+     * @param   array   $settings
+     *
+     * @return  bool
+     */
     public function update( $uid, array $settings ){
         unset($settings['id'], $settings['uid'], $settings['password']);
 
         if( !count($settings) ){
-            $this->setError('No Settings Detected! Make sure the array you gave was populated'.
-                                'The follwing columsn are blacklisted from being updated with this function: '.
-                                'id, uid, password, pin');
+            trigger_error('No settings detected, the follwing columns are blacklisted from being'
+                        .'updated within this function: id, uid, password, pin');
             return false;
         }
 
-        return $settings;
+        $objSQL = coreObj::getDBO();
+
+        // get the column names to check against
+        $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
+        $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
+        $keys                = array_keys( $settings );
+
+        $userData = $userExtraData = array();
+
+        if( is_empty( $keys ) ){
+            return false;
+        }
+
+        // Loop through the settings keys
+        foreach( $keys as $key ){
+
+            // Check if the keys belong to users_extras table or users_extras table
+            if( in_array( $key, $userColumnData ) ){
+                if( is_number( $settings[$key] ) ){
+                    $userData[$key] = sprintf("%d", $settings[$key]);
+                }
+                $userData[$key] = sprintf("'%s'", $settings[$key]);
+            }
+
+            if( in_array( $key, $userExtraColumnData ) ){
+                if( is_number( $settings[$key] ) ){
+                    $userExtraData[$key] = sprintf("%d", $settings[$key]);
+                }
+                $userExtraData[$key] = sprintf("'%s'", $settings[$key]);
+            }
+        }
+
+        // Check if the userData is empty
+        // If it isn't then update the table
+        if( !is_empty( $userData ) ){
+
+            $insert = $objSQL->queryBuilder()
+                                ->update( array( 'u' => '#__users' ) )
+                                ->set( $userData )
+                                ->where( 'u.id', '=', $uid )
+                                ->build();
+
+            $userInsertResult = $objSQL->query( $insert );
+
+            if( !$userInsertResult ){
+                trigger_error( 'Could not update the users table' );
+                return false;
+            }
+        }
+        // Check if the userExtraData is empty
+        // If it isn't then update the table
+        if( !is_empty( $userExtraData ) ){
+
+            $insertExtras = $objSQL->queryBuilder()
+                                        ->update( array( 'ux' => '#__users_extras') )
+                                        ->set( $userExtraData )
+                                        ->where( 'ux.uid','=', $uid )
+                                        ->build();
+
+            $userExtrasInsertResult = $objSQL->query( $insertExtras );
+
+            if( !$userExtrasInsertResult ){
+                trigger_error( 'Could not update the users extras table' );
+                return false;
+            }
+        }
+
+        // return true if everything goes well
+        return true;
     }
 
     public function setPassword( $uid, $password ){
