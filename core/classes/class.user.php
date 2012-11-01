@@ -14,10 +14,12 @@ class User extends coreObj {
 **/
 
     //some static vars
-    static  $IS_ONLINE = false;
-    static  $IS_ADMIN  = false,
-            $IS_MOD    = false,
-            $IS_USER   = false;
+    static  $IS_ONLINE  = false;
+    
+    static  $IS_ADMIN   = false,
+            $IS_MOD     = false,
+            $IS_USER    = false,
+            $IS_SPECIAL = false; // For various, custom permissions
 
     /**
      * Sets the current user to online
