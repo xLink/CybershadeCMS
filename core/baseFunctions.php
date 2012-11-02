@@ -1310,40 +1310,49 @@ function reflectClass( $class ) {
  * @since   1.0
  * @author  Richard Clifford
  *
- * @param   string  $value
+ * @param   mixed  $value_one [,$value_two, $value_three...]
  *
  * @return  string
  */
-function getTokenType( $value ){
 
-    if( $value === '%' ){
-        return '%%';
+function getTokenType(){
+
+    $values = func_get_args();
+
+    if( is_empty( $values ) ){
+      return '';
     }
 
     $token = '';
+    foreach( $values as $value ){
 
-    switch( gettype( $value ) ){
-        case 'boolean':
-        case 'integer':
-            $token = '%d';
-            return $token;
+        if( $value === '%' ){
+            $token .= '%%';
+        }
 
-        case 'double':
-            $token = '%f';
-            return $token;
+        switch( gettype( $value ) ){
 
 
-        case 'string':
-            $token = '\'%s\'';
-            return $token;
+            case 'boolean':
+            case 'integer':
+                $token .= '%d,';
+                break;
 
+            case 'double':
+                $token .= '%f,';
+                break;
 
-        default:
-            trigger_error( 'Unknown token type' );
-            return '';
+            case 'NULL':
+            case 'string':
+                $token .= '\'%s\',';
+                break;
+
+            default:
+                trigger_error( 'Unknown token type' );
+        }
     }
 
-    return '';
+    return $token;
 }
 
 
