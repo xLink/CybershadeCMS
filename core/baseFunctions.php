@@ -1269,7 +1269,7 @@ function reflectMethod( $class, $method, $parameters) {
 
     try {
         return $refMethod->invokeArgs( $objModule , $args );
-    
+
     } catch( Exception $e ) {
         trigger_error( $e->getMessage() );
     }
@@ -1287,10 +1287,10 @@ function reflectMethod( $class, $method, $parameters) {
  * @return  object
  */
 function reflectClass( $class ) {
-  
+
     try {
         $object = new ReflectionClass( $class );
-    
+
     } catch( Exception $e ) {
         trigger_error( $e->getMessage() );
     }
@@ -1301,6 +1301,49 @@ function reflectClass( $class ) {
     } else {
         trigger_error( $e->getMessage() );
     }
+}
+
+/**
+ * Returns the associated token type for a 'sprintf' function by the passed variable
+ *
+ * @version 1.0
+ * @since   1.0
+ * @author  Richard Clifford
+ *
+ * @param   string  $value
+ *
+ * @return  string
+ */
+function getTokenType( $value ){
+
+    if( $value === '%' ){
+        return '%%';
+    }
+
+    $token = '';
+
+    switch( gettype( $value ) ){
+        case 'boolean':
+        case 'integer':
+            $token = '%d';
+            return $token;
+
+        case 'double':
+            $token = '%f';
+            return $token;
+
+
+        case 'string':
+            $token = '\'%s\'';
+            return $token;
+
+
+        default:
+            trigger_error( 'Unknown token type' );
+            return '';
+    }
+
+    return '';
 }
 
 

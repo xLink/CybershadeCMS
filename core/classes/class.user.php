@@ -15,7 +15,7 @@ class User extends coreObj {
 
     //some static vars
     static  $IS_ONLINE  = false;
-    
+
     static  $IS_ADMIN   = false,
             $IS_MOD     = false,
             $IS_USER    = false,
@@ -183,7 +183,7 @@ class User extends coreObj {
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   int   $uid        
+     * @param   int   $uid
      *
      * @return  string
      */
@@ -204,7 +204,7 @@ class User extends coreObj {
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   string   $username        
+     * @param   string   $username
      *
      * @return  int
      */
@@ -219,14 +219,14 @@ class User extends coreObj {
 
 
     /**
-     * Validates a Username to ensure it's the correct charset and to ensure it doesn't already exist 
+     * Validates a Username to ensure it's the correct charset and to ensure it doesn't already exist
      *
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   string   $username    
-     * @param   bool     $exists   
+     * @param   string   $username
+     * @param   bool     $exists
      *
      * @return  int
      */
@@ -258,7 +258,7 @@ class User extends coreObj {
      * @since   1.0.0
      * @author  Richard Clifford
      *
-     * @param   string   $setting   The key name of the setting ('all' if all is required)    
+     * @param   string   $setting   The key name of the setting ('all' if all is required)
      *
      * @return  array
      */
@@ -276,13 +276,13 @@ class User extends coreObj {
 
         // If the query was successful and the array is not empty
         if( $getAjax && !is_empty( $getAjax ) ){
-            
+
             // Retrieve all settings
             if( $setting === 'all' ){
                 return unserialize($getAjax);
             }
 
-            // Retrieved specified key of settings 
+            // Retrieved specified key of settings
             return ( isset( $getAjax[$setting] ) ? unserialize($getAjax[$setting]) : array() );
         }
 
@@ -320,7 +320,7 @@ class User extends coreObj {
      * @version 1.0
      * @since   1.0.0
      * @author  Richard Clifford
-     * 
+     *
      * @param   int     $uid
      * @param   array   $settings
      *
@@ -353,17 +353,11 @@ class User extends coreObj {
 
             // Check if the keys belong to users_extras table or users_extras table
             if( in_array( $key, $userColumnData ) ){
-                if( is_number( $settings[$key] ) ){
-                    $userData[$key] = sprintf("%d", $settings[$key]);
-                }
-                $userData[$key] = sprintf("'%s'", $settings[$key]);
+                $userData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
             }
 
             if( in_array( $key, $userExtraColumnData ) ){
-                if( is_number( $settings[$key] ) ){
-                    $userExtraData[$key] = sprintf("%d", $settings[$key]);
-                }
-                $userExtraData[$key] = sprintf("'%s'", $settings[$key]);
+                $userExtraData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
             }
         }
 

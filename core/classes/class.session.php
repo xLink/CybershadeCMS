@@ -152,7 +152,7 @@ class Session extends coreObj{
             $_SESSION['user']['session_id'] = $session_id;
             $_SESSION['user']['user_id']    = md5( $uid );
             $_SESSION['user']['timestamp']  = (time() + 3600); // Give it an hour
-            
+
             return true;
         }
 
@@ -171,18 +171,18 @@ class Session extends coreObj{
      */
     public function killAllSessions(){
 
+        $objSQL = coreObj::getDBO();
+
         $query = $objSQL->queryBuilder()
                               ->deleteFrom('#__sessions')
-                              ->where('1 = 1')
+                              ->where('mode', '=', 'kill')
                               ->build();
 
         (cmsDEBUG ? memoryUsage(sprintf('Sessions: Executing Query: %s', $query) ): '');
         $result = $objSQL->query( $query );
 
         if( $result ) {
-
-            // Unset the sessions
-            unset( $_SESSION );
+            unset( $_SESSION['user'] );
             return true;
         }
 
