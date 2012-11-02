@@ -1348,7 +1348,8 @@ function getTokenType(){
                 break;
 
             default:
-                trigger_error( 'Unknown token type' );
+                trigger_error( sprintf('Unknown token type for ', $value) );
+                return '';
         }
     }
 
