@@ -187,7 +187,6 @@ class debug extends coreObj{
         $output    = '';
         $debugTabs = array( );
         $objPlugin = coreObj::getPlugins();
-        $objPage   = coreObj::getPage();
 
         // Setup the tabs
         $debugTabs['console']   = array(
@@ -196,7 +195,7 @@ class debug extends coreObj{
         );
         $debugTabs['errors']    = array(
             'title'     => 'PHP / CMS Errors',
-            'content'   => ''
+            'content'   => 'i beleive this should have 3 tabs... Notices Warnings(though these prolly die on error so meh) & Fatal(actually these\'ll die on error so >.<)';
         );
         $debugTabs['memory']    = array(
             'title'     => 'Memory Usage',

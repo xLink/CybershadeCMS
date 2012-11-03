@@ -75,6 +75,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         return (isset($args[$key]) && $extra ? $args[$key] : $default);
     }
 
+
     /**
      * Run a function recursivly through an array
      * http://www.php.net/manual/en/function.array-walk-recursive.php#99639
