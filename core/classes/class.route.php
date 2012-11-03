@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class route extends coreObj{
+class Route extends coreObj{
 
     public  $routes = array(),    // Array holding all the routes
             $route  = array(),    // Contains the route matched
@@ -302,7 +302,7 @@ class route extends coreObj{
         // Check the class and subsequent method are callable, else trigger an error
         if ( !is_callable( array( $module, $method ) ) ) {
             trigger_error( 'The module or method you are trying to call, dosen\'t exist.' );
-            $a = array($module, $method);
+            $a = array('module' => $module, 'method' => $method);
             echo dump($a, 'Your trying to call..');
             return false;
         }

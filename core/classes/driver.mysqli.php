@@ -126,7 +126,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
         if($this->dbSettings['debug']){
             $backtrace = debug_backtrace();
-            $callee = next($backtrace);
+            $callee = $backtrace[1];
 
             $debug['query']         = $query;
             $debug['method']        = $callee['function'];
@@ -176,7 +176,12 @@ class driver_mysqli extends core_SQL implements base_SQL{
             return false;
         }
 
-        trigger_error('MySQL Error:<br />'.dump($this->_query, 'Query::'.$this->getError()), E_USER_ERROR);
+        $backtrace = debug_backtrace();
+        $callee = $backtrace[1];
+
+        $a = array($this->_query, $callee);
+        trigger_error('MySQL Error:');
+        echo dump($a, 'Query::'.$this->getError());
 
         $max = count($this->debug);
 

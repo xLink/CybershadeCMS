@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class page extends coreObj{
+class Page extends coreObj{
 
     static  $THEME      = '',
             $THEME_ROOT = '';

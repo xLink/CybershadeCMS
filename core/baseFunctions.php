@@ -1269,7 +1269,7 @@ function reflectMethod( $class, $method, $parameters) {
 
     try {
         return $refMethod->invokeArgs( $objModule , $args );
-    
+
     } catch( Exception $e ) {
         trigger_error( $e->getMessage() );
     }
@@ -1287,10 +1287,10 @@ function reflectMethod( $class, $method, $parameters) {
  * @return  object
  */
 function reflectClass( $class ) {
-  
+
     try {
         $object = new ReflectionClass( $class );
-    
+
     } catch( Exception $e ) {
         trigger_error( $e->getMessage() );
     }

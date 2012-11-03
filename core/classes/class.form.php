@@ -53,7 +53,7 @@ class Form extends coreObj {
                 (!is_empty($args['style'])      ? ' style="'.$args['style'].'"'         : null).
                 (!is_empty($args['class'])      ? ' class="'.$args['class'].'"'         : null).
                 (!is_empty($args['upload'])     ? ' enctype="multipart/form-data"'      : null).
-                (!is_empty($args['extra'])      ? $args['extra']                        : null).
+                (!is_empty($args['extra'])      ? $args['extra']                        : null)
             )
         )."\n";
     }

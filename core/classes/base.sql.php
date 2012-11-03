@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class core_SQL extends coreObj{
+class Core_SQL extends coreObj{
 
     public  $queries        = array();
     public  $driver         = '';
@@ -251,6 +251,60 @@ class core_SQL extends coreObj{
         return $line['AUTO_INCREMENT'];
     }
 
+
+/**
+ * Just borrowed Joomla's Quotey stuff, does what we want XD
+ *
+ **/
+
+    public function quote($text, $escape = true) {
+        return '\'' . ($escape ? $this->escape($text) : $text) . '\'';
+    }
+
+    public function quoteName($name, $as = null) {
+        if (is_string($name)) {
+            $quotedName = $this->quoteNameStr(explode('.', $name));
+
+            $quotedAs = '';
+            if (!is_null($as)) {
+                settype($as, 'array');
+                $quotedAs .= ' AS ' . $this->quoteNameStr($as);
+            }
+
+            return $quotedName . $quotedAs;
+        } else {
+            $fin = array();
+
+            if (is_null($as)) {
+                foreach ($name as $str) {
+                    $fin[] = $this->quoteName($str);
+                }
+            } elseif (is_array($name) && (count($name) == count($as))) {
+                for ($i = 0; $i < count($name); $i++) {
+                    $fin[] = $this->quoteName($name[$i], $as[$i]);
+                }
+            }
+
+            return $fin;
+        }
+    }
+
+    protected function quoteNameStr($strArr) {
+        $parts = array();
+        $q = $this->nameQuote;
+
+        foreach ($strArr as $part) {
+            if (is_null($part)) { continue; }
+
+            if (strlen($q) == 1) {
+                $parts[] = $q . $part . $q;
+            } else {
+                $parts[] = $q{0} . $part . $q{1};
+            }
+        }
+
+        return implode('.', $parts);
+    }
 }
 
 /**

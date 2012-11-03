@@ -112,6 +112,10 @@ ul, ul ul {
     div#debug-tabs div.tab-pane.queries table td:not(.error){
         border-top: 0;
     }
+    div#debug-tabs div.tab-pane.memory table tr{
+        color: white;
+        border-collapse: collapse;
+    }
 
 
 

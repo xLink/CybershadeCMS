@@ -15,18 +15,9 @@ $objPage->setTitle('Test');
 $objPage->buildPage();
 $objPage->showHeader();
 
-$form = new form();
+//$_SESSION['rawr'] = 1;
 
-echo $form->start('testForm');
-
-echo '<label for="text">Text:</label>';
-
-echo $form->inputbox('text');
-
-echo $form->button('submit', 'submit', array('type' => 'submit'));
-
-echo $form->finish();
-
+echo dump($_SESSION);
 
 $objPage->showFooter();
 

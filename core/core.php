@@ -95,21 +95,23 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
   //-- Classes Setup
   //
 **/
-    require_once(cmsROOT.'core/classes/class.core.php');
+    require_once(cmsROOT.'core/classes/class.coreobj.php');
 
     (cmsDEBUG ? memoryUsage('Core: loaded base class') : '');
 
     // AUTOLOADER, I Choose You!
-        //directories to use for the autoloading, these get glob'd over after
-        coreObj::addClassDirs(cmsROOT.'core/classes/*.php');
-        coreObj::addClassDirs(cmsROOT.'core/lib/*/class.*.php');
-        $dirs = coreObj::addClassDirs(cmsROOT.'modules/*/class.*.php');
+        // directories to use for the autoloading, these get glob'd over after
+        $dirs = coreObj::addClassDirs(array(
+            'base'    => cmsROOT.'core/classes/*.php',
+            'libs'    => cmsROOT.'core/lib/*/class.*.php',
+            'modules' => cmsROOT.'modules/*/class.*.php',
+        ));
 
-// echo dump($dirs, 'Loading Classes From', 'orange');exit;
     (cmsDEBUG ? memoryUsage('Core: autoloader dirs') : '');
 
     spl_autoload_extensions('.php');
     spl_autoload_register(array('coreObj', 'loadClass'));
+ // echo dump($dirs, 'Loading Classes From', 'orange');exit;
 
     (cmsDEBUG ? memoryUsage('Core: autoloader registration') : '');
 
@@ -125,14 +127,14 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objDebug    = coreObj::getDebug();
     $objForm     = coreObj::getForm();
 
-    
+
         if( is_object($objDebug) ){
             set_error_handler(array($objDebug, 'errorHandler'));
         }
 
 (cmsDEBUG ? memoryUsage('Core: everything else') : '');
 
-$objPlugin->hook('CMS_START');
+$objPlugin->hook('CMS_SETUP_COMPLETE');
 
 
 ?>

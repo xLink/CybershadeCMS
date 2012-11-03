@@ -12,7 +12,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  * @since       1.0.0
  * @author      phpBB Team
  */
-class template extends coreObj{
+class Template extends coreObj{
 
     // variable that holds all the data we'll be substituting into
     // the compiled templates.

@@ -7,19 +7,24 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class User extends coreObj {
 
-/**
-  //
-  //--
-  //
-**/
-
     //some static vars
     static  $IS_ONLINE  = false;
-    
+
     static  $IS_ADMIN   = false,
             $IS_MOD     = false,
             $IS_USER    = false,
             $IS_SPECIAL = false; // For various, custom permissions
+
+    public function __construct(){
+
+        $guest['user'] = array(
+            'id'        => 0,
+            'username'  => 'Guest',
+            'theme'     => $this->config('site', 'theme'),
+            'timezone'  => doArgs('timezone', $this->config('time', 'timezone'), $_SESSION['user']),
+        );
+
+    }
 
     /**
      * Sets the current user to online
@@ -183,7 +188,7 @@ class User extends coreObj {
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   int   $uid        
+     * @param   int   $uid
      *
      * @return  string
      */
@@ -204,7 +209,7 @@ class User extends coreObj {
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   string   $username        
+     * @param   string   $username
      *
      * @return  int
      */
@@ -217,16 +222,36 @@ class User extends coreObj {
         return ($return === false ? 0 : $return);
     }
 
+    public function getLanguage(){
+        /*
+            $language = doArgs('language', 'en', $config['site']);
+            $langDir = cmsROOT.'languages/';
+
+            if(isset($_SESSION['user']['language'])){
+                if(is_dir($langDir.$_SESSION['user']['language'].'/') &&
+                   is_readable($langDir.$_SESSION['user']['language'].'/main.php')){
+                        $language = $_SESSION['user']['language'];
+                }
+            }
+
+            if(is_dir($langDir.$language.'/') || is_readable($langDir.$language.'/main.php')){
+                translateFile($langDir.$language.'/main.php');
+            }else{
+                msgDie('FAIL', sprintf($errorTPL, 'Fatal Error',
+                    'Cannot open '.($langDir.$language.'/main.php').' for include.'));
+            }
+        */
+    }
 
     /**
-     * Validates a Username to ensure it's the correct charset and to ensure it doesn't already exist 
+     * Validates a Username to ensure it's the correct charset and to ensure it doesn't already exist
      *
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   string   $username    
-     * @param   bool     $exists   
+     * @param   string   $username
+     * @param   bool     $exists
      *
      * @return  int
      */
@@ -258,7 +283,7 @@ class User extends coreObj {
      * @since   1.0.0
      * @author  Richard Clifford
      *
-     * @param   string   $setting   The key name of the setting ('all' if all is required)    
+     * @param   string   $setting   The key name of the setting ('all' if all is required)
      *
      * @return  array
      */
@@ -276,13 +301,13 @@ class User extends coreObj {
 
         // If the query was successful and the array is not empty
         if( $getAjax && !is_empty( $getAjax ) ){
-            
+
             // Retrieve all settings
             if( $setting === 'all' ){
                 return unserialize($getAjax);
             }
 
-            // Retrieved specified key of settings 
+            // Retrieved specified key of settings
             return ( isset( $getAjax[$setting] ) ? unserialize($getAjax[$setting]) : array() );
         }
 
@@ -320,7 +345,7 @@ class User extends coreObj {
      * @version 1.0
      * @since   1.0.0
      * @author  Richard Clifford
-     * 
+     *
      * @param   int     $uid
      * @param   array   $settings
      *

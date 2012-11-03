@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class debug extends coreObj{
+class Debug extends coreObj{
 
     public $errors          = array(),
            $includedFiles   = array(),
@@ -81,7 +81,7 @@ class debug extends coreObj{
                 $output .= '</tr>';
                     $output .= sprintf('<tr class="%s"><td colspan="11" style="height: 5px; padding: 0;"></td></tr>', ($query['affected_rows']=='-1' ? 'error' : 'success'));
 
-                $replace = array('FROM', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'ON', 'WHERE', 'LIMIT', 'GROUP BY', 'ORDER BY', );
+                $replace = array('FROM', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'ON', 'OR', 'AND', 'SET', 'WHERE', 'LIMIT', 'GROUP BY', 'ORDER BY', 'VALUES', );
 
                 foreach($replace as $r){
                     $replace = "\n";
@@ -341,6 +341,33 @@ class debug extends coreObj{
 
 /**
   //
+  //-- Config Tab
+  //
+**/
+
+    /**
+     * Gathers Output info for the Config Array
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @return      array
+     */
+    public function getConfig(){
+        $count = 0;
+
+        $user = coreObj::getUser()->global;
+        $content .= dump($user, 'objUser::global');
+
+        $config = $this->config();
+        $content .= dump($config, 'config');
+
+        return array('count' => $count, 'content' => $content );
+    }
+
+/**
+  //
   //-- Other Tab
   //
 **/
@@ -452,6 +479,13 @@ class debug extends coreObj{
         $tab = $this->getGlobals(true);
         $debugTabs['globals']   = array(
             'title'     => 'Globals',
+            'content'   => $tab['content'],
+        );
+
+        // Setup the tabs
+        $tab = $this->getConfig(true);
+        $debugTabs['config']   = array(
+            'title'     => 'Config',
             'content'   => $tab['content'],
         );
 

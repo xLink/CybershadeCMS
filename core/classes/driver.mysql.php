@@ -168,7 +168,7 @@ class driver_mysql extends core_SQL implements base_SQL{
         $debug = array();
         if($this->dbSettings['debug']){
             $backtrace = debug_backtrace();
-            $callee = next($backtrace);
+            $callee = $backtrace[2];
 
             $debug['query']         = $query;
             $debug['method']        = $callee['function'];

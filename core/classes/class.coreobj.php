@@ -29,12 +29,14 @@ class coreObj {
      *
      * @return  array
      */
-    public static function addClassDirs($dir){
-        if(empty($dir) || !is_string($dir)){
+    public static function addClassDirs($dirs){
+        if( is_empty($dirs) || !is_array($dirs) ){
             return false;
         }
 
-        self::$classDirs[$dir] = glob($dir);
+        foreach($dirs as $label => $dir){
+            self::$classDirs[ $label ] = glob( $dir );
+        }
 
         return self::$classDirs;
     }
@@ -58,7 +60,7 @@ class coreObj {
 
         //only use the last part of the class name if it has an underscore
         if(strpos($class, '_') !== false){
-            $class = explode('_', $class);
+            $class = explode('_', $class, 2);
             $class = end($class);
         }
         $class = strtolower($class);
@@ -68,10 +70,15 @@ class coreObj {
         foreach($dirs as $dir => $files){
             if(!count($files)){ continue; }
             foreach($files as $file){
-                if(strpos($file, $class)!==false){
+                if(strpos($file, $class) !== false){
                     include_once($file);
-                    // echo dump($file, 'LOADED FILE', 'pink');
-                    return true;
+                    (cmsDEBUG ? memoryUsage('SYSTEM: AutoLoading '.$file) : '');
+
+                    if( is_callable($class) ){
+                        return true;
+                    }
+
+                    return false;
                 }
             }
         }
@@ -259,8 +266,16 @@ class coreObj {
 
         if (!isset(coreObj::$_classes[$name]) || empty(coreObj::$_classes[$name])){
             $class = self::getStaticClassName();
-            coreObj::$_classes[$name] = new $class($name, $options);
             (cmsDEBUG ? memoryUsage( sprintf('Init: New object - %s. ', $class) ) : '');
+            $iClass = new $class($name, $options);
+
+            // default to returning the class as is, but test to see if we have setupInstance
+            // && if so, we'll return that :D
+            coreObj::$_classes[$name] = $iClass;
+            if( is_callable(array($iClass, 'setupInstance')) ){
+                (cmsDEBUG ? memoryUsage( sprintf('Init: Calling %s :: setupInstance() ', $class) ) : '');
+                coreObj::$_classes[$name] = $iClass->setupInstance($name, $options);
+            }
         }
 
         return coreObj::$_classes[$name];
@@ -364,7 +379,7 @@ class coreObj {
 
     public static function getPlugins(){
         if(!isset(coreObj::$_classes['plugins'])){
-            plugins::getInstance('plugins');
+            Plugins::getInstance('plugins');
 
             coreObj::$_classes['plugins']->load();
         }
@@ -374,7 +389,7 @@ class coreObj {
 
     public static function getPage(){
         if(!isset(coreObj::$_classes['page'])){
-            page::getInstance('page');
+            Page::getInstance('page');
         }
 
         return coreObj::$_classes['page'];
@@ -404,7 +419,7 @@ class coreObj {
 
     public static function getRoute(){
         if(!isset(coreObj::$_classes['route'])){
-            route::getInstance('route');
+           Route::getInstance('route');
         }
 
         return coreObj::$_classes['route'];
@@ -412,7 +427,7 @@ class coreObj {
 
     public static function getSession(){
         if(!isset( coreObj::$_classes['session'] )){
-            session::getInstance('session');
+            Session::getInstance('session');
         }
 
         return coreObj::$_classes['session'];
@@ -420,7 +435,7 @@ class coreObj {
 
     public static function getDebug(){
         if(!isset( coreObj::$_classes['debug'] )){
-            debug::getInstance('debug');
+            Debug::getInstance('debug');
         }
 
         return coreObj::$_classes['debug'];
@@ -428,7 +443,7 @@ class coreObj {
 
     public static function getUser(){
         if(!isset( coreObj::$_classes['user'] )){
-            user::getInstance('user');
+            User::getInstance('user');
         }
 
         return coreObj::$_classes['user'];
@@ -436,10 +451,10 @@ class coreObj {
 
     public static function getForm(){
         if(!isset( coreObj::$_classes['form'] )){
-            user::getInstance('form');
+            Form::getInstance('form');
         }
 
-        return coreObj::$_classes['form'];   
+        return coreObj::$_classes['form'];
     }
 }
 

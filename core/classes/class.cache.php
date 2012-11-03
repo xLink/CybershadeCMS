@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class cache extends coreObj{
+class Cache extends coreObj{
     public $cacheToggle  = false,
            $output       = array(),
            $cacheDir     = '',
@@ -141,7 +141,7 @@ class cache extends coreObj{
 
                         // Add the cache to the failed cache's array
                         $this->failedCaches[] = $file;
-                        
+
                         return false;
                     }
                 }

@@ -386,40 +386,37 @@ class mysql_queryBuilder extends coreObj{
             return implode(', ', $_tables);
         }
 
-        private function _buildWhereOn(&$statement, $type, $index=0){
+        private function _buildWhereOn(&$statement, $type){
             if(!in_array($this->queryType, array('UPDATE', 'DELETE', 'SELECT'))){ return; }
 
             if(!count($this->{'_'.strtolower($type)})){ return; }
 
             $statement[] = strtoupper($type);
+            foreach($this->{'_'.strtolower($type)} as $where){
+                $tmp = array($where['type'], $where['cond1'], $where['operand']);
+                $tmp[1] = $this->_buildFields($tmp[1]);
 
-            if(!isset($this->{'_'.strtolower($type)}[$index])){ return; }
-            $where = $this->{'_'.strtolower($type)}[$index];
-
-            $tmp = array($where['type'], $where['cond1'], $where['operand']);
-            $tmp[1] = $this->_buildFields($tmp[1]);
-
-            if($where['operand'] != 'IN'){
-                if($type == 'where'){
-                    $tmp[] = $this->_sanitizeValue($where['cond2'], $where['operand'] == 'LIKE');
-                }else{
-                    $tmp[] = $where['cond2'];
-                }
-            }else{
-
-                $ins = array();
-                if(!is_array($where['cond2'])){
-                    $ins = array($where['cond2']);
-                }else{
-                    foreach($where['cond2'] as $c2){
-                        $ins[] = $this->_sanitizeValue($c2, false);
+                if($where['operand'] != 'IN'){
+                    if($type == 'where'){
+                        $tmp[] = $this->_sanitizeValue($where['cond2'], $where['operand'] == 'LIKE');
+                    }else{
+                        $tmp[] = $where['cond2'];
                     }
+                }else{
+
+                    $ins = array();
+                    if(!is_array($where['cond2'])){
+                        $ins = array($where['cond2']);
+                    }else{
+                        foreach($where['cond2'] as $c2){
+                            $ins[] = $this->_sanitizeValue($c2, false);
+                        }
+                    }
+
+                    $tmp[2] = sprintf('%s ("%s")', $tmp[2], implode(', ', $ins));
                 }
-
-                $tmp[2] = sprintf('%s ("%s")', $tmp[2], implode(', ', $ins));
+                $statement[] = implode(' ', $tmp);
             }
-
-            $statement[] = implode(' ', $tmp);
         }
 
         private function _buildGroupBy(&$statement){

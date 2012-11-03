@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class forum extends Module{
+class module_forum extends Module{
 
     public function __construct(){
         $objPage = coreobj::getPage();
