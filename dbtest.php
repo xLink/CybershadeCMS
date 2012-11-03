@@ -6,35 +6,37 @@ define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 include_once('core/core.php');
 
-$tests = array();
+$objPage->setTheme();
 
-$sql  = coreObj::getDBO('mysql');
+$objPage->setTitle('Test');
 
-if($objSQL->getClassName() == $sql->getClassName()){
-    die('Same Class Name ;x');
-}
+$objPage->buildPage();
+$objPage->showHeader();
 
-$query = $objSQL->queryBuilder()
-    ->select(array('u.id', 'user_id' => 'ux.uid'))
-    ->addField('u.username')
-    ->addField('birthday')
-    ->from(array('u' => '#__users'))
-    ->leftJoin(array('ux' => '#__users_extras'))
-        ->on('u.id', '=', 'ux.uid')
-    ->where('u.id', '=', '1')
-    ->orderBy('u.id', 'ASC')
-    ->build();
+    $tests = array();
 
+    $objSQL = coreObj::getDBO();
 
-$test[$query][$objSQL->getClassName()]          = $objSQL->fetchAll($query);
-$test[$query][$sql->getClassName()]             =    $sql->fetchAll($query);
-
-$test[$query][$objSQL->getClassName().'_error'] = $objSQL->getError();
-$test[$query][$sql->getClassName().'_error']    =    $sql->getError();
-
-$test[$query][$objSQL->getClassName().'_rows']  = $objSQL->AffectedRows();
-$test[$query][$sql->getClassName().'_rows']     =    $sql->AffectedRows();
+    $query = $objSQL->queryBuilder()
+        ->select(array('u.id', 'user_id' => 'ux.uid'))
+        ->addField('u.username')
+        ->addField('birthday')
+        ->from(array('u' => '#__ussers'))
+        ->leftJoin(array('ux' => '#__users_extras'))
+            ->on('u.id', '=', 'ux.uid')
+        ->where('u.id', '=', '1')
+        ->orderBy('u.id', 'ASC')
+        ->build();
 
 
-echo dump($test, $objSQL->_query);
+    $test[$query][$objSQL->getClassName()]          = $objSQL->fetchAll($query);
+
+    $test[$query][$objSQL->getClassName().'_error'] = $objSQL->getError();
+
+    $test[$query][$objSQL->getClassName().'_rows']  = $objSQL->AffectedRows();
+
+
+    echo dump($test, $objSQL->_query);
+
+$objPage->showFooter();
 ?>

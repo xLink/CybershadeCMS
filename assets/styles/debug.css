@@ -36,14 +36,15 @@
 
     div[class^="debug"] ul li{
         display: block;
+        color: black !important;
     }
     div[class^="debug"] ul li:hover{
     }
-    
+
     div[class^="debug"] .row{
         display: block;
         margin: 0;
-    }    
+    }
 
 	div[class^="debug"] div.header{
 		background-color: #0E5B72;
@@ -53,9 +54,99 @@
         margin: 0 0 5px;
 	}
 
-
 ul, ul ul {
    list-style-type: none;
    color: black;
    margin: 0 10px;
 }
+
+    div#debug-tabs{
+        background-color: #272727;
+        border-radius: 3px;
+    }
+
+    div#debug-tabs > ul{
+        border: none;
+        margin: 0 0 0 3px;
+    }
+    div#debug-tabs > li{
+        margin-bottom: 0;
+    }
+    div#debug-tabs ul li div.label,
+    div#debug-tabs ul li a{
+        display: inline-block;
+    }
+
+    div#debug-tabs ul li a{
+        color: white;
+        border-radius: 0;
+        background: #2D2D2D;
+        margin-right: 0;
+
+        border-top: 0;
+        border-right: 1px solid #343434;
+        border-left: 1px solid #191919;
+        border-bottom: 5px solid #232323;
+    }
+    div#debug-tabs ul li.active a{
+        background: #436188;
+        border-bottom: 5px solid #344E71;
+    }
+    div#debug-tabs .well{
+        background: #272822;
+        border: 0;
+        border-color: none;
+        border-radius: none;
+        color: white;
+    }
+    div#debug-tabs .well ul li{
+        color: white;
+    }
+
+    div#debug-tabs div.tab-pane.queries table{
+        border: 1px solid #343434;
+        padding: 3px;
+        margin-bottom: 10px;
+        border-radius: 0;
+    }
+    div#debug-tabs div.tab-pane.queries table td:not(.error){
+        border-top: 0;
+    }
+
+
+
+/**
+ *  Debug Code Table in the bottom.
+ */
+
+table.debugCode{
+    background-color: #F7F7F9;
+    box-shadow: 40px 0 0 #FBFBFC inset, 41px 0 0 #ECECF0 inset;
+    width: 100%;
+}
+
+    table.debugCode tr{
+
+    }
+
+        table.debugCode tr td{
+            border-top: none;
+            padding: 0;
+            color: black;
+        }
+
+        table.debugCode tr td.error{
+            border: 1px solid red;
+            background-color: #F2CECD;
+        }
+
+        table.debugCode tr td:first-child{
+            padding-left: 10px;
+        }
+
+        table.debugCode tr td:last-child{
+            color: #BEBEC5;
+            line-height: 20px;
+            padding-left: 12px;
+            text-shadow: 0 1px 0 #FFFFFF;
+        }

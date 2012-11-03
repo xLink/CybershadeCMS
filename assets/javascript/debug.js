@@ -1,6 +1,6 @@
-window.addEvent('domready',function() {
+window.addEvent('domready', function() {
 
-    var options = {
+    /*var options = {
         tabSelector: '.tab',
         contentSelector: '.content'
     };
@@ -9,6 +9,6 @@ window.addEvent('domready',function() {
             return $$('ul.nav-tabs li'+ window.location.hash)[0].get('data-index').toInt();
         }
         return 0;
-    });
+    });*/
 
 });

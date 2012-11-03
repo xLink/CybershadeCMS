@@ -14,10 +14,12 @@ class User extends coreObj {
 **/
 
     //some static vars
-    static  $IS_ONLINE = false;
-    static  $IS_ADMIN  = false,
-            $IS_MOD    = false,
-            $IS_USER   = false;
+    static  $IS_ONLINE  = false;
+
+    static  $IS_ADMIN   = false,
+            $IS_MOD     = false,
+            $IS_USER    = false,
+            $IS_SPECIAL = false; // For various, custom permissions
 
     /**
      * Sets the current user to online
@@ -78,23 +80,21 @@ class User extends coreObj {
             }
 
         // we don't so we shall grab it
-        }else{
+        } else {
 
             $objSQL = coreObj::getDBO();
             //figure out if they gave us a username or a user id
-            $user = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = upper("%s")');
+            $user = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = %s');
+            $x    = sprintf($user, strtoupper($uid));
 
             $query = $objSQL->queryBuilder()
                 ->select(array('u.*', 'ux.*', 'id'=>'u.id', 's.timestamp'))
                 ->from(array('u' => '#__users'))
-
                 ->leftJoin(array('ux' => '#__users_extras'))
-                    ->on('u.id', '=', 'ux.uid')
-
+                    ->on('u.id = ux.uid')
                 ->leftJoin(array('s' => '#__sessions'))
-                    ->on('u.id', '=', 's.uid')
-
-                ->where(sprintf($user, $uid))
+                    ->on('u.id = s.uid')
+                ->where($x)
                 ->limit(1)
                 ->build();
 
@@ -175,6 +175,18 @@ class User extends coreObj {
         return $info;
     }
 
+
+    /**
+     * Retreives a Username by the given ID.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   int   $uid
+     *
+     * @return  string
+     */
     public function getUsernameByID( $uid=0 ){
         if( is_empty($uid) || !is_number($uid) || $uid == 0){
             return false;
@@ -184,9 +196,21 @@ class User extends coreObj {
         return ($return === false ? 'Guest' : $return);
     }
 
+
+    /**
+     * Retreives a ID by the given username.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string   $username
+     *
+     * @return  int
+     */
     public function getIDByUsername( $username ){
         if( is_empty($username) || !$this->validateUsername($username, true) ){
-            return false;
+            return 0;
         }
 
         $return = $this->get($username, 'id');
@@ -194,8 +218,20 @@ class User extends coreObj {
     }
 
 
-
+    /**
+     * Validates a Username to ensure it's the correct charset and to ensure it doesn't already exist
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string   $username
+     * @param   bool     $exists
+     *
+     * @return  int
+     */
     public function validateUsername( $username, $exists=false ){
+
         if( strlen($username) > 25 || strlen($username) < 2 ){
             $this->setError('Username dosen\'t fall within usable length parameters. Between 2 and 25 characters long.');
             return false;
@@ -214,10 +250,54 @@ class User extends coreObj {
         return true;
     }
 
-    public function getAjaxSetting( $setting ){
 
+    /**
+     * Recieves specified ajax settings
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string   $setting   The key name of the setting ('all' if all is required)
+     *
+     * @return  array
+     */
+    public function getAjaxSetting( $setting, $uid = null ){
+        if( is_empty( $setting ) ){
+            return array();
+        }
+
+        $objSQL = coreObj::getDBO();
+
+        $uid = ( is_null( $uid ) ? $objSession->getCurrentUser() : $uid );
+
+        // Do the query
+        $getAjax = $this->get( $uid, 'ajax_settings' );
+
+        // If the query was successful and the array is not empty
+        if( $getAjax && !is_empty( $getAjax ) ){
+
+            // Retrieve all settings
+            if( $setting === 'all' ){
+                return unserialize($getAjax);
+            }
+
+            // Retrieved specified key of settings
+            return ( isset( $getAjax[$setting] ) ? unserialize($getAjax[$setting]) : array() );
+        }
+
+        return array();
     }
 
+    /**
+     * Gets the remote external IP address
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @return  array
+     */
     public static function getIP(){
         if      ($_SERVER['HTTP_X_FORWARDED_FOR']){ $ip = $_SERVER['HTTP_X_FORWARDED_FOR']; }
         else if ($_SERVER['HTTP_X_FORWARDED']){     $ip = $_SERVER['HTTP_X_FORWARDED']; }
@@ -234,15 +314,90 @@ class User extends coreObj {
   //
 **/
 
+    /**
+     * Updates user settings in both 'users' and 'users_extras' tables
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   int     $uid
+     * @param   array   $settings
+     *
+     * @return  bool
+     */
     public function update( $uid, array $settings ){
         unset($settings['id'], $settings['uid'], $settings['password']);
 
         if( !count($settings) ){
-            $this->setError('No Settings Detected! Make sure the array you gave was populated'.
-                                'The follwing columsn are blacklisted from being updated with this function: '.
-                                'id, uid, password, pin');
+            trigger_error('No settings detected, the follwing columns are blacklisted from being'
+                        .'updated within this function: id, uid, password, pin');
             return false;
         }
+
+        $objSQL = coreObj::getDBO();
+
+        // get the column names to check against
+        $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
+        $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
+        $keys                = array_keys( $settings );
+
+        $userData = $userExtraData = array();
+
+        if( is_empty( $keys ) ){
+            return false;
+        }
+
+        // Loop through the settings keys
+        foreach( $keys as $key ){
+
+            // Check if the keys belong to users_extras table or users_extras table
+            if( in_array( $key, $userColumnData ) ){
+                $userData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+            }
+
+            if( in_array( $key, $userExtraColumnData ) ){
+                $userExtraData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+            }
+        }
+
+        // Check if the userData is empty
+        // If it isn't then update the table
+        if( !is_empty( $userData ) ){
+
+            $insert = $objSQL->queryBuilder()
+                                ->update( array( 'u' => '#__users' ) )
+                                ->set( $userData )
+                                ->where( 'u.id', '=', $uid )
+                                ->build();
+
+            $userInsertResult = $objSQL->query( $insert );
+
+            if( !$userInsertResult ){
+                trigger_error( 'Could not update the users table' );
+                return false;
+            }
+        }
+        // Check if the userExtraData is empty
+        // If it isn't then update the table
+        if( !is_empty( $userExtraData ) ){
+
+            $insertExtras = $objSQL->queryBuilder()
+                                        ->update( array( 'ux' => '#__users_extras') )
+                                        ->set( $userExtraData )
+                                        ->where( 'ux.uid','=', $uid )
+                                        ->build();
+
+            $userExtrasInsertResult = $objSQL->query( $insertExtras );
+
+            if( !$userExtrasInsertResult ){
+                trigger_error( 'Could not update the users extras table' );
+                return false;
+            }
+        }
+
+        // return true if everything goes well
+        return true;
     }
 
     public function setPassword( $uid, $password ){
@@ -263,7 +418,44 @@ class User extends coreObj {
 
     }
 
+    public function canLogin( $username, $password ){
 
+    }
+
+    public function mkPassword( $password, $salt ) {
+        $objPass = new phpass( 8, true );
+
+        $hashed = $objPass->hashPassword( $salt . $password );
+
+        if( $hashed < 20  ) {
+
+        }
+    }
+
+    public function verifyUserCredentials( $username, $password ) {
+        $objSQL = coreObj::getDBO();
+
+        // Grab the phpass library
+        $phpass = new phpass( 8, true );
+
+        // Grab the user's id
+        $uid = $this->getIDByUsername( $username );
+
+        // if the username doesn't exist, return false;
+        if( $uid === 0 ) {
+            return false;
+        }
+
+        // Fetch the hashed password from the database
+        $hash = $this->get( $uid, 'password' );
+        if( $phpass->CheckPassword( $password, $hash ) ) {
+            return true;
+
+        } else {
+            return false;
+
+        }
+    }
 /**
   //
   //-- Auth Functions
@@ -372,7 +564,6 @@ class User extends coreObj {
         //apparently the checks didnt return true, so we'll go for false
         return false;
     }
-
 }
 
 ?>

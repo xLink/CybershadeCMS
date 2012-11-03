@@ -160,7 +160,7 @@ $language_data = array (
             'ClassDefinition', 'ClassFileTransformer', 'IllegalClassFormatException', 'Instrumentation', 'UnmodifiableClassException'
             ),
         24 => array (
-            'ClassLoadingMXBean', 'CompilationMXBean', 'GarbageCollectorMXBean', 'ManagementFactory', 'ManagementPermission', 'MemoryMXBean', 'MemoryManagerMXBean', 'MemoryNotificationInfo', 'MemoryPoolMXBean', 'MemoryType', 'MemoryUsage', 'OperatingSystemMXBean', 'RuntimeMXBean', 'ThreadInfo', 'ThreadMXBean'
+            'ClassLoadingMXBean', 'CompilationMXBean', 'GarbageCollectorMXBean', 'ManagementFactory', 'ManagementPermission', 'MemoryMXBean', 'MemoryManagerMXBean', 'MemoryNotificationInfo', 'MemoryPoolMXBean', 'MemoryType', 'memoryUsage', 'OperatingSystemMXBean', 'RuntimeMXBean', 'ThreadInfo', 'ThreadMXBean'
             ),
         25 => array (
             'PhantomReference', 'ReferenceQueue', 'SoftReference', 'WeakReference'

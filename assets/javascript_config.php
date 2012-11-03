@@ -9,7 +9,7 @@ $scripts['framework'] = array(
 );
 $scripts['extras'] = array(
     'php.min.js',
-    'bootstrap.mootools.js',
+    //'bootstrap.mootools.js',
 
     //'growl.js',
 

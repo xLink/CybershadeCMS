@@ -458,6 +458,107 @@ class page extends coreObj{
             return $return;
         }
 
+    /**
+     * Builds a string of css classes that can be used to apply browser specific hacks.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $useragent
+     *
+     * @return  string
+     */
+    public function getCSSSelectors($useragent=null){
+        if( is_empty($useragent) ){
+            $useragent = $_SERVER['HTTP_USER_AGENT'];
+        }
+        $useragent = strtolower($useragent);
+
+
+        $classes = array();
+
+        if( !preg_match('/opera|webtv/i', $useragent) && preg_match('/msie\s(\d)/', $useragent, $matches) ) {
+            $classes[] = 'ie';
+            $classes[] = 'ie' . $matches[1];
+
+        } elseif( strstr($useragent, 'firefox/2') ) {
+            $classes[] = 'ff';
+            $classes[] = 'ff2';
+
+        } elseif( strstr($useragent, 'firefox/3.5') ) {
+            $classes[] = 'ff';
+            $classes[] = 'ff3_3';
+
+        } elseif( strstr($useragent, 'firefox/3') ) {
+            $classes[] = 'ff';
+            $classes[] = 'ff3';
+
+        } elseif( strstr($useragent, 'gecko/') ) {
+            $classes[] = 'gecko';
+
+        } elseif( preg_match('/opera(\s|\/)(\d+)/', $useragent, $matches) ) {
+            $classes[] = 'opera';
+            $classes[] = 'opera' . $matches[2];
+
+        } elseif( strstr($useragent, 'konqueror') ) {
+            $classes[] = 'konqueror';
+
+        } elseif( strstr($useragent, 'chrome') ) {
+            $classes[] = 'webkit';
+            $classes[] = 'safari';
+            $classes[] = 'chrome';
+
+        } elseif( strstr($useragent, 'iron') ) {
+            $classes[] = 'webkit';
+            $classes[] = 'safari';
+            $classes[] = 'iron';
+
+        } elseif( strstr($useragent, 'applewebkit/') ) {
+            $classes[] = 'webkit';
+            $classes[] = 'safari';
+            if( preg_match('/version\/(\d+)/i', $useragent, $matches) ){
+                $classes[] = 'safari' . $matches[1];
+            }
+
+        } elseif( strstr($useragent, 'mozilla/') ) {
+            $classes[] = 'gecko';
+
+        }
+
+
+        if( strstr($useragent, 'j2me') ) {
+            $classes[] = 'mobile';
+
+        } elseif( strstr($useragent, 'iphone')) {
+            $classes[] = 'iphone';
+
+        } elseif( strstr($useragent, 'ipod')) {
+            $classes[] = 'ipod';
+
+        } elseif( strstr($useragent, 'mac')) {
+            $classes[] = 'mac';
+
+        } elseif( strstr($useragent, 'darwin')) {
+            $classes[] = 'mac';
+
+        } elseif( strstr($useragent, 'webtv')) {
+            $classes[] = 'webtv';
+
+        } elseif( strstr($useragent, 'win')) {
+            $classes[] = 'win';
+
+        } elseif( strstr($useragent, 'freebsd')) {
+            $classes[] = 'freebsd';
+
+        } elseif( strstr($useragent, 'x11') || strstr($useragent, 'linux') ) {
+            $classes[] = 'linux';
+
+        }
+
+        return implode(' ', $classes);
+    }
+
     public function buildPage(){
         $objTPL     = self::getTPL();
         $objPlugins = self::getPlugins();
@@ -516,7 +617,7 @@ class page extends coreObj{
 
         //throw a hook here, so they have the ability to do...whatever
         $cssFiles = array();
-        $objPlugins->hook('CMS_Page_cssFiles', $cssFiles);
+        $objPlugins->hook('CMS_PAGE_CSSFILES', $cssFiles);
 
             if(count($cssFiles)){
                 foreach($cssFiles as $file){
@@ -542,7 +643,7 @@ class page extends coreObj{
 
         //throw a hook here, so they have the ability to do...whatever
         $jsFiles = array();
-        $objPlugins->hook('CMS_Page_jsFiles', $jsFiles);
+        $objPlugins->hook('CMS_PAGE_JSFILES', $jsFiles);
 
         if( defined('cmsDEBUG') && cmsDEBUG === true ){
             $this->addJSFile(array(
@@ -563,6 +664,7 @@ class page extends coreObj{
 
         $this->buildMenu();
 
+        $objTPL->assign_var('_CSS_SELECTORS', $this->getCSSSelectors());
         $objTPL->assign_var('_META', $this->buildMeta());
         $objTPL->assign_var('_CSS', $this->buildCSS());
         $objTPL->assign_var('_JS_HEADER', $this->buildJS('header'));
@@ -579,7 +681,6 @@ class page extends coreObj{
 
         //see if we are gonna get the simple one or the full blown one
         $header = ($simple ? 'simple_header.tpl' : 'site_header.tpl');
-        // $header = ('simple_header.tpl');
 
         $objTPL->set_filenames(array( 'siteHeader' => self::$THEME_ROOT . $header ));
 
@@ -601,9 +702,9 @@ class page extends coreObj{
 
         //see if we are gonna get the simple one or the full blown one
         $footer = ($simple ? 'simple_footer.tpl' : 'site_footer.tpl');
-        // $footer = ('simple_footer.tpl');
 
         $objTPL->set_filenames(array( 'siteFooter' => self::$THEME_ROOT . $footer ));
+
 
         if( defined('cmsDEBUG') && cmsDEBUG === true ){
 
@@ -613,6 +714,7 @@ class page extends coreObj{
             ));
 
         }
+
 
         $objTPL->parse('siteFooter');
     }

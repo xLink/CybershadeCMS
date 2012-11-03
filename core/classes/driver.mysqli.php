@@ -122,8 +122,7 @@ class driver_mysqli extends core_SQL implements base_SQL{
         $query = $this->_query = $this->_replacePrefix($query);
 
         //exec the query and cache it
-        $this->results = $this->DBH->query($query) or trigger_error("MySQL Error: \n\r".dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
-
+        $this->results = $result = $this->DBH->query($query);
 
         if($this->dbSettings['debug']){
             $backtrace = debug_backtrace();
@@ -140,8 +139,16 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
             $this->totalTime        += $debug['time_taken'];
             $debug['total_time']    = $this->totalTime;
+            $debug['status']        = 'ok';
+            $debug['error']         = '';
+
         }
         $this->debug[] = $debug;
+
+        if( $result === false ){
+            $this->recordMessage(mysql_error(), 'WARNING');
+        }
+
         return $this->results;
     }
 
@@ -162,6 +169,20 @@ class driver_mysqli extends core_SQL implements base_SQL{
 
     public function affectedRows(){
         return $this->DBH->affected_rows;
+    }
+
+    public function recordMessage($message, $mode){
+        if(!$this->dbSettings['debug']){
+            return false;
+        }
+
+        trigger_error('MySQL Error:<br />'.dump($this->_query, 'Query::'.$this->getError()), E_USER_ERROR);
+
+        $max = count($this->debug);
+
+        $this->debug[($max - 1)]['status'] = 'error';
+        $this->debug[($max - 1)]['error'] = $this->getError();
+
     }
 
 }

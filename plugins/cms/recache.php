@@ -1,7 +1,7 @@
 <?php
 
 function recache(){
-    if(isset($_GET['_nocache'])){
+    if(isset($_GET['_recache'])){
         echo dump($a, 'RECACHE BOOM!');
         $objCache = coreObj::getCache();
 

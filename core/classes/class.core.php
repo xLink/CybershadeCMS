@@ -260,6 +260,7 @@ class coreObj {
         if (!isset(coreObj::$_classes[$name]) || empty(coreObj::$_classes[$name])){
             $class = self::getStaticClassName();
             coreObj::$_classes[$name] = new $class($name, $options);
+            (cmsDEBUG ? memoryUsage( sprintf('Init: New object - %s. ', $class) ) : '');
         }
 
         return coreObj::$_classes[$name];
@@ -296,18 +297,18 @@ class coreObj {
   //-- Get Class Instances
   //
 **/
-    public static function getDBO($driver=null){
+    public static function getDBO(){
         global $errorTPL;
 
-        if(!isset(coreObj::$_classes['database'][$driver])){
+
+        if(!isset(coreObj::$_classes['database'])){
             $options = self::config('db');
                 if(!$options){ trigger_error('Error: Could not obtain values from teh configuration file. Please ensure it is present.', E_USER_ERROR); }
 
             $name = $options['driver'];
 
             //see if we have an override
-            $driver = strtolower($driver);
-            if(in_array($driver, array('mysql', 'mysqli'))){
+            if( in_array( $driver, array('mysql', 'mysqli') ) ){
                 $name = $driver;
             } $name = 'driver_'.$name;
 
@@ -332,10 +333,10 @@ class coreObj {
                     )
                 );
             }
-            coreObj::$_classes['database'][$name] = $objSQL;
+            coreObj::$_classes['database'] = $objSQL;
         }
 
-        return coreObj::$_classes['database'][$name];
+        return coreObj::$_classes['database'];
     }
 
     public static function getTPL(){
@@ -431,6 +432,14 @@ class coreObj {
         }
 
         return coreObj::$_classes['user'];
+    }
+
+    public static function getForm(){
+        if(!isset( coreObj::$_classes['form'] )){
+            user::getInstance('form');
+        }
+
+        return coreObj::$_classes['form'];   
     }
 }
 

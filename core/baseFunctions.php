@@ -345,6 +345,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         return $useragent;
     }
 
+
 /**
   //
   //--String Functions
@@ -1215,6 +1216,145 @@ function bbcode_quote($bbcode, $action, $name, $default, $params, $content) {
     return "\n<div class=\"bbcode_quote\">\n<div class=\"bbcode_quote_head\">"
     . $title . "</div>\n<div class=\"bbcode_quote_body\">"
     . $content . "</div>\n</div>\n";
+}
+
+/**
+ * Execute a method within a module / class that you wouldn't normally have access to.
+ *
+ * @version 1.0
+ * @since   1.0
+ * @author  Daniel Noel-Davies
+ *
+ * @param   string  $class
+ * @param   string  $method
+ * @param   array   $parameters
+ *
+ * @return  mixed
+ */
+function reflectMethod( $class, $method, $parameters) {
+  // Check the class and subsequent method are callable, else trigger an error
+    if ( !is_callable( array( $class, $method ) ) ) {
+        trigger_error( 'The class or method you are trying to call, dosen\'t exist.' );
+        return false;
+    }
+
+    // Retrieve the info we need about the class and method
+    $refMethod = new ReflectionMethod( $class, $method );
+    $params    = $refMethod->getParameters( );
+    $args = array();
+
+    // Loop through the parameters the method asks for,
+    //  and match them up with our arguments where possible
+    foreach( $params as $k => $name ) {
+        $var = $name->getName();
+
+        // check if the var they asked for is in the params
+        if(!isset($parameters[$var])){
+            $args[$var] = null;
+            continue;
+        }
+
+        // and then check if we have to throw the var at them as a reference
+        if($name->isPassedByReference()){
+            $args[$var] = &$parameters[$var];
+        }else{
+            $args[$var] = $parameters[$var];
+        }
+    }
+
+    $objModule = new $class;
+    $objModule->setVars(array(
+        '_method' => $method,
+        '_module' => $class,
+    ));
+
+    try {
+        return $refMethod->invokeArgs( $objModule , $args );
+
+    } catch( Exception $e ) {
+        trigger_error( $e->getMessage() );
+    }
+}
+
+/**
+ * Return a new instance of a class usually out of current scope
+ *
+ * @version 1.0
+ * @since   1.0
+ * @author  Daniel Noel-Davies
+ *
+ * @param   string  $class
+ *
+ * @return  object
+ */
+function reflectClass( $class ) {
+
+    try {
+        $object = new ReflectionClass( $class );
+
+    } catch( Exception $e ) {
+        trigger_error( $e->getMessage() );
+    }
+
+    if( is_object( $object ) ) {
+        return $object->newInstance();
+
+    } else {
+        trigger_error( $e->getMessage() );
+    }
+}
+
+/**
+ * Returns the associated token type for a 'sprintf' function by the passed variable
+ *
+ * @version 1.0
+ * @since   1.0
+ * @author  Richard Clifford
+ *
+ * @param   mixed  $value_one [,$value_two, $value_three...]
+ *
+ * @return  string
+ */
+
+function getTokenType(){
+
+    $values = func_get_args();
+
+    if( is_empty( $values ) ){
+      return '';
+    }
+
+    $token = '';
+    foreach( $values as $value ){
+
+        if( $value === '%' ){
+            $token .= '%%';
+        }
+
+        switch( gettype( $value ) ){
+
+
+            case 'boolean':
+            case 'integer':
+                $token .= '%d,';
+                break;
+
+            case 'double':
+                $token .= '%f,';
+                break;
+
+            case 'NULL':
+            case 'string':
+                $token .= '\'%s\',';
+                break;
+
+            default:
+                trigger_error( sprintf('Unknown token type for ', $value) );
+                return '';
+        }
+    }
+
+    return $token;
 }
 
 

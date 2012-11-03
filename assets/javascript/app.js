@@ -16,7 +16,7 @@ var AppName = AppName || (function() {
             if(typeof path=="undefined"){
                 path = '';
             }
-            return utils.settings.homeURL+path;            
+            return utils.settings.homeURL+path;
         },
         settings: {
             debug: true,
@@ -51,20 +51,20 @@ var AppName = AppName || (function() {
 
             if(typeof bootstrap[controller] != 'undefined'){
                 if(typeof bootstrap[controller].init != 'undefined'){
-                    bootstrap[controller].init.call();                
+                    bootstrap[controller].init.call();
                 }
 
                 if(typeof bootstrap[controller][action] != 'undefined'){
-                    bootstrap[controller][action].call();              
+                    bootstrap[controller][action].call();
                 }
-            }            
+            }
         }
     };
     dump = utils.log;
 
     /*
      * Your Page by Page Logic
-     * 
+     *
      * Use the following object to store page-specific code. if your controller
      * is dashboard, it would look like the following below. If there is an init
      * function within your controller object, it will be called before any other
@@ -113,4 +113,4 @@ var AppName = AppName || (function() {
 })();
 
 // MKAY GO
-$(document).ready(AppName.init);?
+$(document).ready(AppName.init);

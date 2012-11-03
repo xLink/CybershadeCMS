@@ -111,7 +111,8 @@ class route extends coreObj{
         $this->loadRoutes();
 
         foreach($this->routes as $label => $route){
-            (cmsDEBUG ? memoryUsage('Routes: Testing - '.$route['pattern']).'' : '');
+            (cmsDEBUG ? memoryUsage('Routes: ') : '');
+            (cmsDEBUG ? memoryUsage('Routes: Testing - '.$label) : '');
 
             // Check for a method being set, if it doesn't match, continue
             if( $route['method'] != 'any' && $route['method'] != $_SERVER['REQUEST_METHOD']) {
@@ -145,7 +146,6 @@ class route extends coreObj{
             if( $this->testRoute( $url, $pattern, $route ) !== false ){
                 (cmsDEBUG ? memoryUsage('Routes: Pattern Match Successful - '.$route['pattern']) : '');
 
-                $this->setVar('route', $route);
                 $this->setVar('type', 'dynamic');
 
                 return true;
@@ -178,7 +178,7 @@ class route extends coreObj{
         // Collect all the replacement 'variables' from the route structure into an array
         (cmsDEBUG ? memoryUsage('Routes: Gathering variables from pattern') : '');
         $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
-        $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
+        $this->replacements = $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
         // Loop through our replacements (if there are any),
         //  In the matching, if there is a requirement set, use that,
@@ -193,6 +193,8 @@ class route extends coreObj{
 
             $route['pattern'] = str_replace( ':' . $replacement, '(' . $replaceWith . ')', $route['pattern'] );
         }
+
+        $this->route = $route;
 
         return $route['pattern'];
     }
@@ -242,7 +244,7 @@ class route extends coreObj{
 
             // Make sure our key/index array is sorted properly
             foreach( $matches as $index => $value ) {
-                $params[ $replacements[$index] ] = $value;
+                $params[ $this->replacements[$index] ] = $value;
             }
 
             // replace get params with what we have here & whats in the URL...
@@ -258,8 +260,10 @@ class route extends coreObj{
             // merge the arguments & the params and then invoke the route
             $route['arguments'] = array_merge( (array) $route['arguments'], $params);
 
+            $this->route = $route;
+
             unset($route, $matches, $params, $replacements, $parts_u, $parts_p, $ourRoute, $replaceWith, $objCache);
-            return $route;
+            return true;
         }
 
         return false;
@@ -275,12 +279,14 @@ class route extends coreObj{
      * @return      bool
      */
     public function invokeRoute(){
-        (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D') : '');
-
         $route = $this->getVar('route');
         if( is_empty( $route ) ) {
-            trigger_error('Route passed is null. :/', E_USER_ERROR);
+            (cmsDEBUG ? memoryUsage('Routes: ') : '');
+            (cmsDEBUG ? memoryUsage('Routes: No Pattern Matched. Throwing 404...') : '');
+            $this->throwHTTP(404);
+            return;
         }
+        (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D'.dump($this->route)) : '');
 
         // Check if the route is a redirection
         if( !is_empty( $route['redirect'] ) ) {
@@ -353,7 +359,7 @@ class route extends coreObj{
      *
      * @return      bool
      */
-    public function addRoute( $route ) {
+    public function addRoute( $route, $module = null ) {
         if( !is_array($route) || is_empty($route) ){
             return false;
         }
@@ -363,12 +369,15 @@ class route extends coreObj{
         $objSQL   = coreObj::getDBO();
         $objCache = coreObj::getCache();
 
+        $methods = array( 'HEAD', 'PUT', 'GET', 'OPTIONS', 'POST', 'DELETE', 'TRACE', 'CONNECT', 'PATCH' );
+
         $values['label']        = $label;
         $values['status']       = '1';
-        $values['module']       = $route['moduleID'];
+        $values['module']       = ( $module === null ? $route['moduleID'] : $module );
         $values['pattern']      = $route['pattern'];
-        $values['arguments']    = json_encode( !empty( $route['arguments'] )    ? $route['arguments']    : array() );
-        $values['requirements'] = json_encode( !empty( $route['requirements'] ) ? $route['requirements'] : array() );
+        $values['arguments']    = addslashes( json_encode( !empty( $route['arguments'] )    ? $route['arguments']    : array() ) );
+        $values['requirements'] = addslashes( json_encode( !empty( $route['requirements'] ) ? $route['requirements'] : array() ) );
+        $values['method']       = ( in_array( $route['method'], $methods ) ? $route['method'] : 'ANY' );
         // To Add Logic for: Status && Redirection
 
         $query = $objSQL->queryBuilder()
@@ -400,7 +409,7 @@ class route extends coreObj{
         }
 
         foreach ( $routes as $name => $route ) {
-            $this->addRoute( $module, array( $name => $route ) );
+            $this->addRoute( $route, $module );
         }
 
         return true;
@@ -502,21 +511,22 @@ class route extends coreObj{
                         ->build();
 
         $results = $objSQL->fetchAll( $query );
+        $methods = array( 'HEAD', 'PUT', 'GET', 'OPTIONS', 'POST', 'DELETE', 'TRACE', 'CONNECT', 'PATCH' );
 
         foreach( $results as $result ) {
 
             $args = json_decode( $result['arguments'], true);
-                if($args === null){
-                    $args = array();
-                }
+            if($args === null){
+                $args = array();
+            }
 
             $reqs = json_decode( $result['requirements'], true);
-                if($reqs === null){
-                    $reqs = array();
-                }
+            if($reqs === null){
+                $reqs = array();
+            }
 
             $output[$result['pattern']] = array(
-                'method'        => ( !empty( $result['method'] ) ? $result['method'] : 'any' ),
+                'method'        => ( in_array( $request['method'], $methods ) ? strtolower( $result['method'] ) : 'any' ),
                 'pattern'       => $result['pattern'],
                 'module'        => $result['module'],
                 'arguments'     => $args,
@@ -594,7 +604,7 @@ class route extends coreObj{
     }
 
     /**
-     * Merges $params with the current _GET global.
+     * Merges $params with the current _GET gobal.
      *
      * @version 1.0
      * @since   1.0.0
