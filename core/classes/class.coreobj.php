@@ -58,32 +58,58 @@ class coreObj {
             trigger_error('Error: No Directories to scan for class.', E_USER_ERROR);
         }
 
-        //only use the last part of the class name if it has an underscore
-        if(strpos($class, '_') !== false){
-            $class = explode('_', $class, 2);
-            $class = end($class);
-        }
-        $class = strtolower($class);
-
-        //loop thru the dirs, trying to match the class with the file
+        // Grab all the dir's we've been given to search
         $dirs = self::$classDirs;
-        foreach($dirs as $dir => $files){
-            if(!count($files)){ continue; }
-            foreach($files as $file){
-                if(strpos($file, $class) !== false){
-                    include_once($file);
+
+        // Loop through the dirs we've been given
+        foreach( $dirs as $dir => $files ) {
+
+            // If there are no files in here, why the hell are we bothering?
+            if( !count( $files ) ){ continue; }
+
+            // Switch case through dirs for different naming structures.
+            switch( $dir ) {
+
+                case 'libs':
+                case 'modules':
+                case 'classes':
+                    $filePrefix = 'class.';
+                    $classPrefix  = '';
+                    break;
+
+                case 'drivers':
+                    $filePrefix = 'driver.';
+                    $classPrefix  = 'driver_';
+                    break;
+            }
+
+            // Within each dir, loop through the files using the prefixes generated above.
+            foreach( $files as $file ) {
+
+                // Generate what the classname should look like, if this is the file we're searching for
+                $possibleClassname = $classPrefix . inBetween( $filePrefix, '.php', $file );
+
+                // Check if this is indeed the right file for the class
+                if( strtolower( $possibleClassname ) === strtolower( $class ) ) {
+
+                    // YAY! Include it and sort that cute little ass ;D
+                    include_once( $file );
+
                     (cmsDEBUG ? memoryUsage('SYSTEM: AutoLoading '.$file) : '');
 
                     if( is_callable($class) ){
                         return true;
                     }
 
+                    // Ah fuck, Doesn't wanna load :/ AWKKWARDDD 
+                    (cmsDEBUG ? memoryUsage( 'SYSTEM: Could\'t autoload file ' . $file ) : '');
                     return false;
                 }
             }
         }
 
-        trigger_error('No File found for this Class.'.dump($dirs, $class), E_USER_ERROR);
+        //echo dump($dirs, $class);
+        trigger_error('No File found for this Class. '.$class, E_USER_ERROR);
         return false;
     }
 

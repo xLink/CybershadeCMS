@@ -102,9 +102,10 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     // AUTOLOADER, I Choose You!
         // directories to use for the autoloading, these get glob'd over after
         $dirs = coreObj::addClassDirs(array(
-            'base'    => cmsROOT.'core/classes/*.php',
-            'libs'    => cmsROOT.'core/lib/*/class.*.php',
-            'modules' => cmsROOT.'modules/*/class.*.php',
+            'classes'    => cmsROOT.'core/classes/*.php',
+            'libs'       => cmsROOT.'core/libs/*/class.*.php',
+            'drivers'    => cmsROOT.'core/drivers/driver.*.php',
+            'modules'    => cmsROOT.'modules/*/class.*.php',
         ));
 
     (cmsDEBUG ? memoryUsage('Core: autoloader dirs') : '');
