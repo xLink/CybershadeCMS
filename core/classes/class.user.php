@@ -378,17 +378,11 @@ class User extends coreObj {
 
             // Check if the keys belong to users_extras table or users_extras table
             if( in_array( $key, $userColumnData ) ){
-                if( is_number( $settings[$key] ) ){
-                    $userData[$key] = sprintf("%d", $settings[$key]);
-                }
-                $userData[$key] = sprintf("'%s'", $settings[$key]);
+                $userData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
             }
 
             if( in_array( $key, $userExtraColumnData ) ){
-                if( is_number( $settings[$key] ) ){
-                    $userExtraData[$key] = sprintf("%d", $settings[$key]);
-                }
-                $userExtraData[$key] = sprintf("'%s'", $settings[$key]);
+                $userExtraData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
             }
         }
 

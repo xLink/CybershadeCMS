@@ -473,7 +473,6 @@ class Debug extends coreObj{
         $output    = '';
         $debugTabs = array( );
         $objPlugin = coreObj::getPlugins();
-        $objPage   = coreObj::getPage();
 
         // Setup the tabs
         $tab = $this->getGlobals(true);

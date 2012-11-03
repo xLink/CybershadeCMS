@@ -75,6 +75,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         return (isset($args[$key]) && $extra ? $args[$key] : $default);
     }
 
+
     /**
      * Run a function recursivly through an array
      * http://www.php.net/manual/en/function.array-walk-recursive.php#99639
@@ -1301,6 +1302,59 @@ function reflectClass( $class ) {
     } else {
         trigger_error( $e->getMessage() );
     }
+}
+
+/**
+ * Returns the associated token type for a 'sprintf' function by the passed variable
+ *
+ * @version 1.0
+ * @since   1.0
+ * @author  Richard Clifford
+ *
+ * @param   mixed  $value_one [,$value_two, $value_three...]
+ *
+ * @return  string
+ */
+
+function getTokenType(){
+
+    $values = func_get_args();
+
+    if( is_empty( $values ) ){
+      return '';
+    }
+
+    $token = '';
+    foreach( $values as $value ){
+
+        if( $value === '%' ){
+            $token .= '%%';
+        }
+
+        switch( gettype( $value ) ){
+
+
+            case 'boolean':
+            case 'integer':
+                $token .= '%d,';
+                break;
+
+            case 'double':
+                $token .= '%f,';
+                break;
+
+            case 'NULL':
+            case 'string':
+                $token .= '\'%s\',';
+                break;
+
+            default:
+                trigger_error( sprintf('Unknown token type for ', $value) );
+                return '';
+        }
+    }
+
+    return $token;
 }
 
 

@@ -10,8 +10,6 @@ $objPage->setTheme();
 
 $objPage->setTitle('Test');
 
-
-
 $objPage->buildPage();
 $objPage->showHeader();
 
@@ -20,5 +18,4 @@ $objPage->showHeader();
 echo dump($_SESSION);
 
 $objPage->showFooter();
-
 ?>
