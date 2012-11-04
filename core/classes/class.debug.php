@@ -473,6 +473,10 @@ class Debug extends coreObj{
         $output    = '';
         $debugTabs = array( );
         $objPlugin = coreObj::getPlugins();
+        $objPage   = coreObj::getPage();
+
+        $objPage->addJSFile(array('src' => '/'.root().'assets/javascript/tabs.js'), 'footer');
+        $objPage->addJSFile(array('src' => '/'.root().'assets/javascript/debug.js'), 'footer');
 
         // Setup the tabs
         $tab = $this->getGlobals(true);
