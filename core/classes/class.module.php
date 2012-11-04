@@ -53,7 +53,8 @@ class Module extends coreObj{
 
         $path = sprintf('modules/%s/views/%s/%s.tpl', $module, $method, $view);
         if( !is_file($path) ){
-            trigger_error($path.' is not a valid path', E_USER_ERROR);
+            trigger_error($path.' is not a valid path');
+            return false;
         }
 
         $objTPL->set_filenames(array(

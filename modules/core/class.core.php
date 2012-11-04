@@ -23,15 +23,6 @@ class core extends Module{
 
         $this->setView('default');
 
-        if( HTTP_POST ){
-            $errors = array();
-            if( $objSession->checkToken('hash') ){
-                $errors[] = 'There was an issue with submitting the form, please try again.';
-            }
-
-            echo dump($_POST);
-        }
-
         $form = array(
             'FORM_START'    => $objForm->start('login', array(
                                     'method' => 'POST',
@@ -67,6 +58,17 @@ class core extends Module{
         );
 
         $objTPL->assign_block_vars('login', $form);
+
+    }
+
+    public function login_process(){
+        $objSession = coreObj::getSession();
+        $errors = array();
+        if( $objSession->checkToken('hash') ){
+            $errors[] = 'There was an issue with submitting the form, please try again.';
+        }
+
+        echo dump($_POST);
 
     }
 }

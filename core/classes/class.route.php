@@ -116,11 +116,12 @@ class Route extends coreObj{
 
         foreach($this->routes as $label => $route){
             (cmsDEBUG ? memoryUsage('Routes: ') : '');
-            (cmsDEBUG ? memoryUsage('Routes: Testing - '.$label) : '');
+            (cmsDEBUG ? memoryUsage('Routes: Testing - '.$route['pattern']) : '');
 
             // Check for a method being set, if it doesn't match, continue
-            if( $route['method'] != 'any' && $route['method'] != $_SERVER['REQUEST_METHOD']) {
-                (cmsDEBUG ? memoryUsage('Routes: Dismissing pattern due to incorrect REQUEST_METHOD') : '');
+            if( strtoupper($route['method']) != 'ANY' && strtoupper($route['method']) != $_SERVER['REQUEST_METHOD']) {
+                (cmsDEBUG ? memoryUsage('Routes: Dismissing pattern due to incorrect REQUEST_METHOD <br />'.
+                                $route['method'].' != '.$_SERVER['REQUEST_METHOD']) : '');
                 continue;
             }
 
@@ -511,7 +512,7 @@ class Route extends coreObj{
                             ->addField('pattern LIKE "%:%" as `dynamic`')
                         ->from('#__routes')
                         ->where('status', '=', '1')
-                        ->orderBy('`dynamic`, CHAR_LENGTH(pattern)', 'DESC')
+                        ->orderBy('`dynamic` ASC, method DESC, CHAR_LENGTH(pattern)', 'DESC')
                         ->build();
 
         $results = $objSQL->fetchAll( $query );
@@ -520,17 +521,17 @@ class Route extends coreObj{
         foreach( $results as $result ) {
 
             $args = json_decode( $result['arguments'], true);
-            if($args === null){
+            if( $args === null ){
                 $args = array();
             }
 
             $reqs = json_decode( $result['requirements'], true);
-            if($reqs === null){
+            if( $reqs === null ){
                 $reqs = array();
             }
 
-            $output[$result['pattern']] = array(
-                'method'        => ( in_array( $request['method'], $methods ) ? strtolower( $result['method'] ) : 'ANY' ),
+            $output[] = array(
+                'method'        => ( in_array( $result['method'], $methods ) ? $result['method'] : 'ANY' ),
                 'pattern'       => $result['pattern'],
                 'module'        => $result['module'],
                 'arguments'     => $args,
@@ -540,7 +541,6 @@ class Route extends coreObj{
                 'redirect'      => $result['redirect']
             );
         }
-
         return $output;
     }
 
