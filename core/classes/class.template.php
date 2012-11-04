@@ -186,7 +186,7 @@ class Template extends coreObj{
 
     public function get_html($handle) {
         if(!$this->loadfile($handle)) {
-            trigger_error('Template->get_html(): Couldn\'t load template file for handle '.$handle);
+            trigger_error('Template->get_html(): Couldn\'t load template file for handle '.$handle, E_USER_ERROR);
             return false;
         }
 

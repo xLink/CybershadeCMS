@@ -12,19 +12,33 @@ class core extends Module{
 
     }
 
+    public function viewIndex(){
+        $this->login();
+    }
 
-    public function login(){
-        $objTPL = coreObj::getTPL();
-        $objForm = coreObj::getForm();
+    public function login_form(){
+        $objTPL     = coreObj::getTPL();
+        $objForm    = coreObj::getForm();
+        $objSession = coreObj::getSession();
 
         $this->setView('default');
 
-        $objTPL->assign_block_vars('login', array(
+        if( HTTP_POST ){
+            $errors = array();
+            if( $objSession->checkToken('hash') ){
+                $errors[] = 'There was an issue with submitting the form, please try again.';
+            }
+
+            echo dump($_POST);
+        }
+
+        $form = array(
             'FORM_START'    => $objForm->start('login', array(
                                     'method' => 'POST',
-                                    'action' => '/'.root().'login.php?action=check')
+                                    'action' => '?')
                                 ),
-            'FORM_END'      => $objForm->inputbox('hash', 'hidden', $hash) . $objForm->finish(),
+            'FORM_END'      => $objForm->finish(),
+            'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
 
             'L_USERNAME'    => langVar('L_USERNAME'),
             'F_USERNAME'    => $objForm->inputbox('username', 'text', $userValue, array(
@@ -50,7 +64,9 @@ class core extends Module{
                                 )),
 
             'SUBMIT'        => $objForm->button('submit', 'Login', array('class'=>'btn btn-success')),
-        ));
+        );
+
+        $objTPL->assign_block_vars('login', $form);
 
     }
 }

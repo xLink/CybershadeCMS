@@ -48,7 +48,7 @@ class Session extends coreObj{
     }
 
     /**
-     * Has a 5% chance at running the query to remove the old/inactive sessions from the database.
+     * Has a 25% chance at running the query to remove the old/inactive sessions from the database.
      *
      * @version 1.0
      * @since   1.0.0
@@ -197,6 +197,62 @@ class Session extends coreObj{
         return false;
     }
 
+
+
+    /**
+     * Gets the form token for the sesson
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   bool    $forceNew
+     *
+     * @return  string $token
+     */
+    public function getFormToken($forceNew=false){
+        $objUser = coreObj::getUser();
+
+        return md5( 'CSCMS' . self::getToken($forceNew) );
+    }
+
+    /**
+     * Gets the token for the session
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   bool $forceNew
+     *
+     * @return  string $token
+     */
+    public function getToken($forceNew=false){
+        $token = $this->getVar('session', 'token');
+
+        if(empty($token) || $forceNew){
+            $token = randCode(12);
+            $this->setVar('session', 'token', $token);
+        }
+
+        return $token;
+    }
+
+    public function checkToken( $formKey ){
+        // check if we are in post mode
+        if( !HTTP_POST ){ return false; }
+
+        // make sure the key they given us is there and not empty
+        if( !isset($_POST[$formKey]) || is_empty($_POST[$formKey]) ){
+            return false;
+        }
+
+        if( $_POST[$formKey] == $this->getToken() ){
+            return true;
+        }
+
+        return false;
+    }
 }
 
 ?>

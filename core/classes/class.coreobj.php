@@ -15,7 +15,8 @@ class coreObj {
 
     public static   $classDirs   = array(),
                     $_classes    = array(),
-                    $_instances  = array();
+                    $_instances  = array(),
+                    $_config     = array();
 
 
     /**
@@ -239,15 +240,11 @@ class coreObj {
      * @return  mixed
      */
     public static function config($array=null, $setting=null, $default=null){
-        //if its the database details they want, then lets throw em the config stuff
-        if($array == 'db'){
-            global $config;
-
-        //else load in the config cache and go from there
-        }else{
+        $config = self::$_config;
+        if( empty($config) ){
             $objCache = coreObj::getCache();
 
-            $config = $objCache->get('config');
+            $config = addConfig( $objCache->get('config') );
         }
 
         //if no arguments were passed, throw it all out
@@ -266,6 +263,17 @@ class coreObj {
         }
 
         return doArgs($setting, $default, $config[$array]);
+    }
+
+    public function addConfig( $var, $key=null ){
+        if( is_empty($var) && !is_array($var) ){
+            return false;
+        }
+
+        self::$_config = array_merge( self::$_config, $var );
+        //echo dump(self::$_config);
+
+        return self::$_config;
     }
 
     /**

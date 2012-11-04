@@ -31,6 +31,7 @@
                 {login.SUBMIT} {login.REGISTER}
             </div>
         </div>
+        {login.HIDDEN}
     {login.FORM_END}
     <!-- END login -->
 </div>

@@ -118,6 +118,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
     $objCore     = new coreObj;
 
+    $objCore->addConfig($config);
+
     $objCache    = coreObj::getCache();
     $objRoute    = coreObj::getRoute();//->modifyGet();
     $objSQL      = coreObj::getDBO();

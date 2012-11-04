@@ -955,18 +955,21 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Shows a message and then exit the current page with a footer.
      *
-     * @version 2.0         Updated to work with 0.8 structure
+     * @version 2.0
      * @since   0.6.0
      */
     function msgDie($msg_type, $message, $line=null, $file=null, $query=null, $footer=true){
-        global $objTPL, $objPage;
+        $objTPL = coreObj::getTPL();
+        $objPage = coreObj::getPage();
 
-        if(!is_object($objTPL) || !is_object($objPage)){ echo $message; exit; }
-        $header = $objPage->getVar('header');
-        if(!$header['completed']){ $objPage->showHeader(true); }
+        //if(!is_object($objTPL) || !is_object($objPage)){ echo $message; exit; }
+        $header = $objPage->getOptions('completed');
+        if(!$header){
+            $objPage->showHeader();
+        }
 
         $objTPL->set_filenames(array(
-            '__msgBody'    => 'modules/core/template/message.tpl'
+            '__msgBody' => 'modules/core/views/message/default.tpl'
         ));
 
         $query = !is_empty($query) ? $query : null;
@@ -996,7 +999,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $objTPL->parse('__msgBody');
 
         if($footer){
-            $objPage->showFooter(false);
+            $objPage->showFooter();
         }
         exit;
     }

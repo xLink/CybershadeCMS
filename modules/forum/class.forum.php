@@ -182,13 +182,37 @@ class module_forum extends Module{
      */
     public function outputCats($categories, $index=false, $title=null){
         $objTPL = coreObj::getTPL();
+        $objSQL = coreObj::getDBO();
 
         $objTPL->set_filenames(array(
             'categories' => 'modules/forum/template/assets/categoryOutput.tpl',
         ));
 
 
+        $forum_moderators = array();
 
+        $query = $objSQL->queryBuilder()
+                        ->select(array('aa.catid', 'u.id', 'u.username'))
+                        ->from(array(
+                            'aa' => '#__forum_auth',
+                            'ug' => '#__group_subs',
+                            'g' => '#__groups',
+                            'u' => '#__users'
+                        ))
+                        ->where('aa.auth_mod = 1')
+                            ->andWhere('g.single_user_group = 1')
+                            ->andWhere('ug.gid = aa.group_id')
+                            ->andWhere('g.id = aa.group_id')
+                            ->andWhere('u.id = ug.uid')
+                        ->groupBy('u.id, u.username, aa.cat_id')
+                        ->orderBy('aa.cat_id ASC, u.id ASC')
+                        ->build();
+        $results = $objSQL->fetchAll( $query );
+            if( $results === false ){
+                $msg = 'Could not query forum moderator information';
+                trigger_error($msg);
+                hmsgDie('FAIL', $msg)
+            }
 
 
 

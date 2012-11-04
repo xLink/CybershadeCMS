@@ -77,17 +77,18 @@ class Route extends coreObj{
         // Run A hook
         $objPlugin->hook('CMS_ROUTE_START');
 
+        // Strip the slash off the end if there is one, purely for the routes
+        // TODO: (Should be solved elsewhere)
+        if( substr( $url, -1) == '/' ){
+            $url = substr( $url, 0, -1 );
+        }
+
         // Append a forward slash to the incoming url if there isn't one
         // TODO: (Should be solved elsewhere)
         if( strpos( $url, '/' ) !== 0 ) {
             $url = '/' . $url;
         }
 
-        // Strip the slash off the end if there is one, purely for the routes
-        // TODO: (Should be solved elsewhere)
-        if( substr( $url, -1) == '/' ){
-            $url = substr( $url, 0, -1 );
-        }
 
         if( $this->findMatch( $url ) !== true ) {
             $this->throwHTTP(404);
@@ -506,7 +507,7 @@ class Route extends coreObj{
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                        ->select('module', 'label', 'pattern', 'arguments', 'requirements', 'status', 'redirect')
+                        ->select('module', 'label', 'pattern', 'method', 'arguments', 'requirements', 'status', 'redirect')
                             ->addField('pattern LIKE "%:%" as `dynamic`')
                         ->from('#__routes')
                         ->where('status', '=', '1')
@@ -514,7 +515,7 @@ class Route extends coreObj{
                         ->build();
 
         $results = $objSQL->fetchAll( $query );
-        $methods = array( 'HEAD', 'PUT', 'GET', 'OPTIONS', 'POST', 'DELETE', 'TRACE', 'CONNECT', 'PATCH' );
+        $methods = array( 'ANY', 'HEAD', 'PUT', 'GET', 'OPTIONS', 'POST', 'DELETE', 'TRACE', 'CONNECT', 'PATCH' );
 
         foreach( $results as $result ) {
 
@@ -529,7 +530,7 @@ class Route extends coreObj{
             }
 
             $output[$result['pattern']] = array(
-                'method'        => ( in_array( $request['method'], $methods ) ? strtolower( $result['method'] ) : 'any' ),
+                'method'        => ( in_array( $request['method'], $methods ) ? strtolower( $result['method'] ) : 'ANY' ),
                 'pattern'       => $result['pattern'],
                 'module'        => $result['module'],
                 'arguments'     => $args,

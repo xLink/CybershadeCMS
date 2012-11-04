@@ -24,6 +24,25 @@ class User extends coreObj {
             'timezone'  => doArgs('timezone', $this->config('time', 'timezone'), $_SESSION['user']),
         );
 
+        self::addConfig(array(
+            'global' => array(
+                'user'      => (isset($_SESSION['user']['id']) ? $_SESSION['user'] : $guest['user']),
+                'ip'        => User::getIP(),
+                'useragent' => doArgs('HTTP_USER_AGENT', null, $_SERVER),
+                'browser'   => getBrowser($_SERVER['HTTP_USER_AGENT']),
+                'language'  => $language,
+                'secure'    => ($_SERVER['HTTPS'] ? true : false),
+                'referer'   => doArgs('HTTP_REFERER', null, $_SERVER),
+                'rootPath'  => '/'.root(),
+                'fullPath'  => $_SERVER['REQUEST_URI'],
+                'rootUrl'   => ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].'/'.root(),
+                'url'       => ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
+            )
+        ), 'user');
+
+        $user = $this->config('global', 'user');
+        $this->setIsOnline(!($user['id'] == 0 ? true : false));
+        $this->initPerms();
     }
 
     /**
@@ -49,9 +68,9 @@ class User extends coreObj {
      * @author  Dan Aldridge
      */
     public function initPerms(){
-        self::$IS_USER      = $this->checkPermissions($this->grab('id'), USER);
-        self::$IS_ADMIN     = $this->checkPermissions($this->grab('id'), ADMIN);
-        self::$IS_MOD       = $this->checkPermissions($this->grab('id'), MOD);
+        self::$IS_USER      = $this->checkPermissions($this->get('id'), USER);
+        self::$IS_ADMIN     = $this->checkPermissions($this->get('id'), ADMIN);
+        self::$IS_MOD       = $this->checkPermissions($this->get('id'), MOD);
     }
 
 /**
@@ -72,7 +91,7 @@ class User extends coreObj {
      *
      * @return  mixed
      */
-    public function get( $uid, $fields=array() ){
+    public function get( $fields=array(), $uid=0 ){
 
         // test to see if we already have the info avaliable
         if( isset($this->userInfo[strtolower($uid)]) ){
@@ -80,7 +99,7 @@ class User extends coreObj {
             $info = $this->userInfo[strtolower($uid)];
 
             if($info === false){
-                $this->setError('$info was set to false.');
+                trigger_error('$info was set to false.');
                 return false;
             }
 
@@ -88,6 +107,15 @@ class User extends coreObj {
         } else {
 
             $objSQL = coreObj::getDBO();
+
+            if( $uid == 0 ){
+                $uid = (User::$IS_ONLINE ? $_SESSION['user']['id'] : 0);
+            }
+
+            if( $uid == 0 ){
+                return array();
+            }
+
             //figure out if they gave us a username or a user id
             $user = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = %s');
             $x    = sprintf($user, strtoupper($uid));
@@ -109,7 +137,7 @@ class User extends coreObj {
             // any subsequent checks will be auto failed.
             if( !$results || !count($results) ){
                 $this->userInfo[strtolower($uid)] = false;
-                $this->setError('Could not retreive information about the user.');
+                trigger_error('Could not retreive information about the user.');
                 return false;
             }
 
@@ -124,7 +152,7 @@ class User extends coreObj {
         }
 
         if( !count($info) ){
-            $this->setError('Could not retreive information about the user.');
+            trigger_error('Could not retreive information about the user.');
             return false;
         }
 
@@ -141,7 +169,7 @@ class User extends coreObj {
                 if( isset( $info[$fields[0]] ) ){
                     return $info[$fields[0]];
                 }else{
-                    $this->setError('Could not find the field you were looking for.');
+                    trigger_error('Could not find the field you were looking for.');
                     return false;
                 }
 
@@ -170,7 +198,7 @@ class User extends coreObj {
             if( isset($info[$fields]) ){
                 return $info[$fields];
             }else{
-                $this->setError('Could not find the field you were looking for.');
+                trigger_error('Could not find the field you were looking for.');
                 return false;
             }
 
@@ -258,17 +286,17 @@ class User extends coreObj {
     public function validateUsername( $username, $exists=false ){
 
         if( strlen($username) > 25 || strlen($username) < 2 ){
-            $this->setError('Username dosen\'t fall within usable length parameters. Between 2 and 25 characters long.');
+            trigger_error('Username dosen\'t fall within usable length parameters. Between 2 and 25 characters long.');
             return false;
         }
 
         if( preg_match('~[^a-z0-9_\-@^]~i', $username) ){
-            $this->setError('Username dosen\'t validate. Please ensure that you are using no special characters etc.');
+            trigger_error('Username dosen\'t validate. Please ensure that you are using no special characters etc.');
             return false;
         }
 
         if( $exists === true && $this->get($username, 'username') === false ){
-            $this->setError('Username alerady exists. Please make sure your username is unique.');
+            trigger_error('Username alerady exists. Please make sure your username is unique.');
             return false;
         }
 
@@ -447,7 +475,7 @@ class User extends coreObj {
 
     }
 
-    public function mkPassword( $password, $salt ) {
+    public function mkPassword( $password, $salt='' ) {
         $objPass = new phpass( 8, true );
 
         $hashed = $objPass->hashPassword( $salt . $password );
@@ -472,7 +500,7 @@ class User extends coreObj {
         }
 
         // Fetch the hashed password from the database
-        $hash = $this->get( $uid, 'password' );
+        $hash = $this->get( 'password', $uid );
         if( $phpass->CheckPassword( $password, $hash ) ) {
             return true;
 

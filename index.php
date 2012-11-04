@@ -15,10 +15,11 @@ $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
 $objPage->buildPage();
 $objPage->showHeader();
-    if(!$objTPL->get_html('body')){
+    $output = $objTPL->get_html('body');
+    if(!$output){
         msgDie('FAIL', 'No output received from module.');
     }else{
-        echo $objTPL->get_html('body');
+        echo $output;
     }
 $objPage->showFooter();
 ?>

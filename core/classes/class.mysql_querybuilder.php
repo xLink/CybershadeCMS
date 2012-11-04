@@ -255,7 +255,7 @@ class mysql_queryBuilder extends coreObj{
             $this->_buildOperator($statement);
             $this->{'_build'.$this->queryType}($statement);
             $this->_buildJoin($statement);
-            $this->_buildWhereOn($statement, 'where');
+            $this->_buildWhere($statement, 'where');
             $this->_buildGroupBy($statement);
             $this->_buildOrderBy($statement);
             $this->_buildLimit($statement);
@@ -273,7 +273,7 @@ class mysql_queryBuilder extends coreObj{
                 if($this->_using){
                     $statement[] = sprintf('USING(%s)', $this->_using);
                 }
-                $this->_buildWhereOn($statement, 'on', $idx);
+                $this->_buildOn($statement, 'on', $idx);
             }
         }
 
@@ -386,7 +386,7 @@ class mysql_queryBuilder extends coreObj{
             return implode(', ', $_tables);
         }
 
-        private function _buildWhereOn(&$statement, $type){
+        private function _buildWhere(&$statement, $type){
             if(!in_array($this->queryType, array('UPDATE', 'DELETE', 'SELECT'))){ return; }
 
             if(!count($this->{'_'.strtolower($type)})){ return; }
@@ -417,6 +417,42 @@ class mysql_queryBuilder extends coreObj{
                 }
                 $statement[] = implode(' ', $tmp);
             }
+        }
+
+        private function _buildOn(&$statement, $type, $idx=0){
+            if(!in_array($this->queryType, array('UPDATE', 'DELETE', 'SELECT'))){ return; }
+
+            if(!count($this->{'_'.strtolower($type)})){ return; }
+
+            if(!isset($this->{'_'.strtolower($type)}[$idx])){ return; }
+            $where = $this->{'_'.strtolower($type)}[$idx];
+
+            $statement[] = strtoupper($type);
+            //foreach($this->{'_'.strtolower($type)} as $where){
+                $tmp = array($where['type'], $where['cond1'], $where['operand']);
+                $tmp[1] = $this->_buildFields($tmp[1]);
+
+                if($where['operand'] != 'IN'){
+                    if($type == 'where'){
+                        $tmp[] = $this->_sanitizeValue($where['cond2'], $where['operand'] == 'LIKE');
+                    }else{
+                        $tmp[] = $where['cond2'];
+                    }
+                }else{
+
+                    $ins = array();
+                    if(!is_array($where['cond2'])){
+                        $ins = array($where['cond2']);
+                    }else{
+                        foreach($where['cond2'] as $c2){
+                            $ins[] = $this->_sanitizeValue($c2, false);
+                        }
+                    }
+
+                    $tmp[2] = sprintf('%s ("%s")', $tmp[2], implode(', ', $ins));
+                }
+                $statement[] = implode(' ', $tmp);
+            //}
         }
 
         private function _buildGroupBy(&$statement){
