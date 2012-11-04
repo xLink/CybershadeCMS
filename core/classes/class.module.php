@@ -35,8 +35,8 @@ class Module extends coreObj{
         $method = $this->getVar('_method');
         $view   = str_replace('.tpl', '', $view);
 
-        if(is_empty($view)){
-            trigger_error('You did not set a view for this, cant see it going well ;/');
+        if( is_empty($view) ){
+            trigger_error('You did not set a view for this method.');
             return false;
         }
 
@@ -52,7 +52,7 @@ class Module extends coreObj{
         }
 
         $path = sprintf('modules/%s/views/%s/%s.tpl', $module, $method, $view);
-        if(!is_file($path)){
+        if( !is_file($path) ){
             trigger_error($path.' is not a valid path', E_USER_ERROR);
         }
 
@@ -75,13 +75,13 @@ class Module extends coreObj{
      */
     public function __destruct(){
         // if view hasnt been set, then we dont want to continue
-        if($this->getVar('viewSet') !== true){
+        if( $this->getVar('viewSet') !== true ){
             return false;
         }
         $objTPL = coreObj::getTPL();
 
         // if the handle isnt valid, then return
-        if(!$objTPL->isHandle('body')){
+        if( !$objTPL->isHandle('body') ){
             return false;
         }
 

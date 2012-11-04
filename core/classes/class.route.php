@@ -121,6 +121,7 @@ class Route extends coreObj{
             }
 
             // Match Absolute URLs
+            echo dump($route, $url);
             if( $route['pattern'] === $url ) {
                 (cmsDEBUG ? memoryUsage('Routes: Absolute URL Matched') : '');
 
@@ -196,7 +197,7 @@ class Route extends coreObj{
 
         $this->route = $route;
 
-        return $route['pattern'];
+        return $route['pattern'].'$';
     }
 
     /**
@@ -281,7 +282,7 @@ class Route extends coreObj{
     public function invokeRoute(){
         $route = $this->getVar('route');
         if( is_empty( $route ) ) {
-            (cmsDEBUG ? memoryUsage('Routes: ') : '');
+            (cmsDEBUG ? memoryUsage('Routes: &nbsp;') : '');
             (cmsDEBUG ? memoryUsage('Routes: No Pattern Matched. Throwing 404...') : '');
             $this->throwHTTP(404);
             return;
@@ -332,7 +333,7 @@ class Route extends coreObj{
         }
 
         // GO! $Module!, $Module used $Method($args)... It was super effective!
-        (cmsDEBUG ? memoryUsage('Routes: Call Method.') : '');
+        (cmsDEBUG ? memoryUsage('Routes: Called Method.') : '');
         $objModule = new $module;
         $objModule->setVars(array(
             '_method' => $method,
