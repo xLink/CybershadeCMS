@@ -89,22 +89,13 @@ class coreObj {
                 // Generate what the classname should look like, if this is the file we're searching for
                 $possibleClassname = $classPrefix . inBetween( $filePrefix, '.php', $file );
 
-                // Check if this is indeed the right file for the class
-                if( strtolower( $possibleClassname ) === strtolower( $class ) ) {
-
-                    // YAY! Include it and sort that cute little ass ;D
-                    include_once( $file );
-
-                    (cmsDEBUG ? memoryUsage('SYSTEM: AutoLoading '.$file) : '');
-
-                    if( is_callable($class) ){
-                        return true;
-                    }
-
-                    // Ah fuck, Doesn't wanna load :/ AWKKWARDDD 
-                    (cmsDEBUG ? memoryUsage( 'SYSTEM: Could\'t autoload file ' . $file ) : '');
-                    return false;
+                // If this file dosent match the class name, carry on to the next one
+                if( strtolower( $possibleClassname ) !== strtolower( $class ) ) {
+                    continue;
                 }
+
+                include_once( $file );
+                return true;
             }
         }
 
