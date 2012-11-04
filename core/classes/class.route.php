@@ -89,7 +89,10 @@ class Route extends coreObj{
             $url = substr( $url, 0, -1 );
         }
 
-        $this->findMatch( $url );
+        if( $this->findMatch( $url ) !== true ) {
+            $this->throwHTTP(404);
+            return false;
+        }
 
         $this->invokeRoute();
 
@@ -121,7 +124,6 @@ class Route extends coreObj{
             }
 
             // Match Absolute URLs
-            echo dump($route, $url);
             if( $route['pattern'] === $url ) {
                 (cmsDEBUG ? memoryUsage('Routes: Absolute URL Matched') : '');
 
@@ -197,7 +199,7 @@ class Route extends coreObj{
 
         $this->route = $route;
 
-        return $route['pattern'].'$';
+        return $route['pattern'];
     }
 
     /**
@@ -236,7 +238,7 @@ class Route extends coreObj{
 
         // If the route matches the URL, we've got a winner!
         (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
-        if( preg_match( '#' . $pattern . '#', $url, $matches ) ) {
+        if( preg_match( '#^' . $pattern . '$#', $url, $matches ) ) {
 
             // Remove the URL from the paramaters
             unset( $matches[0] );
