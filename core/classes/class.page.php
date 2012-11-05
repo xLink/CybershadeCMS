@@ -562,6 +562,7 @@ class Page extends coreObj{
     public function buildPage(){
         $objTPL     = self::getTPL();
         $objPlugins = self::getPlugins();
+        $objUser    = self::getUser();
 
 /**
   //
@@ -654,7 +655,7 @@ class Page extends coreObj{
 
 /**
   //
-  //-- Extras
+  //-- Theme Extras
   //
 **/
         $themeConfig = self::$THEME_ROOT.'theme.php';
@@ -663,7 +664,35 @@ class Page extends coreObj{
         }
 
         $this->buildMenu();
+/**
+  //
+  //-- Template Stuff
+  //
+**/
+        $tplGlobals = array(
+            'ROOT'          => root(),
+            'THEME_ROOT'    => root(). Page::$THEME_ROOT,
 
+            'SITE_NAME'     => $this->config('site', 'site_name'),
+
+            'ROW_COLOR1'    => $vars['row_color1'],
+            'ROW_COLOR2'    => $vars['row_color2'],
+
+            'USERNAME'      => $objUser->grab('username'),
+            //'TIME'          => $objTime->mk_time(time(), 'l H:i:s a'),
+
+
+            'U_UCP'         => '/'.root().'user/',
+            'U_LOGIN'       => '/'.root().'login.php',
+            'U_LOGOUT'      => '/'.root().'login.php?action=logout&check='.$objUser->grab('usercode'),
+
+            'L_UCP'         => langVar('L_UCP'),
+            'L_LOGIN'       => langVar('L_LOGIN'),
+            'L_LOGOUT'      => langVar('L_LOGOUT'),
+        );
+        $objPlugins->hook('CMS_PAGE_TPL_GLOBALS', $tplGlobals);
+
+        $objTPL->assign_vars($tplGlobals);
         $objTPL->assign_var('_CSS_SELECTORS', $this->getCSSSelectors());
         $objTPL->assign_var('_META', $this->buildMeta());
         $objTPL->assign_var('_CSS', $this->buildCSS());

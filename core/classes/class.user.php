@@ -80,6 +80,22 @@ class User extends coreObj {
 **/
 
     /**
+     * Returns a setting's value set on the current user
+     *
+     * @version 2.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $setting
+     *
+     * @return  mixed
+     */
+    public function grab($setting){
+        return doArgs($setting, false, self::$_config['global']['user']);
+    }
+
+
+    /**
      * Retreives information about the $uid.
      *
      * @version 1.0

@@ -91,6 +91,25 @@ class Module extends coreObj{
     }
 
     /**
+     * Executes if a method has been called to & it dosen't exist
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $method
+     * @param   array  $args
+     */
+    final public function __call($method, $args){
+        $debug = array(
+            'Class Name'    => $this->getClassName(),
+            'Method Called' => $method,
+            'Method Args'   => $args,
+        );
+        trigger_error('Error: Method dosen\'t exist.'.dump($debug));
+    }
+
+    /**
      * Check if a module exists in the file structure
      *
      * @version 1.1
