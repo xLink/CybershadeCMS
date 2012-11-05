@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 3.4.5
+-- version 3.5.1
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Sep 23, 2012 at 08:42 PM
--- Server version: 5.5.16
--- PHP Version: 5.3.8
+-- Generation Time: Nov 05, 2012 at 11:21 AM
+-- Server version: 5.5.24-log
+-- PHP Version: 5.3.13
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `cscms_config` (
   `value` text,
   `default` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=45 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=21 ;
 
 --
 -- Dumping data for table `cscms_config`
@@ -102,26 +102,29 @@ CREATE TABLE IF NOT EXISTS `cscms_routes` (
   `id` tinyint(11) unsigned NOT NULL AUTO_INCREMENT,
   `module` varchar(50) DEFAULT NULL,
   `label` varchar(100) DEFAULT NULL,
+  `method` enum('ANY','HEAD','PUT','GET','OPTIONS','POST','DELETE','TRACE','CONNECT','PATCH') NOT NULL DEFAULT 'ANY',
   `pattern` varchar(255) NOT NULL,
   `arguments` text NOT NULL,
   `requirements` text NOT NULL,
   `status` int(1) NOT NULL DEFAULT '0',
   `redirect` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `pattern` (`pattern`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=7 ;
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=11 ;
 
 --
 -- Dumping data for table `cscms_routes`
 --
 
-INSERT INTO `cscms_routes` (`id`, `module`, `label`, `pattern`, `arguments`, `requirements`, `status`, `redirect`) VALUES
-(1, '88b91c187cc01b74e9e7fcc06cc286eb', 'index', '/forum', '{"module":"forum","method":"viewIndex"}', 'null', 1, NULL),
-(2, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewCat', '/forum/:cat/', '{"module":"forum","method":"viewCategory"}', '{"cat":"\\\\w+"}', 1, NULL),
-(3, '88b91c187cc01b74e9e7fcc06cc286eb', 'newThread', '/forum/:cat/new_thread.html', '{"module":"forum","method":"newThread"}', '{"cat":"\\\\w+"}', 1, NULL),
-(4, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewThread', '/forum/:cat/:name-:id.html', '{"module":"forum","method":"viewThread"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
-(5, '88b91c187cc01b74e9e7fcc06cc286eb', 'newReply', '/forum/:cat/:name-:id.html?reply', '{"module":"forum","method":"newReply"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
-(6, NULL, 'backup', '/backup', '{"module":"backup","method":"go"}', '[]', 1, NULL);
+INSERT INTO `cscms_routes` (`id`, `module`, `label`, `method`, `pattern`, `arguments`, `requirements`, `status`, `redirect`) VALUES
+(1, '88b91c187cc01b74e9e7fcc06cc286eb', 'index', 'ANY', '/forum', '{"module":"forum","method":"viewIndex"}', '[]', 1, NULL),
+(2, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewCat', 'ANY', '/forum/:cat/', '{"module":"forum","method":"viewCategory"}', '{"cat":"\\\\w+"}', 1, NULL),
+(3, '88b91c187cc01b74e9e7fcc06cc286eb', 'newThread', 'ANY', '/forum/:cat/new_thread.html', '{"module":"forum","method":"newThread"}', '{"cat":"\\\\w+"}', 1, NULL),
+(4, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewThread', 'ANY', '/forum/:cat/:name-:id.html', '{"module":"forum","method":"viewThread"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
+(5, '88b91c187cc01b74e9e7fcc06cc286eb', 'newReply', 'ANY', '/forum/:cat/:name-:id.html?reply', '{"module":"forum","method":"newReply"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
+(6, NULL, 'backup', 'ANY', '/backup', '{"module":"backup","method":"go"}', '[]', 1, NULL),
+(7, 'a74ad8dfacd4f985eb3977517615ce25', 'login_get', 'GET', '/login', '{"module":"core","method":"login_form", "request":"get"}', '[]', 1, NULL),
+(9, 'a74ad8dfacd4f985eb3977517615ce25', 'login_process', 'POST', '/login', '{"module":"core","method":"login_process", "request":"post"}', '[]', 1, NULL),
+(10, 'a74ad8dfacd4f985eb3977517615ce25', 'index', 'ANY', '/', '{"module":"core","method":"viewIndex"}', '[]', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -136,6 +139,7 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
   `timestamp` int(11) NOT NULL DEFAULT '0',
   `useragent` varchar(255) NOT NULL,
   `mode` enum('active','kill','ban','update') NOT NULL DEFAULT 'active',
+  `admin` int(1) NOT NULL DEFAULT '0',
   `store` longblob,
   PRIMARY KEY (`sid`),
   KEY `timestamp` (`timestamp`)
