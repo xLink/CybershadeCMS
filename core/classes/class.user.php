@@ -536,7 +536,7 @@ class User extends coreObj {
 
 
     /**
-     * Makes a secure password
+     * Verifies a Users Credentials to ensure they are valid
      *
      * @version 1.0.0
      * @since   1.0.0
