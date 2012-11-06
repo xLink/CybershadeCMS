@@ -490,7 +490,7 @@ class User extends coreObj {
         return false;
     }
 
-    public function toggle( $var, $state=null ){
+    public function toggle( $var, $state = null ){
 
     }
 
@@ -501,15 +501,83 @@ class User extends coreObj {
 **/
 
     public function register( array $userInfo ){
+        if( is_empty( $userInfo ) ){
+            return false;
+        }
 
+        $objSQL = coreObj::getDBO();
+        
+        $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
+        $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
+        $keys                = array_keys( $settings );
+
+        $userData = $userExtraData = array();
+
+        if( is_empty( $keys ) ){
+            return false;
+        }
+
+        // Loop through the settings keys
+        foreach( $keys as $key ){
+
+            // Check if the keys belong to users_extras table or users_extras table
+            if( in_array( $key, $userColumnData ) ){
+                $userData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+            }
+
+            if( in_array( $key, $userExtraColumnData ) ){
+                $userExtraData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+            }
+        }
+
+        // Check if the userData is empty
+        // If it isn't then update the table
+        if( !is_empty( $userData ) ){
+
+            $insert = $objSQL->queryBuilder()
+                                ->insertInto(array('u'=>'#__users'))
+                                ->set( $userData )
+                                ->build();
+
+            $userInsertResult = $objSQL->query( $insert );
+
+            if( !$userInsertResult ){
+                trigger_error( 'Could not update the users table' );
+                return false;
+            }
+        }
+
+        // Check if the userExtraData is empty
+        // If it isn't then update the table
+        if( !is_empty( $userExtraData ) ){
+
+            $insertExtras = $objSQL->queryBuilder()
+                                        ->insertInto( array( 'ux' => '#__users_extras') )
+                                        ->set( $userExtraData )
+                                        ->build();
+
+            $userExtrasInsertResult = $objSQL->query( $insertExtras );
+
+            if( !$userExtrasInsertResult ){
+                trigger_error( 'Could not update the users extras table' );
+                return false;
+            }
+        }
+
+        global $objCore;
+
+        // Send Confirmation mail
+        $siteName = $objCore->config( 'site', 'title' ); // Needs to be updated correctly
+        $siteEmail = sprintf('no-reply@%s', $objCore->config( 'site', 'url' ));
+        $message = sprintf( "Dear %s,\n\r
+            Thank you for registering for %s\n\r",
+            $userData['username'],
+            $siteName );
+
+        $mail = _mailer( $userData['email'], $siteEmail, sprintf('Registration Details From %s', $siteName ), $message  );
+
+        return $mail;
     }
-
-    public function canLogin( $username, $password ){
-        // Check if username exists
-        // Check if password is correct for user
-        // Check if session is not banned
-    }
-
 
 
     /**

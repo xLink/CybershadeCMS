@@ -107,6 +107,8 @@ class Session extends coreObj{
 
         $objSQL = coreObj::getDBO();
         $objUser = coreObj::getUser();
+        $objPermissions = coreObj::getPermissions();
+
 
         $update = array();
         $update['timestamp'] = $objSQL->quote(time());
@@ -114,7 +116,7 @@ class Session extends coreObj{
         $query = $objSQL->queryBuilder()
                         ->update('#__sessions')
                         ->set($update)
-                        ->where('admin',            '=', ($objUser::$IS_ADMIN ? '1' : '0'))
+                        ->where('admin',            '=', ($objPermissions::$IS_ADMIN ? '1' : '0'))
                             ->andWhere('sid',       '=', sprintf('"%s"', md5( session_id() )) )
                             ->andWhere('hostname',  '=', sprintf('"%s"', $objUser->getIP()) )
                         ->build();
@@ -133,7 +135,7 @@ class Session extends coreObj{
      *
      */
     public function newSession(){
-        $objSQL = coreObj::getDBO();
+        $objSQL  = coreObj::getDBO();
         $objUser = coreObj::getUser();
 
         //$this->regenSessionID();
@@ -176,11 +178,12 @@ class Session extends coreObj{
     public function loadSession(){
         $objSQL = coreObj::getDBO();
         $objUser = coreObj::getUser();
+        $objPermissions = coreObj::getPermissions();
 
         $query = $objSQL->queryBuilder()
                         ->select('*')
                         ->from('#__sessions')
-                        ->where('admin',            '=', ($objUser::$IS_ADMIN ? '1' : '0') )
+                        ->where('admin',            '=', ($objPermissions::$IS_ADMIN ? '1' : '0') )
                             ->andWhere('sid',       '=', md5( session_id() ) )
                             ->andWhere('hostname',  '=', $objUser->getIP() )
                         ->build();

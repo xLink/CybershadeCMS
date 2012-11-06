@@ -20,8 +20,11 @@ class Permissions extends coreObj {
      * @author  Dan Aldridge
      */
     public function initPerms(){
-        $objUser = coreObj::getUser();
 
+        
+        // Causing infiniate loop - FIX
+        $objUser = coreObj::getUser();
+        
         self::$IS_USER      = $this->checkPermissions($objUser->get('id'), USER);
         self::$IS_MOD       = $this->checkPermissions($objUser->get('id'), MOD);
         self::$IS_ADMIN     = $this->checkPermissions($objUser->get('id'), ADMIN);
@@ -134,6 +137,20 @@ class Permissions extends coreObj {
         //apparently the checks didnt return true, so we'll go for false
         return false;
     }
+
+    public function assignPermission( $uid, $module, $permissions = array() ){
+
+    }
+
+    public function getAvailablePerms( $module = '' ){
+
+    }
+
+    public function hasPermission( $uid, $module, $type ){
+
+    }
+
 }
+
 
 ?>
