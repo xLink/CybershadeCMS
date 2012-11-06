@@ -481,6 +481,14 @@ class coreObj {
 
         return coreObj::$_classes['form'];
     }
+
+    public static function getPermissions(){
+        if(!isset( coreObj::$_classes['permissions'] )){
+            Permissions::getInstance('permissions');
+        }
+
+        return coreObj::$_classes['permissions'];
+    }
 }
 
 ?>

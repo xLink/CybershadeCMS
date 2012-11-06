@@ -36,8 +36,11 @@ class User extends coreObj {
         ), 'user');
 
         $user = $this->config('global', 'user');
+
+        $objPermissions = coreObj::getPermissions();
+
         $this->setIsOnline(!($user['id'] == 0 ? true : false));
-        $this->initPerms();
+        $objPermissions->initPerms();
     }
 
     /**
