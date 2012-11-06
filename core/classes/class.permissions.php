@@ -20,9 +20,11 @@ class Permissions extends coreObj {
      * @author  Dan Aldridge
      */
     public function initPerms(){
-        self::$IS_USER      = $this->checkPermissions($this->get('id'), USER);
-        self::$IS_ADMIN     = $this->checkPermissions($this->get('id'), ADMIN);
-        self::$IS_MOD       = $this->checkPermissions($this->get('id'), MOD);
+        $objUser = coreObj::getUser();
+
+        self::$IS_USER      = $this->checkPermissions($objUser->get('id'), USER);
+        self::$IS_MOD       = $this->checkPermissions($objUser->get('id'), MOD);
+        self::$IS_ADMIN     = $this->checkPermissions($objUser->get('id'), ADMIN);
     }
 
     /**
@@ -50,9 +52,10 @@ class Permissions extends coreObj {
                 }
                 $auth_user = $auth_user || $result;
             }
-        }else{
+        } else {
             $auth_user = $is_admin;
         }
+
         return $auth_user;
     }
 
