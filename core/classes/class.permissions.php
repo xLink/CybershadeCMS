@@ -7,29 +7,6 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class Permissions extends coreObj {
 
-    static  $IS_ADMIN   = false,
-            $IS_MOD     = false,
-            $IS_USER    = false,
-            $IS_SPECIAL = false; // For various, custom permissions
-
-    /**
-     * Defines global CMS permissions
-     *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Dan Aldridge
-     */
-    public function initPerms(){
-
-        
-        // Causing infiniate loop - FIX
-        $objUser = coreObj::getUser();
-        
-        self::$IS_USER      = $this->checkPermissions($objUser->get('id'), USER);
-        self::$IS_MOD       = $this->checkPermissions($objUser->get('id'), MOD);
-        self::$IS_ADMIN     = $this->checkPermissions($objUser->get('id'), ADMIN);
-    }
-
     /**
      * Returns permission state for given user and group
      *

@@ -13,7 +13,7 @@ class core extends Module{
     }
 
     public function viewIndex(){
-        $this->login();
+
     }
 
     public function login_form(){
@@ -26,15 +26,14 @@ class core extends Module{
         $form = array(
             'FORM_START'    => $objForm->start('login', array(
                                     'method' => 'POST',
-                                    'action' => '?')
-                                ),
+                                    'action' => '?'
+                                )),
             'FORM_END'      => $objForm->finish(),
             'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
 
             'L_USERNAME'    => langVar('L_USERNAME'),
             'F_USERNAME'    => $objForm->inputbox('username', 'text', $userValue, array(
                                     'class'    => 'icon username',
-                                    'br'       => true,
                                     'disabled' => $acpCheck,
                                     'required' => true
                                 )),
@@ -42,13 +41,12 @@ class core extends Module{
             'L_PASSWORD'    => langVar('L_PASSWORD'),
             'F_PASSWORD'    => $objForm->inputbox('password', 'password', '', array(
                                     'class'    => 'icon password',
-                                    'br'       => true,
                                     'required' => true
                                 )),
 
             'L_REMME'       => langVar('L_REMME'),
             'F_REMME'       => $objForm->select('remember', array(
-                                    '0 '=> 'No Thanks',
+                                    '0' => 'No Thanks',
                                     '1' => 'Forever'
                                 ), array(
                                     'selected' => 0
@@ -68,8 +66,7 @@ class core extends Module{
             $errors[] = 'There was an issue with submitting the form, please try again.';
         }
 
-        echo dump($_POST);
-
+        echo dump($errors);
     }
 }
 

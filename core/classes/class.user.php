@@ -10,6 +10,12 @@ class User extends coreObj {
     //some static vars
     static  $IS_ONLINE  = false;
 
+    static  $IS_ADMIN   = false,
+            $IS_MOD     = false,
+            $IS_USER    = false,
+            $IS_SPECIAL = false; // For various, custom permissions
+
+
     public function __construct(){
 
         $guest['user'] = array(
@@ -40,7 +46,7 @@ class User extends coreObj {
         $objPermissions = coreObj::getPermissions();
 
         $this->setIsOnline(!($user['id'] == 0 ? true : false));
-        $objPermissions->initPerms();
+        $this->initPerms();
     }
 
     /**
@@ -58,6 +64,19 @@ class User extends coreObj {
         return self::$IS_ONLINE = $value;
     }
 
+    /**
+     * Defines global CMS permissions
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     */
+    public function initPerms(){
+        $objPerms = coreObj::getPermissions();
+        self::$IS_USER      = $objPerms->checkPermissions($this->get('id'), USER);
+        self::$IS_MOD       = $objPerms->checkPermissions($this->get('id'), MOD);
+        self::$IS_ADMIN     = $objPerms->checkPermissions($this->get('id'), ADMIN);
+    }
 
 
 /**
@@ -506,7 +525,7 @@ class User extends coreObj {
         }
 
         $objSQL = coreObj::getDBO();
-        
+
         $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
         $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
         $keys                = array_keys( $settings );
