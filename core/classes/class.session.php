@@ -26,7 +26,7 @@ class Session extends coreObj{
      */
     public function __construct(){
 
-        $name = md5( 'CSCMS' . coreObj::getUser()->getIP() . cmsROOT );
+        $name = md5( 'CSCMS' . User::getIP() . cmsROOT );
         session_name( $name );
 
         session_start();
