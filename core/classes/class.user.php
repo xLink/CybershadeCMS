@@ -114,6 +114,9 @@ class User extends coreObj {
      * @return  mixed
      */
     public function get( $fields=array(), $uid=0 ){
+        if( $uid === 0 ){
+            return 0;
+        }
 
         // test to see if we already have the info avaliable
         if( isset($this->userInfo[strtolower($uid)]) ){
@@ -128,14 +131,6 @@ class User extends coreObj {
         } else {
 
             $objSQL = coreObj::getDBO();
-
-            // if( $uid == 0 ){
-            //     $uid = (User::$IS_ONLINE ? $_SESSION['user']['id'] : 0);
-            // }
-
-            // if( $uid == 0 ){
-            //     return array();
-            // }
 
             //figure out if they gave us a username or a user id
             $user   = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = "%s"');
@@ -156,7 +151,7 @@ class User extends coreObj {
 
             // If we have no results, we will set false & have it cache it too
             // any subsequent checks will be auto failed.
-            if( !$results || !count($results) ){
+            if( $results === false || !count($results) ){
                 $this->userInfo[strtolower($uid)] = false;
                 trigger_error('Could not retreive information about the user - '.$uid);
                 return false;
@@ -637,11 +632,9 @@ class User extends coreObj {
     public function verifyUserCredentials( $username, $password ) {
         $objSQL = coreObj::getDBO();
 
-        echo dump($username, 'this is it');
-
         // Grab the user's id
         $uid = $this->getIDByUsername( $username );
-
+echo dump($uid, $username);
         // if the username doesn't exist, return false;
         if( $uid === 0 ) {
             return false;
