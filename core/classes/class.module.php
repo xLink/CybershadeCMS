@@ -42,7 +42,7 @@ class Module extends coreObj{
 
         // Allow Developers to test custom views
         if( !empty( $_GET['view'] ) ) { // @TODO Add && IS_ADMIN
-            $tempPath = sprintf('modules/%s/views/%s/%s.tpl', $module, $method, $_GET['view']);
+            $tempPath = sprintf('modules/%s/views/%s.tpl', $module, $_GET['view']);
             if( is_readable( $tempPath ) ) {
                 $view = $_GET['view'];
             } else {
@@ -51,7 +51,7 @@ class Module extends coreObj{
             }
         }
 
-        $path = sprintf('modules/%s/views/%s/%s.tpl', $module, $method, $view);
+        $path = sprintf('modules/%s/views/%s.tpl', $module, $view);
         if( !is_file($path) ){
             trigger_error($path.' is not a valid path');
             return false;

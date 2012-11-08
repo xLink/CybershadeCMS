@@ -13,7 +13,7 @@ class core extends Module{
     }
 
     public function viewIndex(){
-
+        $this->login_form();
     }
 
     public function login_form(){
@@ -21,7 +21,7 @@ class core extends Module{
         $objForm    = coreObj::getForm();
         $objSession = coreObj::getSession();
 
-        $this->setView('default');
+        $this->setView('login_form/default.tpl');
 
         $form = array(
             'FORM_START'    => $objForm->start('login', array(
