@@ -35,6 +35,7 @@ class coreSQL extends coreObj{
         $this->dbSettings = array(
             'driver'     => doArgs('driver',        '',      $options),
             'host'       => doArgs('host',          '',      $options),
+            'port'       => doArgs('port',          '',      $options),
             'username'   => doArgs('username',      '',      $options),
             'password'   => doArgs('password',      '',      $options),
             'database'   => doArgs('database',      '',      $options),
