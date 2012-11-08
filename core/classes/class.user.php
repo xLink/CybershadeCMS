@@ -373,9 +373,9 @@ class User extends coreObj {
      * @return  array
      */
     public static function getIP(){
-        if      ($_SERVER['HTTP_X_FORWARDED_FOR']){ $ip = $_SERVER['HTTP_X_FORWARDED_FOR']; }
-        else if ($_SERVER['HTTP_X_FORWARDED']){     $ip = $_SERVER['HTTP_X_FORWARDED']; }
-        else if ($_SERVER['HTTP_FORWARDED_FOR']){   $ip = $_SERVER['HTTP_FORWARDED_FOR']; }
+        if      ( array_key_exists( 'HTTP_X_FORWARDED_FOR', $_SERVER ) ) {  $ip = $_SERVER['HTTP_X_FORWARDED_FOR']; }
+        else if ( array_key_exists( 'HTTP_X_FORWARDED',     $_SERVER ) ) {  $ip = $_SERVER['HTTP_X_FORWARDED'];     }
+        else if ( array_key_exists( 'HTTP_FORWARDED_FOR',   $_SERVER ) ) {  $ip = $_SERVER['HTTP_FORWARDED_FOR'];   }
         else{                                       $ip = $_SERVER['REMOTE_ADDR']; }
 
         if( $ip == '::1' ){ $ip = '127.0.0.1'; }
