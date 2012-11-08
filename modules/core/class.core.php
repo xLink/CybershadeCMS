@@ -26,7 +26,7 @@ class core extends Module{
         $form = array(
             'FORM_START'    => $objForm->start('login', array(
                                     'method' => 'POST',
-                                    'action' => '?'
+                                    'action' => '/'.root().'login?'
                                 )),
             'FORM_END'      => $objForm->finish(),
             'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
@@ -71,7 +71,7 @@ class core extends Module{
         if( !$objUser->verifyUserCredentials( $_POST['username'], $_POST['password'] ) ){
             $errors[] = 'User Credentials are incorrect';
         }
-        echo dump($errors);
+        echo dump($errors, 'Login Errors :D');
     }
 }
 

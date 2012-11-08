@@ -121,7 +121,6 @@ class User extends coreObj {
             $info = $this->userInfo[strtolower($uid)];
 
             if($info === false){
-                trigger_error('$info was set to false.');
                 return false;
             }
 
@@ -130,26 +129,26 @@ class User extends coreObj {
 
             $objSQL = coreObj::getDBO();
 
-            if( $uid == 0 ){
-                $uid = (User::$IS_ONLINE ? $_SESSION['user']['id'] : 0);
-            }
+            // if( $uid == 0 ){
+            //     $uid = (User::$IS_ONLINE ? $_SESSION['user']['id'] : 0);
+            // }
 
-            if( $uid == 0 ){
-                return array();
-            }
+            // if( $uid == 0 ){
+            //     return array();
+            // }
 
             //figure out if they gave us a username or a user id
-            $user = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = %s');
-            $x    = sprintf($user, strtoupper($uid));
+            $user   = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = "%s"');
+            $clause = sprintf($user, strtoupper($uid));
 
-            $query = $objSQL->queryBuilder()
+            $query  = $objSQL->queryBuilder()
                 ->select(array('u.*', 'ux.*', 'id'=>'u.id', 's.timestamp'))
                 ->from(array('u' => '#__users'))
                 ->leftJoin(array('ux' => '#__users_extras'))
                     ->on('u.id = ux.uid')
                 ->leftJoin(array('s' => '#__sessions'))
                     ->on('u.id = s.uid')
-                ->where($x)
+                ->where( $clause )
                 ->limit(1)
                 ->build();
 
@@ -159,7 +158,7 @@ class User extends coreObj {
             // any subsequent checks will be auto failed.
             if( !$results || !count($results) ){
                 $this->userInfo[strtolower($uid)] = false;
-                trigger_error('Could not retreive information about the user.');
+                trigger_error('Could not retreive information about the user - '.$uid);
                 return false;
             }
 
@@ -174,7 +173,7 @@ class User extends coreObj {
         }
 
         if( !count($info) ){
-            trigger_error('Could not retreive information about the user.');
+            trigger_error('Could not retreive information about the user - '.$uid);
             return false;
         }
 
@@ -247,7 +246,7 @@ class User extends coreObj {
             return false;
         }
 
-        $return = $this->get($uid, 'username');
+        $return = $this->get('username', $uid);
         return ($return === false ? 'Guest' : $return);
     }
 
@@ -268,7 +267,7 @@ class User extends coreObj {
             return 0;
         }
 
-        $return = $this->get($username, 'id');
+        $return = $this->get('id', $username);
         return ($return === false ? 0 : $return);
     }
 
@@ -317,7 +316,7 @@ class User extends coreObj {
             return false;
         }
 
-        if( $exists === true && $this->get($username, 'username') === false ){
+        if( $exists === true && $this->get('username', $username) === false ){
             trigger_error('Username alerady exists. Please make sure your username is unique.');
             return false;
         }
@@ -347,7 +346,7 @@ class User extends coreObj {
         $uid = ( is_null( $uid ) ? $objSession->getCurrentUser() : $uid );
 
         // Do the query
-        $getAjax = $this->get( $uid, 'ajax_settings' );
+        $getAjax = $this->get( 'ajax_settings', $uid );
 
         // If the query was successful and the array is not empty
         if( $getAjax && !is_empty( $getAjax ) ){
@@ -638,8 +637,7 @@ class User extends coreObj {
     public function verifyUserCredentials( $username, $password ) {
         $objSQL = coreObj::getDBO();
 
-        // Grab the phpass library
-        $phpass = new phpass( 8, true );
+        echo dump($username, 'this is it');
 
         // Grab the user's id
         $uid = $this->getIDByUsername( $username );
@@ -648,6 +646,9 @@ class User extends coreObj {
         if( $uid === 0 ) {
             return false;
         }
+
+        // Grab the phpass library
+        $phpass = new phpass( 8, true );
 
         // Fetch the hashed password from the database
         $hash = $this->get( 'password', $uid );

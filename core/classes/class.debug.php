@@ -235,6 +235,7 @@ class Debug extends coreObj{
         } else {
             $this->errors[] = func_get_args();
         }
+        $this->trace[] = getExecInfo();
     }
 
     /**
@@ -268,7 +269,7 @@ class Debug extends coreObj{
         );
 
         $output = '<ul>';
-        foreach($this->errors as $error){
+        foreach($this->errors as $num => $error){
             $_errorOutput = '<table class="table table-bordered">';
             $_errorOutput .= '<colgroup><col width="1%"><col width="99%"></colgroup><tr>';
 
@@ -282,6 +283,9 @@ class Debug extends coreObj{
             $_errorOutput .= '</tr><tr>';
             $_errorOutput .= sprintf('<td>%s</td>', 'File: ');
             $_errorOutput .= sprintf('<td>%s : %s</td>', $error[2], $error[3]);
+
+            $_errorOutput .= '</tr><td colspan="2">';
+            $_errorOutput .= $this->trace[$num];
 
             $_errorOutput .= '</tr><td colspan="2">';
             $_errorOutput .= $this->getSource(file($error[2]), $error[3], 0, 6);
