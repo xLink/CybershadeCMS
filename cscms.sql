@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 3.5.1
+-- version 3.4.5
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Nov 05, 2012 at 11:21 AM
--- Server version: 5.5.24-log
--- PHP Version: 5.3.13
+-- Generation Time: Nov 08, 2012 at 10:45 PM
+-- Server version: 5.5.16
+-- PHP Version: 5.3.8
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -26,6 +26,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `cscms_config`
 --
 
+DROP TABLE IF EXISTS `cscms_config`;
 CREATE TABLE IF NOT EXISTS `cscms_config` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `key` varchar(50) NOT NULL,
@@ -58,6 +59,7 @@ INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
 -- Table structure for table `cscms_modules`
 --
 
+DROP TABLE IF EXISTS `cscms_modules`;
 CREATE TABLE IF NOT EXISTS `cscms_modules` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
@@ -75,6 +77,7 @@ CREATE TABLE IF NOT EXISTS `cscms_modules` (
 -- Table structure for table `cscms_plugins`
 --
 
+DROP TABLE IF EXISTS `cscms_plugins`;
 CREATE TABLE IF NOT EXISTS `cscms_plugins` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
@@ -98,6 +101,7 @@ INSERT INTO `cscms_plugins` (`id`, `name`, `path`, `priority`, `enabled`) VALUES
 -- Table structure for table `cscms_routes`
 --
 
+DROP TABLE IF EXISTS `cscms_routes`;
 CREATE TABLE IF NOT EXISTS `cscms_routes` (
   `id` tinyint(11) unsigned NOT NULL AUTO_INCREMENT,
   `module` varchar(50) DEFAULT NULL,
@@ -132,6 +136,7 @@ INSERT INTO `cscms_routes` (`id`, `module`, `label`, `method`, `pattern`, `argum
 -- Table structure for table `cscms_sessions`
 --
 
+DROP TABLE IF EXISTS `cscms_sessions`;
 CREATE TABLE IF NOT EXISTS `cscms_sessions` (
   `uid` int(11) NOT NULL,
   `sid` varchar(32) NOT NULL DEFAULT '',
@@ -145,12 +150,20 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
   KEY `timestamp` (`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data for table `cscms_sessions`
+--
+
+INSERT INTO `cscms_sessions` (`uid`, `sid`, `hostname`, `timestamp`, `useragent`, `mode`, `admin`, `store`) VALUES
+(0, '99791fe46a57383f8795c0bf451eeb0d', '127.0.0.1', 1352411009, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.4 (KHTML, like Gecko) Chrome/22.0.1229.94 Safari/537.4', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323431313030393b7d);
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `cscms_users`
 --
 
+DROP TABLE IF EXISTS `cscms_users`;
 CREATE TABLE IF NOT EXISTS `cscms_users` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
@@ -183,14 +196,16 @@ CREATE TABLE IF NOT EXISTS `cscms_users` (
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `usercode` (`usercode`),
   KEY `email` (`email`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=4 ;
 
 --
 -- Dumping data for table `cscms_users`
 --
 
 INSERT INTO `cscms_users` (`id`, `username`, `password`, `pin`, `register_date`, `last_active`, `usercode`, `email`, `show_email`, `avatar`, `title`, `language`, `timezone`, `theme`, `hidden`, `active`, `userlevel`, `banned`, `primary_group`, `login_attempts`, `pin_attempts`, `autologin`, `reffered_by`, `password_update`, `whitelist`, `whitelisted_ips`, `warnings`) VALUES
-(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
+(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
+(2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dawt', 'NoelDavies@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
+(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dzwt', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -198,6 +213,7 @@ INSERT INTO `cscms_users` (`id`, `username`, `password`, `pin`, `register_date`,
 -- Table structure for table `cscms_users_extras`
 --
 
+DROP TABLE IF EXISTS `cscms_users_extras`;
 CREATE TABLE IF NOT EXISTS `cscms_users_extras` (
   `uid` int(11) unsigned NOT NULL,
   `birthday` varchar(11) COLLATE utf8_unicode_ci NOT NULL DEFAULT '00/00/0000',
