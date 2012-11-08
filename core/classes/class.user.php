@@ -583,11 +583,9 @@ class User extends coreObj {
             }
         }
 
-        global $objCore;
-
         // Send Confirmation mail
-        $siteName = $objCore->config( 'site', 'title' ); // Needs to be updated correctly
-        $siteEmail = sprintf('no-reply@%s', $objCore->config( 'site', 'url' ));
+        $siteName = $this->config( 'site', 'title' ); // Needs to be updated correctly
+        $siteEmail = sprintf('no-reply@%s', $this->config( 'site', 'url' ));
         $message = sprintf( "Dear %s,\n\r
             Thank you for registering for %s\n\r",
             $userData['username'],

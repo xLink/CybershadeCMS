@@ -206,14 +206,14 @@ class Session extends coreObj{
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   bool    $forceNew
+     * @param   bool $forceNew
      *
      * @return  string $token
      */
     public function getFormToken($forceNew=false){
         $objUser = coreObj::getUser();
 
-        return md5( 'CSCMS' . self::getToken($forceNew) );
+        return self::getToken($forceNew);
     }
 
     /**
@@ -228,14 +228,12 @@ class Session extends coreObj{
      * @return  string $token
      */
     public function getToken($forceNew=false){
-        $token = $this->getVar('session', 'token');
-
-        if(empty($token) || $forceNew){
+        if(empty($_SESSION['token']) || $forceNew){
             $token = randCode(12);
-            $this->setVar('session', 'token', $token);
+            $_SESSION['token'] = md5($token);
         }
 
-        return $token;
+        return $_SESSION['token'];
     }
 
     public function checkToken( $formKey ){

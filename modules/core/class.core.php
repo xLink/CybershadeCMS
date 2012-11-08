@@ -61,11 +61,16 @@ class core extends Module{
 
     public function login_process(){
         $objSession = coreObj::getSession();
+        $objUser    = coreObj::getUser();
         $errors = array();
-        if( $objSession->checkToken('hash') ){
+
+        if( !$objSession->checkToken('hash') ){
             $errors[] = 'There was an issue with submitting the form, please try again.';
         }
 
+        if( !$objUser->verifyUserCredentials( $_POST['username'], $_POST['password'] ) ){
+            $errors[] = 'User Credentials are incorrect';
+        }
         echo dump($errors);
     }
 }

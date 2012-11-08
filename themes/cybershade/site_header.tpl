@@ -29,7 +29,7 @@
         <div class="container">
             <ul class="nav">
                 <li><a href="#">Home</a></li>
-                <li><a href="#">Forum</a></li>
+                <li><a href="/forum">Forum</a></li>
                 <li class="dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#">Downloads <b class="caret"></b></a>
                     <ul class="dropdown-menu">
@@ -45,6 +45,7 @@
                     </ul>
                 </li>
                 <li><a href="#">Pastebin</a></li>
+                <li><a href="{U_LOGIN}">{L_LOGIN}</a></li>
             </ul>
 
         </div>

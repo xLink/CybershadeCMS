@@ -10,7 +10,7 @@ $objPage->setTheme();
 
 $objPage->setTitle('Test');
 
-<<<<<<< Updated upstream
+
 $objPage->buildPage();
 $objPage->showHeader();
 
@@ -18,11 +18,7 @@ $objPage->showHeader();
 
 echo dump($_SESSION);
 
-=======
 
 $objPage->buildPage();
 $objPage->showHeader();
-
->>>>>>> Stashed changes
-$objPage->showFooter();
 ?>

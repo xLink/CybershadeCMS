@@ -683,13 +683,21 @@ class Page extends coreObj{
 
 
             'U_UCP'         => '/'.root().'user/',
-            'U_LOGIN'       => '/'.root().'login.php',
-            'U_LOGOUT'      => '/'.root().'login.php?action=logout&check='.$objUser->grab('usercode'),
-
             'L_UCP'         => langVar('L_UCP'),
-            'L_LOGIN'       => langVar('L_LOGIN'),
-            'L_LOGOUT'      => langVar('L_LOGOUT'),
         );
+
+        if( !User::$IS_ONLINE ){
+            $tplGlobals += array(
+                'U_LOGIN' => '/'.root().'login',
+                'L_LOGIN' => 'Login',
+            );
+        } else {
+            $tplGlobals += array(
+                'U_LOGIN' => '/'.root().'logout?check='.$objUser->grab('usercode'),
+                'L_LOGIN' => 'Logout'
+            );
+        }
+
         $objPlugins->hook('CMS_PAGE_TPL_GLOBALS', $tplGlobals);
 
         $objTPL->assign_vars($tplGlobals);
