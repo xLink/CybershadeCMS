@@ -210,16 +210,28 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      * @return  string
      */
     function outputDebug($file, $info = null, $nl='<br />') {
-        $filename = explode((stristr(PHP_OS, 'WIN') ? '\\' : '/'), $file['file']);
-        $msg = ($info !== null ? '<strong>['.$info.']</strong> <br />' : null).
-                    ' Called on line <strong>'.$file['line'].'
-                        </strong> of file <strong>'.$filename[count($filename) - 1].
-                        '</strong> via function <strong>'.$file['function'].
-                        '</strong> with arguments: (\''.
-                        (is_array($file['args'])
-                            ? json_encode($file['args'])
-                            : null).
-                        '\')'.$nl;
+
+        if( array_key_exists( 'file', $file ) ) {
+            $filename = explode((stristr(PHP_OS, 'WIN') ? '\\' : '/'), $file['file']);
+            $filenameIndex = count($filename) - 1;
+        }
+
+        $title         = ( $info !== null                                                                      ? '<strong>['.$info.']</strong> <br />' : null );
+        $args          = ( array_key_exists( 'args', $file ) && !is_empty( $file['args'] )                     ? json_encode( $file['args'] )          : null );
+        $line          = ( array_key_exists( 'line', $file )                                                   ? $file['line']                         : '<i>Line Number Unknown</i>' );
+        $function      = ( array_key_exists( 'function', $file )                                               ? $file['function']                     : '<i>Function Name Unknown</i>' );
+        $filename      = ( isset($filename) && array_key_exists( $filenameIndex, $filename )                   ? $filename[$filenameIndex]             : '<i>Filename Unknown</i>' );
+
+        $msg = '%s Called on line <strong>%s</strong> of file <strong>%s</strong> via function <strong>%s</strong> with arguments (\'%s\')%s';
+
+        $msg = sprintf( $msg,
+            $title,
+            $line,
+            $filename,
+            $function,
+            $args,
+            $nl
+        );
 
         return $msg;
     }
