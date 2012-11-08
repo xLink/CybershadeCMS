@@ -89,7 +89,6 @@ class Route extends coreObj{
             $url = '/' . $url;
         }
 
-
         if( $this->findMatch( $url ) !== true ) {
             $this->throwHTTP(404);
             return false;
