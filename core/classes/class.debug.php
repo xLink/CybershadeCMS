@@ -101,10 +101,10 @@ class Debug extends coreObj{
                                 );
 
 
-                // if( $query['affected_rows'] == '-1' ){
-                //     $output .= '</tr><tr>';
-                //     $output .= sprintf('<td style="background-color: #1E1E1E; color: white;"> %s </td>', $query['error']);
-                // }
+                if( $query['affected_rows'] == '-1' ){
+                    $output .= '</tr><tr>';
+                    $output .= sprintf('<td style="background-color: #1E1E1E; color: white;"> %s </td>', dump($query). $query['error']);
+                }
 
                 // $output .= '</tr><tr>';
 

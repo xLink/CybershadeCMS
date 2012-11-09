@@ -145,8 +145,8 @@ class driver_mysqli extends coreSQL implements baseSQL{
         }
         $this->debug[] = $debug;
 
-        if( $result === false ){
-            $this->recordMessage(mysql_error(), 'WARNING');
+        if( $result === false || $this->affectedRows() == -1 ){
+            $this->recordMessage($this->getError(), 'WARNING');
         }
 
         return $this->results;
