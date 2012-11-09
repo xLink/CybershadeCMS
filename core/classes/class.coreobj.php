@@ -345,18 +345,13 @@ class coreObj {
             $options = self::config('db');
                 if(!$options){ trigger_error('Error: Could not obtain values from teh configuration file. Please ensure it is present.', E_USER_ERROR); }
 
-            $name = $options['driver'];
-
-            //see if we have an override
-            if( in_array( $driver, array('mysql', 'mysqli') ) ){
-                $name = $driver;
-            } $name = 'driver_'.$name;
+            $name = 'driver_'.$options['driver'];
 
             $options['persistant'] = true;
             $options['debug']      = (cmsDEBUG ? true : false);
             $options['logging']    = is_file(cmsROOT.'cache/ALLOW_LOGGING');
 
-            $objSQL = new $name($driver, $options);
+            $objSQL = new $name(null, $options);
                 if($objSQL === false){
                     if(!headers_sent()){
                         header('HTTP/1.1 500 Internal Server Error');
