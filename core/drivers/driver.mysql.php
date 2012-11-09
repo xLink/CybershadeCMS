@@ -28,7 +28,7 @@ class driver_mysql extends coreSQL implements baseSQL{
         $c = __CLASS__;
 
         if (!isset(self::$_classes['database'][$c])){
-            self::$_instances['database'][$c] = new self($options);
+            self::$_instances['database'][$c] = new self(null, $options);
         }
 
         return self::$_instances['database'][$c];

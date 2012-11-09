@@ -30,8 +30,8 @@ class coreSQL extends coreObj{
      *
      * @return      bool
      */
-    public function __construct($options){
-        $this->driver = @end(explode('_', $this->getClassName()));
+    public function __construct($name=null, $options=array()){
+        $this->driver = @end( explode('_', $this->getClassName( ) ) );
         $this->dbSettings = array(
             'driver'     => doArgs('driver',        '',      $options),
             'host'       => doArgs('host',          '',      $options),
@@ -319,7 +319,7 @@ interface baseSQL{
 
     public function __construct($config);
 
-    public static function getInstance($options=array());
+    public static function getInstance($name=null, $options=array());
 
     public function selectDB($db);
     public function connect();

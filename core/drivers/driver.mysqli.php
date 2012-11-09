@@ -28,7 +28,7 @@ class driver_mysqli extends coreSQL implements baseSQL{
         $c = __CLASS__;
 
         if (!isset(self::$_classes['database'][$c])){
-            self::$_instances['database'][$c] = new self($options);
+            self::$_instances['database'][$c] = new self(null, $options);
         }
 
         return self::$_instances['database'][$c];
@@ -76,7 +76,7 @@ class driver_mysqli extends coreSQL implements baseSQL{
 
     public function disconnect(){
         $this->freeResult();
-        if($this->dbSettings['persistent'] === false){
+        if( !isset( $this->dbSettings['persistent'] ) || $this->dbSettings['persistent'] === false){
             $this->DBH->close();
             return true;
         }
