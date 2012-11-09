@@ -216,11 +216,11 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             $filenameIndex = count($filename) - 1;
         }
 
-        $title         = ( $info !== null                                                                      ? '<strong>['.$info.']</strong> <br />' : null );
-        $args          = ( array_key_exists( 'args', $file ) && !is_empty( $file['args'] )                     ? json_encode( $file['args'] )          : null );
-        $line          = ( array_key_exists( 'line', $file )                                                   ? $file['line']                         : '<i>Line Number Unknown</i>' );
-        $function      = ( array_key_exists( 'function', $file )                                               ? $file['function']                     : '<i>Function Name Unknown</i>' );
-        $filename      = ( isset($filename) && array_key_exists( $filenameIndex, $filename )                   ? $filename[$filenameIndex]             : '<i>Filename Unknown</i>' );
+        $title         = ( $info !== null                                          ? '<strong>['.$info.']</strong> <br />'          : null );
+        $args          = ( isset( $file['args'] ) && !is_empty( $file['args'] )    ? htmlentities( json_encode( $file['args'] ) )   : null );
+        $line          = ( isset( $file['line'] )                                  ? $file['line']                                  : '<i>Line Number Unknown</i>' );
+        $function      = ( isset( $file['function'] )                              ? $file['function']                              : '<i>Function Name Unknown</i>' );
+        $filename      = ( isset($filename) && isset( $filenameIndex, $filename )  ? $filename[$filenameIndex]                      : '<i>Filename Unknown</i>' );
 
         $msg = '%s Called on line <strong>%s</strong> of file <strong>%s</strong> via function <strong>%s</strong> with arguments (\'%s\')%s';
 
