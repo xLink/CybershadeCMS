@@ -113,7 +113,7 @@ class driver_pdomysql extends coreSQL implements baseSQL{
         $this->results = $this->DBH->query($query) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
 
 
-        if($this->dbSettings['debug']){
+        if( cmsDEBUG || User::$IS_ADMIN ){
             $backtrace = debug_backtrace();
             $callee = next($backtrace);
 

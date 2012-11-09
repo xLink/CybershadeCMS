@@ -362,7 +362,7 @@ class Debug extends coreObj{
     public function getConfig(){
         $count   = 0;
         $content = '';
-        
+
         $user = coreObj::getUser()->global;
         $content .= dump($user, 'objUser::global');
 
@@ -500,37 +500,37 @@ class Debug extends coreObj{
 
         $tab = $this->getPHPErrors(true);
         $debugTabs['errors']    = array(
-            'title'     => sprintf('PHP / CMS Errors <div class="label">%s</div>', $tab['count']),
+            'title'     => sprintf('PHP / CMS Errors <div class="label  label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
         $tab = $this->getMemoryUse(true);
         $debugTabs['memory']    = array(
-            'title'     => sprintf('Memory Usage <div class="label">%s</div>', $tab['count']),
+            'title'     => sprintf('Memory Usage <div class="label  label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
         $tab = $this->getSQLQueries(true);
         $debugTabs['queries']   = array(
-            'title'     => sprintf('SQL Queries <div class="label">%s</div>', $tab['count']),
+            'title'     => sprintf('SQL Queries <div class="label  label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
         $tab = $this->getIncludedFiles(true);
         $debugTabs['included']  = array(
-            'title'     => sprintf('Included Files <div class="label">%s</div>', $tab['count']),
+            'title'     => sprintf('Included Files <div class="label  label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
         $tab = $this->getTemplates(true);
         $debugTabs['templates'] = array(
-            'title'     => sprintf('Template Files <div class="label">%s</div>', $tab['count']),
+            'title'     => sprintf('Template Files <div class="label  label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
         $tab = $this->getOtherTab(true);
         $debugTabs['other']     = array(
-            'title'     => sprintf('Others <div class="label">%s</div>', $tab['count']),
+            'title'     => sprintf('Others <div class="label  label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 

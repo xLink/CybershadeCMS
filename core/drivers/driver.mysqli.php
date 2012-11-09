@@ -124,7 +124,7 @@ class driver_mysqli extends coreSQL implements baseSQL{
         //exec the query and cache it
         $this->results = $result = $this->DBH->query($query);
 
-        if($this->dbSettings['debug']){
+        if( cmsDEBUG || User::$IS_ADMIN ){
             $backtrace = debug_backtrace();
             $callee = $backtrace[1];
 

@@ -76,6 +76,13 @@ ul, ul ul {
     div#debug-tabs ul li a{
         display: inline-block;
     }
+    div#debug-tabs ul li div.label{
+        color: black;
+        text-shadow: none;
+    }
+    div#debug-tabs ul li.active div.label{
+        background-color: white;
+    }
 
     div#debug-tabs ul li a{
         color: white;
@@ -115,6 +122,12 @@ ul, ul ul {
     div#debug-tabs div.tab-pane.memory table tr{
         color: white;
         border-collapse: collapse;
+    }
+    div#debug-tabs table tr.success td{
+        background-color: lime;
+    }
+    div#debug-tabs table tr.error td{
+        background-color: red;
     }
 
 

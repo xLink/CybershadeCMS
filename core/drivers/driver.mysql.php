@@ -166,7 +166,7 @@ class driver_mysql extends coreSQL implements baseSQL{
         $this->results = mysql_query($query, $this->DBH);
 
         $debug = array();
-        if($this->dbSettings['debug']){
+        if( cmsDEBUG || User::$IS_ADMIN ){
             $backtrace = debug_backtrace();
             $callee = $backtrace[2];
 
