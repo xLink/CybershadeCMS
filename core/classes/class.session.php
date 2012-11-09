@@ -115,8 +115,8 @@ class Session extends coreObj{
                         ->update('#__sessions')
                         ->set($update)
                         ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0'))
-                            ->andWhere('sid',       '=', sprintf('"%s"', md5( session_id() )) )
-                            ->andWhere('hostname',  '=', sprintf('"%s"', $objUser->getIP()) )
+                            ->andWhere('sid',       '=', md5( session_id() ) )
+                            ->andWhere('hostname',  '=', $objUser->getIP() )
                         ->build();
 
         $results = $objSQL->query( $query );
@@ -139,12 +139,12 @@ class Session extends coreObj{
         //$this->regenSessionID();
 
         $insert = array();
-        $insert['`sid`']       = md5( session_id() );
-        $insert['`hostname`']  = $objSQL->escape( $objUser->getIP() );
-        $insert['`store`']     = $objSQL->escape( serialize( $_SESSION ) );
-        $insert['`timestamp`'] = time();
-        $insert['`useragent`'] = $objSQL->escape( htmlspecialchars( $_SERVER['HTTP_USER_AGENT'] ) );
-        $insert['`mode`']      = 'active';
+        $insert['sid']       = md5( session_id() );
+        $insert['hostname']  = $objSQL->escape( $objUser->getIP() );
+        $insert['store']     = $objSQL->escape( serialize( $_SESSION ) );
+        $insert['timestamp'] = time();
+        $insert['useragent'] = $objSQL->escape( htmlspecialchars( $_SERVER['HTTP_USER_AGENT'] ) );
+        $insert['mode']      = 'active';
 
         $query = $objSQL->queryBuilder()
                         ->insertInto('#__sessions')
@@ -154,9 +154,10 @@ class Session extends coreObj{
         $results = $objSQL->query( str_replace('INSERT INTO', 'REPLACE INTO', $query) );
 
         // Ensure the result is valid
-        if( $result ){
+        if( $results ){
             $_SESSION['user']['session_id'] = session_id();
-            $_SESSION['user']['user_id']    = md5( $uid );
+            //$_SESSION['user']['user_id']    = md5( $uid );
+            // @Todo: uid isn't there.
             $_SESSION['user']['timestamp']  = (time() + 3600); // Give it an hour
 
             return true;

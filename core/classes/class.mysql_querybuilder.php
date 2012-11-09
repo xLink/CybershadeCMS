@@ -308,7 +308,7 @@ class mysql_queryBuilder extends coreObj{
         }
 
         private function _buildINSERTFields(&$statement){
-            $statement[] = sprintf('(%s)', implode(', ', $this->_fields));
+            $statement[] = sprintf('(`%s`)', implode('`, `', $this->_fields));
         }
 
         private function _buildINSERTValues(&$statement){
@@ -316,7 +316,7 @@ class mysql_queryBuilder extends coreObj{
             foreach($this->_values as $field => $val){
                 $val = $this->_sanitizeValue($val);
 
-                $values[] = sprintf('"%s"', ($val === NULL ? 'NULL' : $val));
+                $values[] = sprintf('%s', ($val === NULL ? 'NULL' : $val));
             }
             $statement[] = sprintf('(%s)', implode(', ', $values));
         }
@@ -397,7 +397,7 @@ class mysql_queryBuilder extends coreObj{
                 $tmp[1] = $this->_buildFields($tmp[1]);
 
                 if($where['operand'] != 'IN'){
-                    if($type == 'where'){
+                    if( $type == 'where' && $where['fields'] === false ){
                         $tmp[] = $this->_sanitizeValue($where['cond2'], $where['operand'] == 'LIKE');
                     }else{
                         $tmp[] = $where['cond2'];
@@ -518,6 +518,7 @@ class mysql_queryBuilder extends coreObj{
     }
 
     private function _addWhereOn($cond, $type, $property){
+        $oCond = $cond;
         $cond = $this->_getArgs($cond);
         $cond = $this->_NormalizeArgs($cond);
 
@@ -535,6 +536,7 @@ class mysql_queryBuilder extends coreObj{
             'cond2'   => $cond[2],
             'operand' => $operand,
             'type'    => $type,
+            'fields'  => ( sizeOf( $oCond ) === 1 ? true : false ),
         );
         return $this;
     }
@@ -550,7 +552,7 @@ class mysql_queryBuilder extends coreObj{
 
         }
 
-        return $val; ///addslashes($val);
+        return '"' . $val . '"'; ///addslashes($val);
     }
 
     private function setQueryType($queryType){
