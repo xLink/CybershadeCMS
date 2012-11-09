@@ -1,7 +1,7 @@
 <?php
 
 //check if we got the page object
-if(!is_object($objPage)){
+if( !isset( $objPage ) ) {
     $objPage = self::getPage();
 }
 

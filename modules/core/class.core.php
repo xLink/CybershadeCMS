@@ -32,9 +32,8 @@ class core extends Module{
             'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
 
             'L_USERNAME'    => langVar('L_USERNAME'),
-            'F_USERNAME'    => $objForm->inputbox('username', 'text', $userValue, array(
+            'F_USERNAME'    => $objForm->inputbox('username', 'text', '', array(
                                     'class'    => 'icon username',
-                                    'disabled' => $acpCheck,
                                     'required' => true
                                 )),
 

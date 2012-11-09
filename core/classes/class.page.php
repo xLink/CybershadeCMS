@@ -104,7 +104,7 @@ class Page extends coreObj{
          *
          */
         public function buildMenu(){
-            $objTPL = self::getTPL();
+            /*$objTPL = self::getTPL();
 
             $noMenu = (defined('NO_MENU') && NO_MENU ? true : false);
 
@@ -129,7 +129,7 @@ class Page extends coreObj{
             }else{
                 //if we cant show menu, may aswell set the no_menu block
                 $objTPL->assign_block_vars('no_menu', array());
-            }
+            }*/
 
         }
 
@@ -264,7 +264,7 @@ class Page extends coreObj{
             if(count($this->cssFiles)){
 
                 foreach(range(HIGH, LOW) as $priority){
-                    if(!count($this->cssFiles[$priority])){ continue; }
+                    if( !isset( $this->cssFiles[$priority] ) || !count( $this->cssFiles[$priority] ) ){ continue; }
 
                     foreach($this->cssFiles[$priority] as $args){
                         $tag = null;
@@ -375,9 +375,9 @@ class Page extends coreObj{
 
             $return = null;
             //do the files
-            if(count($this->jsFiles[$mode])){
+            if( isset( $this->jsFiles[$mode] )  && count( $this->jsFiles[$mode] ) ) {
                 foreach(range(HIGH, LOW) as $priority){
-                    if(!count($this->jsFiles[$mode][$priority])){ continue; }
+                    if( !isset( $this->jsFiles[$mode][$priority] ) || !count( $this->jsFiles[$mode][$priority] ) ){ continue; }
 
                     foreach($this->jsFiles[$mode][$priority] as $args){
                         $tag = null;
@@ -675,8 +675,8 @@ class Page extends coreObj{
 
             'SITE_NAME'     => $this->config('site', 'site_name'),
 
-            'ROW_COLOR1'    => $vars['row_color1'],
-            'ROW_COLOR2'    => $vars['row_color2'],
+            // 'ROW_COLOR1'    => $vars['row_color1'],
+            // 'ROW_COLOR2'    => $vars['row_color2'],
 
             'USERNAME'      => $objUser->grab('username'),
             //'TIME'          => $objTime->mk_time(time(), 'l H:i:s a'),

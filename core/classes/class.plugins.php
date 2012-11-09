@@ -90,7 +90,7 @@ class Plugins extends coreObj{
 
                 //loop though each 'priority'
                 foreach(array('1', '2', '3') as $prio){
-                    if(!is_array($hooks[$hook][$prio]) || is_empty($hooks[$hook][$prio])){ continue; }
+                    if(!isset($hooks[$hook][$prio]) || !is_array($hooks[$hook][$prio]) || is_empty($hooks[$hook][$prio])){ continue; }
 
                     // and then each hook
                     while(current($hooks[$hook][$prio])){
@@ -109,7 +109,9 @@ class Plugins extends coreObj{
                         next($hooks[$hook][$prio]);
                      }
                 }
-                return $result[$hook][$priority][$function];
+                if( isset($function) && isset( $result[$hook][$priority][$function] ) ) {
+                    return $result[$hook][$priority][$function];
+                }
             break;
 
             case 'add':

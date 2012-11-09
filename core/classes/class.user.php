@@ -22,22 +22,22 @@ class User extends coreObj {
             'id'        => 0,
             'username'  => 'Guest',
             'theme'     => $this->config('site', 'theme'),
-            'timezone'  => doArgs('timezone', $this->config('time', 'timezone'), $_SESSION['user']),
+            'timezone'  => isset($_SESSION['user']) ? doArgs('timezone', $this->config('time', 'timezone'), $_SESSION['user']) : $this->config('time', 'timezone'),
         );
 
         self::addConfig(array(
             'global' => array(
-                'user'      => (isset($_SESSION['user']['id']) ? $_SESSION['user'] : $guest['user']),
+                'user'      => ( isset($_SESSION['user']['id']) ? $_SESSION['user'] : $guest['user']),
                 'ip'        => User::getIP(),
                 'useragent' => doArgs('HTTP_USER_AGENT', null, $_SERVER),
                 'browser'   => getBrowser($_SERVER['HTTP_USER_AGENT']),
-                'language'  => $language,
-                'secure'    => ($_SERVER['HTTPS'] ? true : false),
+                'language'  => 'en', //$language,
+                'secure'    => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? true : false ),
                 'referer'   => doArgs('HTTP_REFERER', null, $_SERVER),
                 'rootPath'  => '/'.root(),
                 'fullPath'  => $_SERVER['REQUEST_URI'],
-                'rootUrl'   => ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].'/'.root(),
-                'url'       => ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
+                'rootUrl'   => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].'/'.root(),
+                'url'       => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
             )
         ), 'user');
 
