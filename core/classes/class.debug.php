@@ -317,7 +317,8 @@ class Debug extends coreObj{
      * @return      array
      */
     public function getGlobals(){
-        $count = 0;
+        $count   = 0;
+        $content = '';
 
         if( !is_empty($_GET) ){
             $content .= dump($_GET, '_GET');
@@ -359,8 +360,9 @@ class Debug extends coreObj{
      * @return      array
      */
     public function getConfig(){
-        $count = 0;
-
+        $count   = 0;
+        $content = '';
+        
         $user = coreObj::getUser()->global;
         $content .= dump($user, 'objUser::global');
 
