@@ -415,6 +415,14 @@ class coreObj {
         return coreObj::$_classes['page'];
     }
 
+    public static function getTime(){
+        if(!isset(coreObj::$_classes['time'])){
+            Time::getInstance('time');
+        }
+
+        return coreObj::$_classes['time'];
+    }
+
     public static function getCache(){
         if(!isset(coreObj::$_classes['cache'])){
 
