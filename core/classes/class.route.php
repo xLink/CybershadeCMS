@@ -510,7 +510,7 @@ class Route extends coreObj{
                         ->select('module', 'label', 'pattern', 'method', 'arguments', 'requirements', 'status', 'redirect')
                             ->addField('pattern LIKE "%:%" as `dynamic`')
                         ->from('#__routes')
-                        ->where('status', '=', '1')
+                        ->where('status = 1')
                         ->orderBy('`dynamic` ASC, method DESC, CHAR_LENGTH(pattern)', 'DESC')
                         ->build();
 

@@ -8,6 +8,7 @@ class Page extends coreObj{
 
     static  $THEME      = '',
             $THEME_ROOT = '';
+
     public  $jsFiles    = array(),
             $cssFiles   = array(),
             $jsCode     = array(),
@@ -95,6 +96,25 @@ class Page extends coreObj{
         ));
     }
 
+    /**
+     * Build all the blocks in the template
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function buildBlocks()
+    {
+        $objTPL = coreObj::getTPL();
+
+        $blocks = $this->config('blocks');
+
+        if( !empty( $blocks ) ) {
+            echo dump( $blocks );
+        }
+    }
+
         /**
          *
          *
@@ -104,6 +124,7 @@ class Page extends coreObj{
          *
          */
         public function buildMenu(){
+            $objTPL = coreObj::getTPL();
             /*$objTPL = self::getTPL();
 
             $noMenu = (defined('NO_MENU') && NO_MENU ? true : false);
@@ -663,7 +684,7 @@ class Page extends coreObj{
             include_once($themeConfig);
         }
 
-        $this->buildMenu();
+        $this->buildBlocks();
 /**
   //
   //-- Template Stuff

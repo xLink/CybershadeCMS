@@ -30,7 +30,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
     (cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
 
-    if(cmsDEBUG && false){
+    if(cmsDEBUG && true){
         require_once(cmsROOT.'core/php_error.php');
         \php_error\reportErrors(array(
           'snippet_num_lines'   => 20,
@@ -121,6 +121,11 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objCore->addConfig($config);
 
     $objPlugin   = coreObj::getPlugins();
+    $objTPL      = coreObj::getTPL();
+    $objPage     = coreObj::getPage();
+    $objDebug    = coreObj::getDebug();
+    $objForm     = coreObj::getForm();
+    $objTime     = coreObj::getTime();
 
 
         if( is_object($objDebug) ){
