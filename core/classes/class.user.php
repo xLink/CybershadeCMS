@@ -71,12 +71,10 @@ class User extends coreObj {
      * @author  Dan Aldridge
      */
     public function initPerms(){
-        $objPerms = coreObj::getPermissions();
-        self::$IS_USER      = $objPerms->checkPermissions($this->get('id'), USER);
-        self::$IS_MOD       = $objPerms->checkPermissions($this->get('id'), MOD);
-        self::$IS_ADMIN     = $objPerms->checkPermissions($this->get('id'), ADMIN);
+        self::$IS_USER      = $this->checkPermissions($this->grab('id'), USER);
+        self::$IS_MOD       = $this->checkPermissions($this->grab('id'), MOD);
+        self::$IS_ADMIN     = $this->checkPermissions($this->grab('id'), ADMIN);
     }
-
 
 /**
   //
@@ -476,10 +474,10 @@ class User extends coreObj {
      * @since   1.0.0
      * @author  Richard Clifford
      *
-     * @param int    $uid
-     * @param string $password
+     * @param   int    $uid
+     * @param   string $password
      *
-     * @return bool
+     * @return  bool
      */
     public function setPassword( $uid, $password ){
         if( is_empty( $password ) ){
@@ -502,7 +500,20 @@ class User extends coreObj {
         return false;
     }
 
-    public function toggle( $var, $state = null ){
+    /**
+     * Toggles a boolean setting in the user row.
+     *
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   int    $uid
+     * @param   string $var
+     * @param   bool   $state
+     *
+     * @return  bool
+     */
+    public function toggle( $uid, $var, $state = null ){
 
     }
 
@@ -650,6 +661,78 @@ class User extends coreObj {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Returns permission state for given user and group
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   int     $uid        UserID
+     * @param   int     $group      GUEST, USER, MOD, or ADMIN
+     *
+     * @return  bool    True/False on successful check, -1 on unknown group
+     */
+    public function checkPermissions( $uid, $group=0 ) {
+        $group = (int)$group;
+
+        //make sure we have a group to check against
+        if( is_empty($group) || $group == 0 || $group == GUEST ){
+            return true;
+        }
+
+        //check to see whether we have a user id to check against..
+        if (is_empty($uid) ){
+            return false;
+        }
+
+        //grab the user level if possible
+        $userlevel = GUEST;
+        if( self::$IS_ONLINE ){
+            $userlevel = $this->grab('userlevel');
+        }
+
+        //see which group we are checking for
+        switch($group){
+            case GUEST:
+                if(!self::$IS_ONLINE){
+                    return true;
+                }
+            break;
+
+            case USER:
+                if(self::$IS_ONLINE){
+                    return true;
+                }
+            break;
+
+            case MOD:
+                if($userlevel == MOD){
+                    return true;
+                }
+            break;
+
+            case ADMIN:
+                if($userlevel == ADMIN){
+                    if(LOCALHOST || doArgs('adminAuth', false, $_SESSION['acp'])){
+                        return true;
+                    }
+                }
+            break;
+
+            //no idea what they tried to check for, so we'll return something unexpected too
+            default: return -1; break;
+        }
+
+        //if we are an admin then give them mod powers regardless
+        if(($group == MOD || $group == USER) && $userlevel == ADMIN){
+            return true;
+        }
+
+        //apparently the checks didnt return true, so we'll go for false
+        return false;
     }
 
 }

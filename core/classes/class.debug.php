@@ -363,6 +363,15 @@ class Debug extends coreObj{
         $count   = 0;
         $content = '';
 
+        $perms = array(
+            'IS_ONLINE'  => User::$IS_ONLINE,
+            'IS_USER'  => User::$IS_USER,
+            'IS_MOD'   => User::$IS_MOD,
+            'IS_ADMIN' => User::$IS_ADMIN,
+        );
+        $objUser = coreObj::getUser();
+        $content .= dump($perms, 'Global User Perms for '.$objUser->grab('username'));
+
         $config = $this->config();
         $content .= dump($config, 'config');
 

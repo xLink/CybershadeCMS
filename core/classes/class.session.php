@@ -171,7 +171,7 @@ class Session extends coreObj{
      * @author  Dan Aldridge
      *
      */
-    public function loadSession(){
+    public function getData(){
         $objSQL = coreObj::getDBO();
         $objUser = coreObj::getUser();
 
@@ -185,11 +185,8 @@ class Session extends coreObj{
 
         $results = $objSQL->fetchLine( $query );
 
-        if( $objSQL->affectedRows > 0 ){
-            $_SESSION = unserialize( $results[0]['store'] );
-
-
-            return true;
+        if( $objSQL->affectedRows() > 0 ){
+            return $results;
         }
 
         return false;

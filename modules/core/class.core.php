@@ -13,7 +13,7 @@ class core extends Module{
     }
 
     public function viewIndex(){
-        $this->login_form();
+
     }
 
     public function login_form(){
@@ -88,7 +88,8 @@ class core extends Module{
 
 
         if( !count($errors) ){
-            $objSessions->doLogin();
+            //$objLogin->doLogin();
+            $_SESSION['user'] = $objUser->get('*', $_POST['username']);
         }else{
             $this->errors = $errors;
             $this->login_form();
