@@ -45,6 +45,7 @@ class Session extends coreObj{
 
         $_SESSION['page_load'] = time();
 
+        $this->session_gc();
     }
 
     /**
@@ -55,7 +56,7 @@ class Session extends coreObj{
      * @author  Dan Aldridge
      *
      */
-    public function __destruct(){
+    public function session_gc(){
         if( rand(1, 100) <= 25 ){
             (cmsDEBUG ? memoryUsage('Sessions: Running Garbage Collector... ') : '');
             $objSQL = coreObj::getDBO();

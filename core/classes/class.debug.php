@@ -363,9 +363,6 @@ class Debug extends coreObj{
         $count   = 0;
         $content = '';
 
-        $user = coreObj::getUser()->global;
-        $content .= dump($user, 'objUser::global');
-
         $config = $this->config();
         $content .= dump($config, 'config');
 
