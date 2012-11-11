@@ -120,7 +120,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
     $objCore->addConfig($config);
 
-    $objPlugin   = coreObj::getPlugins();
+    $objPlugin  = coreObj::getPlugins();
+    $objSession = coreObj::getSession();
 
 
         if( is_object($objDebug) ){

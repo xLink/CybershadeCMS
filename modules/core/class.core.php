@@ -20,6 +20,11 @@ class core extends Module{
         $objTPL     = coreObj::getTPL();
         $objForm    = coreObj::getForm();
         $objSession = coreObj::getSession();
+        $objPage    = coreObj::getPage();
+
+        if( User::$IS_ONLINE ){
+            $objPage->redirect('/'.root());
+        }
 
         $this->setView('login_form/default.tpl');
 
