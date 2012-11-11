@@ -23,6 +23,7 @@ class User extends coreObj {
             'username'  => 'Guest',
             'theme'     => $this->config('site', 'theme'),
             'timezone'  => isset($_SESSION['user']) ? doArgs('timezone', $this->config('time', 'timezone'), $_SESSION['user']) : $this->config('time', 'timezone'),
+            'userkey'   => doArgs('userkey', null, $_SESSION['user']),
         );
 
         self::addConfig(array(
@@ -42,8 +43,6 @@ class User extends coreObj {
         ), 'user');
 
         $user = $this->config('global', 'user');
-
-        $objPermissions = coreObj::getPermissions();
 
         $this->setIsOnline(!($user['id'] == 0 ? true : false));
         $this->initPerms();
@@ -634,7 +633,7 @@ class User extends coreObj {
 
         // Grab the user's id
         $uid = $this->getIDByUsername( $username );
-echo dump($uid, $username);
+
         // if the username doesn't exist, return false;
         if( $uid === 0 ) {
             return false;

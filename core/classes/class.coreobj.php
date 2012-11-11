@@ -492,6 +492,14 @@ class coreObj {
 
         return coreObj::$_classes['permissions'];
     }
+
+    public static function getLogin(){
+        if(!isset( coreObj::$_classes['login'] )){
+            Login::getInstance('login');
+        }
+
+        return coreObj::$_classes['login'];
+    }
 }
 
 ?>

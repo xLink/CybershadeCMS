@@ -56,20 +56,44 @@ class core extends Module{
 
         $objTPL->assign_block_vars('login', $form);
 
+        if( isset($this->errors) && count($this->errors) ){
+            foreach($this->errors as $error){
+                $objTPL->assign_block_vars('login.errors', array(
+                    'ERROR' => $error
+                ));
+            }
+        }
+
     }
 
     public function login_process(){
         $objSession = coreObj::getSession();
         $objUser    = coreObj::getUser();
+        $objLogin   = coreObj::getLogin();
         $errors = array();
 
         if( !$objSession->checkToken('hash') ){
             $errors[] = 'There was an issue with submitting the form, please try again.';
         }
 
+        /*
+        if( !$objUser->attemptsCheck() ){
+            $errors[] = 'You have attempts to login to this account have been logged & blocked. Please wait 15 mins before trying again.';
+        }
+        */
+
         if( !$objUser->verifyUserCredentials( $_POST['username'], $_POST['password'] ) ){
             $errors[] = 'User Credentials are incorrect';
         }
+
+
+        if( !count($errors) ){
+            $objSessions->doLogin();
+        }else{
+            $this->errors = $errors;
+            $this->login_form();
+        }
+
         echo dump($errors, 'Login Errors :D');
     }
 }

@@ -1,6 +1,11 @@
 
 <div class="span8 well">
     <!-- BEGIN login -->
+    <ul>
+        <!-- BEGIN errors -->
+        <li><span class="error">{login.errors.ERROR}</span></li>
+        <!-- END errors -->
+    </ul>
     {login.FORM_START}
         <div class="row">
             <div class="span2">

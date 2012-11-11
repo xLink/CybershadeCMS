@@ -62,7 +62,7 @@ class Session extends coreObj{
 
             $query = $objSQL->queryBuilder()
                             ->deleteFrom('#__sessions')
-                            ->where('timestamp', '<', time()-((60*60)*20))
+                            ->where( sprintf('timestamp < %d', time()-((60*60)*20)) )
                             ->build();
 
             $objSQL->query( $query );
@@ -106,17 +106,16 @@ class Session extends coreObj{
         (cmsDEBUG ? memoryUsage('Sessions: Updating timestamp on users session... ') : '');
 
         $objSQL = coreObj::getDBO();
-        $objUser = coreObj::getUser();
 
         $update = array();
-        $update['timestamp'] = $objSQL->quote(time());
+        $update['timestamp'] = time();
 
         $query = $objSQL->queryBuilder()
                         ->update('#__sessions')
                         ->set($update)
                         ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0'))
                             ->andWhere('sid',       '=', md5( session_id() ) )
-                            ->andWhere('hostname',  '=', $objUser->getIP() )
+                            ->andWhere('hostname',  '=', User::getIP() )
                         ->build();
 
         $results = $objSQL->query( $query );
@@ -134,13 +133,12 @@ class Session extends coreObj{
      */
     public function newSession(){
         $objSQL  = coreObj::getDBO();
-        $objUser = coreObj::getUser();
 
         //$this->regenSessionID();
 
         $insert = array();
         $insert['sid']       = md5( session_id() );
-        $insert['hostname']  = $objSQL->escape( $objUser->getIP() );
+        $insert['hostname']  = $objSQL->escape( User::getIP() );
         $insert['store']     = $objSQL->escape( serialize( $_SESSION ) );
         $insert['timestamp'] = time();
         $insert['useragent'] = $objSQL->escape( htmlspecialchars( $_SERVER['HTTP_USER_AGENT'] ) );
@@ -155,10 +153,8 @@ class Session extends coreObj{
 
         // Ensure the result is valid
         if( $results ){
-            $_SESSION['user']['session_id'] = session_id();
-            //$_SESSION['user']['user_id']    = md5( $uid );
-            // @Todo: uid isn't there.
             $_SESSION['user']['timestamp']  = (time() + 3600); // Give it an hour
+            $_SESSION['user']['userkey']    = $insert['sid'];
 
             return true;
         }
@@ -183,7 +179,7 @@ class Session extends coreObj{
                         ->from('#__sessions')
                         ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0') )
                             ->andWhere('sid',       '=', md5( session_id() ) )
-                            ->andWhere('hostname',  '=', $objUser->getIP() )
+                            ->andWhere('hostname',  '=', User::getIP() )
                         ->build();
 
         $results = $objSQL->fetchLine( $query );
