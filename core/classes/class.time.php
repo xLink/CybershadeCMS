@@ -29,7 +29,6 @@ class Time extends coreObj{
 
 		// Get the instances we need
 		$objUser = coreObj::getUser();
-		$objPage = coreObj::getPage();
 
 		$translate = array();
 		$format    = ( $format == 'db'     ? $this->config( 'site', 'time', 'jS F h:ia' )  : $format );
@@ -37,13 +36,13 @@ class Time extends coreObj{
 		$timestamp = ( date( 'I' ) == 0    ? $this->mod_time( $timestamp, 0, 0, 1 )        : $timestamp);
 
 		// If User is logged in, Use his/her timezone
-		if( IS_ONLINE && $objUser->grab( 'timezone' ) ) {
+		if( User::$IS_ONLINE && $objUser->grab( 'timezone' ) ) {
 			$this->mod_time( $timestamp, 0, 0, $objUser->grab( 'timezone' ) );
 		}
 
 		// Translate the date if it's possible
 		if( empty( $translate ) && $this->currentLanguage != 'en' ) {
-		    $lang_date = $objPage->langVar('DATETIME');
+		    $lang_date = langVar('DATETIME');
 
 			reset($lang_date);
 
@@ -52,7 +51,7 @@ class Time extends coreObj{
 			}
 		}
 
-		// If we're not meant to return anything, 
+		// If we're not meant to return anything,
 		if( $return === 0 ) {
 			$return = gmdate( $format, $timestamp );
 
@@ -66,7 +65,7 @@ class Time extends coreObj{
 		}
 
 		// Tidy up
-		unset( $objUser, $objPage, $translate, $format, $timestamp, $lang_date, $match, $replace, $format );
+		unset( $objUser, $translate, $format, $timestamp, $lang_date, $match, $replace, $format );
 
 		return $return;
 	}
@@ -111,7 +110,7 @@ class Time extends coreObj{
 	}
 
     /**
-     * Determine the time between two timestamps	
+     * Determine the time between two timestamps
      *
      * @version     1.0
      * @since       1.0.0
@@ -177,12 +176,12 @@ class Time extends coreObj{
 
 		// Tidy up
 		unset( $t1, $t2, $format, $return, $sign, $s, $i, $out, $left, $format_count, $a, $vals, $words );
-		
+
 		return ucwords( strtolower( $str ) );
 	}
 
     /**
-     * Determine how long till next birthday 
+     * Determine how long till next birthday
      *
      * @version     1.0
      * @since       1.0.0

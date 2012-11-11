@@ -120,15 +120,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
     $objCore->addConfig($config);
 
-    $objCache    = coreObj::getCache();
-    $objRoute    = coreObj::getRoute();//->modifyGet();
-    $objSQL      = coreObj::getDBO();
-    $objSession  = coreObj::getSession();
     $objPlugin   = coreObj::getPlugins();
-    $objTPL      = coreObj::getTPL();
-    $objPage     = coreObj::getPage();
-    $objDebug    = coreObj::getDebug();
-    $objForm     = coreObj::getForm();
 
 
         if( is_object($objDebug) ){

@@ -6,11 +6,14 @@ define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 include_once('core/core.php');
 
+$objRoute = coreObj::getRoute();
+$objPage = coreObj::getPage();
+$objTPL = coreObj::getTPL();
+
 $objPage->setTheme();
 
 $objPage->setTitle('Test');
 
-$objRoute = coreObj::getRoute();
 $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
 $objPage->buildPage();
