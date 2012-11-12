@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class module_forum extends Module{
+class Module_forum extends Module {
 
     public function __construct(){
         $objPage = coreobj::getPage();
@@ -211,7 +211,7 @@ class module_forum extends Module{
             if( $results === false ){
                 $msg = 'Could not query forum moderator information';
                 trigger_error($msg);
-                hmsgDie('FAIL', $msg)
+                hmsgDie('FAIL', $msg);
             }
 
 
@@ -231,4 +231,5 @@ class module_forum extends Module{
         return $return;
     }
 }
+
 ?>

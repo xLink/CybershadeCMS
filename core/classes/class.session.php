@@ -43,7 +43,9 @@ class Session extends coreObj{
             $this->newSession();
         }
 
-        $_SESSION['page_load'] = time();
+        $_SESSION['page_load']       = time();
+        $_SESSION['user']['userkey'] = md5( session_id() );
+
 
         $this->session_gc();
     }
@@ -155,7 +157,6 @@ class Session extends coreObj{
         // Ensure the result is valid
         if( $results ){
             $_SESSION['user']['timestamp']  = (time() + 3600); // Give it an hour
-            $_SESSION['user']['userkey']    = $insert['sid'];
 
             return true;
         }

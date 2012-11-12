@@ -126,6 +126,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objDebug    = coreObj::getDebug();
     $objForm     = coreObj::getForm();
     $objTime     = coreObj::getTime();
+    
+    $objPlugin  = coreObj::getPlugins();
+    $objSession = coreObj::getSession();
 
 
         if( is_object($objDebug) ){

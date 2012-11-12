@@ -59,7 +59,7 @@ class User extends coreObj {
      *
      * @return  bool
      */
-    public function setIsOnline( $value=true ){
+    public function setIsOnline( $value = true ){
         return self::$IS_ONLINE = $value;
     }
 
