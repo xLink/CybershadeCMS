@@ -296,8 +296,6 @@ class Debug extends coreObj{
         }
         $output .= '</ul>';
 
-
-
         return array('count' => count($this->errors), 'content' => $output);
     }
 
@@ -340,7 +338,6 @@ class Debug extends coreObj{
             $content .= dump($_SERVER, '_SERVER');
         }
 
-
         return array('count' => $count, 'content' => $content );
     }
 
@@ -364,10 +361,10 @@ class Debug extends coreObj{
         $content = '';
 
         $perms = array(
-            'IS_ONLINE'  => User::$IS_ONLINE,
-            'IS_USER'  => User::$IS_USER,
-            'IS_MOD'   => User::$IS_MOD,
-            'IS_ADMIN' => User::$IS_ADMIN,
+            'IS_ONLINE' => User::$IS_ONLINE,
+            'IS_USER'   => User::$IS_USER,
+            'IS_MOD'    => User::$IS_MOD,
+            'IS_ADMIN'  => User::$IS_ADMIN,
         );
         $objUser = coreObj::getUser();
         $content .= dump($perms, 'Global User Perms for '.$objUser->grab('username'));
@@ -419,7 +416,7 @@ class Debug extends coreObj{
          *
          * @version     1.0
          * @since       1.0.0
-         * @author      Daniel Noel-Davies
+         * @author      Dan Aldridge
          *
          * @param       bool        $output     If True, The function will output the HTML
          *
@@ -433,11 +430,11 @@ class Debug extends coreObj{
             $output   = '';
             $objCache = coreObj::getCache();
 
-            if( !empty( $objCache->loadedCaches ) ) {
-                foreach( $objCache->loadedCaches as $cache ) {
-                    $output[] = $cache;
-                }
-            }
+            $output = array(
+                'loaded' => $objCache->loadedCaches,
+                'failed' => $objCache->failedCaches
+            );
+
 
             return array('count' => count($output), 'content' => $output );
         }

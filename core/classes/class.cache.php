@@ -13,11 +13,14 @@ class Cache extends coreObj{
            $failedCaches = array();
 
     /**
+     * The constructor of the cache class
      *
+     * @version 1.0.0
+     * @since 1.0.0
+     * @author Dan Aldridge
      *
-     *
-     *
-     *
+     * @param string $name
+     * @param array  $args
      */
     public function __construct( $name = '', $args = array() ){
         $this->setVars(array(
@@ -137,7 +140,6 @@ class Cache extends coreObj{
 
                     //if we regenerate it then we will do another check just to make sure...
                     if( is_empty( $cache ) ) {
-                        trigger_error( 'Sorry, we tried everything, your cache file "'.$file.'" does not wanna load, wtf you trying to do?', E_USER_ERROR );
 
                         // Add the cache to the failed cache's array
                         $this->failedCaches[] = $file;

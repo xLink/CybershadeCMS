@@ -72,16 +72,20 @@ class coreObj {
             switch( $dir ) {
 
                 case 'libs':
-                case 'modules':
                 case 'classes':
                     $filePrefix = 'class.';
                     $classPrefix  = '';
-                    break;
+                break;
+
+                case 'modules':
+                    $filePrefix = 'class.';
+                    $classPrefix  = 'Module_';
+                break;
 
                 case 'drivers':
                     $filePrefix = 'driver.';
                     $classPrefix  = 'driver_';
-                    break;
+                break;
             }
 
             // Within each dir, loop through the files using the prefixes generated above.

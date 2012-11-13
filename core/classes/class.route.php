@@ -311,6 +311,19 @@ class Route extends coreObj{
             return false;
         }
 
+        // test for override within the directory
+        $_module = str_replace('Module_', '', $module);
+        $path = cmsROOT.'themes/'.$this->config('site', 'theme').'/override/%1$s/%2$s/%2$s.php';
+        if( is_readable( sprintf($path, $_module, $method) ) ){
+
+            include_once( sprintf($path, $_module, $method) );
+            if( is_callable( array( 'Override_'.$method, $method ) ) ){
+                (cmsDEBUG ? memoryUsage('Routes: Super method override initiated...BOOM!') : '');
+                $module = 'Override_'.$method;
+            }
+
+        }
+
         // Retrieve the info we need about the class and method
         (cmsDEBUG ? memoryUsage('Routes: Method found to be callable. Do our thing :D') : '');
         $refMethod = new ReflectionMethod( $module, $method );

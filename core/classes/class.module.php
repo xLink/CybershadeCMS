@@ -109,6 +109,27 @@ class Module extends coreObj{
         trigger_error('Error: Method dosen\'t exist.'.dump($debug));
     }
 
+
+    /**
+     * Executes if a static method has been called to & it dosen't exist
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string $method
+     * @param   array  $args
+     */
+    final public static function __callStatic($method, $args){
+        $debug = array(
+            'Class Name'    => $this->getClassName(),
+            'Method Called' => $method,
+            'Method Args'   => $args,
+        );
+        trigger_error('Error: Static Method dosen\'t exist.'.dump($debug));
+    }
+
+
     /**
      * Check if a module exists in the file structure
      *
@@ -126,10 +147,46 @@ class Module extends coreObj{
         }
 
         $files = glob( sprintf( '%1$smodules/%2$s/base%2$s.php', cmsROOT, $moduleName ) );
-            if( is_empty( $files ) ) {
-                return false;
-            }
+
+        if( is_empty( $files ) ) {
+            return false;
+        }
+
         return true;
+    }
+
+
+    /**
+     * Check if a module is installed in the database and enabled
+     *
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string     $moduleName
+     *
+     * @return  bool
+     */
+    public function moduleInstalled( $moduleName ){
+        if( is_empty( $moduleName ) || !$this->moduleExists( $moduleName ) ){
+            return false;
+        }
+
+        $objSQL = coreObj::getDBO();
+
+        $query = $objSQL->queryBuilder()
+                        ->select('enabled')
+                        ->from('#__modules')
+                        ->where('name', '=', $moduleName)
+                        ->build();
+
+        $result = $objSQL->fetchLine( $query );
+
+        if( $result && isset( $result['enabled'] ) && $result['enabled'] === 1 ){
+            return true;
+        }
+
+        return false;
     }
 }
 
