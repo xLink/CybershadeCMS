@@ -336,10 +336,10 @@ class mysql_queryBuilder extends coreObj{
                 if(count($field) == 1){
                     $field = current($field);
 
-                    if(strtoupper(substr($field, 0, 5)) == 'COUNT' || $field == '*'){
+                    if( strtoupper( substr( $field, 0, 5 ) ) == 'COUNT' || $field == '*' || strpos( $field, '(' ) !== false ){
                         $_fields[] = $field;
                     }else{
-                        $_fields[] = sprintf('%s', $field);
+                        $_fields[] = sprintf('`%s`', $field);
                     }
                     continue;
                 }
@@ -544,7 +544,6 @@ class mysql_queryBuilder extends coreObj{
     protected function _sanitizeValue($val) {
         if( in_array( $val, array( 'NULL', 'true', 'false', null ) ) ) {
             return $val;
-
         }
 
         return '"' . $val . '"'; ///addslashes($val);
