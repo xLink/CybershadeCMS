@@ -542,11 +542,6 @@ class mysql_queryBuilder extends coreObj{
     }
 
     protected function _sanitizeValue($val) {
-        if(is_number($val)){
-            return $val;
-
-        }
-
         if( in_array( $val, array( 'NULL', 'true', 'false', null ) ) ) {
             return $val;
 

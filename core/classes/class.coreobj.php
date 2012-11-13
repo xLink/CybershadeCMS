@@ -511,6 +511,14 @@ class coreObj {
         }
         return coreObj::$_classes['upload'];
     }
+
+    public static function getBlocks(){
+        if(!isset( coreObj::$_classes['blocks'] )){
+            Blocks::getInstance('blocks');
+        }
+
+        return coreObj::$_classes['blocks'];
+    }
 }
 
 ?>

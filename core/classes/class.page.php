@@ -107,52 +107,56 @@ class Page extends coreObj{
     public function buildBlocks()
     {
         $objTPL = coreObj::getTPL();
+        $objBlocks = coreObj::getBlocks();
 
-        $blocks = $this->config('blocks');
+        // $blocks = $this->config('blocks');
+        $blocks = $objBlocks->loadBlocks();
 
-        if( !empty( $blocks ) ) {
-            echo dump( $blocks );
+        if( empty( $blocks ) ) {
+            return false;
         }
+
+        $objBlocks->insertBlocks();
     }
 
-        /**
-         *
-         *
-         * @version 1.0
-         * @since   1.0
-         * @author  Dan Aldridge
-         *
-         */
-        public function buildMenu(){
-            $objTPL = coreObj::getTPL();
-            /*$objTPL = self::getTPL();
+    /**
+     *
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function buildMenu(){
+        $objTPL = coreObj::getTPL();
+        /*$objTPL = self::getTPL();
 
-            $noMenu = (defined('NO_MENU') && NO_MENU ? true : false);
+        $noMenu = (defined('NO_MENU') && NO_MENU ? true : false);
 
-            $menu = $this->getOptions('moduleMenu');
-            if($menu['module'] === false){ $noMenu = true; }
+        $menu = $this->getOptions('moduleMenu');
+        if($menu['module'] === false){ $noMenu = true; }
 
-            //we cant do nothin without any blocks
-            if(!$noMenu && !is_empty($config['menu_blocks'])){
-                //if it got set to null, or wasnt set atall, default to the core menu
-                if(!isset($menu['module']) || is_empty($menu['module'])){
-                    $menu['module'] = 'core';
-                }
-                if(!isset($menu['page_id']) || is_empty($menu['page_id'])){
-                    $menu['page_id'] = 'default';
-                }
+        //we cant do nothin without any blocks
+        if(!$noMenu && !is_empty($config['menu_blocks'])){
+            //if it got set to null, or wasnt set atall, default to the core menu
+            if(!isset($menu['module']) || is_empty($menu['module'])){
+                $menu['module'] = 'core';
+            }
+            if(!isset($menu['page_id']) || is_empty($menu['page_id'])){
+                $menu['page_id'] = 'default';
+            }
 
-                //then do the output
-                $menuSetup = show_menu($menu['module'], $menu['page_id']);
-                if($menuSetup){
-                    $objTPL->assign_block_vars('menu', array());
-                }
-            }else{
-                //if we cant show menu, may aswell set the no_menu block
-                $objTPL->assign_block_vars('no_menu', array());
-            }*/
+            //then do the output
+            $menuSetup = show_menu($menu['module'], $menu['page_id']);
+            if($menuSetup){
+                $objTPL->assign_block_vars('menu', array());
+            }
+        }else{
+            //if we cant show menu, may aswell set the no_menu block
+            $objTPL->assign_block_vars('no_menu', array());
+        }*/
 
-        }
+    }
 
 
     /**
