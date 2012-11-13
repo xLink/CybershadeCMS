@@ -514,7 +514,26 @@ class User extends coreObj {
      * @return  bool
      */
     public function toggle( $uid, $var, $state = null ){
+        $objSQL = coreObj::getDBO();
 
+        $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
+        $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
+
+        if( in_array( $var, $userColumnData ) ){
+            $query = $objSQL->queryBuilder()
+               ->update('#__users')
+               ->set($var, '=', $state)
+               ->where('id', '=', $state)
+               ->build();
+
+            $result = $objSQL->query( $query );
+
+            if( $result ){
+                return true;
+            }
+        }
+
+        return false;
     }
 
 /**

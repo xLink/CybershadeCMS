@@ -296,8 +296,6 @@ class Debug extends coreObj{
         }
         $output .= '</ul>';
 
-
-
         return array('count' => count($this->errors), 'content' => $output);
     }
 
@@ -339,7 +337,6 @@ class Debug extends coreObj{
         if( !is_empty($_SERVER) ){
             $content .= dump($_SERVER, '_SERVER');
         }
-
 
         return array('count' => $count, 'content' => $content );
     }
