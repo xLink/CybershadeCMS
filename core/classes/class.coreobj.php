@@ -504,6 +504,13 @@ class coreObj {
 
         return coreObj::$_classes['login'];
     }
+
+    public static function getUpload(){
+        if( !isset( coreObj::$_classes['upload'] ) ){
+            Upload::getInstance('upload');
+        }
+        return coreObj::$_classes['upload'];
+    }
 }
 
 ?>
