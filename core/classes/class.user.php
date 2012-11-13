@@ -521,10 +521,10 @@ class User extends coreObj {
 
         if( in_array( $var, $userColumnData ) ){
             $query = $objSQL->queryBuilder()
-               ->update('#__users')
-               ->set($var, '=', $state)
-               ->where('id', '=', $state)
-               ->build();
+                            ->update('#__users')
+                            ->set($var, '=', $state)
+                            ->where('id', '=', $uid)
+                            ->build();
 
             $result = $objSQL->query( $query );
 
