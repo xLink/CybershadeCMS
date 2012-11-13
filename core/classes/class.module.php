@@ -29,9 +29,10 @@ class Module extends coreObj{
      * @return  bool
      */
     public function setView($view='default'){
-        $objTPL = coreObj::getTPL();
+        $objTPL  = coreObj::getTPL();
+        $objUser = coreObj::getUser();
 
-        $module = $this->getVar('_module');
+        $module = str_replace('Module_', '', $this->getVar('_module') );
         $method = $this->getVar('_method');
         $view   = str_replace('.tpl', '', $view);
 
@@ -41,7 +42,7 @@ class Module extends coreObj{
         }
 
         // Allow Developers to test custom views
-        if( !empty( $_GET['view'] ) ) { // @TODO Add && IS_ADMIN
+        /*if( !empty( $_GET['view'] ) ) { // @TODO Add && IS_ADMIN
             $tempPath = sprintf('modules/%s/views/%s.tpl', $module, $_GET['view']);
             if( is_readable( $tempPath ) ) {
                 $view = $_GET['view'];
@@ -49,9 +50,21 @@ class Module extends coreObj{
                 trigger_error('The view overide you attempted to use dow work');
                 return false;
             }
+        }*/
+
+        // define a path for the views, & check for an override within there too
+        $path = sprintf('modules/%s/views/%s.tpl', $module, $view);
+        if( strpos($module, 'Override_') !== false ){
+            echo dump($module);
+            $override = str_replace('Override_', '', $module);
+            $module = str_replace('Module_', '', get_parent_class($this));
+            $file = sprintf('themes/%1$s/override/%2$s/%3$s.tpl', $objUser->grab('theme'), $module, $view);
+
+            if( is_file($file) ){
+                $path = $file;
+            }
         }
 
-        $path = sprintf('modules/%s/views/%s.tpl', $module, $view);
         if( !is_file($path) ){
             trigger_error($path.' is not a valid path');
             return false;

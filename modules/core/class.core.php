@@ -14,6 +14,7 @@ class Module_core extends Module{
 
     public function viewIndex(){
         echo dump($a, 'original');
+        $this->setView('viewIndex/default.tpl');
     }
 
     public function login_form(){

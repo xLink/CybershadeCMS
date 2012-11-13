@@ -292,6 +292,8 @@ class Route extends coreObj{
         }
         (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D'.dump($this->route)) : '');
 
+        $objUser = coreObj::getUser();
+
         // Check if the route is a redirection
         if( !is_empty( $route['redirect'] ) ) {
             // TODO: Add Internal Redirections (Internal, meaning no 301, just different internal processing)
@@ -312,12 +314,21 @@ class Route extends coreObj{
         }
 
         // test for override within the directory
-        $_module = str_replace('Module_', '', $module);
-        $path = cmsROOT.'themes/'.$this->config('site', 'theme').'/override/%1$s/%2$s/%2$s.php';
-        if( is_readable( sprintf($path, $_module, $method) ) ){
 
-            include_once( sprintf($path, $_module, $method) );
-            if( is_callable( array( 'Override_'.$method, $method ) ) ){
+        $_module = str_replace('Module_', '', $module);
+        $path = cmsROOT.'themes/%1$s/override/%2$s/%3$s/%3$s.php';
+        if( is_readable( sprintf($path, $objUser->grab('theme'), $_module, $method) ) ){
+
+            include_once( sprintf($path, $objUser->grab('theme'), $_module, $method) );
+
+            $overrideClass = 'Override_'.$method;
+            $getMethod = new ReflectionMethod('Override_'.$method, $method);
+
+            // test to see if its callable, & declared in the right bloody class >.<
+            if( is_callable( array( $overrideClass, $method ) )
+                && $getMethod->getDeclaringClass()->name === $overrideClass ){
+
+
                 (cmsDEBUG ? memoryUsage('Routes: Super method override initiated...BOOM!') : '');
                 $module = 'Override_'.$method;
             }
