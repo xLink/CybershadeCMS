@@ -203,16 +203,16 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   array     $file
-     * @param   string     $info
-     * @param   string  $nl
+     * @param   array    $file
+     * @param   string   $info
+     * @param   string   $nl
      *
      * @return  string
      */
     function outputDebug($file, $info = null, $nl='<br />') {
 
         if( array_key_exists( 'file', $file ) ) {
-            $filename = explode((stristr(PHP_OS, 'WIN') ? '\\' : '/'), $file['file']);
+            $filename      = explode((stristr(PHP_OS, 'WIN') ? '\\' : '/'), $file['file']);
             $filenameIndex = count($filename) - 1;
         }
 
