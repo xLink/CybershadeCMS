@@ -177,8 +177,8 @@ class Module extends coreObj{
         $query = $objSQL->queryBuilder()
                         ->select('enabled')
                         ->from('#__modules')
-                        ->where('name', '=', $moduleName)
-                        ->build();
+                        ->where('name', '=', $moduleName)
+                        ->build();
 
         $result = $objSQL->fetchLine( $query );
 
