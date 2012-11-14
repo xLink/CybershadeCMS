@@ -16,7 +16,7 @@ class Upload extends coreObj {
      *
      * @param       string  $destination  (optional)
      * @param       array   $extensions  (optional)
-     * @param       int     $size in bits (optional)
+     * @param       int     $size (optional)
      *
      * @return      boolean
      */

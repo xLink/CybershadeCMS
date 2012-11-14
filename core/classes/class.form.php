@@ -241,7 +241,10 @@ class Form extends coreObj {
             'showValue'  => doArgs('showValue',     true,   $args),
         );
 
-        $return = null; $inputVal = '<input type="radio" name="%1$s" id="%2$s"%3$s/>'."\n"; $count = 0;
+        $return   = null;
+        $inputVal = '<input type="radio" name="%1$s" id="%2$s"%3$s/>'."\n";
+        $count    = 0;
+
         foreach($values as $key => $value){
             $value = ($args['xssFilter']===true ? htmlspecialchars($value) : $value);
 
@@ -254,7 +257,7 @@ class Form extends coreObj {
                                     ($args['xssFilter']===true      ? ' value="'.htmlspecialchars($key).'" ' : ' value="'.$key.'" ')
                                 )
                             ). $value.
-                        ($args['showLabels']===true ? '</label>' : mull).
+                        ($args['showLabels']===true ? '</label>' : null).
                         (!$args['br'] ?: '<br />'."\n");
         }
 
