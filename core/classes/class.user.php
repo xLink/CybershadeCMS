@@ -487,7 +487,9 @@ class User extends coreObj {
 
         $query = $objSQL->queryBuilder()
                         ->update('#__users')
-                        ->set( 'password', $this->mkPassword( $password ) )
+                        ->set( array(
+                            'password' => $this->mkPassword( $password )
+                        ))
                         ->where('id', $uid)
                         ->build();
 
@@ -628,9 +630,9 @@ class User extends coreObj {
         }
 
         // Send Confirmation mail
-        $siteName = $this->config( 'site', 'title' ); // Needs to be updated correctly
+        $siteName  = $this->config( 'site', 'title' ); // Needs to be updated correctly
         $siteEmail = sprintf('no-reply@%s', $this->config( 'site', 'url' ));
-        $message = sprintf( "Dear %s,\n\r
+        $message   = sprintf( "Dear %s,\n\r
             Thank you for registering for %s\n\r",
             $userData['username'],
             $siteName );
