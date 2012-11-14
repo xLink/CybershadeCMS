@@ -336,7 +336,7 @@ class mysql_queryBuilder extends coreObj{
                 if(count($field) == 1){
                     $field = current($field);
 
-                    if( strtoupper( substr( $field, 0, 5 ) ) == 'COUNT' || $field == '*' || strpos( $field, '(' ) !== false ){
+                    if( strtoupper( substr( $field, 0, 5 ) ) == 'COUNT' || ctype_alnum($field) !== true ){
                         $_fields[] = $field;
                     }else{
                         $_fields[] = sprintf('`%s`', $field);
