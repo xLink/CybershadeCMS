@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class core extends Module{
+class Module_core extends Module{
 
     public function __construct(){
         $objPage = coreobj::getPage();
@@ -13,7 +13,7 @@ class core extends Module{
     }
 
     public function viewIndex(){
-
+        echo dump($a, 'original');
     }
 
     public function login_form(){
