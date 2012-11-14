@@ -137,7 +137,6 @@ class Cache extends coreObj{
 
                     //if we regenerate it then we will do another check just to make sure...
                     if( is_empty( $cache ) ) {
-                        trigger_error( 'Sorry, we tried everything, your cache file "'.$file.'" does not wanna load, wtf you trying to do?', E_USER_ERROR );
 
                         // Add the cache to the failed cache's array
                         $this->failedCaches[] = $file;
