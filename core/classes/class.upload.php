@@ -252,7 +252,7 @@ class Upload extends coreObj {
             if( $confirm ){
                 $to      = $objUser->get( 'email', $fileAuth['uid'] );
                 $from    = sprintf('no-reply@', ltrim( $_SERVER['SERVER_NAME'], 'www.' ));
-                $subject = sprintf('Your upload has been authorized - %s');
+                $subject = sprintf('Your upload has been authorized - %s', $_SERVER['SERVER_NAME']);
                 $message = sprintf('Your upload has now been authorized at ', $_SERVER['SERVER_NAME']);
 
                 _mailer( $to, $from, $subject, $message );
