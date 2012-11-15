@@ -62,12 +62,14 @@ class Module_core extends Module{
 
         $objTPL->assign_block_vars('login', $form);
 
-        if( isset($_SESSSION['login']['errors']) && count($_SESSSION['login']['errors']) ){
-            foreach($_SESSSION['login']['errors'] as $error){
+        if( isset($_SESSION['login']['errors']) && count($_SESSION['login']['errors']) ){
+            foreach($_SESSION['login']['errors'] as $error){
                 $objTPL->assign_block_vars('login.errors', array(
                     'ERROR' => $error
                 ));
             }
+
+            unset($_SESSION['login']);
         }
 
     }
@@ -82,11 +84,16 @@ class Module_core extends Module{
             $_SESSSION['login']['errors'][] = 'There was an issue with submitting the form, please try again.';
         }
 
-            if( !$objLogin->doLogin() ){
-                $this->login_form();
-            }
+        if( !$objLogin->doLogin() ){
+            $this->login_form();
+            return;
+        }
+
 
     }
-}
 
+    public function logout(){
+        coreObj::getLogin()->logout($_GET['check']);
+    }
+}
 ?>

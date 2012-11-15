@@ -172,6 +172,8 @@ class Cache extends coreObj{
      * @return      array   Returns the cache store in array form
      */
     public function get($store){
+        (cmsDEBUG ? memoryUsage('Cache: Getting cache store - '.$store.'... ') : '');
+
         //if we have the store loaded, just return
         if(isset($this->cacheFiles[$store])){
             return $this->cacheFiles[$store];
@@ -372,9 +374,9 @@ PHP;
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                        ->select('`key`', '`var`', '`value`', '`default`')
+                        ->select('key', 'var', 'value', 'default')
                         ->from('#__config')
-                        ->orderBy('`key`', 'DESC')
+                        ->orderBy('key', 'DESC')
                         ->build();
 
         $results = $objSQL->fetchAll($query);

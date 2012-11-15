@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 3.4.5
+-- version 3.5.1
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Nov 14, 2012 at 12:28 AM
--- Server version: 5.5.16
--- PHP Version: 5.3.8
+-- Generation Time: Nov 15, 2012 at 12:22 AM
+-- Server version: 5.5.24-log
+-- PHP Version: 5.3.13
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `cscms_config` (
   `value` text,
   `default` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=21 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=22 ;
 
 --
 -- Dumping data for table `cscms_config`
@@ -81,15 +81,16 @@ CREATE TABLE IF NOT EXISTS `cscms_config` (
 INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
 (1, 'session', 'cookie_domain', NULL, NULL),
 (2, 'session', 'cookie_path', NULL, NULL),
-(4, 'cms', 'name', 'Cybershade CMS', NULL),
-(5, 'site', 'title', 'CSDev', NULL),
+(4, 'cms', 'name', 'Cybershade CMS', 'Cybershade CMS'),
+(5, 'site', 'title', 'CSDev', 'Cybershade CMS'),
 (6, 'site', 'slogan', 'dev', NULL),
 (7, 'site', 'theme', 'cybershade', NULL),
 (8, 'site', 'language', 'en', NULL),
 (9, 'site', 'keywords', 'dev', NULL),
 (10, 'site', 'description', 'dev', NULL),
 (11, 'site', 'admin_email', 'xlink@cybershade.org', NULL),
-(20, 'site', 'google_analytics', NULL, NULL);
+(20, 'site', 'google_analytics', NULL, NULL),
+(21, 'login', 'max_login_tries', '5', '5');
 
 -- --------------------------------------------------------
 
@@ -281,34 +282,12 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
   `useragent` varchar(255) NOT NULL,
   `mode` enum('active','kill','ban','update') NOT NULL DEFAULT 'active',
   `admin` int(1) NOT NULL DEFAULT '0',
+  `login_time` int(11) NOT NULL DEFAULT '0',
+  `login_attempts` int(2) NOT NULL DEFAULT '0',
   `store` longblob,
   PRIMARY KEY (`sid`),
   KEY `timestamp` (`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `cscms_sessions`
---
-
-INSERT INTO `cscms_sessions` (`uid`, `sid`, `hostname`, `timestamp`, `useragent`, `mode`, `admin`, `store`) VALUES
-(0, '0bbf6ae45a97fbd516128728ede24a24', '89.243.98.237', 1352896781, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:16.0) Gecko/20100101 Firefox/16.0', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323839363738313b7d),
-(0, '1102940c85cd18dd18fefc92602a5a8e', '127.0.0.1', 1352842065, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834323036343b7d),
-(0, '1e5bcc76c31842c0a97df9547c819abc', '127.0.0.1', 1352848387, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834373235323b7d),
-(0, '20baafa6eef89c7f901dd2d35fc040d7', '127.0.0.1', 1352842064, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834323031303b7d),
-(0, '3de909614494fc261771abbfb54da97f', '62.24.181.134', 1352896812, 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; InfoPath.2)', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323839363831323b7d),
-(0, '44839c5e262ff2cacbcdc8549a0cc921', '127.0.0.1', 1352920942, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:16.0) Gecko/20100101 Firefox/16.0', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323931393036363b7d),
-(0, '4571e484d974579ce3da70cc3fceab35', '127.0.0.1', 1352842590, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834323036353b7d),
-(0, '5b0ddcc177df90744b00cff728529409', '127.0.0.1', 1352842065, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834323036353b7d),
-(0, '5c222f353689cb2c75e0e4c8dd2fc31b', '127.0.0.1', 1352847245, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834323539313b7d),
-(0, '6cb05f951cba5cce866ec2d4380dd52d', '127.0.0.1', 1352842010, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323833393738353b7d),
-(0, '6ed87e3ddf6b8bfa702059c3888738bd', '127.0.0.1', 1352847252, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834373234353b7d),
-(0, '95084899ec3a671e8556b855f5d55ea1', '127.0.0.1', 1352842591, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834323539303b7d),
-(0, '97b5efebdb5e3b6ee9a843218d542bf0', '77.98.122.22', 1352911120, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:16.0) Gecko/20100101 Firefox/16.0', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323930303837393b7d),
-(0, '9dec8a7eae0888b9978263869b76b8c0', '127.0.0.1', 1352842065, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834323036353b7d),
-(0, 'b629699d3a2a769b4d46cfc94eb0df81', '127.0.0.1', 1352842065, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834323036353b7d),
-(0, 'c6b7c88cee28c980d7cc43b5ab5aad7d', '127.0.0.1', 1352851256, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:16.0) Gecko/20100101 Firefox/16.0', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323835313235363b7d),
-(0, 'f83fe3492f8b06e717a52acb2a49445d', '77.98.122.22', 1352900879, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:16.0) Gecko/20100101 Firefox/16.0', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323839383235333b7d),
-(0, 'fa66eba2db3a5c90a4909ee090027641', '127.0.0.1', 1352849994, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:16.0) Gecko/20100101 Firefox/16.0', 'active', 0, 0x613a313a7b733a31333a2273657373696f6e5f7374617274223b693a313335323834393939343b7d);
 
 -- --------------------------------------------------------
 
@@ -355,9 +334,9 @@ CREATE TABLE IF NOT EXISTS `cscms_users` (
 --
 
 INSERT INTO `cscms_users` (`id`, `username`, `password`, `pin`, `register_date`, `last_active`, `usercode`, `email`, `show_email`, `avatar`, `title`, `language`, `timezone`, `theme`, `hidden`, `active`, `userlevel`, `banned`, `primary_group`, `login_attempts`, `pin_attempts`, `autologin`, `reffered_by`, `password_update`, `whitelist`, `whitelisted_ips`, `warnings`) VALUES
-(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
-(2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtws', 'Noeldavies@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
-(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
+(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
+(2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtws', 'Noeldavies@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
+(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
 
 -- --------------------------------------------------------
 

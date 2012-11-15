@@ -39,12 +39,12 @@ class Session extends coreObj{
 
             $_SESSION = array();
             $_SESSION['session_start'] = time();
+            $_SESSION['user']['userkey'] = md5( session_id() );
 
             $this->newSession();
         }
 
         $_SESSION['page_load']       = time();
-        $_SESSION['user']['userkey'] = md5( session_id() );
 
 
         $this->session_gc();

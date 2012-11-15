@@ -444,6 +444,9 @@ class coreObj {
                 'useCache' => (is_writable($cachePath) ? true : false),
                 'cacheDir' => $cachePath,
             ));
+
+
+            coreObj::$_classes['cache']->get( 'config' );
         }
 
         return coreObj::$_classes['cache'];

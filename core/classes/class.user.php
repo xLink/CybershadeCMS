@@ -470,7 +470,7 @@ class User extends coreObj {
     /**
      * Sets a user password to a new value
      *
-     * @version 1.0.0
+     * @version 1.0
      * @since   1.0.0
      * @author  Richard Clifford
      *
@@ -503,7 +503,7 @@ class User extends coreObj {
     /**
      * Toggles a boolean setting in the user row.
      *
-     * @version 1.0.0
+     * @version 1.0
      * @since   1.0.0
      * @author  Richard Clifford
      *
@@ -513,27 +513,48 @@ class User extends coreObj {
      *
      * @return  bool
      */
-    public function toggle( $uid, $var, $state = null ){
+    public function toggle( $uid, $var, $state = false){
         $objSQL = coreObj::getDBO();
 
         $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
         $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
 
+        $state = ($state === true ? '1' : '0');
+
+
         if( in_array( $var, $userColumnData ) ){
             $query = $objSQL->queryBuilder()
                             ->update('#__users')
-                            ->set($var, '=', $state)
+                            ->set(array(
+                                $var => $state
+                            ))
                             ->where('id', '=', $uid)
                             ->build();
 
             $result = $objSQL->query( $query );
 
-            if( $result ){
-                return true;
+            if( $result === false ){
+                return false;
             }
         }
 
-        return false;
+        if( in_array( $var, $userExtrasColumnData ) ){
+            $query = $objSQL->queryBuilder()
+                            ->update('#__users_extras')
+                            ->set(array(
+                                $var => $state
+                            ))
+                            ->where('id', '=', $uid)
+                            ->build();
+
+            $result = $objSQL->query( $query );
+
+            if( $result === false ){
+                return false;
+            }
+        }
+
+        return true;
     }
 
 /**
@@ -623,7 +644,7 @@ class User extends coreObj {
     /**
      * Makes a secure password
      *
-     * @version 1.0.0
+     * @version 1.0
      * @since   1.0.0
      * @author  Richard Clifford
      *
@@ -649,7 +670,7 @@ class User extends coreObj {
     /**
      * Verifies a Users Credentials to ensure they are valid
      *
-     * @version 1.0.0
+     * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
      *
@@ -676,10 +697,9 @@ class User extends coreObj {
         $hash = $this->get( 'password', $uid );
         if( $phpass->CheckPassword( $password, $hash ) ) {
             return true;
-
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**

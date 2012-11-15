@@ -584,6 +584,57 @@ class Page extends coreObj{
         return implode(' ', $classes);
     }
 
+    /**
+     * Redirect using PHP Header function or JS redirect
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string  $location
+     * @param   int     $time
+     * @param   int     $mode         Definitions - 1=>GET['redirect'], 2=>HTTP_REFFERER, => 0=>$location
+     */
+    public function redirect($location=null, $time=0, $mode=0){
+        switch($mode) {
+            case 1:
+                $url = doArgs('redirect', $location, $_GET);
+            break;
+
+            case 2:
+                $url = $this->config('global', 'referer');
+            break;
+
+            case 0:
+            default:
+                $url = $location;
+            break;
+        }
+
+        //check to see weather headers have already been sent, this prevents us from using the header() function
+        if( !headers_sent() && $time === 0 ) {
+            header( 'Location: '.$url ); exit;
+
+        } else { //headers have already been sent, so use a JS and even META equivalent
+            $output = null;
+
+            $output .= '<script type="text/javascript">';
+            if( $time != 0 ){
+                $output .= 'function redirect(){';
+            }
+            $output .= '  window.location.href="'.$url.'";';
+            if( $time != 0 ){
+                $output .= '} setTimeout(\'redirect()\', '.($time*1000).');';
+            }
+            $output .= '</script>';
+            $output .= '<noscript>';
+            $output .= '  <meta http-equiv="refresh" content="'.$time.';url='.$url.'" />';
+            $output .= '</noscript>';
+
+            echo $output;
+        }
+    }
+
     public function buildPage(){
         $objTPL     = self::getTPL();
         $objPlugins = self::getPlugins();
