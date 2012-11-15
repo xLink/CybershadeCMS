@@ -4,8 +4,24 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-
+/**
+ * Upload class to upload files to a certain location
+ */
 class Upload extends coreObj {
+
+    /**
+     * Directory of the uploads location
+     *
+     * @access protected
+     */
+    protected $directory;
+
+    /**
+     * The class constructor
+     */
+    public function __construct(){
+        $this->setDirectory();
+    }
 
     /**
      * Process uploads
@@ -14,27 +30,14 @@ class Upload extends coreObj {
      * @since       1.0.0
      * @author      Richard Clifford
      *
-     * @param       string  $destination  (optional)
      * @param       array   $extensions  (optional)
      * @param       int     $size (optional)
      *
      * @return      boolean
      */
-     public function doUpload( $destination = '', $extensions = array(), $size = 20000) {
-        if( trim( $destination ) == '' ){
-            $destination = sprintf( '%sassets/uploads/all', cmsROOT );
+     public function doUpload( $extensions = array(), $size = 20000) {
 
-            if( !file_exists( $destination ) || !is_writable( $destination ) ){
-
-                $destination = sprintf( '%sassets/uploads/all', cmsROOT );
-
-                if( !is_writable( $destination ) ){
-                    trigger_error( sprintf( 'The destination folder was not writable, please chmod it to 0775 : %s', $destination ) );
-                    return false;
-                }
-            }
-        }
-
+        $destination = $this->getDirectory();
         $allowedExts = array();
 
         if( !is_empty( $extensions ) ){
@@ -50,6 +53,12 @@ class Upload extends coreObj {
         if( in_array( $extension, $allowedExts ) && ( $fileSize <= $size ) ){
 
             if( $_FILES['upload']['error'] > 0 ){
+
+                (cmsDEBUG ? memoryUsage(sprintf(
+                    'Upload: Error uploading file, error code: %s',
+                    $_FILES['upload']['error']
+                )) : '');
+
                 trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES['upload']['error'] ) );
                 return false;
             } else {
@@ -58,10 +67,13 @@ class Upload extends coreObj {
                     return false;
                 } else {
                     $moveFile = move_uploaded_file( $_FILES['upload']['tmp_name'], $destination . '/' . $fileName );
+
+                    // Check if the file was moved correctly
                     if( $moveFile ){
                         $objSQL  = coreObj::getDBO();
                         $objUser = coreObj::getUser();
 
+                        // Setup the data to be inserted into the db
                         $uploadData = array(
                             'uid'        => $objUser->grab('id'),
                             'filename'   => $fileName,
@@ -79,7 +91,13 @@ class Upload extends coreObj {
 
                         $result = $objSQL->query( $query );
 
+                        // If all went well, return true
                         if( $result ){
+
+                            // Add a hook to allow developers to add extra functionality
+                            $objPlugins->hook( 'CMS_UPLOADED_FILE' );
+
+                            (cmsDEBUG ? memoryUsage('Upload: Successfully uploaded the file') : '');
                             return true;
                         }
                     } else {
@@ -92,6 +110,58 @@ class Upload extends coreObj {
 
         return false;
     }
+
+    /**
+     * Sets the upload directory to a specific location, assuming it's writable
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Richard Clifford
+     *
+     * @param       string   $directory
+     *
+     * @return      boolean
+     */
+    public function setDirectory( $directory = '' ){
+
+        $objPlugins->hook( 'CMS_SET_UPLOAD_DIR' );
+
+        if( trim($directory) === '' ){
+            (cmsDEBUG ? memoryUsage('Upload: Using default folder') : '');
+            $this->directory = sprintf( '%sassets/uploads/all', cmsROOT );
+        } else {
+            // Checks if the given directory is writable
+            if( !file_exists( $directory ) || ( file_exists( $directory ) && !is_writable( $directory ) ) ){
+
+                (cmsDEBUG ? memoryUsage('Upload: Destination folder was not writable') : '');
+                trigger_error( sprintf( 'The destination folder was not writable, please chmod it to 0775 : %s',
+                    $directory
+                ));
+
+                return false;
+            } else {
+                (cmsDEBUG ? memoryUsage('Upload: Setting upload directory') : '');
+                $this->directory = $directory;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Gets the current upload directory
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Richard Clifford
+     *
+     * @return      string
+     */
+    public function getDirectory(){
+        return $this->directory;
+    }
+
 }
 
 ?>
