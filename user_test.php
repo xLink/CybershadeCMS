@@ -6,6 +6,7 @@ define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 
 include_once('core/core.php');
+
 $objRoute = coreObj::getRoute();
 $objPage  = coreObj::getPage();
 $objTPL   = coreObj::getTPL();

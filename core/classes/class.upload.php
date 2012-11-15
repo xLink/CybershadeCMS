@@ -51,13 +51,14 @@ class Upload extends coreObj {
         $objPlugins = coreObj::getPlugins();
 
         $destination = $this->getVar('directory');
-        $input_id = $this->getVar('input_id');
+        $input_id    = $this->getVar('input_id');
 
+        // Checks if the destination was false (from the getVar())
         if( !$destination ){
             (cmsDEBUG ? memoryUsage('Upload: Failed to upload as desitnation folder was not accessible' ) : '');
             return false;
         }
-
+        
         // Get the current file extension
         $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_id]['name']); 
         $extension  = end( explode( '.', $fileName ) );
