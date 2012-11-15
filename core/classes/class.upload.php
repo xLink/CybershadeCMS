@@ -87,7 +87,7 @@ class Upload extends coreObj {
 
                         // Automatically allow admins to have authorized content
                         if( User::$IS_ADMIN ){
-                            $uploadData['authorized'] = 1,
+                            $uploadData['authorized'] = 1;
                         }
 
                         $query = $objSQL->queryBuilder()
@@ -129,7 +129,7 @@ class Upload extends coreObj {
      *
      * @return      boolean
      */
-    public function setDirectory( $directory = '', $create = falseLine> ){
+    public function setDirectory( $directory = '', $create = false ){
         $objPlugins = coreObj::getPlugins();
 
         $objPlugins->hook( 'CMS_SET_UPLOAD_DIR', $directory );
