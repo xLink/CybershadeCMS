@@ -263,6 +263,11 @@ class User extends coreObj {
         return ($return === false ? 0 : $return);
     }
 
+    /**
+     //
+     // -- FINISH FUNCTION
+     //
+     */
     public function getLanguage(){
         /*
             $language = doArgs('language', 'en', $config['site']);
