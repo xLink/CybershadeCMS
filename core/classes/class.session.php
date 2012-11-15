@@ -26,10 +26,7 @@ class Session extends coreObj{
      */
     public function __construct(){
 
-        $name = md5( 'CSCMS' . User::getIP() . cmsROOT );
-        session_name( $name );
-
-        session_start();
+        //session_start();
 
         $check = $this->checkValidSession();
         if( $check === false ){

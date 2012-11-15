@@ -457,7 +457,7 @@ class User extends coreObj {
             $insertExtras = $objSQL->queryBuilder()
                                         ->update( '#__users_extras' )
                                         ->set( $userExtraData )
-                                        ->where( 'uid','=', $uid )
+                                        ->where( 'uid', '=', $uid )
                                         ->build();
 
             $userExtrasInsertResult = $objSQL->query( $insertExtras );

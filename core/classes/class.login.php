@@ -13,7 +13,6 @@ class Login extends coreObj {
         $objSession = coreObj::getSession();
 
         $this->onlineData = $objSession->getData();
-        echo dump($this->onlineData['login_attempts'], 'login_attempts');
     }
 
     /**
@@ -115,6 +114,7 @@ class Login extends coreObj {
 
         $objSQL = coreObj::getDBO();
         $objPage = coreObj::getPage();
+        $objTime = coreObj::getTime();
 
         $query = $objSQL->queryBuilder()
                         ->update( '#__sessions' )
@@ -133,6 +133,32 @@ class Login extends coreObj {
         $user['last_active'] = time();
 
         $_SESSION['user'] = array_merge($_SESSION['user'], $user);
+
+        //make sure we want em to be able to auto login first
+        if($this->config('login', 'remember_me')){
+            if(doArgs('remember', false, $_POST) === '1'){
+                echo dump($a);
+                $objUser->update( $this->userData['id'], array('autologin' => '1') );
+
+                $cookieArray = array(
+                    'uData'     => $uniqueKey,
+                    'uIP'       => User::getIP(),
+                    'uAgent'    => md5($_SERVER['HTTP_USER_AGENT'].$this->config('db', 'ckeauth'))
+                );
+
+                set_cookie('login', serialize($cookieArray), $objTime->mod_time(time(), 0, 0, 24*365*10));
+                $cookieArray['uData'] .= ':'.$this->userData['id']; //add the uid into the db
+
+                $query = $objSQL->queryBuilder()
+                                ->insertInto('#__userkeys')
+                                ->set( $cookieArray )
+                                ->build();
+
+                $results = $objSQL->query( $query );
+
+                unset($cookieArray);
+            }
+        }
 
         (cmsDEBUG ? memoryUsage('Login: redirecting') : '');
         $objPage->redirect('/'.root(), 0, '5');
