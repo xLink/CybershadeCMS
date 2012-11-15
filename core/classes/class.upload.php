@@ -27,6 +27,7 @@ class Upload extends coreObj {
      * The class constructor
      */
     public function __construct( $input_id = '' ){
+        // Specifies the $_FILES array key
         if( !is_empty( $input_id ) ){
             $this->setVar( 'input_id', $input_id );
         }

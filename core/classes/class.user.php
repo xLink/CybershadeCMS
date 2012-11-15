@@ -330,7 +330,8 @@ class User extends coreObj {
      * @author  Richard Clifford
      *
      * @param   string   $setting   The key name of the setting ('all' if all is required)
-     *
+     * @param   int      $uid       The User id to get the settings for
+     * 
      * @return  array
      */
     public function getAjaxSetting( $setting, $uid = null ){
@@ -531,7 +532,7 @@ class User extends coreObj {
             $state = sprintf('IF(%s=1, 0, 1)', $var);
 
         // if we want to toggle it to a specific value then we need to set it
-        }else{
+        } else {
             $state = ($state === true ? '1' : '0');
         }
 
