@@ -35,6 +35,7 @@ class Login extends coreObj {
 
                 $objSQL  = coreObj::getDBO();
                 $objTime = coreObj::getTime();
+                $objUser = coreObj::getUser();
 
                 $query = $objSQL->queryBuilder()
                                 ->update('#__sessions')
@@ -42,7 +43,7 @@ class Login extends coreObj {
                                     'login_time'     => $objTime->mod_time(time(), 0, 15),
                                     'login_attempts' => '0'
                                 ))
-                                ->where('userkey', '=', $_SESSION['user']['userkey'])
+                                ->where('userkey', '=', $objUser->grab('userkey'))
                                 ->build();
                 $objSQL->query( $query );
             }
