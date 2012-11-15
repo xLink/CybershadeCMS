@@ -36,6 +36,7 @@ class Upload extends coreObj {
      * @return      boolean
      */
      public function doUpload( $extensions = array(), $size = 20000) {
+        $objPlugins = coreObj::getPlugins();
 
         $destination = $this->getDirectory();
         $allowedExts = array();
@@ -79,10 +80,15 @@ class Upload extends coreObj {
                             'filename'   => $fileName,
                             'file_type'  => $extension,
                             'timestamp'  => time(),
-                            'authorized' => 0,
                             'public'     => 0,
+                            'authorized' => 0,
                             'file_size'  => $fileSize,
                         );
+
+                        // Automatically allow admins to have authorized content
+                        if( User::$IS_ADMIN ){
+                            $uploadData['authorized'] = 1,
+                        }
 
                         $query = $objSQL->queryBuilder()
                                         ->insertInto('#__uploads')
@@ -123,7 +129,8 @@ class Upload extends coreObj {
      *
      * @return      boolean
      */
-    public function setDirectory( $directory = '', $create = false ){
+    public function setDirectory( $directory = '', $create = falseLine> ){
+        $objPlugins = coreObj::getPlugins();
 
         $objPlugins->hook( 'CMS_SET_UPLOAD_DIR', $directory );
 
@@ -193,7 +200,122 @@ class Upload extends coreObj {
         return false;
     }
 
+    /**
+     * Authorizes a peice of uploaded content
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Richard Clifford
+     *
+     * @param       int     $fid        The file ID
+     * @param       bool    $confirm    Confirm with the user that the upload has been authorized
+     *
+     * @return      bool
+     */
+    public function authorize( $fid, $confirm = false ){
+        if( is_empty( $fid ) ){
+            return false;
+        }
 
+        $objPlugins = coreObj::getPlugins();
+        $objSQL     = coreObj::getDBO();
+        $objUser    = coreObj::getUsers();
+
+        // Check if the file is already authorized
+        $checkAuth = $objSQL->queryBuilder()
+                            ->select('authorized', 'uid')
+                            ->from('#__uploads')
+                            ->where('id', '=', $fid)
+                            ->build();
+
+        $fileAuth = $objSQL->fetchLine( $checkAuth );
+
+        $objPlugins->hook( 'CMS_AUTHORIZE_UPLOAD' );
+
+        // return true if the file is already authorized
+        if( $fileAuth['authorized'] == '1' ){
+            return true;
+        }
+
+        // Update the uploads content to be authorized
+        $query = $objSQL->queryBuilder()
+                        ->update('#__uploads')
+                        ->set(array(
+                            'authorized'    => 1
+                        ))
+                        ->where('id', '=', $fid)
+                        ->build();
+
+        $result = $objSQL->query( $query );
+
+        if( $result ){
+            if( $confirm ){
+                $to      = $objUser->get( 'email', $fileAuth['uid'] );
+                $from    = sprintf('no-reply@', ltrim( $_SERVER['SERVER_NAME'], 'www.' ));
+                $subject = sprintf('Your upload has been authorized - %s');
+                $message = sprintf('Your upload has now been authorized at ', $_SERVER['SERVER_NAME']);
+
+                _mailer( $to, $from, $subject, $message );
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Makes the content public
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Richard Clifford
+     *
+     * @param       int     $fid        The file ID
+     *
+     * @return      bool
+     */
+    public function makePublic( $fid ){
+        if( is_empty( $fid ) ){
+            return false;
+        }
+
+        $objPlugins = coreObj::getPlugins();
+        $objSQL     = coreObj::getDBO();
+
+        // Check if the file is already public
+        $check = $objSQL->queryBuilder()
+                            ->select('public')
+                            ->from('#__uploads')
+                            ->where('id', '=', $fid)
+                            ->build();
+
+        $fileCheck = $objSQL->fetchLine( $check );
+
+        $objPlugins->hook( 'CMS_PUBLICIZE_UPLOAD' );
+
+        // return true if the file is already public
+        if( $fileCheck['public'] == '1' ){
+            return true;
+        }
+
+        // Update the uploads content to be public
+        $query = $objSQL->queryBuilder()
+                        ->update('#__uploads')
+                        ->set(array(
+                            'public'    => 1
+                        ))
+                        ->where('id', '=', $fid)
+                        ->build();
+
+        $result = $objSQL->query( $query );
+
+        if( $result ){
+            return true;
+        }
+
+        return false;
+    }
 }
 
 ?>
