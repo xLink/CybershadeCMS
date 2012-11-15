@@ -95,7 +95,7 @@ class Upload extends coreObj {
                         if( $result ){
 
                             // Add a hook to allow developers to add extra functionality
-                            $objPlugins->hook( 'CMS_UPLOADED_FILE' );
+                            $objPlugins->hook( 'CMS_UPLOADED_FILE', $uploadData );
 
                             (cmsDEBUG ? memoryUsage('Upload: Successfully uploaded the file') : '');
                             return true;
@@ -124,7 +124,7 @@ class Upload extends coreObj {
      */
     public function setDirectory( $directory = '' ){
 
-        $objPlugins->hook( 'CMS_SET_UPLOAD_DIR' );
+        $objPlugins->hook( 'CMS_SET_UPLOAD_DIR', $directory );
 
         if( trim($directory) === '' ){
             (cmsDEBUG ? memoryUsage('Upload: Using default folder') : '');
