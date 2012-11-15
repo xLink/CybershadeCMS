@@ -4,6 +4,7 @@
 \*======================================================================*/
 define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
+set_time_limit(0);
 include_once('core/core.php');
 
 $objRoute = coreObj::getRoute();

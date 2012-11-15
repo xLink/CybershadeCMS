@@ -62,7 +62,6 @@
     <!-- END menu -->
 
             {_CMS.LEFT_MENU}
-            {_CMS.RIGHT_MENU}
 
     <!-- BEGIN menu -->
         </aside>

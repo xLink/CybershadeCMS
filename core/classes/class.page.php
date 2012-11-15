@@ -107,7 +107,7 @@ class Page extends coreObj{
     public function buildBlocks()
     {
         $objTPL = coreObj::getTPL();
-        $objBlocks = coreObj::getBlocks();
+       /* $objBlocks = coreObj::getBlocks();
 
         // $blocks = $this->config('blocks');
         $blocks = $objBlocks->loadBlocks();
@@ -116,7 +116,7 @@ class Page extends coreObj{
             return false;
         }
 
-        $objBlocks->insertBlocks();
+        $objBlocks->insertBlocks();*/
     }
 
     /**

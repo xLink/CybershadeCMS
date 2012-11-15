@@ -60,9 +60,6 @@ class Blocks extends coreObj{
      * @version 1.0
      * @since   1.0
      * @author  Daniel Noel-Davies
-     *
-     * @param   string  $var       Parameter Description
-     *
      */
     public function loadBlocks( ) {
         $objSQL = coreObj::getDBO();
@@ -71,10 +68,11 @@ class Blocks extends coreObj{
                         ->select('*')
                         ->from('#__blocks')
                         ->where('enabled', '=', '1')
-                        // ->orderBy('`order`')
+                        ->orderBy('order')
                         ->build();
 
         $results = $objSQL->fetchAll( $query );
+        $this->__cache = $results;
 
         return $results;
     }   
@@ -252,7 +250,21 @@ class Blocks extends coreObj{
      *
      */
     public function insertBlocks( ) {
-        
+        $objTPL = coreObj::getTPL();
+
+        // Loop through the blocks and insert them into the db
+        foreach( $this->__cache as $block ) {
+
+            $x = explode( '.', $block['location'] );
+            $contentVar = array_splice($x, 1);
+            foreach( $x as $tplblock ) {
+                $objTPL->assign_block_vars( $tplBlock, array());
+            }
+
+            $objTPL->assign_block_vars($x, array(
+                $contentVar => 'x'
+            ));
+        }
     }
 }
 ?>
