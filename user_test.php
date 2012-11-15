@@ -17,20 +17,17 @@ $objPage->setTitle('Test');
 $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
 
-$objUpload = coreObj::getUpload();
+$objUpload = coreObj::getUpload( 'upload' );
 $objForm   = coreObj::getForm();
 
-$c = $objUpload->makePublic(1);
-echo dump( $c );
-
 echo $objForm->start('test', array( 'method' => 'post', 'upload' => true, 'action' => $_SERVER['PHP_SELF'] ));
-echo $objForm->inputBox('file', 'file', 'file');
+echo $objForm->inputBox('upload', 'file', 'upload');
 echo $objForm->inputBox('submit', 'submit', 'Submit!');
 echo $objForm->finish();
 
 if( isset( $_POST['submit'] ) ){
 	$var = $objUpload->doUpload( array('txt') );
-	echo dump( $var );
+	echo dump( $var, 'Uploaded File Result' );
 }
 
 $objPage->buildPage();

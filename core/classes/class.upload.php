@@ -17,9 +17,20 @@ class Upload extends coreObj {
     protected $directory;
 
     /**
+     * The input id of the input box which is generated
+     *
+     * @access protected
+     */
+    protected $input_id = 'file';
+
+    /**
      * The class constructor
      */
-    public function __construct(){
+    public function __construct( $input_id = '' ){
+        if( !is_empty( $input_id ) ){
+            $this->setVar( 'input_id', $input_id );
+        }
+
         $this->setDirectory();
     }
 
@@ -40,6 +51,7 @@ class Upload extends coreObj {
         $objPlugins = coreObj::getPlugins();
 
         $destination = $this->getVar('directory');
+        $input_id = $this->getVar('input_id');
 
         if( !$destination ){
             (cmsDEBUG ? memoryUsage('Upload: Failed to upload as desitnation folder was not accessible' ) : '');
@@ -47,21 +59,21 @@ class Upload extends coreObj {
         }
 
         // Get the current file extension
-        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES['file']['name']); 
+        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_id]['name']); 
         $extension  = end( explode( '.', $fileName ) );
-        $fileSize   = $_FILES['file']['size'];
+        $fileSize   = $_FILES[$input_id]['size'];
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
         if( in_array( $extension, $extensions ) && ( $fileSize <= $size ) ){
 
-            if( $_FILES['file']['error'] > 0 ){
+            if( $_FILES[$input_id]['error'] > 0 ){
 
                 (cmsDEBUG ? memoryUsage(sprintf(
                     'Upload: Error uploading file, error code: %s',
-                    $_FILES['file']['error']
+                    $_FILES[$input_id]['error']
                 )) : '');
 
-                trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES['file']['error'] ) );
+                trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES[$input_id]['error'] ) );
                 return false;
             } else {
                 if( file_exists( $destination . '/' . $fileName ) ) {
@@ -69,7 +81,7 @@ class Upload extends coreObj {
                     return false;
                 } else {
 
-                    $moveFile = move_uploaded_file( $_FILES['file']['tmp_name'], $destination . '/' . $fileName );
+                    $moveFile = move_uploaded_file( $_FILES[$input_id]['tmp_name'], $destination . '/' . $fileName );
 
                     // Check if the file was moved correctly
                     if( $moveFile ){
