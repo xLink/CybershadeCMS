@@ -73,18 +73,18 @@ class coreObj {
 
                 case 'libs':
                 case 'classes':
-                    $filePrefix = 'class.';
-                    $classPrefix  = '';
+                    $filePrefix     = 'class.';
+                    $classPrefix    = '';
                 break;
 
                 case 'modules':
-                    $filePrefix = 'class.';
-                    $classPrefix  = 'Module_';
+                    $filePrefix     = 'class.';
+                    $classPrefix    = 'Module_';
                 break;
 
                 case 'drivers':
-                    $filePrefix = 'driver.';
-                    $classPrefix  = 'driver_';
+                    $filePrefix     = 'driver.';
+                    $classPrefix    = 'driver_';
                 break;
             }
 
@@ -248,28 +248,39 @@ class coreObj {
         if( empty($config) ){
             $objCache = coreObj::getCache();
 
-            $config = addConfig( $objCache->get('config') );
+            $config = self::addConfig( $objCache->load( 'config' ) );
         }
 
-        //if no arguments were passed, throw it all out
-        if(!func_num_args()){
+        // if no arguments were passed, throw it all out
+        if( !func_num_args() ){
             return $config;
         }
 
-        //if just an array key was passed and it exists, throw that out
-        if(func_num_args() == 1 && in_array($array, array_keys($config))){
+        // if just an array key was passed and it exists, throw that out
+        if( func_num_args() == 1 && in_array($array, array_keys($config) )){
             return $config[$array];
         }
 
-        //make sure we have something before trying to throw it out
-        if(!in_array($array, array_keys($config))){
+        // make sure we have something before trying to throw it out
+        if( !in_array($array, array_keys($config)) ){
             return false;
         }
 
         return doArgs($setting, $default, $config[$array]);
     }
 
-    public function addConfig( $var, $key=null ){
+    /**
+     * Merges an array with the config array
+     *
+     * @version 1.2
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   array $var
+     *
+     * @return  mixed
+     */
+    public static function addConfig( $var ){
         if( is_empty($var) && !is_array($var) ){
             return false;
         }
@@ -347,7 +358,7 @@ class coreObj {
 
         if(!isset(coreObj::$_classes['database'])){
             $options = self::config('db');
-                if(!$options){ trigger_error('Error: Could not obtain values from teh configuration file. Please ensure it is present.', E_USER_ERROR); }
+                if(!$options){ trigger_error('Error: Could not obtain values from the configuration file. Please ensure it is present.', E_USER_ERROR); }
 
             $name = 'driver_'.$options['driver'];
 

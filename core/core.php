@@ -118,13 +118,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     (cmsDEBUG ? memoryUsage('Core: autoloader registration') : '');
 
     $objCore     = new coreObj;
-
-
-    $objCache   = coreObj::getCache();
-
-    $config = array_merge( $config, $objCache->get( 'config' ));
     $objCore->addConfig($config);
 
+    $objCache   = coreObj::getCache();
     $objSession = coreObj::getSession();
     $objPlugin  = coreObj::getPlugins();
     $objDebug   = coreObj::getDebug();
