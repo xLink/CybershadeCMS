@@ -119,10 +119,11 @@ class Upload extends coreObj {
      * @author      Richard Clifford
      *
      * @param       string   $directory
+     * @param       bool     $create
      *
      * @return      boolean
      */
-    public function setDirectory( $directory = '' ){
+    public function setDirectory( $directory = '', $create = false ){
 
         $objPlugins->hook( 'CMS_SET_UPLOAD_DIR', $directory );
 
@@ -130,6 +131,12 @@ class Upload extends coreObj {
             (cmsDEBUG ? memoryUsage('Upload: Using default folder') : '');
             $this->directory = sprintf( '%sassets/uploads/all', cmsROOT );
         } else {
+
+            // If create is set then create a new folder
+            if( $create === true ){
+                $this->_mkDir( $directory );
+            }
+
             // Checks if the given directory is writable
             if( !file_exists( $directory ) || ( file_exists( $directory ) && !is_writable( $directory ) ) ){
 
@@ -161,6 +168,31 @@ class Upload extends coreObj {
     public function getDirectory(){
         return $this->directory;
     }
+
+    /**
+     * Creates the upload directory if specified
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Richard Clifford
+     *
+     * @param       string  $path
+     * @param       int     $mode
+     *
+     * @return      string
+     */
+    protected function _mkDir($path, $mode = 0777) {
+        $old    = umask(0);
+        $result = mkdir($path, $mode);
+        umask($old);
+
+        if( $result ){
+            return true;
+        }
+
+        return false;
+    }
+
 
 }
 
