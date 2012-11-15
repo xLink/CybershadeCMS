@@ -38,7 +38,12 @@ class Upload extends coreObj {
      public function doUpload( $extensions = array(), $size = 20000) {
         $objPlugins = coreObj::getPlugins();
 
-        $destination = $this->getDirectory();
+        $destination = $this->getVar('directory');
+        if( !$destination ){
+            (cmsDEBUG ? memoryUsage('Upload: Failed to upload as desitnation folder was not accessible' ) : '');
+            return false;
+        }
+
         $allowedExts = array();
 
         if( !is_empty( $extensions ) ){
@@ -132,15 +137,13 @@ class Upload extends coreObj {
     public function setDirectory( $directory = '', $create = false ){
         $objPlugins = coreObj::getPlugins();
 
-        $objPlugins->hook( 'CMS_SET_UPLOAD_DIR', $directory );
-
         if( trim($directory) === '' ){
             (cmsDEBUG ? memoryUsage('Upload: Using default folder') : '');
-            $this->directory = sprintf( '%sassets/uploads/all', cmsROOT );
+            $this->setVar('directory', sprintf( '%sassets/uploads/all', cmsROOT ) );
         } else {
 
             // If create is set then create a new folder
-            if( $create === true ){
+            if( $create === true && !file_exists( $directory ) ){
                 $this->_mkDir( $directory );
             }
 
@@ -155,25 +158,12 @@ class Upload extends coreObj {
                 return false;
             } else {
                 (cmsDEBUG ? memoryUsage('Upload: Setting upload directory') : '');
-                $this->directory = $directory;
+                $this->setVar('directory', $directory);
                 return true;
             }
         }
 
         return false;
-    }
-
-    /**
-     * Gets the current upload directory
-     *
-     * @version     1.0
-     * @since       1.0.0
-     * @author      Richard Clifford
-     *
-     * @return      string
-     */
-    public function getDirectory(){
-        return $this->directory;
     }
 
     /**
@@ -186,9 +176,13 @@ class Upload extends coreObj {
      * @param       string  $path
      * @param       int     $mode
      *
-     * @return      string
+     * @return      bool
      */
     protected function _mkDir($path, $mode = 0777) {
+        if( file_exists($path) ){
+            return false;
+        }
+
         $old    = umask(0);
         $result = mkdir($path, $mode);
         umask($old);
@@ -253,7 +247,7 @@ class Upload extends coreObj {
                 $to      = $objUser->get( 'email', $fileAuth['uid'] );
                 $from    = sprintf('no-reply@', ltrim( $_SERVER['SERVER_NAME'], 'www.' ));
                 $subject = sprintf('Your upload has been authorized - %s', $_SERVER['SERVER_NAME']);
-                $message = sprintf('Your upload has now been authorized at ', $_SERVER['SERVER_NAME']);
+                $message = sprintf('Your upload has now been authorized at %s', $_SERVER['SERVER_NAME']);
 
                 _mailer( $to, $from, $subject, $message );
             }
