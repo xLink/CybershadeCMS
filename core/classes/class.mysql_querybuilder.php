@@ -283,7 +283,7 @@ class mysql_queryBuilder extends coreObj{
 
             $set = array();
             foreach($this->_fields as $k => $f){
-                $set[] = sprintf('%s = %s', $f, $this->_sanitizeValue($this->_values[$k]));
+                $set[] = sprintf('%s = %s', $f, $this->_values[$k]);
             }
 
             $statement[] = implode(', ', $set);
@@ -543,6 +543,10 @@ class mysql_queryBuilder extends coreObj{
 
     protected function _sanitizeValue($val) {
         if( in_array( $val, array( 'NULL', 'true', 'false', null ) ) ) {
+            return $val;
+        }
+
+        if( is_number($val) ) {
             return $val;
         }
 

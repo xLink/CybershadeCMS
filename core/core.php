@@ -14,6 +14,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $START_CMS_LOAD = microtime(true); $START_RAM_USE = memory_get_usage();
     $cmsROOT = (isset($cmsROOT) && !empty($cmsROOT) ? $cmsROOT : '');
 
+    if( !isset($_SESSION) ){ session_start(); }
+
     //we need constants.php, same deal as above
     $file = $cmsROOT.'core/constants.php';
         if(!is_readable($file)){
@@ -28,15 +30,13 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             function dump(){} function getExecInfo(){} function memoryUsage(){}
         }else{ require_once($file); }
 
-    (cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
-
     if(cmsDEBUG && false){
         require_once(cmsROOT.'core/php_error.php');
         \php_error\reportErrors(array(
-          'snippet_num_lines'   => 20,
-          'error_reporting_off' => 0,
-          'error_reporting_on'  => E_ALL | E_STRICT,
-          'background_text'     => 'Cybershade CMS',
+            'snippet_num_lines'   => 20,
+            'error_reporting_off' => 0,
+            'error_reporting_on'  => E_ALL | E_STRICT,
+            'background_text'     => 'Cybershade CMS',
         ));
     (cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
     }
@@ -121,9 +121,13 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objCore->addConfig($config);
 
     $objCache   = coreObj::getCache();
+    $confCache = $objCache->load( 'config' );
+    $objCore->addConfig($confCache);
+
     $objSession = coreObj::getSession();
     $objPlugin  = coreObj::getPlugins();
     $objDebug   = coreObj::getDebug();
+    $objRoute   = coreObj::getRoute()->modifyGET();
 
         if( is_object($objDebug) ){
             set_error_handler(array($objDebug, 'errorHandler'));

@@ -330,6 +330,7 @@ class User extends coreObj {
      * @author  Richard Clifford
      *
      * @param   string   $setting   The key name of the setting ('all' if all is required)
+     * @param   int      $uid       The User id to get the settings for
      *
      * @return  array
      */
@@ -424,11 +425,11 @@ class User extends coreObj {
 
             // Check if the keys belong to users_extras table or users_extras table
             if( in_array( $key, $userColumnData ) ){
-                $userData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+                $userData[$key] = $settings[$key];
             }
 
             if( in_array( $key, $userExtraColumnData ) ){
-                $userExtraData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+                $userExtraData[$key] = $settings[$key];
             }
         }
 
@@ -437,9 +438,9 @@ class User extends coreObj {
         if( !is_empty( $userData ) ){
 
             $insert = $objSQL->queryBuilder()
-                                ->update( array( 'u' => '#__users' ) )
+                                ->update( '#__users' )
                                 ->set( $userData )
-                                ->where( 'u.id', '=', $uid )
+                                ->where( 'id', '=', $uid )
                                 ->build();
 
             $userInsertResult = $objSQL->query( $insert );
@@ -454,9 +455,9 @@ class User extends coreObj {
         if( !is_empty( $userExtraData ) ){
 
             $insertExtras = $objSQL->queryBuilder()
-                                        ->update( array( 'ux' => '#__users_extras') )
+                                        ->update( '#__users_extras' )
                                         ->set( $userExtraData )
-                                        ->where( 'ux.uid','=', $uid )
+                                        ->where( 'uid', '=', $uid )
                                         ->build();
 
             $userExtrasInsertResult = $objSQL->query( $insertExtras );
@@ -495,7 +496,7 @@ class User extends coreObj {
                         ->set( array(
                             'password' => $this->mkPassword( $password )
                         ))
-                        ->where('id', $uid)
+                        ->where('id', '=', $uid)
                         ->build();
 
         $result = $objSQL->query( $query );
@@ -531,7 +532,7 @@ class User extends coreObj {
             $state = sprintf('IF(%s=1, 0, 1)', $var);
 
         // if we want to toggle it to a specific value then we need to set it
-        }else{
+        } else {
             $state = ($state === true ? '1' : '0');
         }
 
@@ -611,7 +612,7 @@ class User extends coreObj {
         if( !is_empty( $userData ) ){
 
             $insert = $objSQL->queryBuilder()
-                                ->insertInto(array('u'=>'#__users'))
+                                ->insertInto('#__users')
                                 ->set( $userData )
                                 ->build();
 
@@ -628,7 +629,7 @@ class User extends coreObj {
         if( !is_empty( $userExtraData ) ){
 
             $insertExtras = $objSQL->queryBuilder()
-                                        ->insertInto( array( 'ux' => '#__users_extras') )
+                                        ->insertInto('#__users_extras')
                                         ->set( $userExtraData )
                                         ->build();
 

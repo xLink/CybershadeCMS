@@ -3,7 +3,7 @@
     <!-- BEGIN login -->
     <ul>
         <!-- BEGIN errors -->
-        <li><span class="error">{login.errors.ERROR}</span></li>
+        <li><div class="alert alert-{login.errors.CLASS}">{login.errors.ERROR}</div></li>
         <!-- END errors -->
     </ul>
     {login.FORM_START}

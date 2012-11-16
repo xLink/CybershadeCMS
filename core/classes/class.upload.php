@@ -17,9 +17,21 @@ class Upload extends coreObj {
     protected $directory;
 
     /**
+     * The input id of the input box which is generated
+     *
+     * @access protected
+     */
+    protected $input_id = 'file';
+
+    /**
      * The class constructor
      */
-    public function __construct(){
+    public function __construct( $input_id = '' ){
+        // Specifies the $_FILES array key
+        if( !is_empty( $input_id ) ){
+            $this->setVar( 'input_id', $input_id );
+        }
+
         $this->setDirectory();
     }
 
@@ -35,44 +47,43 @@ class Upload extends coreObj {
      *
      * @return      boolean
      */
-     public function doUpload( $extensions = array(), $size = 20000) {
+     public function doUpload( $extensions = array(), $size = 50000 ) {
+
         $objPlugins = coreObj::getPlugins();
 
         $destination = $this->getVar('directory');
+        $input_id    = $this->getVar('input_id');
+
+        // Checks if the destination was false (from the getVar())
         if( !$destination ){
             (cmsDEBUG ? memoryUsage('Upload: Failed to upload as desitnation folder was not accessible' ) : '');
             return false;
         }
-
-        $allowedExts = array();
-
-        if( !is_empty( $extensions ) ){
-            $allowedExts[] = $extensions;
-        }
-
+        
         // Get the current file extension
-        $fileName   = secureMe( $_FILES['upload']['name'], 'alphanum' );
+        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_id]['name']); 
         $extension  = end( explode( '.', $fileName ) );
-        $fileSize   = $_FILES['upload']['size'];
+        $fileSize   = $_FILES[$input_id]['size'];
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
-        if( in_array( $extension, $allowedExts ) && ( $fileSize <= $size ) ){
+        if( in_array( $extension, $extensions ) && ( $fileSize <= $size ) ){
 
-            if( $_FILES['upload']['error'] > 0 ){
+            if( $_FILES[$input_id]['error'] > 0 ){
 
                 (cmsDEBUG ? memoryUsage(sprintf(
                     'Upload: Error uploading file, error code: %s',
-                    $_FILES['upload']['error']
+                    $_FILES[$input_id]['error']
                 )) : '');
 
-                trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES['upload']['error'] ) );
+                trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES[$input_id]['error'] ) );
                 return false;
             } else {
                 if( file_exists( $destination . '/' . $fileName ) ) {
                     trigger_error( sprintf( 'The uploaded file already exists: %s/%s', $destination, $fileName ) );
                     return false;
                 } else {
-                    $moveFile = move_uploaded_file( $_FILES['upload']['tmp_name'], $destination . '/' . $fileName );
+
+                    $moveFile = move_uploaded_file( $_FILES[$input_id]['tmp_name'], $destination . '/' . $fileName );
 
                     // Check if the file was moved correctly
                     if( $moveFile ){
@@ -88,6 +99,7 @@ class Upload extends coreObj {
                             'public'     => 0,
                             'authorized' => 0,
                             'file_size'  => $fileSize,
+                            'location'   => $destination,
                         );
 
                         // Automatically allow admins to have authorized content
@@ -213,7 +225,7 @@ class Upload extends coreObj {
 
         $objPlugins = coreObj::getPlugins();
         $objSQL     = coreObj::getDBO();
-        $objUser    = coreObj::getUsers();
+        $objUser    = coreObj::getUser();
 
         // Check if the file is already authorized
         $checkAuth = $objSQL->queryBuilder()

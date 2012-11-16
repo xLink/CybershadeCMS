@@ -22,6 +22,7 @@ class Module_core extends Module{
         $objForm    = coreObj::getForm();
         $objSession = coreObj::getSession();
         $objPage    = coreObj::getPage();
+        $objLogin   = coreObj::getLogin();
 
         if( User::$IS_ONLINE ){
             $objPage->redirect('/'.root());
@@ -62,14 +63,15 @@ class Module_core extends Module{
 
         $objTPL->assign_block_vars('login', $form);
 
-        if( isset($_SESSION['login']['errors']) && count($_SESSION['login']['errors']) ){
-            foreach($_SESSION['login']['errors'] as $error){
+        if( isset($objLogin->errors) && count($objLogin->errors) ){
+            foreach($objLogin->errors as $error){
                 $objTPL->assign_block_vars('login.errors', array(
-                    'ERROR' => $error
+                    'ERROR' => $error['msg'],
+                    'CLASS' => $error['class'],
                 ));
             }
 
-            unset($_SESSION['login']);
+            unset($objLogin->errors);
         }
 
     }
@@ -137,25 +139,22 @@ class Module_core extends Module{
     }
 
     public function login_process(){
-        $objSession = coreObj::getSession();
-        $objUser    = coreObj::getUser();
-        $objLogin   = coreObj::getLogin();
-        $errors     = array();
+        $objUser  = coreObj::getUser();
+        $objLogin = coreObj::getLogin();
+        $objPage  = coreObj::getPage();
 
-        if( !$objSession->checkToken('hash') ){
-            $_SESSSION['login']['errors'][] = 'There was an issue with submitting the form, please try again.';
-        }
-
-        if( !$objLogin->doLogin() ){
+        if( $objLogin->process() !== true ){
             $this->login_form();
             return;
         }
 
-
+        $objPage->redirect(doArgs('referer', '/'.root(), $_SESSION['login']), 0);
     }
 
     public function logout(){
-        coreObj::getLogin()->logout($_GET['check']);
+        $objLogin = coreObj::getLogin();
+
+        $objLogin->logout($_GET['check']);
     }
 }
 ?>

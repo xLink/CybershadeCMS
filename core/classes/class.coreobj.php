@@ -13,10 +13,11 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class coreObj {
 
-    public static   $classDirs   = array(),
-                    $_classes    = array(),
-                    $_instances  = array(),
-                    $_config     = array();
+    public static   $classDirs    = array(),
+                    $_classes     = array(),
+                    $_instances   = array(),
+                    $_config      = array(),
+                    $loadedConfig = false;
 
 
     /**
@@ -245,11 +246,6 @@ class coreObj {
      */
     public static function config($array=null, $setting=null, $default=null){
         $config = self::$_config;
-        if( empty($config) ){
-            $objCache = coreObj::getCache();
-
-            $config = self::addConfig( $objCache->load( 'config' ) );
-        }
 
         // if no arguments were passed, throw it all out
         if( !func_num_args() ){
@@ -368,8 +364,9 @@ class coreObj {
 
             $objSQL = new $name(null, $options);
                 if($objSQL === false){
-                    if(!headers_sent()){
+                    if( !headers_sent() ){
                         header('HTTP/1.1 500 Internal Server Error');
+                        exit;
                     }
                     hmsgDie('FAIL', 'Error: No DB Avaliable');
                 }
