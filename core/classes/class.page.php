@@ -107,16 +107,9 @@ class Page extends coreObj{
     public function buildBlocks()
     {
         $objTPL = coreObj::getTPL();
-       /* $objBlocks = coreObj::getBlocks();
+        $objBlocks = coreObj::getBlocks();
 
-        // $blocks = $this->config('blocks');
-        $blocks = $objBlocks->loadBlocks();
-
-        if( empty( $blocks ) ) {
-            return false;
-        }
-
-        $objBlocks->insertBlocks();*/
+        $objBlocks->insertBlocks();
     }
 
     /**
@@ -739,12 +732,10 @@ class Page extends coreObj{
             include_once($themeConfig);
         }
 
-        $this->buildBlocks();
-/**
+        // Set the index.tpl file as the template
   //
   //-- Template Stuff
   //
-**/
         $tplGlobals = array(
             'ROOT'          => root(),
             'THEME_ROOT'    => root(). Page::$THEME_ROOT,
@@ -797,7 +788,7 @@ class Page extends coreObj{
 
         $objTPL->set_filenames(array( 'siteHeader' => self::$THEME_ROOT . $header ));
 
-
+        $this->buildBlocks();
 
         $objTPL->parse('siteHeader');
 
@@ -818,6 +809,7 @@ class Page extends coreObj{
 
         $objTPL->set_filenames(array( 'siteFooter' => self::$THEME_ROOT . $footer ));
 
+        $this->buildBlocks();
 
         if( defined('cmsDEBUG') && cmsDEBUG === true ){
 
