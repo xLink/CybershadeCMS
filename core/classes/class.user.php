@@ -515,14 +515,20 @@ class User extends coreObj {
      *
      * @return  bool
      */
-    public function toggle( $uid, $var, $state = false){
+    public function toggle( $uid, $var, $state = null){
         $objSQL = coreObj::getDBO();
 
         $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
         $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
 
-        $state = ($state === true ? '1' : '0');
+        // if state hasnt been set, then lets toggle its value
+        if( $state === null){
+            $state = sprintf('IF(%s=1, 0, 1)', $var);
 
+        // if we want to toggle it to a specific value then we need to set it
+        }else{
+            $state = ($state === true ? '1' : '0');
+        }
 
         if( in_array( $var, $userColumnData ) ){
             $query = $objSQL->queryBuilder()
