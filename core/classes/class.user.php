@@ -437,9 +437,9 @@ class User extends coreObj {
         if( !is_empty( $userData ) ){
 
             $insert = $objSQL->queryBuilder()
-                                ->update( array( 'u' => '#__users' ) )
+                                ->update( '#__users' )
                                 ->set( $userData )
-                                ->where( 'u.id', '=', $uid )
+                                ->where( 'id', '=', $uid )
                                 ->build();
 
             $userInsertResult = $objSQL->query( $insert );
@@ -454,9 +454,9 @@ class User extends coreObj {
         if( !is_empty( $userExtraData ) ){
 
             $insertExtras = $objSQL->queryBuilder()
-                                        ->update( array( 'ux' => '#__users_extras') )
+                                        ->update( '#__users_extras' )
                                         ->set( $userExtraData )
-                                        ->where( 'ux.uid','=', $uid )
+                                        ->where( 'uid', '=', $uid )
                                         ->build();
 
             $userExtrasInsertResult = $objSQL->query( $insertExtras );

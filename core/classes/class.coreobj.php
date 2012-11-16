@@ -246,12 +246,6 @@ class coreObj {
      */
     public static function config($array=null, $setting=null, $default=null){
         $config = self::$_config;
-        if( self::$loadedConfig === false ){
-            $objCache = coreObj::getCache();
-
-            $config = self::addConfig( $objCache->load( 'config' ) );
-            self::$loadedConfig = true;
-        }
 
         // if no arguments were passed, throw it all out
         if( !func_num_args() ){
@@ -288,7 +282,7 @@ class coreObj {
         }
 
         self::$_config = array_merge( self::$_config, $var );
-        // echo dump(self::$_config);
+        //echo dump(self::$_config);
 
         return self::$_config;
     }
@@ -370,8 +364,9 @@ class coreObj {
 
             $objSQL = new $name(null, $options);
                 if($objSQL === false){
-                    if(!headers_sent()){
+                    if( !headers_sent() ){
                         header('HTTP/1.1 500 Internal Server Error');
+                        exit;
                     }
                     hmsgDie('FAIL', 'Error: No DB Avaliable');
                 }
