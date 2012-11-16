@@ -45,7 +45,6 @@ class Route extends coreObj{
         }
 
         // Load the routes cache in
-        (cmsDEBUG ? memoryUsage('Routes: Loading Routes') : '');
         $this->routes = coreObj::getCache()->load('routes');
 
         // If we have no routes to use, then we need to stop here
@@ -70,7 +69,6 @@ class Route extends coreObj{
      */
     public function processURL( $url ) {
         $objPlugin  = coreObj::getPlugins();
-        (cmsDEBUG ? memoryUsage('Routes: Began Processing URL: '.$url) : '');
 
         $this->loadRoutes();
 
@@ -114,19 +112,14 @@ class Route extends coreObj{
         $this->loadRoutes();
 
         foreach($this->routes as $label => $route){
-            (cmsDEBUG ? memoryUsage('Routes: ') : '');
-            (cmsDEBUG ? memoryUsage('Routes: Testing - '.$route['pattern']) : '');
 
             // Check for a method being set, if it doesn't match, continue
             if( strtoupper($route['method']) != 'ANY' && strtoupper($route['method']) != $_SERVER['REQUEST_METHOD']) {
-                (cmsDEBUG ? memoryUsage('Routes: Dismissing pattern due to incorrect REQUEST_METHOD <br />'.
-                                $route['method'].' != '.$_SERVER['REQUEST_METHOD']) : '');
                 continue;
             }
 
             // Match Absolute URLs
             if( $route['pattern'] === $url ) {
-                (cmsDEBUG ? memoryUsage('Routes: Absolute URL Matched') : '');
 
                 $this->setVar('route', $route);
                 $this->setVar('type', 'absolute');
@@ -140,7 +133,6 @@ class Route extends coreObj{
 
             // If the route and parts aren't of equal length, insta-dismiss this route
             if( count( $parts_u ) !== count( $parts_p ) ) {
-                (cmsDEBUG ? memoryUsage('Routes: Dismissing due to incorrect parts counts') : '');
                 continue;
             }
 
@@ -148,14 +140,12 @@ class Route extends coreObj{
             $pattern = $this->prepareRoute( $route );
 
             if( $this->testRoute( $url, $pattern, $route ) !== false ){
-                (cmsDEBUG ? memoryUsage('Routes: Pattern Match Successful - '.$route['pattern']) : '');
 
                 $this->setVar('type', 'dynamic');
 
                 return true;
             }
 
-            (cmsDEBUG ? memoryUsage('Routes: Pattern Dismissed, Pattern Variables didn\'t match') : '');
 
         }
 
@@ -180,14 +170,12 @@ class Route extends coreObj{
         }
 
         // Collect all the replacement 'variables' from the route structure into an array
-        (cmsDEBUG ? memoryUsage('Routes: Gathering variables from pattern') : '');
         $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
         $this->replacements = $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
         // Loop through our replacements (if there are any),
         //  In the matching, if there is a requirement set, use that,
         //  else, use our generic alpha-numeric string match that includes SEO friendly chars.
-        (cmsDEBUG ? memoryUsage('Routes: Replace variables with Replacements') : '');
         foreach( $replacements as $replacement ) {
             $replaceWith = '[A-Za-z0-9\-\_]+';
 
@@ -238,9 +226,7 @@ class Route extends coreObj{
         $objPlugin  = coreObj::getPlugins();
 
         // If the route matches the URL, we've got a winner!
-        (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
         if( preg_match( '#^' . $pattern . '$#', $url, $matches ) ) {
-            (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
             // Remove the URL from the paramaters
             unset( $matches[0] );
             $matches = array_values( $matches );
@@ -285,12 +271,10 @@ class Route extends coreObj{
     public function invokeRoute(){
         $route = $this->getVar('route');
         if( is_empty( $route ) ) {
-            (cmsDEBUG ? memoryUsage('Routes: &nbsp;') : '');
-            (cmsDEBUG ? memoryUsage('Routes: No Pattern Matched. Throwing 404...') : '');
             $this->throwHTTP(404);
             return;
         }
-        (cmsDEBUG ? memoryUsage('Routes: Pattern Matched. Invoke Route :D'.dump($this->route)) : '');
+        (cmsDEBUG ? memoryUsage('Route: Executing Route '.dump($route)) : '');
 
         $objUser = coreObj::getUser();
 
@@ -329,14 +313,12 @@ class Route extends coreObj{
                 && $getMethod->getDeclaringClass()->name === $overrideClass ){
 
 
-                (cmsDEBUG ? memoryUsage('Routes: Super method override initiated...BOOM!') : '');
                 $module = 'Override_'.$method;
             }
 
         }
 
         // Retrieve the info we need about the class and method
-        (cmsDEBUG ? memoryUsage('Routes: Method found to be callable. Do our thing :D') : '');
         $refMethod = new ReflectionMethod( $module, $method );
         $params    = $refMethod->getParameters( );
         $args      = array( );
@@ -360,7 +342,6 @@ class Route extends coreObj{
         }
 
         // GO! $Module!, $Module used $Method($args)... It was super effective!
-        (cmsDEBUG ? memoryUsage('Routes: Called Method.') : '');
         $objModule = new $module;
         $objModule->setVars(array(
             '_method' => $method,

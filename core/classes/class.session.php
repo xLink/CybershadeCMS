@@ -30,9 +30,6 @@ class Session extends coreObj{
 
         $check = $this->checkValidSession();
         if( $check === false ){
-            echo dump($a, 'Sessions: User dosent have a valid session... ');
-            (cmsDEBUG ? memoryUsage('Sessions: User dosent have a valid session... ') : '');
-
             if( isset($_SESSION)){
                 $objSQL = coreObj::getDBO();
 
@@ -66,7 +63,6 @@ class Session extends coreObj{
      */
     public function session_gc(){
         if( rand(1, 100) <= 25 ){
-            (cmsDEBUG ? memoryUsage('Sessions: Running Garbage Collector... ') : '');
             $objSQL = coreObj::getDBO();
 
             $query = $objSQL->queryBuilder()
@@ -87,7 +83,6 @@ class Session extends coreObj{
      *
      */
     public function checkValidSession(){
-        (cmsDEBUG ? memoryUsage('Sessions: Checking validity of users session... ') : '');
         $session_id = session_id();
 
         if( $session_id ){
@@ -112,7 +107,6 @@ class Session extends coreObj{
      *
      */
     public function updateTime(){
-        (cmsDEBUG ? memoryUsage('Sessions: Updating timestamp on users session... ') : '');
 
         $objSQL = coreObj::getDBO();
 

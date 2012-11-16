@@ -26,8 +26,6 @@ class Login extends coreObj {
      */
     public function process(){
 
-        (cmsDEBUG ? memoryUsage('Login: doLogin()') : '');
-
         if( !HTTP_POST ){
             trigger_error('No POST action detected');
             return false;
@@ -46,20 +44,17 @@ class Login extends coreObj {
         $username = doArgs('username', null, $_POST);
         $password = doArgs('password', null, $_POST);
 
-        (cmsDEBUG ? memoryUsage('Login: checking user & passy !empty()') : '');
         if( is_empty($username) || is_empty($password) ){
             $this->addError(2);
             return false;
         }
 
         // make sure the user hasnt already exceeded their login attempt quota
-        (cmsDEBUG ? memoryUsage('Login: making sure they havent gone over their login attempts') : '');
         if( $this->attemptsCheck(true) === false ){
             $this->addError(3);
             return false;
         }
 
-        (cmsDEBUG ? memoryUsage('Login: making sure the user actually exists') : '');
         $this->userData = $objUser->get( '*', $username );
             if( !$this->userData ){
                 $this->addError(2);
@@ -73,17 +68,14 @@ class Login extends coreObj {
 
         //no need to run these if we are in acp mode
         if($acpCheck !== true){
-        (cmsDEBUG ? memoryUsage('Login: whitelist check') : '');
             if( $this->whiteListCheck() === false ){
                 $this->addError(4);
             }
 
-        (cmsDEBUG ? memoryUsage('Login: active check') : '');
             if( $this->activeCheck() === false ){
                 $this->addError(5);
             }
 
-        (cmsDEBUG ? memoryUsage('Login: checking if the user is banned') : '');
             if( $this->banCheck() === false ){
                 $this->addError(6);
             }
@@ -91,14 +83,12 @@ class Login extends coreObj {
         }
 
         // update their quota
-        (cmsDEBUG ? memoryUsage('Login: updating the attempts ') : '');
         if( $this->attemptsCheck() === false ){
             $this->addError(3);
             return false;
         }
 
         // make sure the password is valid
-        (cmsDEBUG ? memoryUsage('Login: validate the user details') : '');
         if( $objUser->verifyUserCredentials( $username, $password ) === false ){
             $this->addError(7);
             return false;
@@ -109,7 +99,6 @@ class Login extends coreObj {
         // Add Hooks for Login Data
         $this->userData['password_plaintext'] = $this->postData['password'];
 
-        (cmsDEBUG ? memoryUsage('Login: hooking that shiz yo') : '');
         $objPlugins->hook( 'CMS_LOGIN_SUCCESS', $this->userData );
 
         $objSQL = coreObj::getDBO();
@@ -127,7 +116,6 @@ class Login extends coreObj {
 
         $results = $objSQL->query( $query );
 
-        (cmsDEBUG ? memoryUsage('Login: Setting the session') : '');
         $user = $this->userData;
         $user['last_active'] = time();
 
@@ -260,8 +248,7 @@ class Login extends coreObj {
             if( $this->userData['login_attempts'] === $this->config('login', 'max_login_tries') ){
 
                 //deactivate the users account
-                (cmsDEBUG ? memoryUsage('Login: deactivating the '.$this->userData['username'].'\'s account') : '');
-                // coreObj::getUser()->toggle( $this->userData['id'], 'active', false );
+                coreObj::getUser()->toggle( $this->userData['id'], 'active', false );
             }
             return false;
         }

@@ -172,8 +172,6 @@ class Cache extends coreObj{
      * @return      array   Returns the cache store in array form
      */
     public function get($store){
-        (cmsDEBUG ? memoryUsage('Cache: Getting cache store - '.$store.'... ') : '');
-
         //if we have the store loaded, just return
         if(isset($this->cacheFiles[$store])){
             return $this->cacheFiles[$store];

@@ -302,14 +302,12 @@ class coreObj {
 
         if (!isset(coreObj::$_classes[$name]) || empty(coreObj::$_classes[$name])){
             $class = self::getStaticClassName();
-            (cmsDEBUG ? memoryUsage( sprintf('Init: New object - %s. ', $class) ) : '');
             $iClass = new $class($name, $options);
 
             // default to returning the class as is, but test to see if we have setupInstance
             // && if so, we'll return that :D
             coreObj::$_classes[$name] = $iClass;
             if( is_callable(array($iClass, 'setupInstance')) ){
-                (cmsDEBUG ? memoryUsage( sprintf('Init: Calling %s :: setupInstance() ', $class) ) : '');
                 coreObj::$_classes[$name] = $iClass->setupInstance($name, $options);
             }
         }

@@ -38,7 +38,6 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             'error_reporting_on'  => E_ALL | E_STRICT,
             'background_text'     => 'Cybershade CMS',
         ));
-    (cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
     }
 
     //Lets set a simple error template up till we have the template engine going
@@ -56,8 +55,6 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to read the configuration file, please ensure correct privileges are given.'));
         }else{ require_once($file); }
 
-    (cmsDEBUG ? memoryUsage('Core: loaded config') : '');
-
     //make sure we are running a compatible PHP Version
     if(PHP_VERSION_ID < '50300'){
         die(sprintf($errorTPL, 'Fatal Error - 500',
@@ -69,11 +66,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to locate/read the baseFunctions file.'));
         }else{ require_once($file); }
 
-    (cmsDEBUG ? memoryUsage('Core: version check & basefunctions') : '');
-
     //kill magic quotes completely
     if(get_magic_quotes_gpc() != false){
-    (cmsDEBUG ? memoryUsage('Core: anti magic quotes') : '');
 
         //strip all the global arrays
         recursiveArray($_POST,    'stripslashes');
@@ -88,16 +82,12 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         date_default_timezone_set('Europe/London');
     }
 
-    (cmsDEBUG ? memoryUsage('Core: default timezone') : '');
-
 /**
   //
   //-- Classes Setup
   //
 **/
     require_once(cmsROOT.'core/classes/class.coreobj.php');
-
-    (cmsDEBUG ? memoryUsage('Core: loaded base class') : '');
 
     // AUTOLOADER, I Choose You!
         // directories to use for the autoloading, these get glob'd over after
@@ -109,13 +99,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             'module_overrides' => cmsROOT.'themes/*/override/*/*.php',
         ));
 
-    (cmsDEBUG ? memoryUsage('Core: autoloader dirs') : '');
-
     spl_autoload_extensions('.php');
     spl_autoload_register(array('coreObj', 'loadClass'));
  // echo dump($dirs, 'Loading Classes From', 'orange');exit;
-
-    (cmsDEBUG ? memoryUsage('Core: autoloader registration') : '');
 
     $objCore     = new coreObj;
     $objCore->addConfig($config);
@@ -133,7 +119,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             set_error_handler(array($objDebug, 'errorHandler'));
         }
 
-(cmsDEBUG ? memoryUsage('Core: everything else') : '');
+(cmsDEBUG ? memoryUsage('Core: Loaded..') : '');
 
 $objPlugin->hook('CMS_SETUP_COMPLETE');
 
