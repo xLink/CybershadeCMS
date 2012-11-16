@@ -21,9 +21,15 @@ $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 $objUpload = coreObj::getUpload( 'upload' );
 $objForm   = coreObj::getForm();
 
-echo $objForm->start('test', array( 'method' => 'post', 'upload' => true, 'action' => $_SERVER['PHP_SELF'] ));
+echo $objForm->start('test', array(
+  'method' => 'post',
+  'upload' => true,
+  'action' => $_SERVER['PHP_SELF']
+));
+
 echo $objForm->inputBox('upload', 'file', 'upload');
 echo $objForm->inputBox('submit', 'submit', 'Submit!');
+
 echo $objForm->finish();
 
 if( isset( $_POST['submit'] ) ){
