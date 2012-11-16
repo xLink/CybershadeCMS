@@ -546,10 +546,6 @@ class mysql_queryBuilder extends coreObj{
             return $val;
         }
 
-        if( is_number($val) ) {
-            return $val;
-        }
-
         return '"' . $val . '"'; ///addslashes($val);
     }
 
