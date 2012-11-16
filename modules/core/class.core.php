@@ -73,6 +73,68 @@ class Module_core extends Module{
         }
 
     }
+    
+    public function login_block( $block ){
+        $objTPL     = coreObj::getTPL();
+        $objForm    = coreObj::getForm();
+        $objSession = coreObj::getSession();
+        $objPage    = coreObj::getPage();
+
+        if( User::$IS_ONLINE ){
+            $objPage->redirect('/'.root());
+        }
+
+        $objTPL->set_filenames(array( 'login_block' => cmsROOT . 'modules/core/views/login_form/block.tpl'));
+        // $objTPL->set_filenames(array( 'demoBlock'   => cmsROOT . 'modules/content/views/demoBlock/demo_block.tpl' ));
+
+        $form = array(
+            'FORM_START'    => $objForm->start('login', array(
+                                    'method' => 'POST',
+                                    'action' => '/'.root().'login?'
+                                )),
+            'FORM_END'      => $objForm->finish(),
+            'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
+
+            'L_USERNAME'    => langVar('L_USERNAME'),
+            'F_USERNAME'    => $objForm->inputbox('username', 'text', '', array(
+                                    'class'    => 'icon username',
+                                    'required' => true
+                                )),
+
+            'L_PASSWORD'    => langVar('L_PASSWORD'),
+            'F_PASSWORD'    => $objForm->inputbox('password', 'password', '', array(
+                                    'class'    => 'icon password',
+                                    'required' => true
+                                )),
+
+            'L_REMME'       => langVar('L_REMME'),
+            'F_REMME'       => $objForm->select('remember', array(
+                                    '0' => 'No Thanks',
+                                    '1' => 'Forever'
+                                ), array(
+                                    'selected' => 0
+                                )),
+
+            'SUBMIT'        => $objForm->button('submit', 'Login', array('class'=>'btn btn-success')),
+        );
+
+        $objTPL->assign_block_vars('login', $form);
+
+        $objTPL->assign_vars(array( 'TITLE' => $block['name'] ));
+
+        if( isset($_SESSION['login']['errors']) && count($_SESSION['login']['errors']) ){
+            foreach($_SESSION['login']['errors'] as $error){
+                $objTPL->assign_block_vars('login.errors', array(
+                    'ERROR' => $error
+                ));
+            }
+
+            unset($_SESSION['login']);
+        }
+
+        return $objTPL->get_html('login_block');
+
+    }
 
     public function login_process(){
         $objSession = coreObj::getSession();
