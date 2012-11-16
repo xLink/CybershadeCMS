@@ -13,10 +13,11 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class coreObj {
 
-    public static   $classDirs   = array(),
-                    $_classes    = array(),
-                    $_instances  = array(),
-                    $_config     = array();
+    public static   $classDirs    = array(),
+                    $_classes     = array(),
+                    $_instances   = array(),
+                    $_config      = array(),
+                    $loadedConfig = false;
 
 
     /**
@@ -245,10 +246,11 @@ class coreObj {
      */
     public static function config($array=null, $setting=null, $default=null){
         $config = self::$_config;
-        if( empty($config) ){
+        if( self::$loadedConfig === false ){
             $objCache = coreObj::getCache();
 
             $config = self::addConfig( $objCache->load( 'config' ) );
+            self::$loadedConfig = true;
         }
 
         // if no arguments were passed, throw it all out
@@ -286,7 +288,7 @@ class coreObj {
         }
 
         self::$_config = array_merge( self::$_config, $var );
-        //echo dump(self::$_config);
+        // echo dump(self::$_config);
 
         return self::$_config;
     }

@@ -7,61 +7,13 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class Login extends coreObj {
 
+    public $errors = array();
+
     public function __construct(){
         $objSession = coreObj::getSession();
 
         $this->onlineData = $objSession->getData();
-        echo dump($this->onlineData, 'onlineData');
-    }
-
-    /**
-     * Checks whether the user has exceeded the login quota
-     *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Daniel Noel-Davies
-     *
-     * @param   bool    $dontUpdate
-     *
-     * @return  bool
-     */
-    public function attemptsCheck($dontUpdate=false){
-        if( $this->onlineData['login_time'] >= time() ){
-            return false;
-
-        }elseif( $this->onlineData['login_attempts'] > $this->config('login', 'max_login_tries') ){
-
-            if($this->onlineData['login_time'] == '0'){
-
-                $objSQL  = coreObj::getDBO();
-                $objTime = coreObj::getTime();
-                $objUser = coreObj::getUser();
-
-                $query = $objSQL->queryBuilder()
-                                ->update('#__sessions')
-                                ->set(array(
-                                    'login_time'     => $objTime->mod_time(time(), 0, 15),
-                                    'login_attempts' => '0'
-                                ))
-                                ->where('userkey', '=', $objUser->grab('userkey'))
-                                ->build();
-                $objSQL->query( $query );
-            }
-
-            return false;
-        }
-
-        if( $dontUpdate ){ return true; }
-
-        if( $this->userData['login_attempts'] >= $this->config('login', 'max_login_tries') ){
-            if( $this->userData['login_attempts'] == $this->config('login', 'max_login_tries') ){
-                //deactivate the users account
-                coreObj::getUser()->toggle( $this->userData['id'], 'active', false );
-            }
-            return false;
-        }
-
-        return true;
+        echo dump($this->onlineData['login_attempts'], 'login_attempts');
     }
 
     /**
@@ -73,7 +25,8 @@ class Login extends coreObj {
      *
      * @return  bool
      */
-    public function doLogin(){
+    public function process(){
+
         (cmsDEBUG ? memoryUsage('Login: doLogin()') : '');
 
         if( !HTTP_POST ){
@@ -83,6 +36,12 @@ class Login extends coreObj {
 
         $objUser = coreObj::getUser();
         $objPlugins = coreObj::getPlugins();
+        $objSession = coreObj::getSession();
+
+        if( !$objSession->checkToken('hash') ){
+            $this->addError(1);
+            return false;
+        }
 
         // verify username and password are set and not empty
         $username = doArgs('username', null, $_POST);
@@ -90,21 +49,21 @@ class Login extends coreObj {
 
         (cmsDEBUG ? memoryUsage('Login: checking user & passy !empty()') : '');
         if( is_empty($username) || is_empty($password) ){
-            $this->doError('0x02', $ajax);
+            $this->addError(2);
             return false;
         }
 
         // make sure the user hasnt already exceeded their login attempt quota
         (cmsDEBUG ? memoryUsage('Login: making sure they havent gone over their login attempts') : '');
         if( $this->attemptsCheck(true) === false ){
-            $this->doError('0x03', $ajax);
+            $this->addError(3);
             return false;
         }
 
         (cmsDEBUG ? memoryUsage('Login: making sure the user actually exists') : '');
         $this->userData = $objUser->get( '*', $username );
             if( !$this->userData ){
-                $this->doError('0x02', $ajax);
+                $this->addError(2);
                 return false;
             }
 
@@ -114,35 +73,35 @@ class Login extends coreObj {
         );
 
         //no need to run these if we are in acp mode
-        //if($acpCheck !== true){
+        if($acpCheck !== true){
         (cmsDEBUG ? memoryUsage('Login: whitelist check') : '');
             if( $this->whiteListCheck() === false ){
-                $this->doError('0x04', $ajax);
+                $this->addError(4);
             }
 
         (cmsDEBUG ? memoryUsage('Login: active check') : '');
             if( $this->activeCheck() === false ){
-                $this->doError('0x05', $ajax);
+                $this->addError(5);
             }
 
         (cmsDEBUG ? memoryUsage('Login: checking if the user is banned') : '');
             if( $this->banCheck() === false ){
-                $this->doError('0x06', $ajax);
+                $this->addError(6);
             }
 
-        //}
+        }
 
         // update their quota
         (cmsDEBUG ? memoryUsage('Login: updating the attempts ') : '');
         if( $this->attemptsCheck() === false ){
-            $this->doError('0x03', $ajax);
+            $this->addError(3);
             return false;
         }
 
         // make sure the password is valid
         (cmsDEBUG ? memoryUsage('Login: validate the user details') : '');
         if( $objUser->verifyUserCredentials( $username, $password ) === false ){
-            $this->doError('0x07', $ajax);
+            $this->addError(7);
             return false;
         }
 
@@ -150,6 +109,7 @@ class Login extends coreObj {
 
         // Add Hooks for Login Data
         $this->userData['password_plaintext'] = $this->postData['password'];
+
         (cmsDEBUG ? memoryUsage('Login: hooking that shiz yo') : '');
         $objPlugins->hook( 'CMS_LOGIN_SUCCESS', $this->userData );
 
@@ -175,7 +135,7 @@ class Login extends coreObj {
         $_SESSION['user'] = array_merge($_SESSION['user'], $user);
 
         (cmsDEBUG ? memoryUsage('Login: redirecting') : '');
-        //$objPage->redirect('/'.root(), 0, '5');
+        $objPage->redirect('/'.root(), 0, '5');
         return true;
     }
 
@@ -194,8 +154,7 @@ class Login extends coreObj {
         $objTime = coreObj::getTime();
         $objPage = coreObj::getPage();
 
-        if( !is_empty($check)
-                && $check == $objUser->grab('usercode')){
+        if( !is_empty($check) && $check == $objUser->grab('usercode') ){
 
             $objUser->update($objUser->grab('id'), array('autologin'=>'0'));
             $objSQL->deleteRow('online', array('userkey = "%s"', $_SESSION['user']['userkey']));
@@ -218,6 +177,75 @@ class Login extends coreObj {
         }
     }
 
+    public function updateLoginAttempts(){
+        $objUser = coreObj::getUser();
+        $objSQL  = coreObj::getDBO();
+
+        if( !is_empty($this->userData) ){
+            $objUser->update( $this->userData['id'], array('login_attempts' => '(login_attempts + 1)') );
+        }
+
+        $query = $objSQL->queryBuilder()
+                        ->update('#__sessions')
+                        ->set(array(
+                            'login_attempts' => '(login_attempts + 1)'
+                        ))
+                        ->where('sid', '=', $objUser->grab('userkey'))
+                        ->build();
+        $objSQL->query( $query );
+    }
+
+    /**
+     * Checks whether the user has exceeded the login quota
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   bool    $dontUpdate
+     *
+     * @return  bool
+     */
+    public function attemptsCheck( $dontUpdate=false ){
+        if( $this->onlineData['login_time'] >= time() ){
+            return false;
+
+        }elseif( $this->onlineData['login_attempts'] > $this->config('login', 'max_login_tries') ){
+
+            if($this->onlineData['login_time'] == '0'){
+
+                $objSQL  = coreObj::getDBO();
+                $objTime = coreObj::getTime();
+                $objUser = coreObj::getUser();
+
+                $query = $objSQL->queryBuilder()
+                                ->update('#__sessions')
+                                ->set(array(
+                                    'login_time'     => $objTime->mod_time(time(), 0, 15),
+                                    'login_attempts' => '0'
+                                ))
+                                ->where('userkey', '=', $objUser->grab('userkey'))
+                                ->build();
+                $objSQL->query( $query );
+            }
+
+            return false;
+        }
+
+        if( $dontUpdate === true ){ return true; }
+
+        if( $this->userData['login_attempts'] >= $this->config('login', 'max_login_tries') ){
+            if( $this->userData['login_attempts'] === $this->config('login', 'max_login_tries') ){
+
+                //deactivate the users account
+                (cmsDEBUG ? memoryUsage('Login: deactivating the '.$this->userData['username'].'\'s account') : '');
+                // coreObj::getUser()->toggle( $this->userData['id'], 'active', false );
+            }
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * Checks the whitelist associated with an account
@@ -278,90 +306,81 @@ class Login extends coreObj {
     /**
      * Turns error codes in to human readable errors
      *
-     * @version 1.0
+     * @version 1.2
      * @since   1.0.0
      * @author  Daniel Noel-Davies
      *
-     * @param   mixed     $errCode
-     * @param   bool     $ajax
+     * @param   mixed     $errorCode
      */
-    function doError($errCode, $ajax=false){
-        $acpCheck = isset($_SESSION['acp']['doAdminCheck']) ? true : false;
+    public function addError($errorCode){
+        $acpCheck = (isset($_SESSION['acp']['doAdminCheck']) ? true : false);
 
-        switch($errCode){
+        switch((int)$errorCode){
             default:
-                $L_ERROR = $errCode;
-            break;
-
-            case '0x0':
-                $L_ERROR = '('.$errCode.') I Can\'t seem to find the issue, Please contact a system administrator or <a href="mailto:'.
+            case 0:
+                $L_ERROR = '('.$errorCode.') I Can\'t seem to find the issue, Please contact a system administrator or <a href="mailto:'.
                                 $this->config('site', 'admin_email') .'">Email The Site Admin</a>';
             break;
 
-            case '0x1':
-                $L_ERROR = 'There was a problem with the form submittion. Please try again.';
+            case 1:
+                $L_ERROR = 'There was a problem with the form submission. Please try again.';
                 $this->updateLoginAttempts();
             break;
 
-            case '0x2':
-                $L_ERROR = 'Your Username or Password combination was incorrect. Please try again.';
+            case 2:
+                $L_ERROR = 'Your User name or Password combination was incorrect. Please try again.';
                 ($acpCheck ? $this->updateACPAttempts() : $this->updateLoginAttempts());
             break;
 
-            case '0x3':
+            case 3:
                 $L_ERROR = 'You have attempted to login too many times with incorrect credentials. Therefore you have been locked out.';
             break;
 
-            case '0x4':
-                $L_ERROR = 'The whitelist check on your account failed. We were unable to log you in.';
+            case 4:
+                $L_ERROR = 'The white list check on your account failed. We were unable to log you in.';
                 $this->updateLoginAttempts();
             break;
 
-            case '0x5':
+            case 5:
                 $L_ERROR = 'Your account is not activated. Please check your emails for the activation Email or Contact an Administrator to get this problem resolved.';
             break;
 
-            case '0x6':
+            case 6:
                 $L_ERROR = 'Your account is banned. We were unable to log you in.';
                 $this->updateLoginAttempts();
             break;
 
-            case '0x7':
-                $L_ERROR = 'Your Username or Password combination was incorrect. Please try again.';
+            case 7:
+                $L_ERROR = 'Your User name or Password combination was incorrect. Please try again.';
                 ($acpCheck ? $this->updateACPAttempts() : $this->updateLoginAttempts());
             break;
 
-            case '0x8':
+            case 8:
                 $L_ERROR = 'Your account is now active. If your encounter any problems please notify a member of staff.';
             break;
 
-            case '0x9':
+            case 9:
                 $L_ERROR = 'Sorry we cannot verify your PIN at this time.';
                 ($acpCheck ? $this->updateACPAttempts() : $this->updateLoginAttempts());
             break;
 
-            case '0x10':
+            case 10:
                 $L_ERROR = 'You need to set your PIN before your able to login to the admin control panel.';
                 ($acpCheck ? $this->updateACPAttempts() : $this->updateLoginAttempts());
             break;
 
-            case '0x11':
+            case 11:
                 $L_ERROR = 'The PIN you provided was invalid.';
                 ($acpCheck ? $this->updateACPAttempts() : $this->updateLoginAttempts());
             break;
         }
-
         $good = array('0x8');
 
-        $_SESSION['login']['errors'][] = $L_ERROR;
-        $_SESSION['login']['class'] = (in_array($errCode, $good) ? 'boxgreen' : 'boxred');
-
-        /*if($ajax){
-            die($L_ERROR);
-        }else{
-            $objPage = coreObj::getPage();
-            $objPage->redirect('/'.root().'login', 0);
-        }*/
+        $this->errors[] = array(
+            'code'  => $errorCode,
+            'msg'   => $L_ERROR,
+            'class' => (in_array($errorCode, $good) ? 'info' : 'error')
+        );
     }
 }
 ?>
