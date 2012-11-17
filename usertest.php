@@ -5,7 +5,13 @@
 define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 include_once('core/core.php');
+$objPage = coreObj::getPage();
+$objPage->setTheme();
 
+$objPage->setTitle('Test');
+
+$objPage->buildPage();
+$objPage->showHeader();
 $objUser = coreObj::getUser();
 $tests   = array();
 
@@ -28,4 +34,6 @@ $test[$uid]['checkPermissions']        = $objUser->checkPermissions($uid, 3);
 
 // Lets get the results
 echo dump( $test );
+
+$objPage->showFooter();
 ?>
