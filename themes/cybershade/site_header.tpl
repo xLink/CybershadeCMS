@@ -57,15 +57,15 @@
 <section class="container">
     <div class="row">
 
-    <!-- BEGIN menu -->
-        <aside class="span4 hidden-phone">
-    <!-- END menu -->
 
-            {_CMS.LEFT_MENU}
-
-    <!-- BEGIN menu -->
-        </aside>
-    <!-- END menu -->
+    <aside class="span4">
+    <!-- BEGIN _CMSBLOCK -->
+            <div class="row">
+                {_CMSBLOCK.LEFT_MENU}
+            </div>
+    <!-- END _CMSBLOCK -->
+    </aside>
+    
 
     <!-- BEGIN menu -->
         <div id="pageContent" class="span8">

@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 3.5.1
+-- version 3.4.5
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Nov 15, 2012 at 12:22 AM
--- Server version: 5.5.24-log
--- PHP Version: 5.3.13
+-- Generation Time: Nov 17, 2012 at 09:45 PM
+-- Server version: 5.5.16
+-- PHP Version: 5.3.8
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -29,21 +29,22 @@ SET time_zone = "+00:00";
 CREATE TABLE IF NOT EXISTS `cscms_blocks` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `uniqueid` varchar(10) NOT NULL,
+  `title` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `location` varchar(255) NOT NULL,
   `order` int(10) NOT NULL,
   `enabled` enum('0','1') NOT NULL DEFAULT '0',
   `file_location` varchar(255) NOT NULL,
   `extra` varchar(255) NOT NULL DEFAULT '[]',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
 
 --
 -- Dumping data for table `cscms_blocks`
 --
 
-INSERT INTO `cscms_blocks` (`id`, `uniqueid`, `name`, `order`, `enabled`, `file_location`, `extra`) VALUES
-(1, 'fs8fh3n', 'Demo Block', 0, '1', '', '{"module":"content", "method":"demoBlock"}'),
-(2, 'fch87w', 'test', 1, '1', 'modules/content/block.test.php', '[]');
+INSERT INTO `cscms_blocks` (`id`, `uniqueid`, `title`, `name`, `location`, `order`, `enabled`, `file_location`, `extra`) VALUES
+(1, 'fs8fdsf', 'Login Block', '', '_CMSBLOCK.LEFT_MENU', 1, '1', '', '{"module":"Module_core", "method":"login_block"}');
 
 -- --------------------------------------------------------
 
@@ -54,7 +55,6 @@ INSERT INTO `cscms_blocks` (`id`, `uniqueid`, `name`, `order`, `enabled`, `file_
 CREATE TABLE IF NOT EXISTS `cscms_blocks_routes` (
   `id` tinyint(11) NOT NULL AUTO_INCREMENT,
   `blockID` int(11) NOT NULL,
-  `route` varchar(255) NOT NULL,
   `location` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `cscms_config` (
   `value` text,
   `default` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=22 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=21 ;
 
 --
 -- Dumping data for table `cscms_config`
@@ -81,16 +81,39 @@ CREATE TABLE IF NOT EXISTS `cscms_config` (
 INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
 (1, 'session', 'cookie_domain', NULL, NULL),
 (2, 'session', 'cookie_path', NULL, NULL),
-(4, 'cms', 'name', 'Cybershade CMS', 'Cybershade CMS'),
-(5, 'site', 'title', 'CSDev', 'Cybershade CMS'),
+(4, 'cms', 'name', 'Cybershade CMS', NULL),
+(5, 'site', 'title', 'CSDev', NULL),
 (6, 'site', 'slogan', 'dev', NULL),
 (7, 'site', 'theme', 'cybershade', NULL),
 (8, 'site', 'language', 'en', NULL),
 (9, 'site', 'keywords', 'dev', NULL),
 (10, 'site', 'description', 'dev', NULL),
 (11, 'site', 'admin_email', 'xlink@cybershade.org', NULL),
-(20, 'site', 'google_analytics', NULL, NULL),
-(21, 'login', 'max_login_tries', '5', '5');
+(20, 'site', 'google_analytics', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_content`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_content` (
+  `id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `content` text NOT NULL,
+  `type` enum('1','2','3') NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
+
+--
+-- Dumping data for table `cscms_content`
+--
+
+INSERT INTO `cscms_content` (`id`, `title`, `content`, `type`) VALUES
+(1, 'Item from Content #1', '<p>Dear God, they''ll be killed on our doorstep! And there''s no trash pickup until January 3rd. It doesn''t look so shiny to me. Guess again. Hey, what kinda party is this? There''s no booze and only one hooker. And why did ''I'' have to take a cab?</p>\r\n<p>If rubbin'' frozen dirt in your crotch is wrong, hey I don''t wanna be right. Ow, my spirit! Please, Don-Bot&hellip; look into your hard drive, and open your mercy file! I was having the most wonderful dream. Except you were there, and you were there, and you were there! Yeah, and if you were the pope they''d be all, "Straighten your pope hat." And "Put on your good vestments." Why yes! Thanks for noticing.</p>\r\n<p>Why yes! Thanks for noticing. No! The kind with looting and maybe starting a few fires! She also liked to shut up! Wow, you got that off the Internet? In my day, the Internet was only used to download pornography. Um, is this the boring, peaceful kind of taking to the streets? You wouldn''t. Ask anyway!</p>\r\n<p>Tell her she looks thin. No. We''re on the top. Michelle, I don''t regret this, but I both rue and lament it.</p>', ''),
+(2, 'Item from Content #2', '<p>All I want is to be a monkey of moderate intelligence who wears a suit&hellip; that''s why I''m transferring to business school! No, I''m Santa Claus! Ask her how her day was. Oh yeah, good luck with that. Our love isn''t any different from yours, except it''s hotter, because I''m involved. I daresay that Fry has discovered the smelliest object in the known universe!</p>\r\n<p>No! Don''t jump! You''re going back for the Countess, aren''t you? And why did ''I'' have to take a cab?</p>\r\n<p>Professor, make a woman out of me. No. We''re on the top. No! Don''t jump! File not found. There''s no part of that sentence I didn''t like! My fellow Earthicans, as I have explained in my book ''Earth in the Balance'''', and the much more popular ''''Harry Potter and the Balance of Earth'', we need to defend our planet against pollution. Also dark wizards.</p>\r\n<p>Dear God, they''ll be killed on our doorstep! And there''s no trash pickup until January 3rd. Michelle, I don''t regret this, but I both rue and lament it. Please, Don-Bot&hellip; look into your hard drive, and open your mercy file! I could if you hadn''t turned on the light and shut off my stereo. Doomsday device? Ah, now the ball''s in Farnsworth''s court!</p>', ''),
+(3, 'Item from Content #1', '<p>Dear God, they''ll be killed on our doorstep! And there''s no trash pickup until January 3rd. It doesn''t look so shiny to me. Guess again. Hey, what kinda party is this? There''s no booze and only one hooker. And why did ''I'' have to take a cab?</p>\r\n<p>If rubbin'' frozen dirt in your crotch is wrong, hey I don''t wanna be right. Ow, my spirit! Please, Don-Bot&hellip; look into your hard drive, and open your mercy file! I was having the most wonderful dream. Except you were there, and you were there, and you were there! Yeah, and if you were the pope they''d be all, "Straighten your pope hat." And "Put on your good vestments." Why yes! Thanks for noticing.</p>\r\n<p>Why yes! Thanks for noticing. No! The kind with looting and maybe starting a few fires! She also liked to shut up! Wow, you got that off the Internet? In my day, the Internet was only used to download pornography. Um, is this the boring, peaceful kind of taking to the streets? You wouldn''t. Ask anyway!</p>\r\n<p>Tell her she looks thin. No. We''re on the top. Michelle, I don''t regret this, but I both rue and lament it.</p>', '1'),
+(4, 'Item from Content #2', '<p>All I want is to be a monkey of moderate intelligence who wears a suit&hellip; that''s why I''m transferring to business school! No, I''m Santa Claus! Ask her how her day was. Oh yeah, good luck with that. Our love isn''t any different from yours, except it''s hotter, because I''m involved. I daresay that Fry has discovered the smelliest object in the known universe!</p>\r\n<p>No! Don''t jump! You''re going back for the Countess, aren''t you? And why did ''I'' have to take a cab?</p>\r\n<p>Professor, make a woman out of me. No. We''re on the top. No! Don''t jump! File not found. There''s no part of that sentence I didn''t like! My fellow Earthicans, as I have explained in my book ''Earth in the Balance'''', and the much more popular ''''Harry Potter and the Balance of Earth'', we need to defend our planet against pollution. Also dark wizards.</p>\r\n<p>Dear God, they''ll be killed on our doorstep! And there''s no trash pickup until January 3rd. Michelle, I don''t regret this, but I both rue and lament it. Please, Don-Bot&hellip; look into your hard drive, and open your mercy file! I could if you hadn''t turned on the light and shut off my stereo. Doomsday device? Ah, now the ball''s in Farnsworth''s court!</p>', '1');
 
 -- --------------------------------------------------------
 
@@ -282,8 +305,6 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
   `useragent` varchar(255) NOT NULL,
   `mode` enum('active','kill','ban','update') NOT NULL DEFAULT 'active',
   `admin` int(1) NOT NULL DEFAULT '0',
-  `login_time` int(11) NOT NULL DEFAULT '0',
-  `login_attempts` int(2) NOT NULL DEFAULT '0',
   `store` longblob,
   PRIMARY KEY (`sid`),
   KEY `timestamp` (`timestamp`)
@@ -334,9 +355,9 @@ CREATE TABLE IF NOT EXISTS `cscms_users` (
 --
 
 INSERT INTO `cscms_users` (`id`, `username`, `password`, `pin`, `register_date`, `last_active`, `usercode`, `email`, `show_email`, `avatar`, `title`, `language`, `timezone`, `theme`, `hidden`, `active`, `userlevel`, `banned`, `primary_group`, `login_attempts`, `pin_attempts`, `autologin`, `reffered_by`, `password_update`, `whitelist`, `whitelisted_ips`, `warnings`) VALUES
-(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
-(2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtws', 'Noeldavies@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
-(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
+(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
+(2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtws', 'Noeldavies@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
+(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -373,27 +394,6 @@ INSERT INTO `cscms_users_extras` (`uid`, `birthday`, `sex`, `contact_info`, `abo
 (1, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1),
 (2, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1),
 (3, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1);
-
-
--- --------------------------------------------------------
-
---
--- Table structure for table `cscms_uploads`
---
-
-CREATE TABLE `cscms_uploads` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `uid` int(11) NOT NULL,
-  `filename` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `file_type` varchar(5) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `timestamp` int(12) NOT NULL,
-  `authorized` enum('1','0') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `location` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `public` enum('1','0') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `file_size` int(12) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
-
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

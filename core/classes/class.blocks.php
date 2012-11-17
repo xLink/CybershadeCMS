@@ -9,7 +9,6 @@ class Blocks extends coreObj{
     private $__cache = array();
 
     public function __construct() {
-
     }
 
     /**
@@ -53,29 +52,6 @@ class Blocks extends coreObj{
 
         return true;
     }
-
-    /**
-     * Load All the blocks
-     *
-     * @version 1.0
-     * @since   1.0
-     * @author  Daniel Noel-Davies
-     */
-    public function loadBlocks( ) {
-        $objSQL = coreObj::getDBO();
-
-        $query = $objSQL->queryBuilder()
-                        ->select('*')
-                        ->from('#__blocks')
-                        ->where('enabled', '=', '1')
-                        ->orderBy('order')
-                        ->build();
-
-        $results = $objSQL->fetchAll( $query );
-        $this->__cache = $results;
-
-        return $results;
-    }   
 
     /**
      * Installs a new block from a module to the system
@@ -157,6 +133,9 @@ class Blocks extends coreObj{
         // If the block exists in the cache, return that.
         if( isset( $this->__cache[$id] ) && !empty( $this->__cache[$id] ) ) {
             return $this->__cache[$id];
+
+        } else {
+            return false;
         }
 
         // Grab a sexy instance of the Database Object
@@ -207,38 +186,62 @@ class Blocks extends coreObj{
      * @since   1.0
      * @author  Daniel Noel-Davies
      *
-     * @param   int  $id       Block ID
+     * @param   mixed  $block       Block ID | Block Array
      *
      * @return  string
      */
-    public function getBlockContents( $id ) {
-        $block = $this->getBlockById( $id );
+    public function getBlockContents( &$block ) {
+        if( is_array( $block ) && isset( $block['id'] ) ) {
+            $block = $block['id'];
+        }
+
+        $block = $this->getBlockById( $block );
 
         // Block didn't exist
         if( $block === false ) {
             return false;
-        } else if( $block ) {
-
         }
     
         // Determine whether this is a dynamic block, or a block from a static file
-        if( isset( $block['file_location'] ) ) {
+        if( !empty( $block['file_location'] ) ) {
 
+            // If the file isn't readable, return false
+            if( !is_readable( $block['file_location'] ) ) {
+                trigger_error( sprintf( 'Block %s (%d) has no readable file attached to it..',
+                    $block['name'],
+                    $block['id']
+                ), E_USER_ERROR );
+                return false;
+            }
+
+            // Include our block file
+            include_once( $block['file_location'] );
+
+            if( !is_callable( 'block_' . $block['name'] ) ) {
+                trigger_error( sprintf( 'Block %s (%d) has no callable function to execute within it..',
+                    $block['name'],
+                    $block['id']
+                ), E_USER_ERROR );
+                return false;
+            }
+
+            $funcName = 'block_' . $block['name'];
+            $return   = call_user_func( $funcName, $block );
+
+        } else if( is_array( $block['extra'] ) &&  isset( $block['extra']['method'] ) && isset( $block['extra']['module'] ) ) {
+            $args   = array_merge( array('block' => $block ), ( $block['extra']['args'] ?: array() ) );
+            $return = reflectMethod( $block['extra']['module'], $block['extra']['method'], $args );
+
+        } else {
+            echo dump($block);
+            trigger_error( 'Could not find block contents for block ID ' . $block['id'], E_USER_ERROR );
+            return false;
         }
-    }
 
-    /**
-     * Loads a block into an instance
-     *
-     * @version 1.0
-     * @since   1.0
-     * @author  Daniel Noel-Davies
-     *
-     * @param   array  $block       Block array from the db
-     *
-     */
-    public function loadBlock( $data ) {
-        //return new Block( $data );
+        // Tidy up
+        unset( $block, $extra, $funcName );
+
+        return $return;
     }
 
     /**
@@ -252,19 +255,74 @@ class Blocks extends coreObj{
     public function insertBlocks( ) {
         $objTPL = coreObj::getTPL();
 
+        if( empty( $this->__cache ) ) {
+            $objCache = coreObj::getCache();
+            $this->__cache = $objCache->load('blocks');
+        }
+
         // Loop through the blocks and insert them into the db
         foreach( $this->__cache as $block ) {
 
             $x = explode( '.', $block['location'] );
             $contentVar = array_splice($x, 1);
-            foreach( $x as $tplblock ) {
-                $objTPL->assign_block_vars( $tplBlock, array());
-            }
 
-            $objTPL->assign_block_vars($x, array(
-                $contentVar => 'x'
-            ));
+            foreach( $x as $tplblock ) {
+                $objTPL->assign_block_vars($x[0], array(
+                    $contentVar[0] => $this->getBlockContents( $block )
+                ));
+            }
         }
     }
+
+        /**
+     * Generates the cache for the routing system, used as a callback in the caching class
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     *
+     * @todo        Use 2 Queries, One to select non-structure url's (without :'s)
+     *                  and one with structure'd url's. The first should be listed
+     *                  before the second, to allow for successful processing and
+     *                  precedence.
+     *
+     * @return      array
+     */
+    public static function generate_cache(){
+        $output = array();
+        $objSQL = coreObj::getDBO();
+
+        $query = $objSQL->queryBuilder()
+                        ->select('id', 'uniqueid', 'title', 'name', 'location', 'order', 'enabled', 'file_location', 'extra')
+                        ->from('#__blocks')
+                        ->orderBy('location', 'order')
+                        ->build();
+
+        $results = $objSQL->fetchAll( $query );
+
+        foreach( $results as $result ) {
+
+            $extra = json_decode( $result['extra'], true);
+            if( $extra === null ){
+                $extra = array();
+            }
+
+
+            // FIX ME
+            $output[$result['id']] = array(
+                'id'            => $result['id'],
+                'uniqueid'      => $result['uniqueid'],
+                'title'         => $result['title'],
+                'name'          => $result['name'],
+                'location'      => $result['location'],
+                'order'         => $result['order'],
+                'enabled'       => $result['enabled'],
+                'file_location' => $result['file_location'],
+                'extra'         => $extra,
+            );
+        }
+        return $output;
+    }
+
 }
 ?>
