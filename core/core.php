@@ -30,15 +30,13 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             function dump(){} function getExecInfo(){} function memoryUsage(){}
         }else{ require_once($file); }
 
-    (cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
-
     if(cmsDEBUG && false){
         require_once(cmsROOT.'core/php_error.php');
         \php_error\reportErrors(array(
-          'snippet_num_lines'   => 20,
-          'error_reporting_off' => 0,
-          'error_reporting_on'  => E_ALL | E_STRICT,
-          'background_text'     => 'Cybershade CMS',
+            'snippet_num_lines'   => 20,
+            'error_reporting_off' => 0,
+            'error_reporting_on'  => E_ALL | E_STRICT,
+            'background_text'     => 'Cybershade CMS',
         ));
     (cmsDEBUG ? memoryUsage('Core: loaded debug funcs') : '');
     }
@@ -129,6 +127,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     $objSession = coreObj::getSession();
     $objPlugin  = coreObj::getPlugins();
     $objDebug   = coreObj::getDebug();
+    $objRoute   = coreObj::getRoute()->modifyGET();
 
         if( is_object($objDebug) ){
             set_error_handler(array($objDebug, 'errorHandler'));

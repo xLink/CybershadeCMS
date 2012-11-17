@@ -613,7 +613,8 @@ class Page extends coreObj{
 
         //check to see weather headers have already been sent, this prevents us from using the header() function
         if( !headers_sent() && $time === 0 ) {
-            header( 'Location: '.$url ); exit;
+            header( 'Location: '.$url );
+            return;
 
         } else { //headers have already been sent, so use a JS and even META equivalent
             $output = null;

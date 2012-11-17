@@ -331,7 +331,7 @@ class User extends coreObj {
      *
      * @param   string   $setting   The key name of the setting ('all' if all is required)
      * @param   int      $uid       The User id to get the settings for
-     * 
+     *
      * @return  array
      */
     public function getAjaxSetting( $setting, $uid = null ){
@@ -425,11 +425,11 @@ class User extends coreObj {
 
             // Check if the keys belong to users_extras table or users_extras table
             if( in_array( $key, $userColumnData ) ){
-                $userData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+                $userData[$key] = $settings[$key];
             }
 
             if( in_array( $key, $userExtraColumnData ) ){
-                $userExtraData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+                $userExtraData[$key] = $settings[$key];
             }
         }
 
@@ -438,7 +438,7 @@ class User extends coreObj {
         if( !is_empty( $userData ) ){
 
             $insert = $objSQL->queryBuilder()
-                                ->update( array('u' => '#__users') )
+                                ->update( '#__users' )
                                 ->set( $userData )
                                 ->where( 'id', '=', $uid )
                                 ->build();

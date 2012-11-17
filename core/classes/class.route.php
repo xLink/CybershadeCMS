@@ -240,7 +240,7 @@ class Route extends coreObj{
         // If the route matches the URL, we've got a winner!
         (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
         if( preg_match( '#^' . $pattern . '$#', $url, $matches ) ) {
-
+            (cmsDEBUG ? memoryUsage('Routes: Test Pattern') : '');
             // Remove the URL from the paramaters
             unset( $matches[0] );
             $matches = array_values( $matches );

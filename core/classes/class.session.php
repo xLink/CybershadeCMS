@@ -30,19 +30,28 @@ class Session extends coreObj{
 
         $check = $this->checkValidSession();
         if( $check === false ){
+            echo dump($a, 'Sessions: User dosent have a valid session... ');
             (cmsDEBUG ? memoryUsage('Sessions: User dosent have a valid session... ') : '');
+
+            if( isset($_SESSION)){
+                $objSQL = coreObj::getDBO();
+
+                $query = $objSQL->queryBuilder()
+                                ->deleteFrom('#__sessions')
+                                ->where('sid', '=', md5( session_id() ) )
+                                ->build();
+
+                $objSQL->query( $query );
+            }
 
             session_regenerate_id( true );
 
-            $_SESSION = array();
-            $_SESSION['session_start'] = time();
+            /*$_SESSION = array();*/
+            $_SESSION['session_start']   = time();
             $_SESSION['user']['userkey'] = md5( session_id() );
 
             $this->newSession();
         }
-
-        $_SESSION['page_load']       = time();
-
 
         $this->session_gc();
     }

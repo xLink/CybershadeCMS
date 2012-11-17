@@ -77,20 +77,22 @@ class Module_core extends Module{
     }
 
     public function login_process(){
-        $objUser    = coreObj::getUser();
-        $objLogin   = coreObj::getLogin();
-        $errors     = array();
+        $objUser  = coreObj::getUser();
+        $objLogin = coreObj::getLogin();
+        $objPage  = coreObj::getPage();
 
         if( $objLogin->process() !== true ){
             $this->login_form();
             return;
         }
 
-
+        $objPage->redirect(doArgs('referer', '/'.root(), $_SESSION['login']), 0);
     }
 
     public function logout(){
-        coreObj::getLogin()->logout($_GET['check']);
+        $objLogin = coreObj::getLogin();
+
+        $objLogin->logout($_GET['check']);
     }
 }
 ?>
