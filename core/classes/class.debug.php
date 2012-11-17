@@ -187,7 +187,7 @@ class Debug extends coreObj{
             $output .= sprintf('<th>%s</th>', 'Memory <br />'.formatBytes(memory_get_usage()));
         $output .= '</thead><tbody><tr>';
 
-        $header = null; $memory = 0;
+        $header = null; $memory = 0; $oldTime = 0;
         foreach($debug as $row){
             $info = explode(':', $row['info'], 2);
             if($info[0] == 'OUTPUT!'){ continue; }
@@ -199,12 +199,15 @@ class Debug extends coreObj{
             $mem = ($row['memory_exec'] - $memory);
             $output .= '</tr><tr>';
 
-            $output .= sprintf('<td width="10%%">%s</td>',          $row['time_exec']);
+            $timeDiff = ($row['time_exec']-$oldTime);
+            $output .= sprintf('<td width="10%%">%s</td>',          $row['time_exec'].' <br />('.
+                                                                        (substr($timeDiff, 0, 1) == '-' ? '-'.$timeDiff : '+'.$timeDiff).')');
             $output .= sprintf('<td width="20%%">%s <br />%s</td>', $row['file_exec'], $row['start_exec'] .' - '.$row['end_exec']);
             $output .= sprintf('<td width="">%s</td>',              $info[1]);
             $output .= sprintf('<td width="15%%">%s</td>',          (substr($mem, 0, 1) == '-') ? '-' . formatBytes( -$mem ).'<br />Cleared' : formatBytes( $mem ).'<br />Used' );
 
             $memory = $row['memory_exec'];
+            $oldTime = $row['time_exec'];
         }
 
         $output .= '</tr></tbody></table>';
