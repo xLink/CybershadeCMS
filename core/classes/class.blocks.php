@@ -263,6 +263,10 @@ class Blocks extends coreObj{
         // Loop through the blocks and insert them into the db
         foreach( $this->__cache as $block ) {
 
+            if( !isset( $block['enabled'] ) || $block['enabled'] == '0' ) {
+                return false;
+            }
+
             $x = explode( '.', $block['location'] );
             $contentVar = array_splice($x, 1);
 
