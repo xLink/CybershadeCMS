@@ -203,4 +203,10 @@ class Module extends coreObj{
     }
 }
 
+interface baseDetails{
+    public function details();
+    public function getBlocks();
+    public function install();
+    public function uninstall();
+}
 ?>

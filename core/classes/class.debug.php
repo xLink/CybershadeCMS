@@ -373,6 +373,12 @@ class Debug extends coreObj{
         $content .= dump($perms, 'Global User Perms for '.$objUser->grab('username'));
 
         $config = $this->config();
+
+        // wipe it out on the dev page, dont mind the debug showing but no need to output our db stuff :P
+        if($_SERVER['HTTP_HOST'] == 'dev.cybershade.org'){
+            unset($config['db']);
+        }
+
         $content .= dump($config, 'config');
 
         return array('count' => $count, 'content' => $content );

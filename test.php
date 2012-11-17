@@ -14,7 +14,7 @@ $objPage->setTitle('Test');
 $objPage->buildPage();
 $objPage->showHeader();
 
-$a = $objCore->config('login', 'max_login_tries');
+$a = array('password' => 'test');
 echo dump($a);
 
 $objPage->showFooter();
