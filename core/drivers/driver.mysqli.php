@@ -152,12 +152,22 @@ class driver_mysqli extends coreSQL implements baseSQL{
         return $this->results;
     }
 
-    public function results($key){
+    /**
+     * Get results from latest query
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   mixed  $key     Index key for the results
+     *
+     */
+    public function results( $key = '' ){
         if($this->results === false){ return false; }
 
         $results = array();
-        while ($row = $this->results->fetch_array(MYSQLI_ASSOC)){
-            if(!is_empty($key) && array_key_exists($key, $row)){
+        while( $row = $this->results->fetch_array( MYSQLI_ASSOC ) ) {
+            if( !is_empty($key) && array_key_exists($key, $row)){
                 $results[$row[$key]] = $row;
             }else{
                 $results[] = $row;
