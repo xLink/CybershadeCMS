@@ -10,7 +10,7 @@ class Details_core extends Module implements baseDetails{
         return array(
             'version'              => '',
             'since'                => '',
-            'min_version_required' => '1.0.0'
+            'min_version_required' => '1.0.0',
 
             'author'               => 'xLink',
             'homepage_url'         => 'http://cybershade.org',
