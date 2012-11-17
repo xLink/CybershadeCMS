@@ -1234,7 +1234,7 @@ function bbcode_quote($bbcode, $action, $name, $default, $params, $content) {
  *
  * @return  mixed
  */
-function reflectMethod( $class, $method, $parameters) {
+function reflectMethod( $class, $method, $parameters = array()) {
   // Check the class and subsequent method are callable, else trigger an error
     if ( !is_callable( array( $class, $method ) ) ) {
         trigger_error( 'The class or method you are trying to call, dosen\'t exist.' );
@@ -1276,6 +1276,7 @@ function reflectMethod( $class, $method, $parameters) {
 
     } catch( Exception $e ) {
         trigger_error( $e->getMessage() );
+        return false;
     }
 }
 
