@@ -106,9 +106,7 @@ class Page extends coreObj{
      */
     public function buildBlocks()
     {
-        $objTPL = coreObj::getTPL();
         $objBlocks = coreObj::getBlocks();
-
         $objBlocks->insertBlocks();
     }
 
@@ -820,7 +818,6 @@ class Page extends coreObj{
             ));
 
         }
-
 
         $objTPL->parse('siteFooter');
     }
