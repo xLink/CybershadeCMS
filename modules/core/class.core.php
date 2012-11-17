@@ -130,7 +130,7 @@ class Module_core extends Module{
 
         $objTPL->assign_block_vars('login', $form);
 
-        $objTPL->assign_vars(array( 'TITLE' => $block['name'] ));
+        $objTPL->assign_vars(array( 'TITLE' => $block['title'] ));
 
         if( isset($_SESSION['login']['errors']) && count($_SESSION['login']['errors']) ){
             foreach($_SESSION['login']['errors'] as $error){
