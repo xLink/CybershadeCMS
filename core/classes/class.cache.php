@@ -245,6 +245,10 @@ class Cache extends coreObj{
                 $return = coreObj::getRoute()->generate_cache();
             break;
 
+            case 'blocks':
+                $return = coreObj::getBlocks()->generate_cache();
+            break;
+
             case 'statistics':
                 $return = $this->generate_stats_cache();
             break;
