@@ -136,10 +136,12 @@ class Session extends coreObj{
      */
     public function newSession(){
         $objSQL  = coreObj::getDBO();
+        $objUser = coreObj::getUser();
 
         //$this->regenSessionID();
 
         $insert = array();
+        $insert['uid']       = ( User::$IS_ONLINE ? $objUser->grab('id') : 0);
         $insert['sid']       = md5( session_id() );
         $insert['hostname']  = $objSQL->escape( User::getIP() );
         $insert['store']     = $objSQL->escape( serialize( $_SESSION ) );

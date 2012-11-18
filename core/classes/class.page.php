@@ -104,8 +104,7 @@ class Page extends coreObj{
      * @author  Dan Aldridge
      *
      */
-    public function buildBlocks()
-    {
+    public function buildBlocks(){
         $objBlocks = coreObj::getBlocks();
         $objBlocks->insertBlocks();
     }
