@@ -13,8 +13,9 @@ class Module_core extends Module{
     }
 
     public function viewIndex(){
-        echo dump($a, 'original');
         $this->setView('viewIndex/default.tpl');
+
+
     }
 
     public function login_form(){
@@ -75,7 +76,7 @@ class Module_core extends Module{
         }
 
     }
-    
+
     public function login_block( $block ){
         $objTPL     = coreObj::getTPL();
         $objForm    = coreObj::getForm();
