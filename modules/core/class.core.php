@@ -18,6 +18,13 @@ class Module_core extends Module{
 
     }
 
+
+/**
+  //
+  //-- Login Stuff
+  //
+**/
+
     public function login_form(){
         $objTPL     = coreObj::getTPL();
         $objForm    = coreObj::getForm();
