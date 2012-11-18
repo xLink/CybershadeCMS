@@ -19,9 +19,9 @@ class Details_cybershade implements baseDetails{
             'repo_url'             => 'http://github.com/cybershade/cscms/',
         );
     }
-
     public function getBlocks(){
         return array(
+
 
         );
     }

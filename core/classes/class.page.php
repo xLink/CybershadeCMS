@@ -160,29 +160,38 @@ class Page extends coreObj{
      *
      * @return  bool
      */
-    public function setTheme($theme=null){
+    public function setTheme( $theme=null, $override=false ){
         $objUser = coreObj::getUser();
 
+        // if nothing was passed in, grab the current site theme
         if(is_empty($theme)){
             $theme = $this->config('site', 'theme');
         }
+        $override = ($this->config('site', 'theme_override', 'false') === 'true' || $override !== true);
 
-        if( User::$IS_ONLINE && $objUser->grab('theme') && is_dir(cmsROOT.'themes/'.$objUser->grab('theme').'/')){
+        // if the user is online, then check if the theme they selected is valid & gogo use that
+        if( $override === true 
+                && User::$IS_ONLINE 
+                && $objUser->grab('theme') !== null 
+                && is_dir(cmsROOT.'themes/'.$objUser->grab('theme').'/') ){
+
             $theme = $objUser->grab('theme');
         }
 
-        if($this->config('site', 'theme_override', false)){
+        // test for the theme override switch, if this is true, everyone see's the same theme
+        if( is_empty($theme) || $override ){
             $theme = $this->config('site', 'theme');
             if(!is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php')){
                 $theme = 'default';
             }
         }
 
-        //check see if the theme dir is present & readable
+        // check see if the theme dir is present & readable
         if( !is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php') ){
             return false;
         }
 
+        // check if there is a language file for this theme & load it
         $langFile = cmsROOT.'themes/'.$theme.'/languages/'.$this->config('global', 'language').'/main.php';
             if( is_file($langFile) && is_readable($langFile) ){
                 translateFile($langFile);
@@ -206,6 +215,10 @@ class Page extends coreObj{
      * @return  bool
      */
     public function setLanguage(){
+
+        // Grab our instances..
+        $objUser = coreObj::getUser();
+
         //grab the default language info, and test to see if user has a request
         $language = $this->config('site', 'language');
         $langDir  = cmsROOT.'languages/';

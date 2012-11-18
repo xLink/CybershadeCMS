@@ -13,7 +13,7 @@ class Details_cybershade implements baseDetails{
             'min_version_required' => '1.0',
 
             'name'                 => 'cybershade',
-            'mode'                 => 'admin',
+            'mode'                 => 'user',
             'author'               => 'xLink',
             'homepage_url'         => 'http://cybershade.org',
             'repo_url'             => 'http://github.com/cybershade/cscms/',

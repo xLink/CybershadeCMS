@@ -261,8 +261,6 @@ class coreObj {
         // make sure we have something before trying to throw it out
         if( !in_array($array, array_keys($config)) ){
             $a = func_get_args();
-            echo dump($a);
-            echo dump($config);
             return false;
         }
 

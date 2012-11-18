@@ -29,15 +29,13 @@ if(!in_array($mode, $checkMode)){
 }
 
 
-$objPage->setTheme('perfectum');
+$objPage->setTheme('perfectum', true);
 $objPage->addBreadcrumbs(array(
     array('url' => '/'.root().$mode.'/', 'name' => ucwords($mode).' Control Panel')
 ));
 
 
 $objPage->setTitle('Test');
-
-$objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
 $objPage->buildPage();
 $objPage->showHeader();
