@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 3.4.5
+-- version 3.5.1
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Nov 17, 2012 at 09:45 PM
--- Server version: 5.5.16
--- PHP Version: 5.3.8
+-- Generation Time: Nov 18, 2012 at 09:22 PM
+-- Server version: 5.5.24-log
+-- PHP Version: 5.3.13
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `cscms_config` (
   `value` text,
   `default` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=21 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=23 ;
 
 --
 -- Dumping data for table `cscms_config`
@@ -81,39 +81,17 @@ CREATE TABLE IF NOT EXISTS `cscms_config` (
 INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
 (1, 'session', 'cookie_domain', NULL, NULL),
 (2, 'session', 'cookie_path', NULL, NULL),
-(4, 'cms', 'name', 'Cybershade CMS', NULL),
-(5, 'site', 'title', 'CSDev', NULL),
+(4, 'cms', 'name', 'Cybershade CMS', 'Cybershade CMS'),
+(5, 'site', 'title', 'CSDev', 'Cybershade CMS'),
 (6, 'site', 'slogan', 'dev', NULL),
 (7, 'site', 'theme', 'cybershade', NULL),
 (8, 'site', 'language', 'en', NULL),
 (9, 'site', 'keywords', 'dev', NULL),
 (10, 'site', 'description', 'dev', NULL),
 (11, 'site', 'admin_email', 'xlink@cybershade.org', NULL),
-(20, 'site', 'google_analytics', NULL, NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `cscms_content`
---
-
-CREATE TABLE IF NOT EXISTS `cscms_content` (
-  `id` tinyint(4) NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) NOT NULL,
-  `content` text NOT NULL,
-  `type` enum('1','2','3') NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
-
---
--- Dumping data for table `cscms_content`
---
-
-INSERT INTO `cscms_content` (`id`, `title`, `content`, `type`) VALUES
-(1, 'Item from Content #1', '<p>Dear God, they''ll be killed on our doorstep! And there''s no trash pickup until January 3rd. It doesn''t look so shiny to me. Guess again. Hey, what kinda party is this? There''s no booze and only one hooker. And why did ''I'' have to take a cab?</p>\r\n<p>If rubbin'' frozen dirt in your crotch is wrong, hey I don''t wanna be right. Ow, my spirit! Please, Don-Bot&hellip; look into your hard drive, and open your mercy file! I was having the most wonderful dream. Except you were there, and you were there, and you were there! Yeah, and if you were the pope they''d be all, "Straighten your pope hat." And "Put on your good vestments." Why yes! Thanks for noticing.</p>\r\n<p>Why yes! Thanks for noticing. No! The kind with looting and maybe starting a few fires! She also liked to shut up! Wow, you got that off the Internet? In my day, the Internet was only used to download pornography. Um, is this the boring, peaceful kind of taking to the streets? You wouldn''t. Ask anyway!</p>\r\n<p>Tell her she looks thin. No. We''re on the top. Michelle, I don''t regret this, but I both rue and lament it.</p>', ''),
-(2, 'Item from Content #2', '<p>All I want is to be a monkey of moderate intelligence who wears a suit&hellip; that''s why I''m transferring to business school! No, I''m Santa Claus! Ask her how her day was. Oh yeah, good luck with that. Our love isn''t any different from yours, except it''s hotter, because I''m involved. I daresay that Fry has discovered the smelliest object in the known universe!</p>\r\n<p>No! Don''t jump! You''re going back for the Countess, aren''t you? And why did ''I'' have to take a cab?</p>\r\n<p>Professor, make a woman out of me. No. We''re on the top. No! Don''t jump! File not found. There''s no part of that sentence I didn''t like! My fellow Earthicans, as I have explained in my book ''Earth in the Balance'''', and the much more popular ''''Harry Potter and the Balance of Earth'', we need to defend our planet against pollution. Also dark wizards.</p>\r\n<p>Dear God, they''ll be killed on our doorstep! And there''s no trash pickup until January 3rd. Michelle, I don''t regret this, but I both rue and lament it. Please, Don-Bot&hellip; look into your hard drive, and open your mercy file! I could if you hadn''t turned on the light and shut off my stereo. Doomsday device? Ah, now the ball''s in Farnsworth''s court!</p>', ''),
-(3, 'Item from Content #1', '<p>Dear God, they''ll be killed on our doorstep! And there''s no trash pickup until January 3rd. It doesn''t look so shiny to me. Guess again. Hey, what kinda party is this? There''s no booze and only one hooker. And why did ''I'' have to take a cab?</p>\r\n<p>If rubbin'' frozen dirt in your crotch is wrong, hey I don''t wanna be right. Ow, my spirit! Please, Don-Bot&hellip; look into your hard drive, and open your mercy file! I was having the most wonderful dream. Except you were there, and you were there, and you were there! Yeah, and if you were the pope they''d be all, "Straighten your pope hat." And "Put on your good vestments." Why yes! Thanks for noticing.</p>\r\n<p>Why yes! Thanks for noticing. No! The kind with looting and maybe starting a few fires! She also liked to shut up! Wow, you got that off the Internet? In my day, the Internet was only used to download pornography. Um, is this the boring, peaceful kind of taking to the streets? You wouldn''t. Ask anyway!</p>\r\n<p>Tell her she looks thin. No. We''re on the top. Michelle, I don''t regret this, but I both rue and lament it.</p>', '1'),
-(4, 'Item from Content #2', '<p>All I want is to be a monkey of moderate intelligence who wears a suit&hellip; that''s why I''m transferring to business school! No, I''m Santa Claus! Ask her how her day was. Oh yeah, good luck with that. Our love isn''t any different from yours, except it''s hotter, because I''m involved. I daresay that Fry has discovered the smelliest object in the known universe!</p>\r\n<p>No! Don''t jump! You''re going back for the Countess, aren''t you? And why did ''I'' have to take a cab?</p>\r\n<p>Professor, make a woman out of me. No. We''re on the top. No! Don''t jump! File not found. There''s no part of that sentence I didn''t like! My fellow Earthicans, as I have explained in my book ''Earth in the Balance'''', and the much more popular ''''Harry Potter and the Balance of Earth'', we need to defend our planet against pollution. Also dark wizards.</p>\r\n<p>Dear God, they''ll be killed on our doorstep! And there''s no trash pickup until January 3rd. Michelle, I don''t regret this, but I both rue and lament it. Please, Don-Bot&hellip; look into your hard drive, and open your mercy file! I could if you hadn''t turned on the light and shut off my stereo. Doomsday device? Ah, now the ball''s in Farnsworth''s court!</p>', '1');
+(20, 'site', 'google_analytics', NULL, NULL),
+(21, 'login', 'max_login_tries', '5', '5'),
+(22, 'login', 'remember_me', '1', '1');
 
 -- --------------------------------------------------------
 
@@ -305,10 +283,49 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
   `useragent` varchar(255) NOT NULL,
   `mode` enum('active','kill','ban','update') NOT NULL DEFAULT 'active',
   `admin` int(1) NOT NULL DEFAULT '0',
+  `login_time` int(11) NOT NULL DEFAULT '0',
+  `login_attempts` int(2) NOT NULL DEFAULT '0',
   `store` longblob,
   PRIMARY KEY (`sid`),
   KEY `timestamp` (`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `cscms_sessions`
+--
+
+INSERT INTO `cscms_sessions` (`uid`, `sid`, `hostname`, `timestamp`, `useragent`, `mode`, `admin`, `login_time`, `login_attempts`, `store`) VALUES
+(0, '3fc254266556ab8c949e7b061cbda86e', '127.0.0.1', 1353273377, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:16.0) Gecko/20100101 Firefox/16.0', 'active', 0, 0, 0, 0x613a333a7b733a31333a2273657373696f6e5f7374617274223b693a313335333237333337373b733a343a2275736572223b613a34363a7b733a373a22757365726b6579223b733a33323a223366633235343236363535366162386339343965376230363163626461383665223b733a393a2274696d657374616d70223b693a313335333237363937373b733a323a226964223b733a313a2231223b733a383a22757365726e616d65223b733a353a22784c696e6b223b733a383a2270617373776f7264223b733a33343a222a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a223b733a333a2270696e223b733a303a22223b733a31333a2272656769737465725f64617465223b733a31303a2231333339363736373935223b733a31313a226c6173745f616374697665223b693a313335333235363532333b733a383a2275736572636f6465223b733a363a22673664747774223b733a353a22656d61696c223b733a32303a22786c696e6b40637962657273686164652e6f7267223b733a31303a2273686f775f656d61696c223b733a313a2230223b733a363a22617661746172223b4e3b733a353a227469746c65223b4e3b733a383a226c616e6775616765223b733a323a22656e223b733a383a2274696d657a6f6e65223b733a333a22302e30223b733a353a227468656d65223b733a373a2264656661756c74223b733a363a2268696464656e223b733a313a2230223b733a363a22616374697665223b733a313a2231223b733a393a22757365726c6576656c223b733a313a2233223b733a363a2262616e6e6564223b733a313a2230223b733a31333a227072696d6172795f67726f7570223b733a313a2230223b733a31343a226c6f67696e5f617474656d707473223b733a313a2233223b733a31323a2270696e5f617474656d707473223b733a313a2230223b733a393a226175746f6c6f67696e223b733a313a2230223b733a31313a2272656666657265645f6279223b733a313a2230223b733a31353a2270617373776f72645f757064617465223b733a313a2230223b733a393a2277686974656c697374223b733a313a2230223b733a31353a2277686974656c69737465645f697073223b4e3b733a383a227761726e696e6773223b733a313a2230223b733a333a22756964223b733a313a2231223b733a383a226269727468646179223b733a31303a2230302f30302f30303030223b733a333a22736578223b733a313a2230223b733a31323a22636f6e746163745f696e666f223b4e3b733a353a2261626f7574223b4e3b733a393a22696e74657265737473223b4e3b733a393a227369676e6174757265223b4e3b733a393a22757365726e6f746573223b733a303a22223b733a31333a22616a61785f73657474696e6773223b4e3b733a32313a226e6f74696669636174696f6e5f73657474696e6773223b4e3b733a31353a22666f72756d5f73686f775f73696773223b733a313a2230223b733a31353a22666f72756d5f6175746f7761746368223b733a313a2230223b733a31363a22666f72756d5f717569636b7265706c79223b733a313a2230223b733a31353a22666f72756d5f6361745f6f72646572223b4e3b733a31333a22666f72756d5f747261636b6572223b733a3130363a22613a313a7b693a313b613a343a7b733a323a226964223b733a313a2231223b733a363a226361745f6964223b733a313a2232223b733a31313a226c6173745f706f73746572223b733a31303a2231333339363736373935223b733a343a2272656164223b623a303b7d7d223b733a31363a22706167696e6174696f6e5f7374796c65223b733a313a2231223b733a31383a2270617373776f72645f706c61696e74657874223b733a343a2274657374223b7d733a353a22746f6b656e223b733a33323a223735646663356630373561313061663631393766366166353536393732363164223b7d),
+(0, '4367c1abf5edfa38c70b4787b204d323', '86.23.121.54', 1353268686, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:16.0) Gecko/20100101 Firefox/16.0', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313335333236383638363b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a223433363763316162663565646661333863373062343738376232303464333233223b7d7d),
+(0, 'b38956a1b5b366c6034eda251b19d564', '86.26.136.143', 1353273715, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11', 'active', 0, 0, 1, 0x613a343a7b733a31333a2273657373696f6e5f7374617274223b693a313335333237333432383b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226233383935366131623562333636633630333465646132353162313964353634223b733a393a2274696d657374616d70223b693a313335333132303739363b7d733a393a22706167655f6c6f6164223b693a313335333130363039383b733a353a22746f6b656e223b733a33323a223132396536343734373939303032386265303736656130643330323038333536223b7d),
+(0, 'c9c2b943792d361ed47a8d283d3b355b', '127.0.0.1', 1353273547, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:16.0) Gecko/20100101 Firefox/16.0', 'active', 0, 0, 8, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313335333237333430303b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a226339633262393433373932643336316564343761386432383364336233353562223b7d7d);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_userkeys`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_userkeys` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uData` varchar(11) NOT NULL DEFAULT '0',
+  `uAgent` text NOT NULL,
+  `uIP` varchar(15) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=8 ;
+
+--
+-- Dumping data for table `cscms_userkeys`
+--
+
+INSERT INTO `cscms_userkeys` (`id`, `uData`, `uAgent`, `uIP`) VALUES
+(1, '00429:1', 'a08aaaebc93b57e69beb7ce74f6c6d86', '127.0.0.1'),
+(2, 'c49c3:1', 'a08aaaebc93b57e69beb7ce74f6c6d86', '127.0.0.1'),
+(3, '2bd67:1', 'a08aaaebc93b57e69beb7ce74f6c6d86', '127.0.0.1'),
+(4, '28297:1', 'a08aaaebc93b57e69beb7ce74f6c6d86', '127.0.0.1'),
+(5, 'e9122:1', 'a08aaaebc93b57e69beb7ce74f6c6d86', '127.0.0.1'),
+(6, 'da853:1', 'a08aaaebc93b57e69beb7ce74f6c6d86', '127.0.0.1'),
+(7, 'c9254:1', 'a08aaaebc93b57e69beb7ce74f6c6d86', '127.0.0.1');
 
 -- --------------------------------------------------------
 
@@ -355,9 +372,9 @@ CREATE TABLE IF NOT EXISTS `cscms_users` (
 --
 
 INSERT INTO `cscms_users` (`id`, `username`, `password`, `pin`, `register_date`, `last_active`, `usercode`, `email`, `show_email`, `avatar`, `title`, `language`, `timezone`, `theme`, `hidden`, `active`, `userlevel`, `banned`, `primary_group`, `login_attempts`, `pin_attempts`, `autologin`, `reffered_by`, `password_update`, `whitelist`, `whitelisted_ips`, `warnings`) VALUES
-(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
-(2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtws', 'Noeldavies@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
-(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', 0.0, 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
+(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 3, 0, 0, 0, 0, 0, NULL, 0),
+(2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtws', 'Noeldavies@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
+(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -391,7 +408,7 @@ CREATE TABLE IF NOT EXISTS `cscms_users_extras` (
 --
 
 INSERT INTO `cscms_users_extras` (`uid`, `birthday`, `sex`, `contact_info`, `about`, `interests`, `signature`, `usernotes`, `ajax_settings`, `notification_settings`, `forum_show_sigs`, `forum_autowatch`, `forum_quickreply`, `forum_cat_order`, `forum_tracker`, `pagination_style`) VALUES
-(1, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1),
+(1, '21/12/1990', 1, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1),
 (2, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1),
 (3, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1);
 

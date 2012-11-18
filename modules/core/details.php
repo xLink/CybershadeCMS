@@ -14,7 +14,7 @@ class Details_core extends Module implements baseDetails{
 
             'author'               => 'xLink',
             'homepage_url'         => 'http://cybershade.org',
-            'repo_url'             => 'http://github.com/cybershade/cscms/'
+            'repo_url'             => 'http://github.com/cybershade/cscms/',
         );
     }
 
