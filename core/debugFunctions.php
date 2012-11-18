@@ -129,7 +129,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
                 $color = '#00c19f';
             }
 
-            $keyNames = array('[\'password\']', '[\'pin\']');
+            $keyNames = array('["password"]', '["pin"]');
             $avar = in_array($var_name, $keyNames) ? str_pad('', (strlen($avar)), '*') : $avar;
 
             if (is_array($avar)) {
