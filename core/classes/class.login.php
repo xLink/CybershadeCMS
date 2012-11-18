@@ -122,8 +122,8 @@ class Login extends coreObj {
         $_SESSION['user'] = (is_array($_SESSION['user']) && !is_empty($_SESSION['user']) ? array_merge($_SESSION['user'], $user) : $user);
 
         //make sure we want em to be able to auto login first
-        if($this->config('login', 'remember_me')){
-            if(doArgs('remember', false, $_POST) === '1'){
+        if( $this->config('login', 'remember_me') ){
+            if( doArgs('remember', false, $_POST) === '1' ){
                 $objUser->update( $this->userData['id'], array('autologin' => '1') );
 
                 $cookieArray = array(
