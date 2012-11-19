@@ -1,0 +1,6 @@
+window.addEvent('domready', function(){
+
+
+
+
+});

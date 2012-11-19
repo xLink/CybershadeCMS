@@ -217,7 +217,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         }
 
         $title         = ( $info !== null                                          ? '<strong>['.$info.']</strong> <br />'          : null );
-        $args          = ( isset( $file['args'] ) && !is_empty( $file['args'] )    ? htmlentities( json_encode( $file['args'] ) )   : null );
+        $args          = ( isset( $file['args'] ) && !is_empty( $file['args'] )    ? '<pre>'.dump($file['args'], true).'</pre>'   : null );
         $line          = ( isset( $file['line'] )                                  ? $file['line']                                  : '<i>Line Number Unknown</i>' );
         $function      = ( isset( $file['function'] )                              ? $file['function']                              : '<i>Function Name Unknown</i>' );
         $filename      = ( isset($filename) && isset( $filenameIndex, $filename )  ? $filename[$filenameIndex]                      : '<i>Filename Unknown</i>' );

@@ -13,11 +13,12 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class coreObj {
 
-    public static   $classDirs    = array(),
-                    $_classes     = array(),
-                    $_instances   = array(),
-                    $_config      = array(),
-                    $loadedConfig = false;
+    public static   $classDirs      = array(),
+                    $_classes       = array(),
+                    $_instances     = array(),
+                    $_config        = array(),
+                    $_lang          = array(),
+                    $loadedConfig   = false;
 
 
     /**
@@ -259,6 +260,9 @@ class coreObj {
 
         // make sure we have something before trying to throw it out
         if( !in_array($array, array_keys($config)) ){
+            $a = func_get_args();
+            echo dump($a);
+            echo dump($config);
             return false;
         }
 
@@ -348,7 +352,6 @@ class coreObj {
 **/
     public static function getDBO(){
         global $errorTPL;
-
 
         if(!isset(coreObj::$_classes['database'])){
             $options = self::config('db');

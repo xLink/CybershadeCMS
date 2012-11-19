@@ -13,6 +13,7 @@ $objTPL = coreObj::getTPL();
 
 $objPage->setTheme();
 
+
 $objPage->setTitle('Test');
 
 $objRoute->processURL( $_SERVER['QUERY_STRING'] );

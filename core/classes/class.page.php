@@ -161,16 +161,32 @@ class Page extends coreObj{
      * @return  bool
      */
     public function setTheme($theme=null){
+        $objUser = coreObj::getUser();
+
         if(is_empty($theme)){
             $theme = $this->config('site', 'theme');
         }
 
-        /* user override here */
+        if( User::$IS_ONLINE && $objUser->grab('theme') && is_dir(cmsROOT.'themes/'.$objUser->grab('theme').'/')){
+            $theme = $objUser->grab('theme');
+        }
+
+        if($this->config('site', 'theme_override', false)){
+            $theme = $this->config('site', 'theme');
+            if(!is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php')){
+                $theme = 'default';
+            }
+        }
 
         //check see if the theme dir is present & readable
-        if(!is_dir(cmsROOT.'themes/'.$theme.'/')/* || !is_readable(cmsROOT.'themes/'.$theme.'/cfg.php')*/){
+        if(!is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php')){
             return false;
         }
+
+        $langFile = cmsROOT.'themes/'.$theme.'/languages/'.$this->config('global', 'language').'/main.php';
+            if( is_file($langFile) && is_readable($langFile) ){
+                translateFile($langFile);
+            }
 
         //and then set the vars
         self::$THEME      = $theme;
@@ -490,9 +506,7 @@ class Page extends coreObj{
         }
         $useragent = strtolower($useragent);
 
-
         $classes = array();
-
         if( !preg_match('/opera|webtv/i', $useragent) && preg_match('/msie\s(\d)/', $useragent, $matches) ) {
             $classes[] = 'ie';
             $classes[] = 'ie' . $matches[1];
@@ -508,6 +522,10 @@ class Page extends coreObj{
         } elseif( strstr($useragent, 'firefox/3') ) {
             $classes[] = 'ff';
             $classes[] = 'ff3';
+
+        } elseif( preg_match('/firefox(\s|\/)(\d+)/', $useragent, $matches) ) {
+            $classes[] = 'ff';
+            $classes[] = 'ff' . $matches[2];
 
         } elseif( strstr($useragent, 'gecko/') ) {
             $classes[] = 'gecko';
@@ -538,7 +556,6 @@ class Page extends coreObj{
 
         } elseif( strstr($useragent, 'mozilla/') ) {
             $classes[] = 'gecko';
-
         }
 
 
@@ -725,6 +742,7 @@ class Page extends coreObj{
   //-- Theme Extras
   //
 **/
+        $browserCSSSelectors = $this->getCSSSelectors();
         $themeConfig = self::$THEME_ROOT.'theme.php';
         if(is_readable($themeConfig)){
             include_once($themeConfig);

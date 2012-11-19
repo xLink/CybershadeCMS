@@ -441,19 +441,19 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @return  string
      */
     function langVar(){
-        global $_lang;
+        $_lang = coreObj::$_lang;
 
         //get how many arguments the function received
         $args = func_get_args();
         $var = doArgs($args[0], null, $_lang); //get the corresponding lang var
-
-        //quick test to make sure the lang var exists
-        if(is_empty($var)){ return false; }
-
-            //swap the first argument for the language var
-            foreach($args as $k => $v){
-                $vars[$k] = ($k==0 ? $var : $v);
+            if(is_empty($var)){
+                return false;
             }
+
+        //swap the first argument for the language var
+        foreach($args as $k => $v){
+            $vars[$k] = ($k==0 ? $var : $v);
+        }
 
         if(is_array($var)){
             foreach($var as $k => $v){
@@ -468,7 +468,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     /**
      * Adds a language file to the global language array
      *
-     * @version 1.2
+     * @version 2.0
      * @since   1.0.0
      *
      * @param   string     $file
@@ -476,8 +476,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @return  bool
      */
     function translateFile($file){
-        global $_lang;
-
         if(!isset($LANG_LOAD)){
             $LANG_LOAD = true;
         }
@@ -485,6 +483,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $return = false;
         if(is_file($file) && is_readable($file)){
             include_once($file);
+            if( is_array($_lang) && count($_lang)>1 ){
+                coreObj::$_lang = array_merge(coreObj::$_lang, $l_lang);
+            }
             $return = true;
         }
 

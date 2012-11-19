@@ -84,7 +84,7 @@ class Module_core extends Module{
 
     }
 
-    public function login_block( $block ){
+    public function block_login( $block ){
         $objTPL     = coreObj::getTPL();
         $objForm    = coreObj::getForm();
         $objSession = coreObj::getSession();
@@ -94,8 +94,9 @@ class Module_core extends Module{
             $objPage->redirect('/'.root());
         }
 
-        $objTPL->set_filenames(array( 'login_block' => cmsROOT . 'modules/core/views/login_form/block.tpl'));
-        // $objTPL->set_filenames(array( 'demoBlock'   => cmsROOT . 'modules/content/views/demoBlock/demo_block.tpl' ));
+        $objTPL->set_filenames(array(
+            'block_login' => cmsROOT . 'modules/core/views/login_form/block.tpl'
+        ));
 
         $form = array(
             'FORM_START'    => $objForm->start('login', array(
@@ -127,7 +128,7 @@ class Module_core extends Module{
 
             'SUBMIT'        => $objForm->button('submit', 'Login', array('class'=>'btn btn-success')),
         );
-
+        $objTPL->reset_block_vars('login');
         $objTPL->assign_block_vars('login', $form);
 
         $objTPL->assign_vars(array( 'TITLE' => $block['title'] ));
@@ -141,9 +142,7 @@ class Module_core extends Module{
 
             unset($_SESSION['login']);
         }
-
-        return $objTPL->get_html('login_block');
-
+        return $objTPL->get_html('block_login');
     }
 
     public function login_process(){
