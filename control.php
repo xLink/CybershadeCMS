@@ -13,37 +13,26 @@ $objTPL   = coreObj::getTPL();
 
 $objRoute->modifyGET($GET);
 
-$mode   = doArgs('__mode',      null,   $_GET);
-$module = doArgs('__module',    'core', $_GET);
-$action = doArgs('__action',    null,   $_GET);
-$extra  = doArgs('__extra',     null,   $_GET);
-
-if( !User::$IS_ONLINE ){
+if( !User::$IS_ONLINE || !User::$IS_ADMIN ){
     $objRoute->throwHTTP(404);
 }
 
-//make sure they are getting at the right panel
-$checkMode = array('admin', 'mod', 'user');
-if(!in_array($mode, $checkMode)){
-    hmsgDie('FAIL', 'Error: Unknown Panel Group');
-}
-
-
 $objPage->setTheme('perfectum', true);
 $objPage->addBreadcrumbs(array(
-    array('url' => '/'.root().$mode.'/', 'name' => ucwords($mode).' Control Panel')
+    array('url' => '/'.root().$mode.'/', 'name' => ucwords($mode).' Control Panel' )
 ));
 
-
-$objPage->setTitle('Test');
+$objPage->setTitle('Cybershade CMS Administration Panel');
 
 $objPage->buildPage();
 $objPage->showHeader();
-    if(!$objTPL->isHandle('body')){
-        msgDie('FAIL', 'No output received from module.');
-    }else{
-        echo $objTPL->get_html('body');
-    }
+
+    $objAdmin = coreObj::getAdminCP();
+
+    $objAdmin->invokeRoute();
+
+    $objAdmin->output();
+
 $objPage->showFooter();
 
 ?>

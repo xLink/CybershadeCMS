@@ -32,7 +32,8 @@ class Module extends coreObj{
         $objTPL  = coreObj::getTPL();
         $objUser = coreObj::getUser();
 
-        $module = str_replace('Module_', '', $this->getVar('_module') );
+        $classPrefix = array('Module_', 'Admin_');
+        $module = str_replace($classPrefix, '', $this->getVar('_module') );
         $method = $this->getVar('_method');
         $view   = str_replace('.tpl', '', $view);
 
@@ -57,7 +58,7 @@ class Module extends coreObj{
         if( strpos($module, 'Override_') !== false ){
             echo dump($module);
             $override = str_replace('Override_', '', $module);
-            $module = str_replace('Module_', '', get_parent_class($this));
+            $module = str_replace($classPrefix, '', get_parent_class($this));
             $file = sprintf('themes/%1$s/override/%2$s/%3$s.tpl', $objUser->grab('theme'), $module, $view);
 
             if( is_file($file) ){

@@ -84,6 +84,12 @@ class coreObj {
                     $classPrefix    = 'Module_';
                 break;
 
+
+                case 'admin_panels':
+                    $filePrefix     = 'admin.';
+                    $classPrefix    = 'Admin_';
+                break;
+
                 case 'drivers':
                     $filePrefix     = 'driver.';
                     $classPrefix    = 'driver_';
@@ -300,7 +306,7 @@ class coreObj {
      *
      * @return  new object
      */
-    private static function getInstance($name, $options=array()){
+    public static function getInstance($name, $options=array()){
 
         if (!isset(coreObj::$_classes[$name]) || empty(coreObj::$_classes[$name])){
             $class = self::getStaticClassName();
@@ -528,6 +534,14 @@ class coreObj {
         }
 
         return coreObj::$_classes['blocks'];
+    }
+
+    public static function getAdminCP(){
+        if(!isset( coreObj::$_classes['AdminCP'] )){
+            AdminCP::getInstance('AdminCP');
+        }
+
+        return coreObj::$_classes['AdminCP'];
     }
 }
 

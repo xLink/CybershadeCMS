@@ -95,6 +95,7 @@ require_once(cmsROOT.'core/classes/class.coreobj.php');
         'classes'          => cmsROOT.'core/classes/*.php',
         'libs'             => cmsROOT.'core/libs/*/class.*.php',
         'drivers'          => cmsROOT.'core/drivers/driver.*.php',
+        'admin_panels'     => cmsROOT.'modules/*/admin.*.php',
         'modules'          => cmsROOT.'modules/*/class.*.php',
         'module_overrides' => cmsROOT.'themes/*/override/*/*.php',
     ));

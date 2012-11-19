@@ -24,11 +24,11 @@
     <div class="clearfix"></div>
 
     <footer>
-        <!-- BEGIN dfebug -->
+        <!-- BEGIN debug -->
         <div class="fluid-container">
             {debug.DEBUG}
         </div>
-        <!-- END dfebug -->
+        <!-- END debug -->
         <div class="clearfix"></div>
 
         <p>
