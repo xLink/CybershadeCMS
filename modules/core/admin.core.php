@@ -38,5 +38,7 @@ class Admin_core extends Module{
         echo __METHOD__;
     }
 
+    //public function index() {}
+
 }
 ?>

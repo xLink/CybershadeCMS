@@ -12,7 +12,7 @@ class AdminCP extends coreObj{
         $this->module = doArgs('__module',    'admin',      $_GET);
         $this->action = doArgs('__action',    'dashboard',  $_GET);
         $this->extra  = doArgs('__extra',     null,         $_GET);
-echo dump($_GET);
+        echo dump($_GET);
     }
 
     public function output(){
@@ -27,13 +27,24 @@ echo dump($_GET);
     }
 
     public function invokeRoute(){
+        // Get instanced
+        $objRoute = coreObj::getRoute();
+        
         $this->module = 'Admin_'.$this->module;
-        if( is_callable( $this->module, $this->action ) ){
-            reflectMethod($this->module, $this->action, $this->extras);
-        }else{
-            $this->throwHTTP(404);
+        
+        // try {
+        //     reflectMethod($this->module, $this->action, $this->extras);
+        // } catch ( Exception $e ) {
+        //     $objRoute->throwHTTP(404);
+        // }
+
+        // Or try
+
+        $method = reflectMethod($this->module, $this->action, $this->extras);
+
+        if( !$method ) {
+            $objRoute->throwHTTP(404);
         }
     }
-
 }
 ?>

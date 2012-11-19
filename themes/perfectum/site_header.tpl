@@ -102,8 +102,8 @@
                 <ul class="nav nav-tabs nav-stacked main-menu">
                     <li><a href="index.html"><i class="faicon-dashboard faicon-white"></i><span class="hidden-tablet"> Dashboard</span></a></li>
                     <li><a href="index.html"><i class="faicon-cog faicon-white"></i><span class="hidden-tablet"> System</span></a><ul>
-                        <li><a href="index.html"><i class="faicon-search faicon-white"></i><span class="hidden-tablet"> Search</span></a></li>
-                        <li><a href="index.html"><i class="faicon-cogs faicon-white"></i><span class="hidden-tablet"> Manage</span></a></li>
+                        <li><a href="index.html"><i class="faicon-search faicon-white"></i><span class="hidden-tablet"> Site Configuration</span></a></li>
+                        <li><a href="index.html"><i class="faicon-cogs faicon-white"></i><span class="hidden-tablet"> </span></a></li>
                         <li><a href="index.html"><i class="faicon-user faicon-white"></i><span class="hidden-tablet"> Add New User</span></a></li>
                     </ul></li>
                     <li><a href="index.html"><i class="faicon-user faicon-white"></i><span class="hidden-tablet"> Users</span></a><ul>

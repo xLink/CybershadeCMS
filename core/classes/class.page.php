@@ -257,20 +257,20 @@ class Page extends coreObj{
         return true;
     }
 
-        /**
-         * Builds the breadcrumb list for the template.
-         *
-         * @version 1.0
-         * @since   1.0
-         * @author  Dan Aldridge
-         *
-         * @param   array  $value   An array with 2 elements, [text] && [link]
-         *
-         * @return  bool
-         */
-        private function buildBreadrumbs(){
-
-        }
+    /**
+     * Builds the breadcrumb list for the template.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     * @param   array  $value   An array with 2 elements, [text] && [link]
+     *
+     * @return  bool
+     */
+    private function buildBreadrumbs( $return = 0 ){
+        
+    }
 
     /**
      * Adds a CSS file to the list.
