@@ -179,7 +179,7 @@ class Page extends coreObj{
         }
 
         //check see if the theme dir is present & readable
-        if(!is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php')){
+        if( !is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php') ){
             return false;
         }
 
@@ -191,8 +191,37 @@ class Page extends coreObj{
         //and then set the vars
         self::$THEME      = $theme;
         self::$THEME_ROOT = cmsROOT.'themes/'.$theme.'/';
+        $this->setLanguage();
 
         return true;
+    }
+
+    /**
+     *
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     * @return  bool
+     */
+    public function setLanguage(){
+        //grab the default language info, and test to see if user has a request
+        $language = $this->config('site', 'language');
+        $langDir  = cmsROOT.'languages/';
+
+        if( User::$IS_ONLINE){
+            $lang = $objUser->grab('language');
+            if( is_dir($langdir . $lang . '/') ){
+                $language = $lang;
+            }
+        }
+
+        if( is_dir($langDir . $language . '/') || is_readable($langDir . $language . '/main.php') ){
+            translateFile($langDir . $language . '/main.php');
+        }else{
+            trigger_error('objPage->setLanguage() - Could not load language files.');
+        }
     }
 
     /**

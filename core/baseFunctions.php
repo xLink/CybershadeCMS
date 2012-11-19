@@ -481,11 +481,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
 
         $return = false;
-        if(is_file($file) && is_readable($file)){
+        if( is_file($file) && is_readable($file) ){
+            $_lang = array();
             include_once($file);
+
             if( is_array($_lang) && count($_lang)>1 ){
-                coreObj::$_lang = array_merge(coreObj::$_lang, $l_lang);
+                coreObj::$_lang = array_merge(coreObj::$_lang, $_lang);
             }
+
             $return = true;
         }
 
@@ -499,7 +502,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Jesus
+     * @author  Daniel Noel-Davies
      *
      * @param   string  $range      Range to check the IP against
      * @param   string  $ip         IP to check
