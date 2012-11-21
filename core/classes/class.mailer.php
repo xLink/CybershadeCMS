@@ -137,37 +137,6 @@ class Mailer extends coreObj{
                 break;
         }
     }
-
-    // Check if attachment is valid and add to list
-    /**
-     * Todo: Add a possibly upload form?
-     * Todo: Rewrite this function into CS style
-     */
-    public function addAttachment($path) {
-        if(!is_file($path)){
-            $this->error_handler(sprintf("Could not find %s file on filesystem", $path));
-        }
-
-        // Separate file name from full path
-        $separator = "/";
-        $len = strlen($path);
-
-        // Set $separator to win32 style
-        if(!ereg($separator, $path))
-            $separator = "\\";
-
-        // Get the filename from the path
-        $pos = strrpos($path, $separator) + 1;
-        $filename = substr($path, $pos, $len);
-
-        // Set message boundary
-        $this->boundary = "_b" . md5(uniqid(time()));
-
-        // Append to $attachment array
-        $cur = count($this->attachment);
-        $this->attachment[$cur][0] = $path;
-        $this->attachment[$cur][1] = $filename;
-    }
 }
 
 ?>
