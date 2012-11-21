@@ -9,7 +9,7 @@ class Mailer extends coreObj{
     protected   $contentType  = 'text/plain',
                 $charSet      = 'iso-8859-1',
                 $from         = 'noreply@cybershade.org',
-                $fromName     = 'No Reply',
+                $fromName     = 'NoReply',
                 $to           = array(),
                 $cc           = array(),
                 $bcc          = array(),
@@ -132,8 +132,6 @@ class Mailer extends coreObj{
                 }
 
                 break;
-
-
         }
     }
 
