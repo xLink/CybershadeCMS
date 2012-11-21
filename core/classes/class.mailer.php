@@ -46,11 +46,7 @@ class Mailer extends coreObj{
         $this->to[$currentCount][0] = trim( stripslashes( $address ) );
         $this->to[$currentCount][1] = stripslashes($name);
 
-        if( ( count( $this->to ) + 1 ) === $currentCount ) ){
-            return $this;
-        }
-
-        return false;
+        return $this;
     }
 
     public function addCC( $address, $name = '' ){
@@ -60,11 +56,7 @@ class Mailer extends coreObj{
         $this->cc[$currentCount][0] = trim( stripslashes( $address ) );
         $this->cc[$currentCount][1] = stripslashes( $name );
 
-        if( ( count( $this->cc ) + 1 ) === $currentCount ) ){
-            return $this;
-        }
-
-        return false;
+        return $this;
     }
 
     public function setSubject( $subject = '' ){
@@ -79,11 +71,7 @@ class Mailer extends coreObj{
         $this->replyTo[$currentCount][0] = trim( stripslashes( $address ) );
         $this->replyTo[$currentCount][1] = stripslashes( $name );
 
-        if( ( count( $this->replyTo ) + 1 ) === $currentCount ) ){
-            return $this;
-        }
-
-        return false;
+        return $this;
     }
 
     public function send(){
