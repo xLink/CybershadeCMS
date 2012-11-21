@@ -2,7 +2,11 @@
 
 /**
  * Todo: Return $this on functions so I can link methods together
- * =>   $mail = $objMailer->setHtml()->useSMTP()->addAddress('test@test.com')->setSubject('testing email')->send();
+ * =>   $mail = $objMailer->setHtml()
+ *                        ->useSMTP()
+ *                        ->addAddress('test@test.com')
+ *                        ->setSubject('testing email')
+ *                        ->send();
  */
 class Mailer extends coreObj{
 
@@ -27,12 +31,12 @@ class Mailer extends coreObj{
 
     public function setHtml(){
         $this->setVar('contentType', 'text/html');
-        return true;
+        return $this;
     }
 
     public function useSMTP(){
         $this->setVar('mailType', 'smtp');
-        return true;
+        return $this;
     }
 
     public function addAddress( $address, $name = '' ){
@@ -43,7 +47,7 @@ class Mailer extends coreObj{
         $this->to[$currentCount][1] = stripslashes($name);
 
         if( ( count( $this->to ) + 1 ) === $currentCount ) ){
-            return true;
+            return $this;
         }
 
         return false;
@@ -57,7 +61,7 @@ class Mailer extends coreObj{
         $this->cc[$currentCount][1] = stripslashes( $name );
 
         if( ( count( $this->cc ) + 1 ) === $currentCount ) ){
-            return true;
+            return $this;
         }
 
         return false;
@@ -65,7 +69,7 @@ class Mailer extends coreObj{
 
     public function setSubject( $subject = '' ){
         $this->setVar('subject', $subject);
-        return true;
+        return $this;
     }
 
     public function addReplyTo( $address, $name = '' ){
@@ -76,7 +80,7 @@ class Mailer extends coreObj{
         $this->replyTo[$currentCount][1] = stripslashes( $name );
 
         if( ( count( $this->replyTo ) + 1 ) === $currentCount ) ){
-            return true;
+            return $this;
         }
 
         return false;
@@ -130,7 +134,6 @@ class Mailer extends coreObj{
                 foreach($to as $name => $addrTo){
                     $sendTo .= sprintf(',%s', $addrTo);
                 }
-
                 break;
         }
     }
