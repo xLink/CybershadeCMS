@@ -10,6 +10,9 @@
  */
 class Mailer extends coreObj{
 
+    /**
+     * Protected class variables
+     */
     protected   $contentType  = 'text/plain',
                 $charSet      = 'iso-8859-1',
                 $from         = 'noreply@cybershade.org',
@@ -29,16 +32,46 @@ class Mailer extends coreObj{
 
     }
 
+    /**
+     * Sets the email to use the HTML encoding type
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @return  Object
+     */
     public function setHtml(){
         $this->setVar('contentType', 'text/html');
         return $this;
     }
 
+    /**
+     * Sets the send method to be via SMTP
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @return  Object
+     */
     public function useSMTP(){
         $this->setVar('mailType', 'smtp');
         return $this;
     }
 
+    /**
+     * Adds a new address to the mail
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string  $address
+     * @param   string  $name
+     *
+     * @return  Object
+     */
     public function addAddress( $address, $name = '' ){
         $currentCount = count($this->to);
 
@@ -49,6 +82,18 @@ class Mailer extends coreObj{
         return $this;
     }
 
+    /**
+     * Adds a new CC address to the mail
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string  $address
+     * @param   string  $name
+     *
+     * @return  Object
+     */
     public function addCC( $address, $name = '' ){
         $currentCount = count($this->cc);
 
@@ -59,11 +104,34 @@ class Mailer extends coreObj{
         return $this;
     }
 
+    /**
+     * Sets the email subject
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string  $subject
+     *
+     * @return  Object
+     */
     public function setSubject( $subject = '' ){
         $this->setVar('subject', $subject);
         return $this;
     }
 
+    /**
+     * Adds the ReplyTo address and name to the email
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string  $address
+     * @param   string  $name
+     *
+     * @return  Object
+     */
     public function addReplyTo( $address, $name = '' ){
         $currentCount = count($this->replyTo);
 
@@ -74,6 +142,15 @@ class Mailer extends coreObj{
         return $this;
     }
 
+    /**
+     * Sends the email
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @return  bool
+     */
     public function send(){
         if( count( $this->to ) < 1 ){
             trigger_error('You must provide at least one recipient email address');
@@ -88,6 +165,21 @@ class Mailer extends coreObj{
         return $mail;
     }
 
+    /**
+     * Adds a new address to the mail
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @access protected
+     *
+     * @param   string  $headers
+     * @param   string  $body
+     * @param   string  $type   The mail type (SMTP, mail) Defaults to 'mail'
+     *
+     * @return  Object
+     */
     protected function sendMail( $headers, $body, $type = 'mail' ){
         if( is_empty( $mail ) ){
             trigger_error('You must specify a valid send mode');
