@@ -26,24 +26,12 @@ class Mailer extends coreObj{
     }
 
     public function setHtml(){
-        $contentType = $this->getVar('contentType');
-
-        if( !$contentType ){
-            return false;
-        }
-
-        $this->contentType = 'text/html';
+        $this->setVar('contentType', 'text/html');
         return true;
     }
 
     public function useSMTP(){
-        $mailType = $this->getVar( 'mailType' );
-
-        if( !$mailType ){
-            return false;
-        }
-
-        $this->mailType = 'smtp';
+        $this->setVar('mailType', 'smtp');
         return true;
     }
 
@@ -76,14 +64,7 @@ class Mailer extends coreObj{
     }
 
     public function setSubject( $subject = '' ){
-        $sub = $this->getVar('subject');
-
-        if( !$sub ){
-            return false;
-        }
-
         $this->setVar('subject', $subject);
-
         return true;
     }
 
