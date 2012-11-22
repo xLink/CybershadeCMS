@@ -6,6 +6,7 @@
  *                        ->useSMTP()
  *                        ->addAddress('test@test.com')
  *                        ->setSubject('testing email')
+ *                        ->setBody($bodyText)
  *                        ->send();
  */
 class Mailer extends coreObj{
@@ -142,6 +143,11 @@ class Mailer extends coreObj{
         return $this;
     }
 
+    public function setBody( $body ){
+        $this->setVar( 'body', $body );
+        return $this;
+    }
+
     /**
      * Sends the email
      *
@@ -195,25 +201,44 @@ class Mailer extends coreObj{
             // Default mail type
             case 'mail':
             default:
-                $to       = $this->getVar('to');
+                $to = $this->getVar('to');
                 if( $to && count( $to ) < 1 ){
                     trigger_error('You must specify valid addresses to send the mail to');
                     return false;
                 }
 
-                $subject  = $this->getVar('subject');
-                $from     = $this->getVar('from');
-                $fromName = $this->getVar('fromName');
+                $subject     = secureMe($this->getVar('subject'));
+                $from        = secureMe($this->getVar('from'));
+                $fromName    = secureMe($this->getVar('fromName'));
+                $body        = secureMe($this->getVar('body'));
+                $contentType = secureMe($this->getVar('contentType'));
 
                 $sendTo = $to[0][0];
 
-                /**
-                 * Todo:
-                 * Fix this loop and make it generate a correct $sendTo string
-                 */
-                foreach($to as $name => $addrTo){
-                    $sendTo .= sprintf(',%s', $addrTo);
+                if( count( $to ) > 1 ){
+                    foreach($to as $name => $addrTo){
+                        $sendTo .= sprintf(',%s', $addrTo);
+                    }
                 }
+
+                $objPlugins = coreObj::getPlugins();
+
+                $objPlugin->hook('MAILER_HEADERS');
+
+                // To send HTML mail, the Content-type header must be set
+                $headers  = 'MIME-Version: 1.0' . "\r\n";
+                $headers .= sprintf("Content-type: %s; charset=iso-8859-1 \r\n", $contentType);
+
+                // Additional headers
+                $headers .= sprintf("From: %s <%s>\r\n", $fromName, $from );
+                $headers .= sprintf("Reply-To: %s <%s>\r\n", $fromName, $from);
+
+
+                $mail = mail( $to, $subject, $body, $headers );
+                if( $mail || $mail == '' ){
+                    return true;
+                }
+                return false;
                 break;
         }
     }
