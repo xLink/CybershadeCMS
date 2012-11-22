@@ -557,7 +557,7 @@ class mysql_queryBuilder extends coreObj{
         if($this->queryType){
             trigger_error('Can\'t modify the operator.', E_USER_ERROR);
 
-        }elseif(!in_array($queryType, array('select', 'insert', 'delete', 'update'))){
+        }elseif(!in_array($queryType, array('<sele></sele>ct', 'insert', 'delete', 'update'))){
             trigger_error('Unsupported operator:'.strtoupper($queryType), E_USER_ERROR);
 
         }else{
