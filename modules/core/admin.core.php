@@ -19,52 +19,68 @@ class Admin_core extends Module{
         $objTPL = coreObj::getTPL();
         $this->setView('admin/dashboard/default.tpl');
 
+        $blocks = array();
+
+        for( $i = 0; $i < 10; $i++ ) {
+            $blocks[randcode(10)] = array(
+                'COL'     => rand(1,2) * 4,
+            );
+        }
+
+        $this->displayPortlets( $blocks );
+
+
+    }
+    /**
+     * Loops through the blocks and displays them nicely using the theme template
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   array  $blocks     Collection of blocks
+     *
+     */
+    public function displayPortlets( $blocks ) {
+        $objTPL = coreObj::getTPL();
 
         $objTPL->set_filenames(array(
             'block_notices' => cmsROOT . Page::$THEME_ROOT . 'block.tpl'
         ));
 
-
-        $blocks = array();
-
-        $blocks['Notices'] = array(
-            'CONTENT' => '',
-            'ICON'    => 'home',
-            'COL'     => '4',
-        );
-
-        $blocks['Test Block 1'] = array(
-            'CONTENT' => '',
-            'ICON'    => 'home',
-            'COL'     => '4',
-        );
-
-        $blocks['Test Block 2'] = array(
-            'CONTENT' => '',
-            'ICON'    => 'home',
-            'COL'     => '4',
-        );
-
-        $blocks['Test Block 3'] = array(
-            'CONTENT' => '',
-            'ICON'    => 'home',
-            'COL'     => '12',
-        );
-
+        $rowCount = 12;
         foreach( $blocks as $title => $block ){
+
+            $block['COL'] = (int) doArgs( 'COL', 12, $block );
+
             $objTPL->assign_block_vars('block', array(
                 'TITLE'   => $title,
-                'CONTENT' => doArgs('CONTENT', null, $block),
+                'CONTENT' => dump( $rowCount, 'RowCount' ) . dump( $block, 'block' ),
                 'ICON'    => doArgs('ICON', null, $block),
             ));
+
+            // If there are no blocks in the row, Start new row
+            if( $rowCount === 12 ) {
+                $objTPL->assign_block_vars('block.start_row');
+
+            // If there is no space for the current block, end the current div above everything, and start a new one
+            } else if( $rowCount - $block['COL'] < 0 ) {
+                $objTPL->assign_block_vars('block.start_row');
+                $objTPL->assign_block_vars('block.pre_end_row');
+            }
+
+            // If, after everything, we are at 0, end the current block, and reset the row count
+            $rowCount -= $block['COL'];
+            if( $rowCount <= 0 ) {
+                $objTPL->assign_block_vars('block.end_row');
+                $rowCount = 12;
+            }
+
             $objTPL->assign_block_vars('block.'.(doArgs('COL', '12', $block)/4).'col', array());
             $objTPL->assign_vars(array(
                 'BLOCKS' => $objTPL->get_html('block_notices')
             ));
-            //$objTPL->reset_block_vars('block');
         }
-
-
     }
 
 

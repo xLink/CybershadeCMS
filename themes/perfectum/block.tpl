@@ -1,4 +1,14 @@
 <!-- BEGIN block -->
+
+    
+    <!-- BEGIN pre_end_row -->
+    </div>
+    <!-- END pre_end_row -->
+    
+    <!-- BEGIN start_row -->
+    <div class="row-fluid sortable">
+    <!-- END start_row -->
+    
     <!-- BEGIN 1col -->
     <div class="box span4" ontablet="span6" ondesktop="span4">
     <!-- END 1col -->
@@ -26,4 +36,8 @@
             {block.CONTENT}
         </div>
     </div>
+    
+    <!-- BEGIN end_row -->
+    </div>
+    <!-- END end_row -->
 <!-- END block -->
