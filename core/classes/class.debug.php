@@ -144,15 +144,20 @@ class Debug extends coreObj{
         $output   = '';
         $files    = coreObj::getTPL()->files;
 
-        if( !empty( $files ) ) {
-            foreach( $files as $file ) {
-                $output .= sprintf('<li>%1$s</li>',
-                    $file
-                );
+        if( count( $files ) ) {
+
+            $output .= '<table class="table table-bordered"><tbody>';
+                $output .= sprintf('<thead><th>%s</th>', 'TPL Handle');
+                $output .= sprintf('<th>%s</th></thead>', 'Path');
+
+            foreach( $files as $handle => $file ) {
+                $output .= sprintf('<tr><td>%s</td>', $handle);
+                $output .= sprintf('<td>%s</td></tr>', $file);
             }
+            $output .= '</tbody></table>';
         }
 
-        return array('count' => count($files), 'content' => sprintf( '<ul>%s</ul>', $output ));
+        return array('count' => count($files), 'content' => $output);
     }
 
 /**

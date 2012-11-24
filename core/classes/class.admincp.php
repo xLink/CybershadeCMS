@@ -12,7 +12,7 @@ class AdminCP extends coreObj{
         $this->module = doArgs('__module',    'core',      $_GET);
         $this->action = doArgs('__action',    'dashboard',  $_GET);
         $this->extra  = doArgs('__extra',     null,         $_GET);
-        echo dump($_GET);
+
     }
 
     public function output(){
@@ -38,12 +38,58 @@ class AdminCP extends coreObj{
         }
     }
 
-    public function generateNav(){
+    public function getNav(){
+        $objSQL = coreObj::getDBO();
+        $objTPL = coreObj::getTPL();
+
+        $acpROOT = '/'.root().'admin/';
+        $nav = array(
+            'Dashboard' => array(
+                'icon' => 'faicon-dashboard',
+                'url'  => $acpROOT,
+            ),
+            'System' => array(
+                'icon' => 'faicon-cog',
+                'subs' => array(
+                    'Site Configuration' => array(
+                        'icon' => 'faicon-search',
+                        'url'  => $acpROOT.'core/config/',
+                    ),
+                    '' => array(
+                        'icon' => 'faicon-search',
+                        'url'  => $acpROOT.'',
+                    ),
+                )
+
+            ),
+            'Users' => array(
+                'icon' => 'faicon-user',
+                'subs' => array(
+                    'Search' => array(
+                        'icon' => 'faicon-search',
+                        'url'  => $acpROOT.'core/users/search/',
+                    ),
+                )
+
+            ),
+            'Content' => array(
+                'icon' => 'faicon-user',
+                'url'  => $acpROOT,
+            ),
+        );
+
+        $objTPL->assign_var('ACP_NAV', $this->generateNav());
 
     }
 
+    private function generateNav( $links=array() ){
+        return '<li>rawr</li>';
+    }
 
 
+    public function getNotifications(){
+
+    }
 
 
 

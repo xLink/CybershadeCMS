@@ -10,6 +10,7 @@ include_once('core/core.php');
 $objRoute = coreObj::getRoute();
 $objPage  = coreObj::getPage();
 $objTPL   = coreObj::getTPL();
+$objAdmin = coreObj::getAdminCP();
 
 $objRoute->modifyGET($GET);
 
@@ -25,14 +26,16 @@ $objPage->addBreadcrumbs(array(
 $objPage->setTitle('Cybershade CMS Administration Panel');
 
 $objPage->buildPage();
+
+$objAdmin->getNav();
+
 $objPage->showHeader();
 
-    $objAdmin = coreObj::getAdminCP();
 
     $objAdmin->invokeRoute();
 
     $objAdmin->output();
 
 $objPage->showFooter();
-
+echo dump($objTPL);
 ?>

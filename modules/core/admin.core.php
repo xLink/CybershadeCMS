@@ -41,7 +41,7 @@ class Admin_core extends Module{
      * @param   array  $blocks     Collection of blocks
      *
      */
-    public function displayPortlets( $blocks ) {
+    private function displayPortlets( $blocks ) {
         $objTPL = coreObj::getTPL();
 
         $objTPL->set_filenames(array(

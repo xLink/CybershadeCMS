@@ -123,6 +123,13 @@
                 </ul>
             </div>
         </div>
+        <div class="span2 main-menu-span">
+            <div class="nav-collapse sidebar-nav">
+                <ul class="nav nav-tabs nav-stacked main-menu">
+                    {ACP_NAV}
+                </ul>
+            </div>
+        </div>
 
         <noscript>
             <div class="alert alert-block span10">
