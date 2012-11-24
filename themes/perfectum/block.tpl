@@ -1,4 +1,12 @@
-<div class="box span{COLUMN_SPAN}" ontablet="span6" ondesktop="span{COLUMN_SPAN}">
+<!-- BEGIN 1col -->
+<div class="box span4" ontablet="span6" ondesktop="span4">
+<!-- END 1col -->
+<!-- BEGIN 2col -->
+<div class="box span8" ontablet="span12" ondesktop="span8">
+<!-- END 2col -->
+<!-- BEGIN 3col -->
+<div class="box span12">
+<!-- END 3col -->
 	<div class="box-header">
 		<h2><i class="icon-{ICON}"></i><span class="break"></span>{TITLE}</h2>
 		<div class="box-icon">
@@ -11,6 +19,8 @@
 			<!-- BEGIN remove -->
 				<a href="#" class="btn-close"><i class="icon-remove"></i></a>
 			<!-- END remove -->
+			
+			
 		</div>
 	</div>
 	<div class="box-content">
