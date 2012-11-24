@@ -61,18 +61,18 @@ class Admin_core extends Module{
 
             // If there are no blocks in the row, Start new row
             if( $rowCount === 12 ) {
-                $objTPL->assign_block_vars('block.start_row');
+                $objTPL->assign_block_vars('block.start_row', array());
 
             // If there is no space for the current block, end the current div above everything, and start a new one
             } else if( $rowCount - $block['COL'] < 0 ) {
-                $objTPL->assign_block_vars('block.start_row');
-                $objTPL->assign_block_vars('block.pre_end_row');
+                $objTPL->assign_block_vars('block.start_row', array());
+                $objTPL->assign_block_vars('block.pre_end_row', array());
             }
 
             // If, after everything, we are at 0, end the current block, and reset the row count
             $rowCount -= $block['COL'];
             if( $rowCount <= 0 ) {
-                $objTPL->assign_block_vars('block.end_row');
+                $objTPL->assign_block_vars('block.end_row', array());
                 $rowCount = 12;
             }
 
