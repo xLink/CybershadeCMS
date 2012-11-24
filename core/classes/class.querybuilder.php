@@ -10,6 +10,8 @@ interface queryBuilder {
 	 * @version 1.0
 	 * @since   1.0
 	 * @author  Daniel Noel-Davies
+	 *
+	 * @param 	string 	$field 	Field Name(s)
 	 */
 	public function select();
 
@@ -22,6 +24,7 @@ interface queryBuilder {
 	 *
 	 * @param   string  $table    Table Name
 	 *
+	 * @return 	object 			Query builder object for chaining
 	 */
 	public function insertInto( $table );
 
@@ -34,6 +37,7 @@ interface queryBuilder {
 	 *
 	 * @param   string  $table    Table Name
 	 *
+	 * @return 	object 			Query builder object for chaining
 	 */
 	public function deleteFrom( $table );
 
@@ -46,6 +50,7 @@ interface queryBuilder {
 	 *
 	 * @param   string  $table    Table Name
 	 *
+	 * @return 	object 			Query builder object for chaining
 	 */
 	public function update( $table );
 
@@ -58,6 +63,7 @@ interface queryBuilder {
 	 *
 	 * @param   string  $table    Table Name
 	 *
+	 * @return 	object 			Query builder object for chaining
 	 */
 	public function createTable( $table );
 
@@ -73,6 +79,7 @@ interface queryBuilder {
 	 *
 	 * @param   mixed  $tables    Table Name(s)
 	 *
+	 * @return 	object 			Query builder object for chaining
 	 */
 	public function from( $tables );
 
@@ -85,6 +92,7 @@ interface queryBuilder {
 	 *
 	 * @param   mixed  $field     Field Name(s)
 	 *
+	 * @return 	object 			Query builder object for chaining
 	 */
 	public function addField( $field );
 
@@ -97,42 +105,252 @@ interface queryBuilder {
 	 *
 	 * @param   mixed  $where       Where clause
 	 *
+	 * @return 	object 			Query builder object for chaining
 	 */
 	public function where( $where );
 
-	public function andWhere();
+	/**
+	 * Adds an 'AND' conditional to the where clause within the query
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   mixed  $where       Where Clause
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function andWhere( $where );
 
-	public function orWhere();
+	/**
+	 * Adds an 'OR' conditional to the where clause within the query
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   mixed  $where       Where Clause
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function orWhere( $where );
 
-	public function join();
+	/**
+	 * Adds a Join to the query
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   string  $table      Table Name(s)
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function join( $table );
 
-	public function leftJoin();
+	/**
+	 * Adds a Left Join to the query
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   string  $table      Table Name(s)
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function leftJoin( $table );
 
-	public function rightJoin();
+	/**
+	 * Adds a Right Join to the query
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   string  $table      Table Name(s)
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function rightJoin( $table );
 
-	public function using();
+	/**
+	 * Force the Join Clause to join on various columns
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   string  $field      Field Name
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function using( $field );
 
-	public function on();
+	/**
+	 * Add On clause to the Join clause 
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   mixed  $condition         Condition
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function on( $condition );
 
-	public function andOn();
+	/**
+	 * Add an ADD On clause to the Join clause
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   mixed  $condition         Condition
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function andOn( $condition );
 
-	public function orOn();
+	/**
+	 * Add an OR On clause to the Join clause
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   mixed  $condition         Condition
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function orOn( $condition );
 
-	public function args();
+	/**
+	 * Add fields and values to an insert query
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   array  $data       Column => Value data
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function args( $data );
 
-	public function fields();
+	/**
+	 * Add fields to be used in insert / update query
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   array  $fields     Array of fields
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function fields( $fields );
 
-	public function values();
+	/**
+	 * Add Values to be used in insert / update query
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   array  $values     Array of values
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function values( $values );
 
+	/**
+	 * Sets the fields and values to be used in the query (Raw version of args)
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   mixed  $data      Field => Value data
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
 	public function set();
 
-	public function order();
+	/**
+	 * Add a limit clause to the query
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   int  $limit        Max Number of results to return
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function limit( $limit );
 
-	public function orderBy();
+	/**
+	 * Order the results set
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   string  $order     ASC / DESC
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function order( $order );
 
+	/**
+	 * Set what fields to order the results by
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   mixed  $fields  Fields to order by
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function orderBy( $fields );
+
+	/**
+	 * Group the results by field(s)
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   mixed  $fields  Fields to group by
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
 	public function groupBy();
 
-	public function offset();
+	/**
+	 * Offset the result set
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   int  $offset    Number of results to offset against
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function offset( $offset );
 
+	/**
+	 * Build the query and return the query as a string
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @return string
+	 */
 	public function build();
 }
