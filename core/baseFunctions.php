@@ -1239,7 +1239,6 @@ function bbcode_quote($bbcode, $action, $name, $default, $params, $content) {
  * @return  mixed
  */
 function reflectMethod( $class, $method, $parameters = array()) {
-    echo dump($class, 'class');
     if( !class_exists( $class ) ) {
         return false;
     }

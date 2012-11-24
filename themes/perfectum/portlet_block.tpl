@@ -1,6 +1,7 @@
-<div class="box span{COLUMN_SPAN}" ontablet="span6" ondesktop="span{COLUMN_SPAN}">
+<!-- BEGIN portlet -->
+<div class="box span{portlet.COLUMN_SPAN}" ontablet="span6" ondesktop="span{portlet.COLUMN_SPAN}">
 	<div class="box-header">
-		<h2><i class="icon-{ICON}"></i><span class="break"></span>{TITLE}</h2>
+		<h2><i class="icon-{portlet.ICON}"></i><span class="break"></span>{TITLE}</h2>
 		<div class="box-icon">
 			<!-- BEGIN setting -->
 				<a href="#" class="btn-setting"><i class="icon-wrench"></i></a>
@@ -17,3 +18,4 @@
 		{CONTENT}
 	</div>
 </div>
+<!-- END portlet -->

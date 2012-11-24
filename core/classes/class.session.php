@@ -234,6 +234,17 @@ class Session extends coreObj{
         return $_SESSION['token'];
     }
 
+    /**
+     * Checks to the token against the session
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $formKey
+     *
+     * @return  bool
+     */
     public function checkToken( $formKey ){
         // check if we are in post mode
         if( !HTTP_POST ){ return false; }

@@ -9,7 +9,7 @@ class AdminCP extends coreObj{
     public function __construct(){
 
         $this->mode   = doArgs('__mode',      null,         $_GET);
-        $this->module = doArgs('__module',    'admin',      $_GET);
+        $this->module = doArgs('__module',    'core',      $_GET);
         $this->action = doArgs('__action',    'dashboard',  $_GET);
         $this->extra  = doArgs('__extra',     null,         $_GET);
         echo dump($_GET);
@@ -23,22 +23,13 @@ class AdminCP extends coreObj{
         }else{
             echo $objTPL->get_html('body');
         }
-
     }
 
     public function invokeRoute(){
         // Get instanced
         $objRoute = coreObj::getRoute();
-        
-        $this->module = 'Admin_'.$this->module;
-        
-        // try {
-        //     reflectMethod($this->module, $this->action, $this->extras);
-        // } catch ( Exception $e ) {
-        //     $objRoute->throwHTTP(404);
-        // }
 
-        // Or try
+        $this->module = 'Admin_'.$this->module;
 
         $method = reflectMethod($this->module, $this->action, $this->extras);
 
@@ -46,5 +37,26 @@ class AdminCP extends coreObj{
             $objRoute->throwHTTP(404);
         }
     }
+
+    public function generateNav(){
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 ?>

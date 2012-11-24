@@ -13,7 +13,7 @@ class Module_core extends Module{
     }
 
     public function viewIndex(){
-        $this->setView('viewIndex/default.tpl');
+        $this->setView('module/viewIndex/default.tpl');
 
 
     }
@@ -36,7 +36,7 @@ class Module_core extends Module{
             $objPage->redirect('/'.root());
         }
 
-        $this->setView('login_form/default.tpl');
+        $this->setView('module/login_form/default.tpl');
 
         $form = array(
             'FORM_START'    => $objForm->start('login', array(
@@ -95,7 +95,7 @@ class Module_core extends Module{
         }
 
         $objTPL->set_filenames(array(
-            'block_login' => cmsROOT . 'modules/core/views/login_form/block.tpl'
+            'block_login' => cmsROOT . 'modules/core/views/module/login_form/block.tpl'
         ));
 
         $form = array(
