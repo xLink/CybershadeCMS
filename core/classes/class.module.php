@@ -105,6 +105,30 @@ class Module extends coreObj{
     }
 
     /**
+     * Tests to see if we have a body handle in the template system, if so output it
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     */
+    public function output(){
+        $objTPL = coreObj::getTPL();
+
+        if( !$objTPL->isHandle('body') ){
+            $page = coreObj::getPage()->getVar('contents');
+
+            if( $page === null ){
+                msgDie('FAIL', 'No output received from module.');
+            } else {
+                echo $page;
+            }
+
+        }else{
+            echo $objTPL->get_html('body');
+        }
+    }
+
+    /**
      * Executes if a method has been called to & it dosen't exist
      *
      * @version 1.0

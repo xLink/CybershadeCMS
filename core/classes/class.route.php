@@ -65,7 +65,7 @@ class Route extends coreObj{
      *
      * @param       $url    string  URL to process against the cached routes
      *
-     * @return      bool
+     * @return      mixed
      */
     public function processURL( $url ) {
         $objPlugin  = coreObj::getPlugins();
@@ -92,9 +92,7 @@ class Route extends coreObj{
             return false;
         }
 
-        $this->invokeRoute();
-
-        return;
+        return $this->invokeRoute();
     }
 
     /**
@@ -342,13 +340,20 @@ class Route extends coreObj{
         }
 
         // GO! $Module!, $Module used $Method($args)... It was super effective!
-        $objModule = new $module;
-        $objModule->setVars(array(
-            '_method' => $method,
-            '_module' => $module,
-            '_params' => $route['arguments'],
-        ));
-        $refMethod->invokeArgs( $objModule , $args );
+
+        ob_start();
+
+            $objModule = new $module;
+            $objModule->setVars(array(
+                '_method' => $method,
+                '_module' => $module,
+                '_params' => $route['arguments'],
+            ));
+            $refMethod->invokeArgs( $objModule , $args );
+
+        coreObj::getPage()->setVar('contents', ob_get_clean() );
+
+        return $objModule;
     }
 
 /**

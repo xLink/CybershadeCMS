@@ -152,8 +152,6 @@ class Admin_core extends Module{
                     return false;
                 }
 
-#echo dump($users[1]);
-
             foreach( $users as $id => $user ){
                 $objTPL->assign_block_vars('user', array(
                     'id'          => $id,

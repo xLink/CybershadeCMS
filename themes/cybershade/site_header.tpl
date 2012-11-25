@@ -78,6 +78,6 @@
     <!-- BEGIN menu -->
         <div id="pageContent" class="span8">
     <!-- END menu -->
-    <!-- BEGIN no_menu -->
+    <!-- //BEGIN no_menu -->
         <div id="pageContent" class="span12">
-    <!-- END no_menu -->
+    <!-- //END no_menu -->

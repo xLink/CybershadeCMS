@@ -15,16 +15,12 @@ $objPage->setTheme();
 
 $objPage->setTitle('Test');
 
-$objRoute->processURL( $_SERVER['QUERY_STRING'] );
+$objModule = $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 
 $objPage->buildPage();
 $objPage->showHeader();
 
-    if(!$objTPL->isHandle('body')){
-        msgDie('FAIL', 'No output received from module.');
-    }else{
-        echo $objTPL->get_html('body');
-    }
+    $objModule->output();
 
 $objPage->showFooter();
 ?>
