@@ -1,14 +1,14 @@
 <!-- BEGIN block -->
 
-    
+
     <!-- BEGIN pre_end_row -->
     </div>
     <!-- END pre_end_row -->
-    
+
     <!-- BEGIN start_row -->
     <div class="row-fluid sortable">
     <!-- END start_row -->
-    
+
     <!-- BEGIN 1col -->
     <div class="box span4" ontablet="span6" ondesktop="span4">
     <!-- END 1col -->
@@ -19,7 +19,7 @@
     <div class="box span12">
     <!-- END 3col -->
         <div class="box-header">
-            <h2><i class="icon-{block.ICON}"></i><span class="break"></span>{block.TITLE}</h2>
+            <h2><i class="{block.ICON}"></i><span class="break"></span>{block.TITLE}</h2>
             <div class="box-icon">
                 <!-- BEGIN setting -->
                     <a href="#" class="btn-setting"><i class="icon-wrench"></i></a>
@@ -36,7 +36,7 @@
             {block.CONTENT}
         </div>
     </div>
-    
+
     <!-- BEGIN end_row -->
     </div>
     <!-- END end_row -->

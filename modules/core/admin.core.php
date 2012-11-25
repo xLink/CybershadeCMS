@@ -70,7 +70,7 @@ class Admin_core extends Module{
             $objTPL->assign_block_vars('block', array(
                 'TITLE'   => $title,
                 'CONTENT' => dump( $rowCount, 'RowCount' ) . dump( $block, 'block' ),
-                'ICON'    => doArgs('ICON', null, $block),
+                'ICON'    => 'icon-'.doArgs('ICON', null, $block),
             ));
 
             // If there are no blocks in the row, Start new row
@@ -115,7 +115,7 @@ class Admin_core extends Module{
 
     public function users(){
         coreObj::getPage()->addBreadcrumbs(array(
-            array('url' => '/'.root().'admin/core/users/', 'name' => 'User Manager' )
+            array( 'url' => '/'.root().'admin/core/users/', 'name' => 'User Manager' )
         ));
 
         if( ( !count($this->_params) || (count($this->_params) === 1 && empty($this->_params[0])) )
@@ -132,17 +132,51 @@ class Admin_core extends Module{
     }
 
     public function users_default(){
+        $objSQL = coreObj::getDBO();
+        $objTPL = coreObj::getTPL();
+        $objTime  = coreObj::getTime();
 
+        $objTPL->set_filenames(array(
+            'body' => cmsROOT . Page::$THEME_ROOT . 'block.tpl',
+            'panel' => cmsROOT. 'modules/core/views/admin/users/default/default.tpl',
+        ));
 
+            $query = $objSQL->queryBuilder()
+                ->select('*')
+                ->from('#__users')
+                ->build();
 
+            $users = $objSQL->fetchAll( $query, 'id' );
+                if( !$users ){
+                    msgDie('INFO', 'Cant query users :/');
+                    return false;
+                }
+
+#echo dump($users[1]);
+
+            foreach( $users as $id => $user ){
+                $objTPL->assign_block_vars('user', array(
+                    'id'          => $id,
+                    'username'    => $user['username'],
+                    'last_active' => $objTime->mk_time($user['last_active']),
+                ));
+            }
+
+        $objTPL->parse('panel', false);
+
+        $objTPL->assign_block_vars('block', array(
+            'TITLE'   => 'User Management',
+            'CONTENT' => $objTPL->get_html('panel', false),
+            'ICON'    => 'faicon-user',
+        ));
+
+        $objTPL->parse('body', false);
     }
 
     public function users_add(){
         coreObj::getPage()->addBreadcrumbs(array(
-            array('url' => '/'.root().'admin/core/users/add', 'name' => 'Add User' )
+            array( 'url' => '/'.root().'admin/core/users/add', 'name' => 'Add User' )
         ));
-
-
 
 
     }
