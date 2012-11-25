@@ -15,8 +15,7 @@ RewriteRule .* - [L]
 #RewriteCond %{HTTP_HOST} ^cybershade.org
 #RewriteRule (.*) http://www.cybershade.org/$1 [R=301,L]
 
-RewriteCond %{REQUEST_FILENAME} -f [NC,OR]
-RewriteCond %{REQUEST_FILENAME} -d [NC]
+RewriteCond %{REQUEST_FILENAME} -f [NC]
 RewriteRule .* - [L]
 
 ##minifing techniques
