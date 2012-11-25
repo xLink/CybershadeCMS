@@ -863,7 +863,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $handle = '__msg_'.($tplVar===NULL ? rand(0, 1000) : $tplVar);
         $handle = (is_object($objModule) && $tplVar=='body') ? 'body' : $handle;
         $objTPL->set_filenames(array(
-            $handle    => cmsROOT.'modules/core/template/message.tpl'
+            $handle    => cmsROOT.'modules/core/views/module/message/default.tpl'
         ));
 
         switch(strtolower($msg_type)){
@@ -973,7 +973,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
 
         $objTPL->set_filenames(array(
-            '__msgBody' => 'modules/core/views/message/default.tpl'
+            '__msgBody' => cmsROOT.'modules/core/views/module/message/default.tpl'
         ));
 
         $query = !is_empty($query) ? $query : null;

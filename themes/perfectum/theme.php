@@ -39,6 +39,12 @@ if( in_array('ie', $browserCSSSelectors) && !in_array('ie9', $browserCSSSelector
     ));
 }
 
+$objPage->addCSSFile(array(
+    'href'     => '/'.root().self::$THEME_ROOT.'theme.css',
+    'type'     => 'text/css',
+    'priority' => HIGH
+));
+
 
 $objPage->addJSFile(array(
     'src' => '/'.root().'assets/javascript/bootstrap.mootools.js',

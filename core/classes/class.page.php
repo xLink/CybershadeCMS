@@ -27,6 +27,17 @@ class Page extends coreObj{
   //-- Setup Functions
   //
 **/
+
+    /**
+     * Sets a key in the options.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     * @param   string  $key
+     * @param   string  $value
+     */
     public function setOptions($key, $value){
         if(is_empty($key) || is_empty($value)){ return false; }
 
@@ -198,7 +209,7 @@ class Page extends coreObj{
                 translateFile($langFile);
             }
 
-        //and then set the vars
+        // and then set the vars
         self::$THEME      = $theme;
         self::$THEME_ROOT = cmsROOT.'themes/'.$theme.'/';
         $this->setLanguage();
@@ -216,11 +227,9 @@ class Page extends coreObj{
      * @return  bool
      */
     public function setLanguage(){
-
-        // Grab our instances..
         $objUser = coreObj::getUser();
 
-        //grab the default language info, and test to see if user has a request
+        // Grab the default language info, and test to see if user has a request
         $language = $this->config('site', 'language');
         $langDir  = cmsROOT.'languages/';
 
@@ -269,7 +278,6 @@ class Page extends coreObj{
          * @return  bool
          */
         private function buildBreadcrumbs( $return = 0 ){
-            // Get instances...
             $objTPL = coreObj::getTPL();
 
             $breadcrumbs = $this->getVar('breadcrumbs');
@@ -285,19 +293,18 @@ class Page extends coreObj{
             // Loop through breadcrumbs and assign the array values to each template block
             foreach( $breadcrumbs as $index => $crumb ) {
                 if( $index < $length ) {
-                    $objTPL->assign_block_vars('item', array(
+                    $objTPL->assign_block_vars('breadcrumbs.item', array(
                         'URL'  => $crumb['url'],
                         'NAME' => $crumb['name'],
                     ));
 
                 // If this is the last crumb, make it un-clickable
                 } else {
-                    $objTPL->assign_block_vars('item', array(
+                    $objTPL->assign_block_vars('breadcrumbs.item', array(
                         'NAME' => $crumb['name'],
                     ));
                 }
             }
-
         }
 
     /**
@@ -362,7 +369,7 @@ class Page extends coreObj{
             $_arg = ' %s="%s"';
 
             $return = null;
-            if(count($this->cssFiles)){
+            if( count($this->cssFiles) ){
 
                 foreach(range(HIGH, LOW) as $priority){
                     if( !isset( $this->cssFiles[$priority] ) || !count( $this->cssFiles[$priority] ) ){ continue; }
@@ -451,7 +458,7 @@ class Page extends coreObj{
         $code = str_replace(DS, '-', $code);
         $code = md5($code);
 
-            if(isset($this->jsCode) && array_key_exists($code, $this->jsCode)){
+            if( isset($this->jsCode) && array_key_exists($code, $this->jsCode) ){
                 return false;
             }
 
@@ -475,27 +482,30 @@ class Page extends coreObj{
             $_arg = ' %s="%s"';
 
             $return = null;
-            //do the files
-            if( isset( $this->jsFiles[$mode] )  && count( $this->jsFiles[$mode] ) ) {
-                foreach(range(HIGH, LOW) as $priority){
-                    if( !isset( $this->jsFiles[$mode][$priority] ) || !count( $this->jsFiles[$mode][$priority] ) ){ continue; }
+            // do the files
+            if( isset($this->jsFiles[$mode])  && count($this->jsFiles[$mode]) ) {
+                foreach( range(HIGH, LOW) as $priority ){
+                    if( !isset($this->jsFiles[$mode][$priority]) || !count($this->jsFiles[$mode][$priority]) ){
+                        continue;
+                    }
 
-                    foreach($this->jsFiles[$mode][$priority] as $args){
+                    foreach( $this->jsFiles[$mode][$priority] as $args ){
                         $tag = null;
+
                         foreach($args as $k => $v){
                             if($k == 'priority'){ continue; }
 
                             $tag .= sprintf($_arg, $k, $v);
                         }
-                        $return .= sprintf($_tag, $tag, '');
 
+                        $return .= sprintf($_tag, $tag, '');
                     }
                 }
             }
 
             // & if we are in footer mode, do the js code too
-            if($mode=='footer' && !empty($this->jsCode)){
-                foreach($this->jsCode as $args){
+            if( $mode == 'footer' && !empty($this->jsCode) ){
+                foreach( $this->jsCode as $args ){
                     $return .= sprintf($_tag, '', $code);
                 }
             }
@@ -688,12 +698,12 @@ class Page extends coreObj{
             break;
         }
 
-        //check to see weather headers have already been sent, this prevents us from using the header() function
+        // check to see weather headers have already been sent, this prevents us from using the header() function
         if( !headers_sent() && $time === 0 ) {
             header( 'Location: '.$url );
             return;
 
-        } else { //headers have already been sent, so use a JS and even META equivalent
+        } else { // headers have already been sent, so use a JS and even META equivalent
             $output = null;
 
             $output .= '<script type="text/javascript">';
@@ -736,7 +746,7 @@ class Page extends coreObj{
             ));
         }
 
-            //this array holds the most common
+            // this array holds the most common
             $metaArray = array(
                 'author'        => $this->config('cms',  'name', 'Cybershade CMS'),
                 'description'   => $this->config('site', 'description', ''),
@@ -770,7 +780,7 @@ class Page extends coreObj{
         $this->addCSSFile($cssDir.'/framework-min.css', 'text/css', 'stylesheet', HIGH);
         #$this->addCSSFile($cssDir.'/extras-min.css', 'text/css');
 
-        //throw a hook here, so they have the ability to do...whatever
+        // throw a hook here, so they have the ability to do...whatever
         $cssFiles = array();
         $objPlugins->hook('CMS_PAGE_CSSFILES', $cssFiles);
 
@@ -796,7 +806,7 @@ class Page extends coreObj{
             'priority' => HIGH,
         ), 'footer');
 
-        //throw a hook here, so they have the ability to do...whatever
+        // throw a hook here, so they have the ability to do...whatever
         $jsFiles = array();
         $objPlugins->hook('CMS_PAGE_JSFILES', $jsFiles);
 
@@ -867,10 +877,10 @@ class Page extends coreObj{
 
         $objTPL = self::getTPL();
 
-        //run a check on simple
+        // run a check on simple
         $simple = ($this->getOptions('mode') ? true : false);
 
-        //see if we are gonna get the simple one or the full blown one
+        // see if we are gonna get the simple one or the full blown one
         $header = ($simple ? 'simple_header.tpl' : 'site_header.tpl');
 
         $objTPL->set_filenames(array( 'siteHeader' => self::$THEME_ROOT . $header ));
@@ -888,10 +898,10 @@ class Page extends coreObj{
 
         $objTPL = self::getTPL();
 
-        //run a check on simple
+        // run a check on simple
         $simple = ($this->getOptions('mode') ? true : false);
 
-        //see if we are gonna get the simple one or the full blown one
+        // see if we are gonna get the simple one or the full blown one
         $footer = ($simple ? 'simple_footer.tpl' : 'site_footer.tpl');
 
         $objTPL->set_filenames(array( 'siteFooter' => self::$THEME_ROOT . $footer ));

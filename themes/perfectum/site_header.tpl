@@ -115,15 +115,13 @@
         <div id="content" class="span10">
 
         <!-- BEGIN breadcrumbs -->
-        <div>
-            <hr />
-        <!-- END breadcrumbs -->
+        <nav id="breadcrumbs">
+            <hr /><ul>
             <!-- BEGIN item -->
-                <li class="breadcrumb"> <a href="{item.URL}">{item.NAME}</a> <span class="divider">/</span> </li>
+                <li class="breadcrumb"> <a href="{breadcrumbs.item.URL}">{breadcrumbs.item.NAME}</a> <span class="divider">/</span> </li>
             <!-- END item -->
-        <!-- BEGIN breadcrumbs -->
-            <hr />
-        </div>
+            </ul><hr />
+        </nav>
         <!-- END breadcrumbs -->
 
         <div class="row-fluid sortable">

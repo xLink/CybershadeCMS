@@ -20,19 +20,17 @@ if( !User::$IS_ONLINE || !User::$IS_ADMIN ){
 
 $objPage->setTheme('perfectum', true);
 $objPage->addBreadcrumbs(array(
-    array('url' => '/'.root().$mode.'/', 'name' => ucwords($mode).' Control Panel' )
+    array('url' => '/'. root() . $objAdmin->mode .'/', 'name' => ucwords($objAdmin->mode).' Control Panel' )
 ));
 
 $objPage->setTitle('Cybershade CMS Administration Panel');
 
+$objAdmin->getNav();
+$objAdmin->invokeRoute();
+
 $objPage->buildPage();
 
-$objAdmin->getNav();
-
 $objPage->showHeader();
-
-
-    $objAdmin->invokeRoute();
 
     $objAdmin->output();
 
