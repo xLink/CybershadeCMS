@@ -277,14 +277,14 @@ class Page extends coreObj{
          *
          * @return  bool
          */
-        private function buildBreadcrumbs( $return = 0 ){
+        private function buildBreadcrumbs(){
             $objTPL = coreObj::getTPL();
 
             $breadcrumbs = $this->getVar('breadcrumbs');
             $length = count( $breadcrumbs );
 
             // Check we have breadcrumbs to work with
-            if( $length == 0 ) {
+            if( !count( $length ) || $breadcrumbs === false ) {
                 return false;
             }
 

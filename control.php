@@ -29,7 +29,6 @@ $objAdmin->getNav();
 $objAdmin->invokeRoute();
 
 $objPage->buildPage();
-
 $objPage->showHeader();
 
     $objAdmin->output();
