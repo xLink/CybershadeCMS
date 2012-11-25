@@ -114,14 +114,17 @@
 
         <div id="content" class="span10">
 
+        <!-- BEGIN breadcrumbs -->
         <div>
-            <hr>
-            <ul class="breadcrumb">
-                <li> <a href="#">Home</a> <span class="divider">/</span> </li>
-                <li> <a href="#">Calendar</a> </li>
-            </ul>
-            <hr>
+            <hr />
+        <!-- END breadcrumbs -->
+            <!-- BEGIN item -->
+                <li class="breadcrumb"> <a href="{item.URL}">{item.NAME}</a> <span class="divider">/</span> </li>
+            <!-- END item -->
+        <!-- BEGIN breadcrumbs -->
+            <hr />
         </div>
+        <!-- END breadcrumbs -->
 
         <div class="row-fluid sortable">
             <div class="box span12" style="min-height: 1000px;">

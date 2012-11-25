@@ -59,7 +59,7 @@
     <nav id="breadcrumbs" class="row">
     <!-- END breadcrumbs -->
         <!-- BEGIN item -->
-            <li class="breadcrumb"> <a href="{breadcrumbs.item.URL}">{breadcrumbs.item.NAME}</a> <span class="divider">/</span> </li>
+            <li class="breadcrumb"> <a href="{item.URL}">{item.NAME}</a> <span class="divider">/</span> </li>
         <!-- END item -->
     <!-- BEGIN breadcrumbs -->
     </nav>

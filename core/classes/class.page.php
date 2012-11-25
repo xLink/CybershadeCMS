@@ -9,13 +9,14 @@ class Page extends coreObj{
     static  $THEME      = '',
             $THEME_ROOT = '';
 
-    public  $jsFiles    = array(),
-            $cssFiles   = array(),
-            $jsCode     = array(),
-            $cssCode    = array(),
-            $metaTags   = array(),
-            $options    = array(),
-            $acpMode    = false;
+    public  $jsFiles     = array(),
+            $cssFiles    = array(),
+            $jsCode      = array(),
+            $cssCode     = array(),
+            $metaTags    = array(),
+            $options     = array(),
+            $breadcrumbs = array(),
+            $acpMode     = false;
 
     public function __construct(){
         $this->options['simpleTPL'] = false;
@@ -44,7 +45,7 @@ class Page extends coreObj{
      * @param   array  $title
      */
     public function getOptions($key){
-        if(!is_empty($this->options) && array_key_exists($key, $this->options)){
+        if( isset($this->options) && !is_empty($this->options) ){
             return $this->options[$key];
         }
 
@@ -249,10 +250,9 @@ class Page extends coreObj{
      * @return  bool
      */
     public function addBreadcrumbs(array $value){
-        $options = (is_array($this->getOptions('breadcrumbs')) ? $this->getOptions('breadcrumbs') : array());
-            if(empty($options)){ return false; }
+        $options = (is_array($this->getVar('breadcrumbs')) ? $this->getVar('breadcrumbs') : array());
 
-        $this->setOptions('breadcrumbs', array_merge($options, $value));
+        $this->setVar('breadcrumbs', array_merge($options, $value));
 
         return true;
     }
@@ -268,39 +268,35 @@ class Page extends coreObj{
          *
          * @return  bool
          */
-        private function buildBreadrumbs( $return = 0 ){
+        private function buildBreadcrumbs( $return = 0 ){
             // Get instances...
             $objTPL = coreObj::getTPL();
 
-            $breadcrumbs = $this->getOptions('breadcrumbs');
-            $length = sizeOf( $breadcrumbs );
+            $breadcrumbs = $this->getVar('breadcrumbs');
+            $length = count( $breadcrumbs );
 
             // Check we have breadcrumbs to work with
-            if( !empty( $breadcrumbs ) ) {
+            if( $length == 0 ) {
                 return false;
             }
 
-            // Give this block a handle
-            $objTPl->set_filenames(array('perfectum_breadcrumbs', Page::$THEME_ROOT . 'breadcrumbs.tpl'));
+            $objTPL->assign_block_vars('breadcrumbs', array());
 
             // Loop through breadcrumbs and assign the array values to each template block
             foreach( $breadcrumbs as $index => $crumb ) {
                 if( $index < $length ) {
-                    $objTPL->assign_block_vars('crumb', array(
-                        'URL'   => $crumb['url'],
-                        'TITLE' => $crumb['name']
+                    $objTPL->assign_block_vars('item', array(
+                        'URL'  => $crumb['url'],
+                        'NAME' => $crumb['name'],
                     ));
 
                 // If this is the last crumb, make it un-clickable
                 } else {
-                    $objTPL->assign_block_vars('crumb', array(
-                        'TITLE' => $crumb['name']
+                    $objTPL->assign_block_vars('item', array(
+                        'NAME' => $crumb['name'],
                     ));
                 }
             }
-
-            // Return the block's contents
-            return $objTPL->get_html('perfectum_breadcrumbs');
 
         }
 
