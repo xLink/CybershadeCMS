@@ -170,9 +170,9 @@ class Page extends coreObj{
         $override = ($this->config('site', 'theme_override', 'false') === 'true' || $override !== true);
 
         // if the user is online, then check if the theme they selected is valid & gogo use that
-        if( $override === true 
-                && User::$IS_ONLINE 
-                && $objUser->grab('theme') !== null 
+        if( $override === true
+                && User::$IS_ONLINE
+                && $objUser->grab('theme') !== null
                 && is_dir(cmsROOT.'themes/'.$objUser->grab('theme').'/') ){
 
             $theme = $objUser->grab('theme');
@@ -257,20 +257,52 @@ class Page extends coreObj{
         return true;
     }
 
-    /**
-     * Builds the breadcrumb list for the template.
-     *
-     * @version 1.0
-     * @since   1.0
-     * @author  Dan Aldridge
-     *
-     * @param   array  $value   An array with 2 elements, [text] && [link]
-     *
-     * @return  bool
-     */
-    private function buildBreadrumbs( $return = 0 ){
-        
-    }
+        /**
+         * Builds the breadcrumb list for the template.
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  Dan Aldridge
+         *
+         * @param   array  $value   An array with 2 elements, [text] && [link]
+         *
+         * @return  bool
+         */
+        private function buildBreadrumbs( $return = 0 ){
+            // Get instances...
+            $objTPL = coreObj::getTPL();
+
+            $breadcrumbs = $this->getOptions('breadcrumbs');
+            $length = sizeOf( $breadcrumbs );
+
+            // Check we have breadcrumbs to work with
+            if( !empty( $breadcrumbs ) ) {
+                return false;
+            }
+
+            // Give this block a handle
+            $objTPl->set_filenames(array('perfectum_breadcrumbs', Page::$THEME_ROOT . 'breadcrumbs.tpl'));
+
+            // Loop through breadcrumbs and assign the array values to each template block
+            foreach( $breadcrumbs as $index => $crumb ) {
+                if( $index < $length ) {
+                    $objTPL->assign_block_vars('crumb', array(
+                        'URL'   => $crumb['url'],
+                        'TITLE' => $crumb['name']
+                    ));
+
+                // If this is the last crumb, make it un-clickable
+                } else {
+                    $objTPL->assign_block_vars('crumb', array(
+                        'TITLE' => $crumb['name']
+                    ));
+                }
+            }
+
+            // Return the block's contents
+            return $objTPL->get_html('perfectum_breadcrumbs');
+
+        }
 
     /**
      * Adds a CSS file to the list.
@@ -826,11 +858,12 @@ class Page extends coreObj{
         $objPlugins->hook('CMS_PAGE_TPL_GLOBALS', $tplGlobals);
 
         $objTPL->assign_vars($tplGlobals);
-        $objTPL->assign_var('_CSS_SELECTORS', $this->getCSSSelectors());
-        $objTPL->assign_var('_META', $this->buildMeta());
-        $objTPL->assign_var('_CSS', $this->buildCSS());
-        $objTPL->assign_var('_JS_HEADER', $this->buildJS('header'));
-        $objTPL->assign_var('_JS_FOOTER', $this->buildJS('footer'));
+        $objTPL->assign_var('BREADCRUMBS',      $this->buildBreadcrumbs());
+        $objTPL->assign_var('_CSS_SELECTORS',   $this->getCSSSelectors());
+        $objTPL->assign_var('_META',            $this->buildMeta());
+        $objTPL->assign_var('_CSS',             $this->buildCSS());
+        $objTPL->assign_var('_JS_HEADER',       $this->buildJS('header'));
+        $objTPL->assign_var('_JS_FOOTER',       $this->buildJS('footer'));
     }
 
     public function showHeader(){

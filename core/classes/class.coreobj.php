@@ -536,9 +536,9 @@ class coreObj {
         return coreObj::$_classes['blocks'];
     }
 
-    public static function getAdminCP(){
+    public static function getAdminCP($options){
         if(!isset( coreObj::$_classes['AdminCP'] )){
-            AdminCP::getInstance('AdminCP');
+            AdminCP::getInstance('AdminCP', $options);
         }
 
         return coreObj::$_classes['AdminCP'];

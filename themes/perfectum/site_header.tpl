@@ -100,32 +100,6 @@
         <div class="span2 main-menu-span">
             <div class="nav-collapse sidebar-nav">
                 <ul class="nav nav-tabs nav-stacked main-menu">
-                    <li><a href="index.html"><i class="faicon-dashboard faicon-white"></i><span class="hidden-tablet"> Dashboard</span></a></li>
-                    <li><a href="index.html"><i class="faicon-cog faicon-white"></i><span class="hidden-tablet"> System</span></a><ul>
-                        <li><a href="index.html"><i class="faicon-search faicon-white"></i><span class="hidden-tablet"> Site Configuration</span></a></li>
-                        <li><a href="index.html"><i class="faicon-cogs faicon-white"></i><span class="hidden-tablet"> </span></a></li>
-                        <li><a href="index.html"><i class="faicon-user faicon-white"></i><span class="hidden-tablet"> Add New User</span></a></li>
-                    </ul></li>
-                    <li><a href="index.html"><i class="faicon-user faicon-white"></i><span class="hidden-tablet"> Users</span></a><ul>
-                        <li><a href="index.html"><i class="faicon-search faicon-white"></i><span class="hidden-tablet"> Search</span></a></li>
-                        <li><a href="index.html"><i class="faicon-cogs faicon-white"></i><span class="hidden-tablet"> Manage</span></a></li>
-                        <li><a href="index.html"><i class="faicon-user faicon-white"></i><span class="hidden-tablet"> Add New User</span></a></li>
-                    </ul></li>
-                    <li><a href="index.html"><i class="faicon-home faicon-white"></i><span class="hidden-tablet"> Dashboard</span></a></li>
-                </ul>
-
-                <ul class="nav nav-tabs nav-stacked main-menu">
-                    <li><a href="index.html"><i class="faicon-sign-blank faicon-white"></i><span class="hidden-tablet"> Modules</span></a></li>
-                    <li><a href="index.html"><i class="faicon-picture faicon-white"></i><span class="hidden-tablet"> Themes</span></a></li>
-                    <li><a href="index.html"><i class="faicon-folder-close faicon-white"></i><span class="hidden-tablet"> Plugins</span></a></li>
-                    <li><a href="index.html"><i class="faicon-check-empty faicon-white"></i><span class="hidden-tablet"> Blocks</span></a></li>
-                    <li><a href="index.html"><i class="faicon-globe faicon-white"></i><span class="hidden-tablet"> Languages</span></a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="span2 main-menu-span">
-            <div class="nav-collapse sidebar-nav">
-                <ul class="nav nav-tabs nav-stacked main-menu">
                     {ACP_NAV}
                 </ul>
             </div>

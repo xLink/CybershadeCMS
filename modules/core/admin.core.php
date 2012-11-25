@@ -21,11 +21,25 @@ class Admin_core extends Module{
 
         $blocks = array();
 
-        for( $i = 0; $i < 10; $i++ ) {
-            $blocks[randcode(10)] = array(
-                'COL'     => rand(1,2) * 4,
-            );
-        }
+        // for( $i = 0; $i < 10; $i++ ) {
+        //     $blocks[randcode(10)] = array(
+        //         'COL'     => rand(1,3) * 4,
+        //     );
+        // }
+
+        $blocks[randcode(10)] = array( 'COL' => 3 *4);
+
+        $blocks[randcode(10)] = array( 'COL' => 1 *4 );
+        $blocks[randcode(10)] = array( 'COL' => 1 *4 );
+        $blocks[randcode(10)] = array( 'COL' => 1 *4 );
+
+
+        $blocks[randcode(10)] = array( 'COL' => 2 *4);
+        $blocks[randcode(10)] = array( 'COL' => 1 *4);
+
+
+        $blocks[randcode(10)] = array( 'COL' => 1 *4);
+        $blocks[randcode(10)] = array( 'COL' => 2 *4);
 
         $this->displayPortlets( $blocks );
 
@@ -98,9 +112,41 @@ class Admin_core extends Module{
   //-- User Admin Section
   //
 **/
-    public function rawr(){
-        echo __METHOD__;
+
+    public function users(){
+        coreObj::getPage()->addBreadcrumbs(array(
+            array('url' => '/'.root().'admin/core/users/', 'name' => 'User Manager' )
+        ));
+
+        if( ( !count($this->_params) || (count($this->_params) === 1 && empty($this->_params[0])) )
+            && method_exists( $this, 'users_default') ){
+
+            $this->users_default();
+
+        } else if( method_exists( $this, 'users_' . $this->_params[0]) ){
+            $this->{'users_' . $this->_params[0]}();
+
+        } else {
+            trigger_error('Ah crap...404');
+        }
     }
+
+    public function users_default(){
+
+
+
+    }
+
+    public function users_add(){
+        coreObj::getPage()->addBreadcrumbs(array(
+            array('url' => '/'.root().'admin/core/users/add', 'name' => 'Add User' )
+        ));
+
+
+
+
+    }
+
 
     //public function index() {}
 

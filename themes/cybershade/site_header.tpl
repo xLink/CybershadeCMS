@@ -55,6 +55,16 @@
 </header>
 
 <section class="container">
+    <!-- BEGIN breadcrumbs -->
+    <nav id="breadcrumbs" class="row">
+    <!-- END breadcrumbs -->
+        <!-- BEGIN item -->
+            <li class="breadcrumb"> <a href="{breadcrumbs.item.URL}">{breadcrumbs.item.NAME}</a> <span class="divider">/</span> </li>
+        <!-- END item -->
+    <!-- BEGIN breadcrumbs -->
+    </nav>
+    <!-- END breadcrumbs -->
+
     <div class="row">
 
 
@@ -65,7 +75,7 @@
             </div>
     <!-- END _CMSBLOCK -->
     </aside>
-    
+
 
     <!-- BEGIN menu -->
         <div id="pageContent" class="span8">

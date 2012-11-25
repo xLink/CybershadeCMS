@@ -346,6 +346,7 @@ class Route extends coreObj{
         $objModule->setVars(array(
             '_method' => $method,
             '_module' => $module,
+            '_params' => $route['arguments'],
         ));
         $refMethod->invokeArgs( $objModule , $args );
     }

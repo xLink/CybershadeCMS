@@ -10,7 +10,7 @@ include_once('core/core.php');
 $objRoute = coreObj::getRoute();
 $objPage  = coreObj::getPage();
 $objTPL   = coreObj::getTPL();
-$objAdmin = coreObj::getAdminCP();
+$objAdmin = coreObj::getAdminCP($GET);
 
 $objRoute->modifyGET($GET);
 
@@ -37,5 +37,4 @@ $objPage->showHeader();
     $objAdmin->output();
 
 $objPage->showFooter();
-echo dump($objTPL);
 ?>

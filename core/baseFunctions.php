@@ -1279,6 +1279,7 @@ function reflectMethod( $class, $method, $parameters = array()) {
     $objModule->setVars(array(
         '_method' => $method,
         '_module' => $class,
+        '_params' => $parameters,
     ));
 
     try {
