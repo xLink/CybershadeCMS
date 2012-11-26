@@ -192,8 +192,40 @@ class Mailer extends coreObj{
             return false;
         }
 
+
+        $server = $_SERVER['HTTP_HOST'];
+
+        // Set up the headers
+        $headers[] = sprintf('From: %s <%s>', $fromName, $from);
+        $headers[] = sprintf('Reply-To: %s <%s>', $fromName, $from);
+        $headers[] = sprintf('Return-Path: %s <%s>', $fromName, $from);
+        $headers[] = 'Date: '.date('r', time());
+        $headers[] = 'MIME-Version: 1.0';
+        $headers[] = 'Message-ID: <'.md5(uniqid(time())).'@'.$server.'>';
+        $headers[] = sprintf('Content-Type: %s; charset="iso-8859-1"', $contentType);
+        $headers[] = 'X-Mailer: PHP v'.phpversion();
+        $headers[] = 'X-Priority: 3';
+        $headers[] = 'X-MSMail-Priority: Normal';
+        $headers[] = 'X-MimeOLE: Produced By CybershadeCMS '.cmsVERSION;
+
+        $objPlugins = coreObj::getPlugins();
+        $objPlugin->hook('MAILER_HEADERS', $headers);
+
+        // Set up the rest of the email details
+        $to          = secureMe($this->getVar('to'));
+        $subject     = secureMe($this->getVar('subject'));
+        $from        = secureMe($this->getVar('from'));
+        $fromName    = secureMe($this->getVar('fromName'));
+        $body        = secureMe($this->getVar('body'));
+        $contentType = secureMe($this->getVar('contentType'));
+
+        if( !$to || count( $to ) < 1 ){
+            trigger_error('You must specify valid addresses to send the mail to');
+            return false;
+        }
+
         // Switch on the mail type
-        switch( strtolower($mail) ){
+        switch( strtolower( $mail ) ){
             case 'smtp':
                 // Do later
                 break;
@@ -201,18 +233,6 @@ class Mailer extends coreObj{
             // Default mail type
             case 'mail':
             default:
-                $to = $this->getVar('to');
-                if( $to && count( $to ) < 1 ){
-                    trigger_error('You must specify valid addresses to send the mail to');
-                    return false;
-                }
-
-                $subject     = secureMe($this->getVar('subject'));
-                $from        = secureMe($this->getVar('from'));
-                $fromName    = secureMe($this->getVar('fromName'));
-                $body        = secureMe($this->getVar('body'));
-                $contentType = secureMe($this->getVar('contentType'));
-
                 $sendTo = $to[0][0];
 
                 if( count( $to ) > 1 ){
@@ -221,21 +241,9 @@ class Mailer extends coreObj{
                     }
                 }
 
-                $objPlugins = coreObj::getPlugins();
+                $sendMail = mail( $to, $subject, $body, implode(" \n", $headers) );
 
-                $objPlugin->hook('MAILER_HEADERS');
-
-                // To send HTML mail, the Content-type header must be set
-                $headers  = 'MIME-Version: 1.0' . "\r\n";
-                $headers .= sprintf("Content-type: %s; charset=iso-8859-1 \r\n", $contentType);
-
-                // Additional headers
-                $headers .= sprintf("From: %s <%s>\r\n", $fromName, $from );
-                $headers .= sprintf("Reply-To: %s <%s>\r\n", $fromName, $from);
-
-
-                $mail = mail( $to, $subject, $body, $headers );
-                if( $mail || $mail == '' ){
+                if( $sendMail || $sendMail == '' ){
                     return true;
                 }
                 return false;
