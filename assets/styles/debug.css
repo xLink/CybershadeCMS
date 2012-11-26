@@ -1,3 +1,6 @@
+div#debug-tabs > * {
+    text-shadow: none;
+}
 
 .debug, div[class^="debug"] {
     width: 100%;
@@ -12,6 +15,7 @@
     line-height: 12px;
     display: block;
     max-width: 1000px;
+    text-shadow: none;
 }
 
     div[class^="debug"] div{
