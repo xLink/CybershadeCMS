@@ -114,8 +114,9 @@ class Module extends coreObj{
     public function output(){
         $objTPL = coreObj::getTPL();
 
+        $page = coreObj::getPage()->getVar('contents');
+
         if( !$objTPL->isHandle('body') ){
-            $page = coreObj::getPage()->getVar('contents');
 
             if( $page === null ){
                 msgDie('FAIL', 'No output received from module.');
@@ -124,6 +125,9 @@ class Module extends coreObj{
             }
 
         }else{
+            if( !is_empty($page) ){
+                echo $page;
+            }
             echo $objTPL->get_html('body');
         }
     }
