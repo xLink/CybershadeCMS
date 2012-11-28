@@ -179,6 +179,14 @@ class Admin_core extends Module{
 
     }
 
+    public function users_manage(){
+        coreObj::getPage()->addBreadcrumbs(array(
+            array( 'url' => '/'.root().'admin/core/users/add', 'name' => 'Manage Users' )
+        ));
+
+
+    }
+
 
     //public function index() {}
 

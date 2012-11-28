@@ -20,7 +20,9 @@ $objModule = $objRoute->processURL( $_SERVER['QUERY_STRING'] );
 $objPage->buildPage();
 $objPage->showHeader();
 
-    $objModule->output();
+   if( $objModule !== false ){
+		$objModule->output();
+   }
 
 $objPage->showFooter();
 ?>
