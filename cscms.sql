@@ -53,7 +53,7 @@ INSERT INTO `cscms_blocks` (`id`, `uniqueid`, `title`, `name`, `location`, `orde
 --
 
 CREATE TABLE IF NOT EXISTS `cscms_blocks_routes` (
-  `id` tinyint(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `blockID` int(11) NOT NULL,
   `location` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)

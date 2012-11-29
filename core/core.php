@@ -14,7 +14,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 $START_CMS_LOAD = microtime(true); $START_RAM_USE = memory_get_usage();
 $cmsROOT = (isset($cmsROOT) && !empty($cmsROOT) ? $cmsROOT : '');
 
-if( !isset($_SESSION) ){ session_start(); }
+if( !isset($_SESSION) ){
+    session_start();
+}
 
     //we need constants.php, same deal as above
     $file = $cmsROOT.'core/constants.php';
