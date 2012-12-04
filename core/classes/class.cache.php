@@ -320,10 +320,17 @@ class Cache extends coreObj{
      * @param       string $contents   Contents to store in the file
      */
     public function writeFile($filename, $contents){
-        if(!$this->getVar('cacheToggle')){ return; }
+
+        // I can accept the weird indentation, but not the lack of new lines xD
+        if(!$this->getVar('cacheToggle')){
+            return;
+        }
 
         $fp = fopen(sprintf($this->getVar('fileTpl'), str_replace('_db', '', $filename)), 'w');
-            if(!$fp){ return false; }
+
+            if(!$fp){
+                return false;
+            }
 
         $contents = var_export($contents, true);
         $variable = '$'.$filename.'_db';

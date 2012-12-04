@@ -125,7 +125,7 @@ class AdminCP extends coreObj{
         $objTPL->assign_var('ACP_NAV', $this->generateNav($nav));
     }
 
-    private function generateNav( $links=array() ){
+    protected function generateNav( $links=array() ){
 
         if( !count($links) ){
             return null;
