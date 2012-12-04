@@ -159,35 +159,54 @@ class Comments extends coreObj {
                         (User::$IS_ONLINE && ($objUser->grab('id') == $comments['author'] || $objUser->grab('id')==$this->getVar('author_id')))){
 
                         //do teh the delete
-                        $log = 'Comments System: '.$this->objUser->profile($this->objUser->grab('id'), RAW).' deleted comment from <a href="'.$this->aURL[1].'">this</a>.';
+                        $log = 'Comments System: '.$objUser->profile($objUser->grab('id'), RAW).' deleted comment from <a href="'.$this->aURL[1].'">this</a>.';
 
-                        /**
-                        // -- TODO: finish porting from here
-                        */
+                        $deleteQuery = $objSQL->queryBuilder()
+                                                ->deleteFrom('#__comments')
+                                                ->where('id', '=', $id)
+                                                ->build();
 
-                        $delete = $this->objSQL->deleteRow('comments', array('id = "%d"', $id), $log);
+                        $delete = $objSQL->query( $deleteQuery );
 
                         if(!$delete){
-                            msg('FAIL', 'Error: The comment was not deleted.', '_ERROR');
+                            trigger_error('Error: The comment was not deleted.');
                         }else{
-                            msg('INFO', 'The comment was successfully deleted.', '_ERROR');
+                            msg('INFO', 'The comment was successfully deleted.');
                         }
                     }
                 break;
 
                 case 'ajDelComment':
                     if(HTTP_AJAX && HTTP_POST){
+
                         $id = doArgs('id', 0, $_GET, 'is_number');
-                        $comment = $this->objSQL->getLine('SELECT * FROM `$Pcomments` WHERE id = "%d"', array($id));
-                            if(!$comment){ die('-1'); }
+
+                        $commentQuery = $objSQL->queryBuilder()
+                                                ->select('*')
+                                                ->from('#__comments')
+                                                ->where('id','=',$id)
+                                                ->build();
+
+                        $comment = $objSQL->fetchLine( $commentQuery );
+
+                        if(!$comment){
+                            die('-1');
+                        }
 
                         //check if user has perms
                         if(User::$IS_ADMIN || User::$IS_MOD ||
-                            (User::$IS_ONLINE && ($this->objUser->grab('id')==$comments['author'] || $this->objUser->grab('id')==$this->author_id))){
+                            (User::$IS_ONLINE && ($objUser->grab('id') == $comments['author'] || $objUser->grab('id') == $this->getVar('author_id')))){
 
                             //do teh the delete
                             $log = 'Comments System: '.$this->objUser->profile($this->objUser->grab('id'), RAW).' deleted comment from <a href="'.$this->aURL[1].'">this</a>.';
-                            $delete = $this->objSQL->deleteRow('comments', array('id = "%d"', $id), $log);
+
+                            $deleteQuery = $objSQL->queryBuilder()
+                                                    ->deleteFrom('#__comments')
+                                                    ->where('id', '=', $id)
+                                                    ->build();
+
+                            $delete = $objSQL->query( $deleteQuery );
+
                             die((!$delete ? '0' : '1'));
                         }
                     }else{
@@ -198,36 +217,49 @@ class Comments extends coreObj {
             }
 
             //make sure the submit form only shows when we want it to
-            if(!$dontShow){ $this->makeSubmitForm(); }
+            if(!$dontShow){
+                $this->makeSubmitForm();
+            }
         }
 
         //get a comments count for this module and id
         $commentsCount = $this->getCount();
+
+        // TODO: fix the pagination
+        $objPagniation = coreObj::getPagination();
         $comPagination = new pagination('commentsPage', $this->perPage, $commentsCount);
 
             //check to see if we have a positive number
             if($commentsCount){
-                //now lets actually grab the comments
-                $commentsData = $this->objSQL->getTable(
-                    'SELECT * FROM `$Pcomments`
-                        WHERE module="%s" AND module_id="%d"
-                        ORDER BY timestamp ASC
-                        LIMIT %s',
-                array(
-                    $this->module,
-                    $this->module_id,
-                    $comPagination->getSqlLimit()
-                ));
 
-                if(!$commentsData){ //something went wrong
-                    msg('INFO', 'Error loading comments.', '_ERROR');
+                //now lets actually grab the comments
+
+                $commentDataQuery = $objSQL->queryBuilder()
+                                            ->select('*')
+                                            ->from('#__comments')
+                                            ->where(
+                                                sprintf('module = "%s" AND module_id = %d ',
+                                                    $this->getVar('module'),
+                                                    $this->getVar('module_id')
+                                            ))
+                                            ->limit($comPagination->getSqlLimit())
+                                            ->build();
+
+
+                $commentsData = $objSQL->fetchAll($commentDataQuery)
+
+                if(!$commentsData){
+                    //something went wrong
+                    trigger_error('Error loading comments.');
                 }else{
-                    $this->objTPL->assign_var('COM_PAGINATION', $comPagination->getPagination());
+
+                    $objTPL->assign_var('COM_PAGINATION', $comPagination->getPagination());
+
                     $i=0;
 
                     //assign the comments to the template
                     foreach($commentsData as $comments){
-                        $this->objTPL->assign_block_vars('comment', array(
+                        $objTPL->assign_block_vars('comment', array(
                             'ID'        => $comments['id'],
                             'cID'       => 'comment-'.$comments['id'],
                             'ROW'       => $i%2 ? 'row_color2' : 'row_color1',
@@ -239,7 +271,7 @@ class Comments extends coreObj {
                         ));
 
                         if(User::$IS_ADMIN || User::$IS_MOD ||
-                            (User::$IS_ONLINE && ($this->objUser->grab('id')==$comments['author'] || $this->objUser->grab('id')==$this->author_id))){
+                            (User::$IS_ONLINE && ($objUser->grab('id')==$comments['author'] || $objUser->grab('id') == $this->getVar('author_id')))){
 
                             $this->objTPL->assign_block_vars('comment.functions', array(
                                 'URL'   => $this->aURL[0].'?mode=deleteComment&id='.$comments['id'],
@@ -257,8 +289,16 @@ class Comments extends coreObj {
         $this->objTPL->assign_var_from_handle($tplVar, 'comments');
     }
 
+
+    /**
+     //
+     // -- Finish porting from here
+     //
+     */
+
+
     function getCount(){
-        $this->count = $this->objSQL->getInfo('comments', array('module="%s" AND module_id="%s"', $this->module, $this->module_id));
+        $this->count = $objSQL->getInfo('comments', array('module="%s" AND module_id="%s"', $this->module, $this->module_id));
         return $this->count;
     }
 
