@@ -4,7 +4,7 @@
 \*======================================================================*/
 if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
-class Comments extends coreObj {
+class Module_comments extends Module {
 
     /**
      * Set the comments up, this will handle the post form also.
