@@ -1326,6 +1326,8 @@ function reflectClass( $class ) {
  * @since   1.0
  * @author  Richard Clifford
  *
+ * @todo    Expand this function to accept all data-types
+ *
  * @param   mixed  $value_one [,$value_two, $value_three...]
  *
  * @return  string
@@ -1371,6 +1373,88 @@ function getTokenType(){
 
     return $token;
 }
+
+/**
+ * Thanks to David Beck on PHP.net http://uk3.php.net/manual/en/function.parse-url.php#104726
+ *
+ * @author  David Beck (original), Richard Clifford (ported to CS style)
+ * @version 1.0.0
+ * @since   1.0.0
+ *
+ * @param string    $address
+ *
+ * @return mixed
+ */
+function correctURL($address){
+
+    if (!empty($address) && $address{0} != '#' &&
+        strpos(strtolower($address), 'mailto:') === FALSE &&
+        strpos(strtolower($address), 'javascript:') === FALSE) {
+
+        $address = explode('/', $address);
+        $keys = array_keys($address, '..');
+
+        foreach($keys AS $keypos => $key){
+            array_splice($address, $key - ($keypos * 2 + 1), 2);
+        }
+
+        $address = implode('/', $address);
+        $address = str_replace('./', '', $address);
+
+        $scheme = parse_url($address);
+
+        if (empty($scheme['scheme'])){
+            $address = 'http://' . $address;
+        }
+
+        $parts   = parse_url($address);
+        $address = strtolower($parts['scheme']) . '://';
+
+        if (!empty($parts['user'])){
+            $address .= $parts['user'];
+
+            if (!empty($parts['pass'])){
+                $address .= ':' . $parts['pass'];
+            }
+            $address .= '@';
+        }
+
+        if (!empty($parts['host'])){
+            $host = str_replace(',', '.', strtolower($parts['host']));
+
+            if (strpos(ltrim($host, 'www.'), '.') === FALSE){
+                $host .= '.com';
+            }
+
+            $address .= $host;
+        }
+
+        if (!empty($parts['port'])){
+            $address .= ':' . $parts['port'];
+        }
+
+        $address .= '/';
+
+        if (!empty($parts['path'])) {
+            $path = trim($parts['path'], ' /\\');
+
+            if (!empty($path) AND strpos($path, '.') === FALSE){
+                $path .= '/';
+            }
+
+            $address .= $path;
+        }
+
+        if (!empty($parts['query'])){
+            $address .= '?' . $parts['query'];
+        }
+
+        return $address;
+    } else {
+        return FALSE;
+    }
+}
+
 
 
 ?>
