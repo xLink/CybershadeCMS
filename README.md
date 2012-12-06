@@ -16,7 +16,7 @@
 ### Javascript
 - [Mootools Core 1.4.4](http://mootools.net/)
 - [Mootools More 1.4.0](http://mootools.net/)
-- [Bootstrap for Mootools](http://anutron.github.com/mootools-bootstrap/)
+- [MooTools for Bootstrap](http://anutron.github.com/mootools-bootstrap/)
 - [Modernizr 2.6.1](http://modernizr.com)
 - [Less 1.3.0](http://lesscss.org/)
 - [PHP.js](http://phpjs.org)
