@@ -72,7 +72,7 @@ class AdminCP extends coreObj{
                 'subs' => array(
                     'Site Configuration' => array(
                         'icon' => 'search',
-                        'url'  => $acpROOT.'core/config/',
+                        'url'  => $acpROOT.'core/siteConfig/',
                     ),
                     '' => array(
                         'icon' => 'search',

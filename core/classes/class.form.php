@@ -447,8 +447,10 @@ class Form extends coreObj {
 
         //init the template, give it a rand id to stop it clashing with anything else
         $randID = inBetween('name="', '"', $vars['FORM_START']);
-        $this->objTPL->set_filenames(array(
-            'form_body_'.$randID => 'modules/core/template/outputForm.tpl',
+
+        $objTPL = coreObj::getTPL();
+        $objTPL->set_filenames(array(
+            'form_body_'.$randID => 'modules/core/views/outputForm.tpl',
         ));
 
         if(!doArgs('border', true, $options)){
@@ -460,17 +462,17 @@ class Form extends coreObj {
         }
 
         $dediHeader = doArgs('dedicatedHeader', false, $options);
-        $this->objTPL->assign_vars($vars);
+        $objTPL->assign_vars($vars);
 
-        $this->objTPL->reset_block_vars('form_error');
+        $objTPL->reset_block_vars('form_error');
         if(isset($elements['errors']) && !is_empty($elements['errors'])){
-            $this->objTPL->assign_block_vars('form_error', array(
+            $objTPL->assign_block_vars('form_error', array(
                 'ERROR_MSG' => implode('<br />', $elements['errors']),
             ));
         }
 
         $count = 0;
-        $this->objTPL->reset_block_vars('field');
+        $objTPL->reset_block_vars('field');
 
         //loop thru each element
         foreach($elements['field'] as $label => $field){
@@ -490,14 +492,14 @@ class Form extends coreObj {
             }
 
             $header = ($field == '_header_' ? true : false);
-            $this->objTPL->assign_block_vars('_form_row', array());
+            $objTPL->assign_block_vars('_form_row', array());
             if($dediHeader && $header){
-                $this->objTPL->assign_block_vars('_form_row._header', array(
+                $objTPL->assign_block_vars('_form_row._header', array(
                     'L_LABEL' => $label,
                 ));
             } else {
                 //assign some vars to the template
-                $this->objTPL->assign_block_vars('_form_row._field', array(
+                $objTPL->assign_block_vars('_form_row._field', array(
                     'F_ELEMENT'  => $header ? null : $field,
                     'F_INFO'     => (doArgs('parseDesc', false, $options) ? contentParse($desc) : $desc),
                     'CLASS'      => $header ? ' title' : ($count++%2 ? ' row_color2' : ' row_color1'),
@@ -507,18 +509,18 @@ class Form extends coreObj {
 
                 //if this isnt a 'header' then output the label
                 if(!$header){
-                    $this->objTPL->assign_block_vars('_form_row._field._label', array());
+                    $objTPL->assign_block_vars('_form_row._field._label', array());
                 }
 
                 //if we have a description, lets output it with the label
                 if(!is_empty($desc)){
-                    $this->objTPL->assign_block_vars('_form_row._field._desc', array());
+                    $objTPL->assign_block_vars('_form_row._field._desc', array());
                 }
             }
         }
 
         //return the html all nicely parsed etc
-        return $this->objTPL->get_html('form_body_'.$randID);
+        return $objTPL->get_html('form_body_'.$randID);
     }
 
     function loadCaptcha($var){

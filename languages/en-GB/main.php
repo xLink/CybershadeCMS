@@ -86,3 +86,7 @@ $_lang['TIMEAGO_MONTH']         = 'about a month';
 $_lang['TIMEAGO_MONTHS']        = '%d months';
 $_lang['TIMEAGO_YEAR']          = 'about a year';
 $_lang['TIMEAGO_YEARS']         = '%d years';
+
+
+// Control Panels
+include_once('panels.php');
