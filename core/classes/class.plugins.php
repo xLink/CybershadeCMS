@@ -19,6 +19,21 @@ class Plugins extends coreObj{
     /**
      * Get plugin list from the database, and attempt to load them in
      *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @return      bool
+     */
+    public function __constructor(){
+
+        // try and load the plugins
+        $this->load();
+    }
+
+    /**
+     * Get plugin list from the database, and attempt to load them in
+     *
      * @version     1.1
      * @since       1.0.0
      * @author      Dan Aldridge
