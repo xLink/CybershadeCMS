@@ -9,7 +9,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  *
  * @version     1.0
  * @since       1.0.0
- * @author      Dan Aldridge
+ * @author      Dan Aldridge <xLink@cybershade.org>
  */
 class coreObj {
 
@@ -349,11 +349,57 @@ class coreObj {
         return get_called_class();
     }
 
+
+
 /**
   //
   //-- Get Class Instances
   //
 **/
+
+    /**
+     * Determines whether we need to call a getInstance() Alias or just let it through
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $method 
+     * @param   array $args
+     *
+     * @return  mixed
+     */
+    public static function __callStatic($method, $args){
+
+        // check to see if we have called a get*() method
+        $className = str_replace('get', '', $method);
+        $className = ucwords($className);
+
+        $objCore = new coreObj;
+        $methods = get_class_methods( $objCore );
+
+        if( class_exists( $className ) && !in_array( $className, $methods ) ){
+
+            if( !isset(coreObj::$_classes[ $className ]) ){
+                $className :: getInstance( $className, $args );
+            }
+
+            return coreObj::$_classes[ $className ];
+        }
+
+
+        // Method name didnt match what we expected so just output an error now.
+
+        $debug = array(
+            'Class Name'    => self::getClassName(),
+            'Method Called' => $method,
+            'Method Args'   => $args,
+        );
+        trigger_error('Error: Static Method dosen\'t exist.'.dump($debug));
+
+        return null;
+    }
+
     public static function getDBO(){
         global $errorTPL;
 
@@ -414,32 +460,6 @@ class coreObj {
         return coreObj::$_classes['tpl'];
     }
 
-    public static function getPlugins(){
-        if(!isset(coreObj::$_classes['plugins'])){
-            Plugins::getInstance('plugins');
-
-            coreObj::$_classes['plugins']->load();
-        }
-
-        return coreObj::$_classes['plugins'];
-    }
-
-    public static function getPage(){
-        if(!isset(coreObj::$_classes['page'])){
-            Page::getInstance('page');
-        }
-
-        return coreObj::$_classes['page'];
-    }
-
-    public static function getTime(){
-        if(!isset(coreObj::$_classes['time'])){
-            Time::getInstance('time');
-        }
-
-        return coreObj::$_classes['time'];
-    }
-
     public static function getCache(){
         if(!isset(coreObj::$_classes['cache'])){
 
@@ -465,84 +485,6 @@ class coreObj {
         return coreObj::$_classes['cache'];
     }
 
-    public static function getRoute(){
-        if(!isset(coreObj::$_classes['route'])){
-           Route::getInstance('route');
-        }
-
-        return coreObj::$_classes['route'];
-    }
-
-    public static function getSession(){
-        if(!isset( coreObj::$_classes['session'] )){
-            Session::getInstance('session');
-        }
-
-        return coreObj::$_classes['session'];
-    }
-
-    public static function getDebug(){
-        if(!isset( coreObj::$_classes['debug'] )){
-            Debug::getInstance('debug');
-        }
-
-        return coreObj::$_classes['debug'];
-    }
-
-    public static function getUser(){
-        if(!isset( coreObj::$_classes['user'] )){
-            User::getInstance('user');
-        }
-
-        return coreObj::$_classes['user'];
-    }
-
-    public static function getForm(){
-        if(!isset( coreObj::$_classes['form'] )){
-            Form::getInstance('form');
-        }
-
-        return coreObj::$_classes['form'];
-    }
-
-    public static function getPermissions(){
-        if(!isset( coreObj::$_classes['permissions'] )){
-            Permissions::getInstance('permissions');
-        }
-
-        return coreObj::$_classes['permissions'];
-    }
-
-    public static function getLogin(){
-        if(!isset( coreObj::$_classes['login'] )){
-            Login::getInstance('login');
-        }
-
-        return coreObj::$_classes['login'];
-    }
-
-    public static function getUpload(){
-        if( !isset( coreObj::$_classes['upload'] ) ){
-            Upload::getInstance('upload');
-        }
-        return coreObj::$_classes['upload'];
-    }
-
-    public static function getBlocks(){
-        if(!isset( coreObj::$_classes['blocks'] )){
-            Blocks::getInstance('blocks');
-        }
-
-        return coreObj::$_classes['blocks'];
-    }
-
-    public static function getAdminCP($options){
-        if(!isset( coreObj::$_classes['AdminCP'] )){
-            AdminCP::getInstance('AdminCP', $options);
-        }
-
-        return coreObj::$_classes['AdminCP'];
-    }
 }
 
 ?>
