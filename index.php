@@ -5,7 +5,7 @@
 define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 set_time_limit(0);
-include_once('core/core.php');
+require_once 'core/core.php';
 
 $objRoute = coreObj::getRoute();
 $objPage  = coreObj::getPage();
@@ -15,14 +15,14 @@ $objPage->setTheme();
 
 $objPage->setTitle('Test');
 
-$objModule = $objRoute->processURL( $_SERVER['QUERY_STRING'] );
+$objModule = $objRoute->processURL($_SERVER['QUERY_STRING']);
 
 $objPage->buildPage();
 $objPage->showHeader();
 
-   if( $objModule !== false ){
-		$objModule->output();
-   }
+if ( $objModule !== false ) {
+    $objModule->output();
+}
 
 $objPage->showFooter();
 ?>

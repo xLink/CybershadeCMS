@@ -5,7 +5,7 @@
 define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 $GET = $_GET;
-include_once('core/core.php');
+require_once 'core/core.php';
 
 $objRoute = coreObj::getRoute();
 $objPage  = coreObj::getPage();
@@ -14,7 +14,7 @@ $objAdmin = coreObj::getAdminCP($GET);
 
 $objRoute->modifyGET($GET);
 
-if( !User::$IS_ONLINE || !User::$IS_ADMIN ){
+if ( !User::$IS_ONLINE || !User::$IS_ADMIN ) {
     $objRoute->throwHTTP(404);
 }
 
