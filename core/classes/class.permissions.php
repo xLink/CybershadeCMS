@@ -17,7 +17,7 @@ class Permissions extends coreObj {
      * @param   int     $uid        UserID
      * @param   int     $group      GUEST, USER, MOD, or ADMIN
      *
-     * @return  bool    True/False on successful check, -1 on unknown group
+     * @return  mixed    True/False on successful check, -1 on unknown group
      */
     public function checkUserAuth( $type, $key, $u_access, $is_admin ){
         $auth_user = 0;
@@ -38,21 +38,6 @@ class Permissions extends coreObj {
 
         return $auth_user;
     }
-
-
-    public function assignPermission( $uid, $module, $permissions = array() ){
-
-    }
-
-    public function getAvailablePerms( $module = '' ){
-
-    }
-
-    public function hasPermission( $uid, $module, $type ){
-
-    }
-
 }
-
 
 ?>

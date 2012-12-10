@@ -528,6 +528,14 @@ class coreObj {
         return coreObj::$_classes['upload'];
     }
 
+    public static function getPagination($instance, $total_per_page, $total_items=0){
+        if(!isset( coreObj::$_classes['AdminCP'] )){
+            Pagination::getInstance('Pagination', array( $instance, $total_per_page, $total_items) );
+        }
+
+        return coreObj::$_classes['Pagination'];
+    }
+
     public static function getBlocks(){
         if(!isset( coreObj::$_classes['blocks'] )){
             Blocks::getInstance('blocks');
@@ -543,6 +551,7 @@ class coreObj {
 
         return coreObj::$_classes['AdminCP'];
     }
+
 }
 
 ?>
