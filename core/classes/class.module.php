@@ -142,7 +142,7 @@ class Module extends coreObj{
      * @param   string $method
      * @param   array  $args
      */
-    final public function __call($method, $args){
+    public function __call($method, $args){
         $debug = array(
             'Class Name'    => $this->getClassName(),
             'Method Called' => $method,
@@ -157,14 +157,14 @@ class Module extends coreObj{
      *
      * @version 1.0
      * @since   1.0.0
-     * @author  Richard Clifford
+     * @author  Dan Aldridge
      *
      * @param   string $method
      * @param   array  $args
      */
-    final public static function __callStatic($method, $args){
+    public static function __callStatic($method, $args){
         $debug = array(
-            'Class Name'    => $this->getClassName(),
+            'Class Name'    => self::getClassName(),
             'Method Called' => $method,
             'Method Args'   => $args,
         );

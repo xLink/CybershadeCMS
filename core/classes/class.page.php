@@ -4,10 +4,9 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Page extends coreObj{
-
-    static  $THEME      = '',
-            $THEME_ROOT = '';
+class page extends coreObj {
+    public static $THEME      = '',
+                  $THEME_ROOT = '';
 
     public  $jsFiles     = array(),
             $cssFiles    = array(),
@@ -18,13 +17,13 @@ class Page extends coreObj{
             $breadcrumbs = array(),
             $acpMode     = false;
 
-    public function __construct(){
+    public function __construct() {
         $this->options['simpleTPL'] = false;
     }
 
 /**
   //
-  //-- Setup Functions
+  //-- Setup Functions 
   //
 **/
 
@@ -35,11 +34,13 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param   string  $key
-     * @param   string  $value
+     * @param string $key
+     * @param string $value
      */
-    public function setOptions($key, $value){
-        if(is_empty($key) || is_empty($value)){ return false; }
+    public function setOptions($key, $value) {
+        if (is_empty($key) || is_empty($value)) {
+            return false;
+        }
 
         $this->options[$key] = $value;
 
@@ -53,10 +54,10 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param   array  $title
+     * @param array $key Option to get
      */
-    public function getOptions($key){
-        if( isset($this->options) && !is_empty($this->options) ){
+    public function getOptions($key) {
+        if ( isset($this->options) && !is_empty($this->options) ) {
             return $this->options[$key];
         }
 
@@ -70,9 +71,9 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param   array  $title
+     * @param array $title
      */
-    public function setTitle($title){
+    public function setTitle($title) {
         $objTPL = self::getTPL();
         $objTPL->assign_var('PAGE_TITLE', secureMe($title));
     }
@@ -84,10 +85,10 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param   bool    $simple  If true, then page is in simple mode, else FULL BLOWN!
+     * @param bool $simple If true, then page is in simple mode, else FULL BLOWN!
      */
-    public function setSimpleMode($simple){
-        $this->setOptions('mode', ((bool)$simple===true ? true : false));
+    public function setSimpleMode($simple) {
+        $this->setOptions('mode', ((bool) $simple===true ? true : false));
     }
 
     /**
@@ -97,11 +98,11 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param   string  $moduleName     Name of the module
-     * @param   string  $page_id        Page ID
+     * @param string $moduleName Name of the module
+     * @param string $page_id    Page ID
      *
      */
-    public function setMenu($moduleName, $page_id='default'){
+    public function setMenu($moduleName, $page_id='default') {
         $this->setOptions('moduleMenu',  array(
             'module'  => $moduleName,
             'page_id' => $page_id,
@@ -116,7 +117,7 @@ class Page extends coreObj{
      * @author  Dan Aldridge
      *
      */
-    public function buildBlocks(){
+    public function buildBlocks() {
         $objBlocks = coreObj::getBlocks();
         $objBlocks->insertBlocks();
     }
@@ -129,37 +130,36 @@ class Page extends coreObj{
      * @author  Dan Aldridge
      *
      */
-    public function buildMenu(){
+    public function buildMenu() {
         $objTPL = coreObj::getTPL();
         /*$objTPL = self::getTPL();
 
         $noMenu = (defined('NO_MENU') && NO_MENU ? true : false);
 
         $menu = $this->getOptions('moduleMenu');
-        if($menu['module'] === false){ $noMenu = true; }
+        if ($menu['module'] === false) { $noMenu = true; }
 
         //we cant do nothin without any blocks
-        if(!$noMenu && !is_empty($config['menu_blocks'])){
+        if (!$noMenu && !is_empty($config['menu_blocks'])) {
             //if it got set to null, or wasnt set atall, default to the core menu
-            if(!isset($menu['module']) || is_empty($menu['module'])){
+            if (!isset($menu['module']) || is_empty($menu['module'])) {
                 $menu['module'] = 'core';
             }
-            if(!isset($menu['page_id']) || is_empty($menu['page_id'])){
+            if (!isset($menu['page_id']) || is_empty($menu['page_id'])) {
                 $menu['page_id'] = 'default';
             }
 
             //then do the output
             $menuSetup = show_menu($menu['module'], $menu['page_id']);
-            if($menuSetup){
+            if ($menuSetup) {
                 $objTPL->assign_block_vars('menu', array());
             }
-        }else{
+        } else {
             //if we cant show menu, may aswell set the no_menu block
             $objTPL->assign_block_vars('no_menu', array());
         }*/
 
     }
-
 
     /**
      * Sets the Theme for this page to use
@@ -168,15 +168,15 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param   string  $theme
+     * @param string $theme
      *
-     * @return  bool
+     * @return bool
      */
-    public function setTheme( $theme=null, $override=false ){
+    public function setTheme( $theme=null, $override=false ) {
         $objUser = coreObj::getUser();
 
         // if nothing was passed in, grab the current site theme
-        if(is_empty($theme)){
+        if (is_empty($theme)) {
             $theme = $this->config('site', 'theme');
         }
         $override = ($this->config('site', 'theme_override', 'false') === 'true' || $override !== true);
@@ -191,21 +191,21 @@ class Page extends coreObj{
         }
 
         // test for the theme override switch, if this is true, everyone see's the same theme
-        if( is_empty($theme) || $override ){
+        if ( is_empty($theme) || $override ) {
             $theme = $this->config('site', 'theme');
-            if(!is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php')){
+            if (!is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php')) {
                 $theme = 'default';
             }
         }
 
         // check see if the theme dir is present & readable
-        if( !is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php') ){
+        if ( !is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php') ) {
             return false;
         }
 
         // check if there is a language file for this theme & load it
         $langFile = cmsROOT.'themes/'.$theme.'/languages/'.$this->config('global', 'language').'/main.php';
-            if( is_file($langFile) && is_readable($langFile) ){
+            if ( is_file($langFile) && is_readable($langFile) ) {
                 translateFile($langFile);
             }
 
@@ -224,25 +224,25 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @return  bool
+     * @return bool
      */
-    public function setLanguage(){
+    public function setLanguage() {
         $objUser = coreObj::getUser();
 
         // Grab the default language info, and test to see if user has a request
         $language = $this->config('site', 'language');
         $langDir  = cmsROOT.'languages/';
 
-        if( User::$IS_ONLINE){
+        if (User::$IS_ONLINE) {
             $lang = $objUser->grab('language');
-            if( is_dir($langdir . $lang . '/') ){
+            if ( is_dir($langdir . $lang . '/') ) {
                 $language = $lang;
             }
         }
 
-        if( is_dir($langDir . $language . '/') || is_readable($langDir . $language . '/main.php') ){
+        if ( is_dir($langDir . $language . '/') || is_readable($langDir . $language . '/main.php') ) {
             translateFile($langDir . $language . '/main.php');
-        }else{
+        } else {
             trigger_error('objPage->setLanguage() - Could not load language files.');
         }
     }
@@ -254,11 +254,11 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param   array  $value   An array with 2 elements, [text] && [link]
+     * @param array $value An array with 2 elements, [text] && [link]
      *
-     * @return  bool
+     * @return bool
      */
-    public function addBreadcrumbs(array $value){
+    public function addBreadcrumbs(array $value) {
         $options = (is_array($this->getVar('breadcrumbs')) ? $this->getVar('breadcrumbs') : array());
 
         $this->setVar('breadcrumbs', array_merge($options, $value));
@@ -277,22 +277,23 @@ class Page extends coreObj{
          *
          * @return  bool
          */
-        private function buildBreadcrumbs(){
+        private function buildBreadcrumbs()
+        {
             $objTPL = coreObj::getTPL();
 
             $breadcrumbs = $this->getVar('breadcrumbs');
             $length = count( $breadcrumbs );
 
             // Check we have breadcrumbs to work with
-            if( !count( $length ) || $breadcrumbs === false ) {
+            if ( !count( $length ) || $breadcrumbs === false ) {
                 return false;
             }
 
             $objTPL->assign_block_vars('breadcrumbs', array());
 
             // Loop through breadcrumbs and assign the array values to each template block
-            foreach( $breadcrumbs as $index => $crumb ) {
-                if( $index < $length ) {
+            foreach ($breadcrumbs as $index => $crumb) {
+                if ($index < $length) {
                     $objTPL->assign_block_vars('breadcrumbs.item', array(
                         'URL'  => $crumb['url'],
                         'NAME' => $crumb['name'],
@@ -316,23 +317,23 @@ class Page extends coreObj{
      *
      * @param   array           Containing the array, either with or without keys.
      * -------------------------------
-     * @param   string  $href   The path of the file
-     * @param   string  $type   The type of the file, text/css || text/less
-     * @param   string  $rel    Usually stylesheet
+     * @param string $href The path of the file
+     * @param string $type The type of the file, text/css || text/less
+     * @param string $rel  Usually stylesheet
      *
-     * @return  bool
+     * @return bool
      */
-    public function addCSSFile(){
+    public function addCSSFile() {
         $args = $this->_getArgs(func_get_args());
 
-        if(count(func_get_args()) == 1 && array_key_exists('href', $args)){
+        if (count(func_get_args()) == 1 && array_key_exists('href', $args)) {
             $css = array(
                 'href'     => doArgs('href', false, $args),
                 'type'     => doArgs('type', 'text/css', $args),
                 'rel'      => doArgs('rel', 'stylesheet', $args),
                 'priority' => doArgs('priority', MED, $args),
             );
-        }else{
+        } else {
             $args = array_values($args);
             $css = array(
                 'href'     => doArgs(0, false, $args),
@@ -342,12 +343,12 @@ class Page extends coreObj{
             );
         }
 
-        if(!isset($css['href'])){ return false; }
+        if (!isset($css['href'])) { return false; }
         $priority = doArgs('priority', MED, $css);
 
         $file = str_replace(DS, '-', $css['href']);
         $file = md5($file);
-            if(isset($this->cssFiles[$priority]) && array_key_exists($file, $this->cssFiles[$priority])){ return false; }
+            if (isset($this->cssFiles[$priority]) && array_key_exists($file, $this->cssFiles[$priority])) { return false; }
 
         $this->cssFiles[$priority][$file] = $css;
 
@@ -363,21 +364,21 @@ class Page extends coreObj{
          *
          * @return  string
          */
-        private function buildCSS(){
-
+        private function buildCSS()
+        {
             $_tag = "\n".'<link%s />';
             $_arg = ' %s="%s"';
 
             $return = null;
-            if( count($this->cssFiles) ){
+            if ( count($this->cssFiles) ) {
 
-                foreach(range(HIGH, LOW) as $priority){
-                    if( !isset( $this->cssFiles[$priority] ) || !count( $this->cssFiles[$priority] ) ){ continue; }
+                foreach (range(HIGH, LOW) as $priority) {
+                    if ( !isset( $this->cssFiles[$priority] ) || !count( $this->cssFiles[$priority] ) ) { continue; }
 
-                    foreach($this->cssFiles[$priority] as $args){
+                    foreach ($this->cssFiles[$priority] as $args) {
                         $tag = null;
-                        foreach($args as $k => $v){
-                            if($k == 'priority'){ continue; }
+                        foreach ($args as $k => $v) {
+                            if ($k == 'priority') { continue; }
 
                             $tag .= sprintf($_arg, $k, $v);
                         }
@@ -399,12 +400,12 @@ class Page extends coreObj{
      *
      * @param   array               Containing the array, either with or without keys.
      * -------------------------------
-     * @param   string  $src        The path of the file
-     * @param   string  $position   The position of the JS File - Header || Footer
+     * @param string $src      The path of the file
+     * @param string $position The position of the JS File - Header || Footer
      *
-     * @return  bool
+     * @return bool
      */
-    public function addJSFile(){
+    public function addJSFile() {
         $args = $this->_getArgs(func_get_args());
 
         $arg = func_get_arg(0);
@@ -412,14 +413,14 @@ class Page extends coreObj{
                         ? strtolower($args[1])
                         : 'footer';
 
-        if(is_array($arg) && isset($arg['src'])){
+        if (is_array($arg) && isset($arg['src'])) {
             $args = $arg;
             $js = array(
                 'src'      => doArgs('src', false, $args),
                 'type'     => doArgs('type', 'text/javascript', $args),
                 'priority' => doArgs('priority', MED, $args),
             );
-        }else{
+        } else {
             $js = array(
                 'src'      => doArgs(0, false, $args),
                 'type'     => doArgs(1, 'text/javascript', $args),
@@ -427,12 +428,12 @@ class Page extends coreObj{
             );
         }
 
-        if(!isset($js['src'])){ return false; }
+        if (!isset($js['src'])) { return false; }
         $priority = doArgs('priority', MED, $js);
 
         $file = str_replace(DS, '-', $js['src']);
         $file = md5($file);
-            if(isset($this->jsFiles[$position][$priority]) && array_key_exists($file, $this->jsFiles[$position][$priority])){
+            if (isset($this->jsFiles[$position][$priority]) && array_key_exists($file, $this->jsFiles[$position][$priority])) {
                 return false;
             }
 
@@ -448,17 +449,17 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param   string  $code
+     * @param string $code
      *
-     * @return  bool
+     * @return bool
      */
-    public function addJSCode($code){
-        if(empty($code)){ return false; }
+    public function addJSCode($code) {
+        if (empty($code)) { return false; }
 
         $code = str_replace(DS, '-', $code);
         $code = md5($code);
 
-            if( isset($this->jsCode) && array_key_exists($code, $this->jsCode) ){
+            if ( isset($this->jsCode) && array_key_exists($code, $this->jsCode) ) {
                 return false;
             }
 
@@ -476,24 +477,24 @@ class Page extends coreObj{
          *
          * @return  string
          */
-        private function buildJS($mode){
-
+        private function buildJS($mode)
+        {
             $_tag = "\n".'<script%s>%s</script>';
             $_arg = ' %s="%s"';
 
             $return = null;
             // do the files
-            if( isset($this->jsFiles[$mode])  && count($this->jsFiles[$mode]) ) {
-                foreach( range(HIGH, LOW) as $priority ){
-                    if( !isset($this->jsFiles[$mode][$priority]) || !count($this->jsFiles[$mode][$priority]) ){
+            if ( isset($this->jsFiles[$mode])  && count($this->jsFiles[$mode]) ) {
+                foreach ( range(HIGH, LOW) as $priority ) {
+                    if ( !isset($this->jsFiles[$mode][$priority]) || !count($this->jsFiles[$mode][$priority]) ) {
                         continue;
                     }
 
-                    foreach( $this->jsFiles[$mode][$priority] as $args ){
+                    foreach ($this->jsFiles[$mode][$priority] as $args) {
                         $tag = null;
 
-                        foreach($args as $k => $v){
-                            if($k == 'priority'){ continue; }
+                        foreach ($args as $k => $v) {
+                            if ($k == 'priority') { continue; }
 
                             $tag .= sprintf($_arg, $k, $v);
                         }
@@ -504,8 +505,8 @@ class Page extends coreObj{
             }
 
             // & if we are in footer mode, do the js code too
-            if( $mode == 'footer' && !empty($this->jsCode) ){
-                foreach( $this->jsCode as $args ){
+            if ( $mode == 'footer' && !empty($this->jsCode) ) {
+                foreach ($this->jsCode as $args) {
                     $return .= sprintf($_tag, '', $code);
                 }
             }
@@ -522,18 +523,18 @@ class Page extends coreObj{
      *
      * @param   array               Containing the array, either with or without keys.
      * -------------------------------
-     * @param   string  $argKey
-     * @param   string  $argValue
+     * @param string $argKey
+     * @param string $argValue
      *
-     * @return  bool
+     * @return bool
      */
-    public function addMeta(){
+    public function addMeta() {
         $args = $this->_getArgs(func_get_args());
 
         $key = (isset($args['name']) ? md5(strtolower($args['name'])) : md5(strtolower(json_encode($args))));
 
         $arg = func_get_arg(0);
-        if(!is_array($arg)){
+        if (!is_array($arg)) {
             $args = array($args[0] => $args[1]);
         }
 
@@ -551,16 +552,17 @@ class Page extends coreObj{
          *
          * @return  string
          */
-        private function buildMeta(){
-            if(!count($this->metaTags)){ return false; }
+        private function buildMeta()
+        {
+            if (!count($this->metaTags)) { return false; }
 
             $_tag = "\n".'<meta%s />';
             $_arg = ' %s="%s"';
 
             $return = null;
-            foreach($this->metaTags as $args){
+            foreach ($this->metaTags as $args) {
                 $tag = null;
-                foreach($args as $k => $v){
+                foreach ($args as $k => $v) {
                     $tag .= sprintf($_arg, $k, $v);
                 }
                 $return .= sprintf($_tag, $tag);
@@ -576,94 +578,94 @@ class Page extends coreObj{
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param   string $useragent
+     * @param string $useragent
      *
-     * @return  string
+     * @return string
      */
-    public function getCSSSelectors($useragent=null){
-        if( is_empty($useragent) ){
+    public function getCSSSelectors($useragent=null) {
+        if ( is_empty($useragent) ) {
             $useragent = $_SERVER['HTTP_USER_AGENT'];
         }
         $useragent = strtolower($useragent);
 
         $classes = array();
-        if( !preg_match('/opera|webtv/i', $useragent) && preg_match('/msie\s(\d)/', $useragent, $matches) ) {
+        if ( !preg_match('/opera|webtv/i', $useragent) && preg_match('/msie\s(\d)/', $useragent, $matches) ) {
             $classes[] = 'ie';
             $classes[] = 'ie' . $matches[1];
 
-        } elseif( strstr($useragent, 'firefox/2') ) {
+        } elseif ( strstr($useragent, 'firefox/2') ) {
             $classes[] = 'ff';
             $classes[] = 'ff2';
 
-        } elseif( strstr($useragent, 'firefox/3.5') ) {
+        } elseif ( strstr($useragent, 'firefox/3.5') ) {
             $classes[] = 'ff';
             $classes[] = 'ff3_3';
 
-        } elseif( strstr($useragent, 'firefox/3') ) {
+        } elseif ( strstr($useragent, 'firefox/3') ) {
             $classes[] = 'ff';
             $classes[] = 'ff3';
 
-        } elseif( preg_match('/firefox(\s|\/)(\d+)/', $useragent, $matches) ) {
+        } elseif ( preg_match('/firefox(\s|\/)(\d+)/', $useragent, $matches) ) {
             $classes[] = 'ff';
             $classes[] = 'ff' . $matches[2];
 
-        } elseif( strstr($useragent, 'gecko/') ) {
+        } elseif ( strstr($useragent, 'gecko/') ) {
             $classes[] = 'gecko';
 
-        } elseif( preg_match('/opera(\s|\/)(\d+)/', $useragent, $matches) ) {
+        } elseif ( preg_match('/opera(\s|\/)(\d+)/', $useragent, $matches) ) {
             $classes[] = 'opera';
             $classes[] = 'opera' . $matches[2];
 
-        } elseif( strstr($useragent, 'konqueror') ) {
+        } elseif ( strstr($useragent, 'konqueror') ) {
             $classes[] = 'konqueror';
 
-        } elseif( strstr($useragent, 'chrome') ) {
+        } elseif ( strstr($useragent, 'chrome') ) {
             $classes[] = 'webkit';
             $classes[] = 'safari';
             $classes[] = 'chrome';
 
-        } elseif( strstr($useragent, 'iron') ) {
+        } elseif ( strstr($useragent, 'iron') ) {
             $classes[] = 'webkit';
             $classes[] = 'safari';
             $classes[] = 'iron';
 
-        } elseif( strstr($useragent, 'applewebkit/') ) {
+        } elseif ( strstr($useragent, 'applewebkit/') ) {
             $classes[] = 'webkit';
             $classes[] = 'safari';
-            if( preg_match('/version\/(\d+)/i', $useragent, $matches) ){
+            if ( preg_match('/version\/(\d+)/i', $useragent, $matches) ) {
                 $classes[] = 'safari' . $matches[1];
             }
 
-        } elseif( strstr($useragent, 'mozilla/') ) {
+        } elseif ( strstr($useragent, 'mozilla/') ) {
             $classes[] = 'gecko';
         }
 
 
-        if( strstr($useragent, 'j2me') ) {
+        if ( strstr($useragent, 'j2me') ) {
             $classes[] = 'mobile';
 
-        } elseif( strstr($useragent, 'iphone')) {
+        } elseif ( strstr($useragent, 'iphone')) {
             $classes[] = 'iphone';
 
-        } elseif( strstr($useragent, 'ipod')) {
+        } elseif ( strstr($useragent, 'ipod')) {
             $classes[] = 'ipod';
 
-        } elseif( strstr($useragent, 'mac')) {
+        } elseif ( strstr($useragent, 'mac')) {
             $classes[] = 'mac';
 
-        } elseif( strstr($useragent, 'darwin')) {
+        } elseif ( strstr($useragent, 'darwin')) {
             $classes[] = 'mac';
 
-        } elseif( strstr($useragent, 'webtv')) {
+        } elseif ( strstr($useragent, 'webtv')) {
             $classes[] = 'webtv';
 
-        } elseif( strstr($useragent, 'win')) {
+        } elseif ( strstr($useragent, 'win')) {
             $classes[] = 'win';
 
-        } elseif( strstr($useragent, 'freebsd')) {
+        } elseif ( strstr($useragent, 'freebsd')) {
             $classes[] = 'freebsd';
 
-        } elseif( strstr($useragent, 'x11') || strstr($useragent, 'linux') ) {
+        } elseif ( strstr($useragent, 'x11') || strstr($useragent, 'linux') ) {
             $classes[] = 'linux';
 
         }
@@ -678,12 +680,12 @@ class Page extends coreObj{
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   string  $location
-     * @param   int     $time
-     * @param   int     $mode         Definitions - 1=>GET['redirect'], 2=>HTTP_REFFERER, => 0=>$location
+     * @param string $location
+     * @param int    $time
+     * @param int    $mode     Definitions - 1=>GET['redirect'], 2=>HTTP_REFFERER, => 0=>$location
      */
-    public function redirect($location=null, $time=0, $mode=0){
-        switch($mode) {
+    public function redirect($location=null, $time=0, $mode=0) {
+        switch ($mode) {
             case 1:
                 $url = doArgs('redirect', $location, $_GET);
             break;
@@ -699,19 +701,20 @@ class Page extends coreObj{
         }
 
         // check to see weather headers have already been sent, this prevents us from using the header() function
-        if( !headers_sent() && $time === 0 ) {
+        if ( !headers_sent() && $time === 0 ) {
             header( 'Location: '.$url );
+
             return;
 
         } else { // headers have already been sent, so use a JS and even META equivalent
             $output = null;
 
             $output .= '<script type="text/javascript">';
-            if( $time != 0 ){
+            if ($time != 0) {
                 $output .= 'function redirect(){';
             }
             $output .= '  window.location.href="'.$url.'";';
-            if( $time != 0 ){
+            if ($time != 0) {
                 $output .= '} setTimeout(\'redirect()\', '.($time*1000).');';
             }
             $output .= '</script>';
@@ -723,7 +726,7 @@ class Page extends coreObj{
         }
     }
 
-    public function buildPage(){
+    public function buildPage() {
         $objTPL     = self::getTPL();
         $objPlugins = self::getPlugins();
         $objUser    = self::getUser();
@@ -739,7 +742,7 @@ class Page extends coreObj{
             'content'    => $this->config('site', 'language'),
         ));
 
-        if($this->config('site', 'no-zoom', true)){
+        if ($this->config('site', 'no-zoom', true)) {
             $this->addMeta(array(
                 'name'    => 'viewport',
                 'content' => 'width=device-width, initial-scale=1',
@@ -762,7 +765,7 @@ class Page extends coreObj{
                 'GOOGLEBOT'     => 'INDEX, FOLLOW',
             );
 
-                foreach($metaArray as $k => $v){
+                foreach ($metaArray as $k => $v) {
                     $this->addMeta(array(
                         'name'    => $k,
                         'content' => $v,
@@ -784,8 +787,8 @@ class Page extends coreObj{
         $cssFiles = array();
         $objPlugins->hook('CMS_PAGE_CSSFILES', $cssFiles);
 
-            if(count($cssFiles)){
-                foreach($cssFiles as $file){
+            if (count($cssFiles)) {
+                foreach ($cssFiles as $file) {
                     $this->addCSSFile($file);
                 }
             }
@@ -810,7 +813,7 @@ class Page extends coreObj{
         $jsFiles = array();
         $objPlugins->hook('CMS_PAGE_JSFILES', $jsFiles);
 
-        if( defined('cmsDEBUG') && cmsDEBUG === true ){
+        if ( defined('cmsDEBUG') && cmsDEBUG === true ) {
             $this->addJSFile(array(
                 'src' => $cssDir.'/debug.js',
                 'priority' => HIGH,
@@ -824,7 +827,7 @@ class Page extends coreObj{
 **/
         $browserCSSSelectors = $this->getCSSSelectors();
         $themeConfig = self::$THEME_ROOT.'theme.php';
-        if(is_readable($themeConfig)){
+        if (is_readable($themeConfig)) {
             include_once($themeConfig);
         }
 
@@ -844,12 +847,11 @@ class Page extends coreObj{
             'USERNAME'      => $objUser->grab('username'),
             //'TIME'          => $objTime->mk_time(time(), 'l H:i:s a'),
 
-
             'U_UCP'         => '/'.root().'user/',
             'L_UCP'         => langVar('L_UCP'),
         );
 
-        if( !User::$IS_ONLINE ){
+        if (!User::$IS_ONLINE) {
             $tplGlobals += array(
                 'U_LOGIN' => '/'.root().'login',
                 'L_LOGIN' => 'Login',
@@ -872,8 +874,8 @@ class Page extends coreObj{
         $objTPL->assign_var('_JS_FOOTER',       $this->buildJS('footer'));
     }
 
-    public function showHeader(){
-        if($this->getOptions('completed')){ return; }
+    public function showHeader() {
+        if ($this->getOptions('completed')) { return; }
 
         $objTPL = self::getTPL();
 
@@ -892,9 +894,8 @@ class Page extends coreObj{
         $this->setOptions('completed', 1);
     }
 
-
-    public function showFooter(){
-        if(!$this->getOptions('completed')){ return; }
+    public function showFooter() {
+        if (!$this->getOptions('completed')) { return; }
 
         $objTPL = self::getTPL();
 
@@ -908,7 +909,7 @@ class Page extends coreObj{
 
         $this->buildBlocks();
 
-        if( defined('cmsDEBUG') && cmsDEBUG === true ){
+        if ( defined('cmsDEBUG') && cmsDEBUG === true ) {
 
             $objDebug = coreObj::getDebug();
             $objTPL->assign_block_vars('debug', array(
@@ -921,5 +922,3 @@ class Page extends coreObj{
     }
 
 }
-
-?>
