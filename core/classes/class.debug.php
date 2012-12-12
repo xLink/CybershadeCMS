@@ -83,21 +83,25 @@ class Debug extends coreObj{
 
                 $replace = array('FROM', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'ON', 'OR', 'AND', 'SET', 'WHERE', 'LIMIT', 'GROUP BY', 'ORDER BY', 'VALUES', );
 
-                foreach($replace as $r){
-                    $replace = "\n";
-                    $r = ' '.$r;
+                if( strlen($query['query']) > 100 ){
+                    foreach($replace as $r){
+                        $replace = "\n";
+                        $r = ' '.$r;
 
-                    $query['query'] = str_replace($r, $replace.$r, $query['query']);
+                        $query['query'] = str_replace($r, $replace.$r, $query['query']);
+                    }
                 }
+
 
                 $geshi = new GeSHi($query['query'], 'sql');
 
                 $output .= '</tr><tr>';
-                    $output .= sprintf('<tr><td style="background-color: #1E1E1E; color: white;"> <strong>%1$s</strong> @ <strong>%2$s</strong> // Affected %3$d Rows <br /> %4$s </td></tr>',
-                                    realpath($query['file']),
+                    $output .= sprintf('<tr><td style="background-color: #1E1E1E; color: white;"> <strong>%1$s</strong> @ <strong>%2$s</strong> // Affected %3$d Rows <span class="pull-right">%5$s</span> <br /> %4$s </td></tr>',
+                                    str_replace( $this->config('global', 'realPath'), '', $query['file']),
                                     $query['line'],
                                     $query['affected_rows'],
-                                    $geshi->parse_code()
+                                    $geshi->parse_code(),
+                                    $query['time_taken']
                                 );
 
 
@@ -106,17 +110,13 @@ class Debug extends coreObj{
                     $output .= sprintf('<td style="background-color: #1E1E1E; color: white;"> %s </td>', dump($query). $query['error']);
                 }
 
-                // $output .= '</tr><tr>';
-
-                //     $output .= sprintf('<td> %s </td>', $this->getSource(file(realpath($query['file'])), $query['line'], 0, 5));
-
                 $output .= '</tr>';
             $output .= '</tbody></table>';
             }
 
         }
 
-        return array('count' => count($debug), 'content' => sprintf( '<ul>%s</ul>', $output ));
+        return array('count' => count($debug).' / '.$objSQL->totalTime, 'content' => sprintf( '<ul>%s</ul>', $output ));
     }
 
 /**
