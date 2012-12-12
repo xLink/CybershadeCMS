@@ -35,6 +35,7 @@ class User extends coreObj {
                 'language'  => 'en', //$language,
                 'secure'    => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? true : false ),
                 'referer'   => doArgs('HTTP_REFERER', null, $_SERVER),
+                'realPath'  => realpath('').'/',
                 'rootPath'  => '/'.root(),
                 'fullPath'  => $_SERVER['REQUEST_URI'],
                 'rootUrl'   => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].'/'.root(),
