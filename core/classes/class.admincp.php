@@ -7,6 +7,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class AdminCP extends coreObj{
 
     public function __construct($name, $options=array()){
+        // apparently it wants to throw the args into an array first :/
+        $options = $options[0];
 
         $this->mode   = doArgs('__mode',      null,         $options);
         $this->module = doArgs('__module',    'core',       $options);

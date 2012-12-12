@@ -18,6 +18,7 @@ class coreObj {
                     $_instances     = array(),
                     $_config        = array(),
                     $_lang          = array(),
+                    $coreMethods    = array(),
                     $loadedConfig   = false;
 
 
@@ -375,10 +376,12 @@ class coreObj {
         $className = str_replace('get', '', $method);
         $className = ucwords($className);
 
-        $objCore = new coreObj;
-        $methods = get_class_methods( $objCore );
+        if( !isset(self::$coreMethods) ){
+            $objCore = new coreObj;
+            self::$coreMethods = get_class_methods( $objCore );
+        }
 
-        if( class_exists( $className ) && !in_array( $className, $methods ) ){
+        if( class_exists( $className ) && !in_array( $className, self::$coreMethods ) ){
 
             if( !isset(coreObj::$_classes[ $className ]) ){
                 $className :: getInstance( $className, $args );
@@ -386,7 +389,6 @@ class coreObj {
 
             return coreObj::$_classes[ $className ];
         }
-
 
         // Method name didnt match what we expected so just output an error now.
 
