@@ -105,14 +105,14 @@ class Login extends coreObj {
         $objTime = coreObj::getTime();
 
         $query = $objSQL->queryBuilder()
-                        ->update( '#__sessions' )
-                        ->set(array(
-                            'uid' => $objUser->grab('id'),
-                        ))
-                        ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0'))
-                            ->andWhere('sid',       '=', md5( session_id() ) )
-                            ->andWhere('hostname',  '=', User::getIP() )
-                        ->build();
+            ->update( '#__sessions' )
+            ->set(array(
+                'uid' => $objUser->grab('id'),
+            ))
+            ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0'))
+                ->andWhere('sid',       '=', md5( session_id() ) )
+                ->andWhere('hostname',  '=', User::getIP() )
+            ->build();
 
         $results = $objSQL->query( $query );
 
@@ -196,12 +196,12 @@ class Login extends coreObj {
         }
 
         $query = $objSQL->queryBuilder()
-                        ->update('#__sessions')
-                        ->set(array(
-                            'login_attempts' => '(login_attempts + 1)'
-                        ))
-                        ->where('sid', '=', $objUser->grab('userkey'))
-                        ->build();
+            ->update('#__sessions')
+            ->set(array(
+                'login_attempts' => '(login_attempts + 1)'
+            ))
+            ->where('sid', '=', $objUser->grab('userkey'))
+            ->build();
         $objSQL->query( $query );
     }
 
@@ -229,13 +229,13 @@ class Login extends coreObj {
                 $objUser = coreObj::getUser();
 
                 $query = $objSQL->queryBuilder()
-                                ->update('#__sessions')
-                                ->set(array(
-                                    'login_time'     => $objTime->mod_time(time(), 0, 15),
-                                    'login_attempts' => '0'
-                                ))
-                                ->where('sid', '=', $objUser->grab('userkey'))
-                                ->build();
+                    ->update('#__sessions')
+                    ->set(array(
+                        'login_time'     => $objTime->mod_time(time(), 0, 15),
+                        'login_attempts' => '0'
+                    ))
+                    ->where('sid', '=', $objUser->grab('userkey'))
+                    ->build();
                 $objSQL->query( $query );
             }
 

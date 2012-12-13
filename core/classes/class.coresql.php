@@ -234,11 +234,11 @@ class coreSQL extends coreObj{
 
     public function fetchAutoIncrement($table){
         $query = $this->queryBuilder()
-                    ->select('AUTO_INCREMENT')
-                    ->from('information_schema.TABLES')
-                        ->where(sprintf('TABLE_NAME LIKE "%s"', $table))
-                            ->andWhere(sprintf('TABLE_SCHEMA = %s', $this->config('db', 'database')))
-                    ->build();
+            ->select('AUTO_INCREMENT')
+            ->from('information_schema.TABLES')
+                ->where(sprintf('TABLE_NAME LIKE "%s"', $table))
+                    ->andWhere(sprintf('TABLE_SCHEMA = %s', $this->config('db', 'database')))
+            ->build();
 
         $this->query($query);
             if(!$this->affectedRows()){

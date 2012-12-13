@@ -217,10 +217,10 @@ class Module extends coreObj{
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                        ->select('enabled')
-                        ->from('#__modules')
-                        ->where('name', '=', $moduleName)
-                        ->build();
+            ->select('enabled')
+            ->from('#__modules')
+            ->where('name', '=', $moduleName)
+            ->build();
 
         $result = $objSQL->fetchLine( $query );
 

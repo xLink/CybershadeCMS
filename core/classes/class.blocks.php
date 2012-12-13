@@ -41,9 +41,9 @@ class Blocks extends coreObj{
         );
 
         $query = $objSQL->queryBuilder()
-                        ->insertInto('#__blocks')
-                        ->set( $data )
-                        ->build();
+            ->insertInto('#__blocks')
+            ->set( $data )
+            ->build();
 
         if( !$objSQL->query( $query ) ) {
             trigger_error( 'Error in Installing new block, The query could not be executed properly', E_USER_ERROR );
@@ -85,10 +85,10 @@ class Blocks extends coreObj{
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                        ->select( 'id' )
-                        ->from( '#__blocks' )
-                        ->where( 'id', '=', $id )
-                        ->build();
+            ->select( 'id' )
+            ->from( '#__blocks' )
+            ->where( 'id', '=', $id )
+            ->build();
 
         $objSQL->query( $query );
 
@@ -98,16 +98,16 @@ class Blocks extends coreObj{
         }
 
         $query = $objSQL->queryBuilder()
-                        ->deleteFrom( '#__blocks_routes' )
-                        ->where( 'blockID', '=', $id )
-                        ->build();
+            ->deleteFrom( '#__blocks_routes' )
+            ->where( 'blockID', '=', $id )
+            ->build();
 
         $objSQL->query( $query );
 
         $query = $objSQL->queryBuilder()
-                        ->deleteFrom( '#__blocks' )
-                        ->where( 'id', '=', $id )
-                        ->build();
+            ->deleteFrom( '#__blocks' )
+            ->where( 'id', '=', $id )
+            ->build();
 
         if( $objSQL->query( $query ) ) {
             return true;
@@ -142,10 +142,10 @@ class Blocks extends coreObj{
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                    ->select()
-                    ->from('#__')
-                    ->where()
-                    ->build();
+            ->select()
+            ->from('#__')
+            ->where()
+            ->build();
 
         $objSQL->query( $query );
 
@@ -165,10 +165,10 @@ class Blocks extends coreObj{
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                        ->select( 'id')
-                        ->from( '#__blocks')
-                        ->where( 'id', '=', $id)
-                        ->build();
+            ->select( 'id')
+            ->from( '#__blocks')
+            ->where( 'id', '=', $id)
+            ->build();
 
         $result = $objSQL->query( $query );
 
@@ -297,10 +297,10 @@ class Blocks extends coreObj{
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                        ->select('id', 'uniqueid', 'title', 'name', 'location', 'order', 'enabled', 'file_location', 'extra')
-                        ->from('#__blocks')
-                        ->orderBy('location', 'order')
-                        ->build();
+            ->select('id', 'uniqueid', 'title', 'name', 'location', 'order', 'enabled', 'file_location', 'extra')
+            ->from('#__blocks')
+            ->orderBy('location', 'order')
+            ->build();
 
         $results = $objSQL->fetchAll( $query );
 

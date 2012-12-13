@@ -394,9 +394,9 @@ class Route extends coreObj{
         // To Add Logic for: Status && Redirection
 
         $query = $objSQL->queryBuilder()
-                        ->insertInto('#__routes')
-                        ->set($values)
-                        ->build();
+            ->insertInto('#__routes')
+            ->set($values)
+            ->build();
 
         $result = $objSQL->query($query);
         $objCache->doCache('route');
@@ -444,10 +444,10 @@ class Route extends coreObj{
         $objCache = coreObj::getCache();
 
         $query  = $objSQL->queryBuilder()
-                        ->deleteFrom('#__routes')
-                        ->where(sprintf('id = %d', $id))
-                        //      'id', '=', '%d'
-                        ->build();
+            ->deleteFrom('#__routes')
+            ->where(sprintf('id = %d', $id))
+            //      'id', '=', '%d'
+            ->build();
 
         $result = $objSQL->query($query);
         $objCache->doCache('route');
@@ -481,9 +481,9 @@ class Route extends coreObj{
         }
 
         $query = $query->update('#__routes')
-                        ->set($update)
-                        ->where(sprintf('id = %d', $id))
-                        ->build();
+            ->set($update)
+            ->where(sprintf('id = %d', $id))
+            ->build();
 
         $result = $objSQL->query($query);
         $objCache->doCache('route');
@@ -516,12 +516,12 @@ class Route extends coreObj{
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                        ->select('module', 'label', 'pattern', 'method', 'arguments', 'requirements', 'status', 'redirect')
-                            ->addField('pattern LIKE "%:%" as `dynamic`')
-                        ->from('#__routes')
-                        ->where('status = 1')
-                        ->orderBy('`dynamic` ASC, method DESC, CHAR_LENGTH(pattern)', 'DESC')
-                        ->build();
+            ->select('module', 'label', 'pattern', 'method', 'arguments', 'requirements', 'status', 'redirect')
+                ->addField('pattern LIKE "%:%" as `dynamic`')
+            ->from('#__routes')
+            ->where('status = 1')
+            ->orderBy('`dynamic` ASC, method DESC, CHAR_LENGTH(pattern)', 'DESC')
+            ->build();
 
         $results = $objSQL->fetchAll( $query );
         $methods = array( 'ANY', 'HEAD', 'PUT', 'GET', 'OPTIONS', 'POST', 'DELETE', 'TRACE', 'CONNECT', 'PATCH' );

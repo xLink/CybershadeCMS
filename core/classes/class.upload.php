@@ -229,10 +229,10 @@ class Upload extends coreObj {
 
         // Check if the file is already authorized
         $checkAuth = $objSQL->queryBuilder()
-                            ->select('authorized', 'uid')
-                            ->from('#__uploads')
-                            ->where('id', '=', $fid)
-                            ->build();
+            ->select('authorized', 'uid')
+            ->from('#__uploads')
+            ->where('id', '=', $fid)
+            ->build();
 
         $fileAuth = $objSQL->fetchLine( $checkAuth );
 
@@ -245,12 +245,12 @@ class Upload extends coreObj {
 
         // Update the uploads content to be authorized
         $query = $objSQL->queryBuilder()
-                        ->update('#__uploads')
-                        ->set(array(
-                            'authorized'    => 1
-                        ))
-                        ->where('id', '=', $fid)
-                        ->build();
+            ->update('#__uploads')
+            ->set(array(
+                'authorized'    => 1
+            ))
+            ->where('id', '=', $fid)
+            ->build();
 
         $result = $objSQL->query( $query );
 
@@ -291,10 +291,10 @@ class Upload extends coreObj {
 
         // Check if the file is already public
         $check = $objSQL->queryBuilder()
-                            ->select('public')
-                            ->from('#__uploads')
-                            ->where('id', '=', $fid)
-                            ->build();
+            ->select('public')
+            ->from('#__uploads')
+            ->where('id', '=', $fid)
+            ->build();
 
         $fileCheck = $objSQL->fetchLine( $check );
 
@@ -307,12 +307,12 @@ class Upload extends coreObj {
 
         // Update the uploads content to be public
         $query = $objSQL->queryBuilder()
-                        ->update('#__uploads')
-                        ->set(array(
-                            'public'    => 1
-                        ))
-                        ->where('id', '=', $fid)
-                        ->build();
+            ->update('#__uploads')
+            ->set(array(
+                'public'    => 1
+            ))
+            ->where('id', '=', $fid)
+            ->build();
 
         $result = $objSQL->query( $query );
 

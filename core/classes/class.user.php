@@ -439,10 +439,10 @@ class User extends coreObj {
         if( !is_empty( $userData ) ){
 
             $insert = $objSQL->queryBuilder()
-                                ->update( '#__users' )
-                                ->set( $userData )
-                                ->where( 'id', '=', $uid )
-                                ->build();
+                ->update( '#__users' )
+                ->set( $userData )
+                ->where( 'id', '=', $uid )
+                ->build();
 
             $userInsertResult = $objSQL->query( $insert );
 
@@ -456,10 +456,10 @@ class User extends coreObj {
         if( !is_empty( $userExtraData ) ){
 
             $insertExtras = $objSQL->queryBuilder()
-                                        ->update( '#__users_extras' )
-                                        ->set( $userExtraData )
-                                        ->where( 'uid', '=', $uid )
-                                        ->build();
+                ->update( '#__users_extras' )
+                ->set( $userExtraData )
+                ->where( 'uid', '=', $uid )
+                ->build();
 
             $userExtrasInsertResult = $objSQL->query( $insertExtras );
 
@@ -493,12 +493,12 @@ class User extends coreObj {
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                        ->update('#__users')
-                        ->set( array(
-                            'password' => $this->mkPassword( $password )
-                        ))
-                        ->where('id', '=', $uid)
-                        ->build();
+            ->update('#__users')
+            ->set( array(
+                'password' => $this->mkPassword( $password )
+            ))
+            ->where('id', '=', $uid)
+            ->build();
 
         $result = $objSQL->query( $query );
 
@@ -539,12 +539,12 @@ class User extends coreObj {
 
         if( in_array( $var, $userColumnData ) ){
             $query = $objSQL->queryBuilder()
-                            ->update('#__users')
-                            ->set(array(
-                                $var => $state
-                            ))
-                            ->where('id', '=', $uid)
-                            ->build();
+                ->update('#__users')
+                ->set(array(
+                    $var => $state
+                ))
+                ->where('id', '=', $uid)
+                ->build();
 
             $result = $objSQL->query( $query );
 
@@ -555,12 +555,12 @@ class User extends coreObj {
 
         if( in_array( $var, $userExtrasColumnData ) ){
             $query = $objSQL->queryBuilder()
-                            ->update('#__users_extras')
-                            ->set(array(
-                                $var => $state
-                            ))
-                            ->where('id', '=', $uid)
-                            ->build();
+                ->update('#__users_extras')
+                ->set(array(
+                    $var => $state
+                ))
+                ->where('id', '=', $uid)
+                ->build();
 
             $result = $objSQL->query( $query );
 
@@ -613,9 +613,9 @@ class User extends coreObj {
         if( !is_empty( $userData ) ){
 
             $insert = $objSQL->queryBuilder()
-                                ->insertInto('#__users')
-                                ->set( $userData )
-                                ->build();
+                ->insertInto('#__users')
+                ->set( $userData )
+                ->build();
 
             $userInsertResult = $objSQL->query( $insert );
 
@@ -630,9 +630,9 @@ class User extends coreObj {
         if( !is_empty( $userExtraData ) ){
 
             $insertExtras = $objSQL->queryBuilder()
-                                        ->insertInto('#__users_extras')
-                                        ->set( $userExtraData )
-                                        ->build();
+                ->insertInto('#__users_extras')
+                ->set( $userExtraData )
+                ->build();
 
             $userExtrasInsertResult = $objSQL->query( $insertExtras );
 

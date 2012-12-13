@@ -383,10 +383,10 @@ PHP;
         $objSQL = coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-                        ->select('key', 'var', 'value', 'default')
-                        ->from('#__config')
-                        ->orderBy('key', 'DESC')
-                        ->build();
+            ->select('key', 'var', 'value', 'default')
+            ->from('#__config')
+            ->orderBy('key', 'DESC')
+            ->build();
 
         $results = $objSQL->fetchAll($query);
             if(!count($results)){

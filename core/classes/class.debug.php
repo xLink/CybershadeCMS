@@ -97,12 +97,12 @@ class Debug extends coreObj{
 
                 $output .= '</tr><tr>';
                     $output .= sprintf('<tr><td style="background-color: #1E1E1E; color: white;"> <strong>%1$s</strong> @ <strong>%2$s</strong> // Affected %3$d Rows <span class="pull-right">%5$s</span> <br /> %4$s </td></tr>',
-                                    str_replace( $this->config('global', 'realPath'), '', $query['file']),
-                                    $query['line'],
-                                    $query['affected_rows'],
-                                    $geshi->parse_code(),
-                                    $query['time_taken']
-                                );
+                        str_replace( $this->config('global', 'realPath'), '', $query['file']),
+                        $query['line'],
+                        $query['affected_rows'],
+                        $geshi->parse_code(),
+                        $query['time_taken']
+                    );
 
 
                 if( $query['affected_rows'] == '-1' ){

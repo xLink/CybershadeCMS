@@ -34,9 +34,9 @@ class Session extends coreObj{
                 $objSQL = coreObj::getDBO();
 
                 $query = $objSQL->queryBuilder()
-                                ->deleteFrom('#__sessions')
-                                ->where('sid', '=', md5( session_id() ) )
-                                ->build();
+                    ->deleteFrom('#__sessions')
+                    ->where('sid', '=', md5( session_id() ) )
+                    ->build();
 
                 $objSQL->query( $query );
             }
@@ -66,9 +66,9 @@ class Session extends coreObj{
             $objSQL = coreObj::getDBO();
 
             $query = $objSQL->queryBuilder()
-                            ->deleteFrom('#__sessions')
-                            ->where( sprintf('timestamp < %d', time()-((60*60)*20)) )
-                            ->build();
+                ->deleteFrom('#__sessions')
+                ->where( sprintf('timestamp < %d', time()-((60*60)*20)) )
+                ->build();
 
             $objSQL->query( $query );
         }
@@ -114,12 +114,12 @@ class Session extends coreObj{
         $update['timestamp'] = time();
 
         $query = $objSQL->queryBuilder()
-                        ->update('#__sessions')
-                        ->set($update)
-                        ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0'))
-                            ->andWhere('sid',       '=', md5( session_id() ) )
-                            ->andWhere('hostname',  '=', User::getIP() )
-                        ->build();
+            ->update('#__sessions')
+            ->set($update)
+            ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0'))
+                ->andWhere('sid',       '=', md5( session_id() ) )
+                ->andWhere('hostname',  '=', User::getIP() )
+            ->build();
 
         $results = $objSQL->query( $query );
 
@@ -150,9 +150,9 @@ class Session extends coreObj{
         $insert['mode']      = 'active';
 
         $query = $objSQL->queryBuilder()
-                        ->insertInto('#__sessions')
-                        ->set( $insert )
-                        ->build();
+            ->insertInto('#__sessions')
+            ->set( $insert )
+            ->build();
 
         $results = $objSQL->query( str_replace('INSERT INTO', 'REPLACE INTO', $query) );
 
@@ -179,12 +179,12 @@ class Session extends coreObj{
         $objUser = coreObj::getUser();
 
         $query = $objSQL->queryBuilder()
-                        ->select('*')
-                        ->from('#__sessions')
-                        ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0') )
-                            ->andWhere('sid',       '=', md5( session_id() ) )
-                            ->andWhere('hostname',  '=', User::getIP() )
-                        ->build();
+            ->select('*')
+            ->from('#__sessions')
+            ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0') )
+                ->andWhere('sid',       '=', md5( session_id() ) )
+                ->andWhere('hostname',  '=', User::getIP() )
+            ->build();
 
         $results = $objSQL->fetchLine( $query );
 
