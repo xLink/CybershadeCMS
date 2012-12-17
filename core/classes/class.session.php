@@ -198,7 +198,7 @@ class Session extends coreObj{
 
 
     /**
-     * Gets the form token for the sesson
+     * Gets the form token for the session
      *
      * @version 1.0
      * @since   1.0.0

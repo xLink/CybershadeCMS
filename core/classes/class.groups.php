@@ -38,13 +38,13 @@ class Groups extends coreObj {
 
         $objSQL = coreObj::getDBO();
 
-
         $group_id = $objSQL->queryBuilder()
             ->select('id', 'name', 'moderator', 'single_user_group')
             ->from('#__groups')
             ->where('id', '=', $gid)
             ->limit(1)
             ->build();
+
 
         $this->group[$gid] = $objSQL->fetchLine( $group_id );
 

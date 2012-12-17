@@ -289,16 +289,9 @@ class Module_comments extends Module {
         $this->objTPL->assign_var_from_handle($tplVar, 'comments');
     }
 
-
-    /**
-     //
-     // -- Finish porting from here
-     //
-     */
-
-
     function getCount(){
-        $this->count = $objSQL->getInfo('comments', array('module="%s" AND module_id="%s"', $this->module, $this->module_id));
+        $objSQL = coreObj::getDBO();
+        $this->count = $objSQL->fetchCount('#__comments', sprintf('module="%s" AND module_id="%s"', $this->module, $this->module_id ));
         return $this->count;
     }
 
@@ -310,26 +303,35 @@ class Module_comments extends Module {
      */
     function makeSubmitForm(){
         $rand = rand(1, 99);
-        $this->objTPL->set_filenames(array(
+
+        $objTPL     = coreObj::getTPL();
+        $objPage    = coreObj::getPage();
+        $objSession = coreObj::getSession();
+        $objForm    = coreObj::getForm();
+
+
+        $objTPL->set_filenames(array(
             'submitCommentsForm_'.$rand => 'modules/core/template/comments/submitComment.tpl'
         ));
 
-        $this->objPage->addJSFile('/'.root().'scripts/comments.js');
+        $objPage->addJSFile('/'.root().'scripts/comments.js');
 
-        $sessid = $_SESSION[$this->module]['comment_'.$this->module_id] = md5(time().'�');
-        $this->objTPL->assign_vars(array(
-            'FORM_START'        =>  $this->objForm->start('comments', array('method'=>'POST', 'action'=>$this->aURL[0].'?mode=postComment')),
-            'FORM_END'          =>  $this->objForm->finish(),
-            'SUBMIT'            =>  $this->objForm->button('submit', 'Submit'),
+        $sess_id = $_SESSION[$this->module]['comment_'.$this->module_id] = md5(time() . $rand);
+
+        $objTPL->assign_vars(array(
+            'FORM_START'        =>  $objForm->start('comments', array('method'=>'POST', 'action'=>$this->aURL[0].'?mode=postComment')),
+            'FORM_END'          =>  $objForm->finish(),
+            'SUBMIT'            =>  $objForm->button('submit', 'Submit'),
 
             'L_SUBMIT_COMMENT'    =>  'Submit a comment:',
-            'TEXTAREA'          =>  $this->objForm->textarea('comment', ''),
-            'HIDDEN'            =>  $this->objForm->inputbox('sessid', 'hidden', $sessid) .
-                                        $this->objForm->inputbox('module', 'hidden', $this->module),
+            'TEXTAREA'          =>  $objForm->textarea('comment', ''),
+            'HIDDEN'            =>  $objForm->inputbox('sessid', 'hidden', $sess_id) .
+                                        $objForm->inputbox('module', 'hidden', $this->module),
         ));
 
         //and then output the comments to the parent template
-        $this->objTPL->assign_var_from_handle('_NEW_COMMENT', 'submitCommentsForm_'.$rand);
+        $objTPL->assign_var_from_handle('_NEW_COMMENT', 'submitCommentsForm_'.$rand);
+        return true;
     }
 
     /**
@@ -339,33 +341,46 @@ class Module_comments extends Module {
      * @since       0.8.0
      */
     function getLastComment($id){
+        $objTPL  = coreObj::getTPL();
+        $objSQL  = coreObj::getDBO();
+        $objUser = coreObj::getUser();
+        $objTime = coreObj::getTime();
+
         //set the template for the comments
-        $this->objTPL->set_filenames(array(
+        $objTPL->set_filenames(array(
             'ajComments'  =>  'modules/core/template/comments/ajaxComments.tpl'
         ));
 
-        $comments = $this->objSQL->getLine($this->objSQL->prepare(
-            'SELECT * FROM `$Pcomments` WHERE id = "%d"',
-            $id
-        ));
-            $this->objTPL->assign_block_vars('comment', array(
+        $commentQuery = $objSQL->queryBuilder()
+            ->select('*')
+            ->from('#__comments')
+            ->where('id', '=', $id)
+            ->limit(1)
+            ->build();
+
+        $comments = $objSQL->fetchAll( $commentQuery );
+
+        if( is_array( $comments ) && count($comments) > 0 ){
+
+            $objTPL->assign_block_vars('comment', array(
                 'ID'        => $comments['id'],
                 'cID'       => 'comment-'.$comments['id'],
                 'ROW'       => $i%2 ? 'row_color2' : 'row_color1',
                 'ALT_ROW'   => $i%2 ? 'row_color1' : 'row_color2',
 
-                'AUTHOR'    => $this->objUser->profile($comments['author']),
-                'POSTED'    => $this->objTime->mk_time($comments['timestamp']),
+                'AUTHOR'    => $objUser->profile($comments['author']),
+                'POSTED'    => $objTime->mk_time($comments['timestamp']),
                 'POST'      => contentParse($comments['comment']),
             ));
 
             if(User::$IS_ADMIN || User::$IS_MOD ||
-                (User::$IS_ONLINE && ($this->objUser->grab('id')==$comments['author'] || $this->objUser->grab('id')==$this->author_id))){
+                (User::$IS_ONLINE && ($objUser->get('id')==$comments['author'] || $objUser->get('id')==$this->author_id))){
 
-                $this->objTPL->assign_block_vars('comment.functions', array(
+                $objTPL->assign_block_vars('comment.functions', array(
                     'URL'   => $this->aURL[0].'?mode=deleteComment&id='.$comments['id'],
                 ));
             }
+        }
         $this->objTPL->parse('ajComments', false);
         return $this->objTPL->get_html('ajComments');
     }
