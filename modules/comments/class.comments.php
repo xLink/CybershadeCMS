@@ -81,7 +81,7 @@ class Module_comments extends Module {
      *
      * @version     1.0
      * @since       1.0.0
-     * @author       xLink
+     * @author       Dan Aldridge
      *
      * @param       string  $tplVar
      */
