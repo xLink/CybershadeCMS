@@ -18,6 +18,11 @@ $objPage->addCSSFile(array(
     'priority' => HIGH
 ));
 
+$objPage->addCSSFile(array(
+    'href'     => '/'.root().'assets/styles/default.css',
+    'type'     => 'text/css',
+    'priority' => HIGH
+));
 
 $objPage->addCSSFile(array(
     'href'     => '/'.root().self::$THEME_ROOT.'assets/styles/style.css',

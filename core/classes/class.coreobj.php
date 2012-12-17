@@ -365,7 +365,7 @@ class coreObj {
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   string $method 
+     * @param   string $method
      * @param   array $args
      *
      * @return  mixed
@@ -373,21 +373,23 @@ class coreObj {
     public static function __callStatic($method, $args){
 
         // check to see if we have called a get*() method
-        $className = str_replace('get', '', $method);
-        $className = ucwords($className);
+        if( substr($method, 0, 3) === 'get' ){
+            $className = str_replace('get', '', $method);
+            $className = ucwords($className);
 
-        if( !isset(self::$coreMethods) ){
-            $objCore = new coreObj;
-            self::$coreMethods = get_class_methods( $objCore );
-        }
-
-        if( class_exists( $className ) && !in_array( $className, self::$coreMethods ) ){
-
-            if( !isset(coreObj::$_classes[ $className ]) ){
-                $className :: getInstance( $className, $args );
+            if( !isset(self::$coreMethods) ){
+                $objCore = new coreObj;
+                self::$coreMethods = get_class_methods($objCore);
             }
 
-            return coreObj::$_classes[ $className ];
+            if( class_exists($className) && !in_array($className, self::$coreMethods) ){
+
+                if( !isset(coreObj::$_classes[$className]) ){
+                    $className::getInstance($className, $args);
+                }
+
+                return coreObj::$_classes[$className];
+            }
         }
 
         // Method name didnt match what we expected so just output an error now.
