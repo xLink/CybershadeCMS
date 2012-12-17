@@ -1,0 +1,51 @@
+/** Default.css **/
+
+/** Simple Rules **/
+    /* Fix for chrome webkit autofilling form fields, and making them unreadable (yellow background and text) (iccle) */
+    input:-webkit-autofill {
+        color: #2a2a2a !important;
+    }
+
+    .wrap{
+        white-space: pre;           /* CSS 2.0 */
+        white-space: pre-line;      /* CSS 3.0 */
+        white-space: pre-wrap;      /* CSS 2.1 */
+        white-space: -pre-wrap;     /* Opera 4-6 */
+        white-space: -o-pre-wrap;   /* Opera 7 */
+        white-space: -moz-pre-wrap; /* Mozilla */
+        white-space: -hp-pre-wrap;  /* HP Printers */
+        word-wrap: break-word;      /* IE 5+ */
+    }
+    .noBorder{
+        border: 0 !important;
+    }
+    .noMargin{
+        margin: 0 !important;
+    }
+
+    img.avatar{
+        display: block;
+        background: url('black-20.png') repeat;
+    }
+
+
+/** Context Menus **/
+
+#contextmenu{
+    margin: 0;
+    padding: 0;
+    border: 1px solid #000;
+    background: #cccccc;
+
+    li{
+        list-style-type: none;
+        margin: 1px;
+        padding: 2px;
+        cursor: pointer;
+
+        &.hover{
+            background: #dddddd;
+        }
+    }
+
+}
