@@ -188,7 +188,7 @@ class Module extends coreObj{
             return false;
         }
 
-        $files = glob( sprintf( '%1$smodules/%2$s/base%2$s.php', cmsROOT, $moduleName ) );
+        $files = glob( sprintf( '%1$smodules/%2$s/class.%2$s.php', cmsROOT, $moduleName ) );
 
         if( is_empty( $files ) ) {
             return false;

@@ -81,7 +81,7 @@ class Module_comments extends Module {
      *
      * @version     1.0
      * @since       1.0.0
-     * @author       Dan Aldridge
+     * @author      Richard Clifford, Dan Aldridge
      *
      * @param       string  $tplVar
      */
@@ -227,7 +227,7 @@ class Module_comments extends Module {
 
         // TODO: fix the pagination
         $objPagniation = coreObj::getPagination();
-        $comPagination = new pagination('commentsPage', $this->perPage, $commentsCount);
+        $comPagination = new Pagination('commentsPage', $this->perPage, $commentsCount);
 
             //check to see if we have a positive number
             if($commentsCount){
@@ -235,23 +235,23 @@ class Module_comments extends Module {
                 //now lets actually grab the comments
 
                 $commentDataQuery = $objSQL->queryBuilder()
-                                            ->select('*')
-                                            ->from('#__comments')
-                                            ->where(
-                                                sprintf('module = "%s" AND module_id = %d ',
-                                                    $this->getVar('module'),
-                                                    $this->getVar('module_id')
-                                            ))
-                                            ->limit($comPagination->getSqlLimit())
-                                            ->build();
+                    ->select('*')
+                    ->from('#__comments')
+                    ->where(
+                        sprintf('module = "%s" AND module_id = %d ',
+                            $this->getVar('module'),
+                            $this->getVar('module_id')
+                    ))
+                    ->limit($comPagination->getSqlLimit())
+                    ->build();
 
 
-                $commentsData = $objSQL->fetchAll($commentDataQuery)
+                $commentsData = $objSQL->fetchAll($commentDataQuery);
 
                 if(!$commentsData){
                     //something went wrong
                     trigger_error('Error loading comments.');
-                }else{
+                } else {
 
                     $objTPL->assign_var('COM_PAGINATION', $comPagination->getPagination());
 
@@ -289,6 +289,15 @@ class Module_comments extends Module {
         $this->objTPL->assign_var_from_handle($tplVar, 'comments');
     }
 
+    /**
+     * Gets the comment count on the specified id
+     *
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford, Dan Aldridge
+     *
+     * @return  int The Returned Count
+     */
     function getCount(){
         $objSQL = coreObj::getDBO();
         $this->count = $objSQL->fetchCount('#__comments', sprintf('module="%s" AND module_id="%s"', $this->module, $this->module_id ));
@@ -296,10 +305,13 @@ class Module_comments extends Module {
     }
 
     /**
-     * Outputs the submit form for a new comment
+     * Gets the comment count on the specified id
      *
-     * @version     1.0
-     * @since       0.8.0
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Richard Clifford, Dan Aldridge
+     *
+     * @return  bool
      */
     function makeSubmitForm(){
         $rand = rand(1, 99);
