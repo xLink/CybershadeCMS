@@ -299,7 +299,7 @@ class coreObj {
     /**
      * Returns or spawns a new instance of this class.
      *
-     * @version 1.0
+     * @version 1.2
      * @since   1.0
      * @author  Dan Aldridge
      *
@@ -316,7 +316,10 @@ class coreObj {
             // default to returning the class as is, but test to see if we have setupInstance
             // && if so, we'll return that :D
             coreObj::$_classes[$name] = $iClass;
-            if( is_callable(array($iClass, 'setupInstance')) ){
+
+            // grab the methods for this clas & make if we have a setupInstance() then run it
+            $iClass::$coreMethods = get_class_methods($iClass);
+            if( in_array('setupInstance', $iClass::$coreMethods) && is_callable(array($iClass, 'setupInstance')) ){
                 coreObj::$_classes[$name] = $iClass->setupInstance($name, $options);
             }
         }

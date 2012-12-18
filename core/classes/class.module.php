@@ -143,6 +143,29 @@ class Module extends coreObj{
      * @param   array  $args
      */
     public function __call($method, $args){
+
+        // check to see if we have called a get*() method
+        if( substr($method, 0, 3) === 'get' ){
+
+            $className = str_replace('get', '', $method);
+            $className = strtolower($className);
+
+            if( $this->moduleExists($className) && $this->moduleInstalled($className) ){
+
+                $className = 'Module_'.$className;
+                if( class_exists($className) && !in_array($className, self::$coreMethods) ){
+
+                    if( !isset(coreObj::$_classes[$className]) ){
+                        $className::getInstance($className, $args);
+                    }
+
+                    return coreObj::$_classes[$className];
+                }
+
+            }
+
+        }
+
         $debug = array(
             'Class Name'    => $this->getClassName(),
             'Method Called' => $method,
@@ -188,13 +211,9 @@ class Module extends coreObj{
             return false;
         }
 
-        $files = glob( sprintf( '%1$smodules/%2$s/class.%2$s.php', cmsROOT, $moduleName ) );
+        $file = file_exists( sprintf( '%1$smodules/%2$s/class.%2$s.php', cmsROOT, $moduleName ) );
 
-        if( is_empty( $files ) ) {
-            return false;
-        }
-
-        return true;
+        return $file;
     }
 
 
@@ -210,9 +229,12 @@ class Module extends coreObj{
      * @return  bool
      */
     public function moduleInstalled( $moduleName ){
-        if( is_empty( $moduleName ) || !$this->moduleExists( $moduleName ) ){
+        if( is_empty( $moduleName ) ){
             return false;
         }
+
+        // return true here, apparently the module table isnt complete
+        return true;
 
         $objSQL = coreObj::getDBO();
 
