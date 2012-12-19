@@ -144,27 +144,7 @@ class Module extends coreObj{
      */
     public function __call($method, $args){
 
-        // check to see if we have called a get*() method
-        if( substr($method, 0, 3) === 'get' ){
 
-            $className = str_replace('get', '', $method);
-            $className = strtolower($className);
-
-            if( $this->moduleExists($className) && $this->moduleInstalled($className) ){
-
-                $className = 'Module_'.$className;
-                if( class_exists($className) && !in_array($className, self::$coreMethods) ){
-
-                    if( !isset(coreObj::$_classes[$className]) ){
-                        $className::getInstance($className, $args);
-                    }
-
-                    return coreObj::$_classes[$className];
-                }
-
-            }
-
-        }
 
         $debug = array(
             'Class Name'    => $this->getClassName(),
@@ -186,6 +166,28 @@ class Module extends coreObj{
      * @param   array  $args
      */
     public static function __callStatic($method, $args){
+
+        // check to see if we have called a get*() method
+        if( substr($method, 0, 3) === 'get' ){
+
+            $className = str_replace('get', '', $method);
+            $className = strtolower($className);
+
+            if( self::moduleExists($className) && self::moduleInstalled($className) ){
+
+                $className = 'Module_'.$className;
+                if( class_exists($className) && !in_array($className, self::$coreMethods) ){
+
+                    if( !isset(coreObj::$_classes[$className]) ){
+                        $className::getInstance($className, $args);
+                    }
+
+                    return coreObj::$_classes[$className];
+                }
+
+            }
+
+        }
         $debug = array(
             'Class Name'    => self::getClassName(),
             'Method Called' => $method,
