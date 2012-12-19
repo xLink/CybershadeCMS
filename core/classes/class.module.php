@@ -143,9 +143,6 @@ class Module extends coreObj{
      * @param   array  $args
      */
     public function __call($method, $args){
-
-
-
         $debug = array(
             'Class Name'    => $this->getClassName(),
             'Method Called' => $method,

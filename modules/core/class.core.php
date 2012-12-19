@@ -14,6 +14,12 @@ class Module_core extends Module{
 
     public function viewIndex(){
         $this->setView('module/viewIndex/default.tpl');
+
+        $objComments = Module::getComments();
+        echo dump($objComments);
+
+
+
     }
 
 
