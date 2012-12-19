@@ -73,3 +73,5 @@ Thanks to the people that have contributed and helped test/find bugs in the proj
 Copyright (c) 2012 Cybershade
 
 CSCMS is licensed under the [GPLv3 license](http://www.gnu.org/licenses/gpl-3.0.html).
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/edce04c867eedbb9745412adb6eced6e "githalytics.com")](http://githalytics.com/cybershade/CSCMS)
