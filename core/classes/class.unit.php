@@ -10,6 +10,21 @@ class Unit extends coreObj{
 
     }
 
+
+    /**
+     * Runs the unit tests and generates a report
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   mixed   $test
+     * @param   string  $expectedResult
+     * @param   string  $testName
+     * @param   string  $notes
+     *
+     * @return  bool    Generates a report using the generateReport() function which returns a bool
+     */
     public function run( $test, $expectedResult, $testName = '', $notes = '' ){
         if(is_empty( $test ) || is_empty( $epxectedResult )){
             return false;
@@ -61,7 +76,7 @@ class Unit extends coreObj{
             'notes' => $notes,
         );
 
-        $generateReport = $this->generateReport($report);
+        $generateReport = $this->_generateReport($report);
 
         return $generateReport;
     }
@@ -79,7 +94,7 @@ class Unit extends coreObj{
         return $this;
     }
 
-    protected function generateReport(){
+    protected function _generateReport( $reportData ){
         return true;
     }
 }
