@@ -4,7 +4,7 @@
 \*======================================================================*/
 if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
-class Pagination extends coreClass {
+class Pagination extends coreObj {
 
     protected $instance = '';
     protected $total_per_page = 1;

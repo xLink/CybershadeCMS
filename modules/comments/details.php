@@ -15,6 +15,7 @@ class Details_comments_module extends Module implements baseDetails{
             'author'               => 'Richard Clifford',
             'homepage_url'         => 'http://cybershade.org',
             'repo_url'             => 'http://github.com/cybershade/cscms/',
+            'module_id'             => '14cf620a27f0a3c2df48a09e4edd7139',
         );
     }
 

@@ -226,8 +226,9 @@ class Module_comments extends Module {
         $commentsCount = $this->getCount();
 
         // TODO: fix the pagination
-        $objPagniation = coreObj::getPagination();
-        $comPagination = new Pagination('commentsPage', $this->perPage, $commentsCount);
+        echo dump( $this->getCount(), 'GetCount' );
+        $comPagniation = coreObj::getPagination('commentsPage', $this->perPage, $commentsCount);
+
 
             //check to see if we have a positive number
             if($commentsCount){
