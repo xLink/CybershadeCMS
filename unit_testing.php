@@ -30,8 +30,12 @@ $a = '1';
 $b = array('test');
 $c = NULL;
 
+function test( $ab ){
+  return $ab;
+}
+
 echo $objUnit->useStrict()
-    ->test( $a, 'is_string')
+    ->test( test( $a ), 'is_string')
     ->test( $b, 'is_bool', 'test', 'Array me pl0x')
     ->test( $c, 'is_bool', 'test', 'NULLIFY')
     ->run();

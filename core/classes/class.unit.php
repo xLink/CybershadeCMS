@@ -28,6 +28,7 @@ class Unit extends coreObj{
      * @return  obj     $this
      */
     public function test( $testItem, $expectedResult, $testName = '', $notes = '' ){
+
         // Allowed results
         $allowedResults = array(
             'is_object',
@@ -45,6 +46,7 @@ class Unit extends coreObj{
 
         // are we using strict mode?
         $strict = $this->getVar('strictMode');
+
         $result = false;
 
         // Start the checking!
@@ -179,7 +181,6 @@ class Unit extends coreObj{
 
         $output .=  '</tbody>
                     </table>';
-        echo dump( $output );
 
         return $output;
     }
