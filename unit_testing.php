@@ -34,10 +34,7 @@ function test( $ab ){
   return $ab;
 }
 
-echo $objUnit->useStrict()
-    ->test( test( $a ), 'is_string')
-    ->test( $b, 'is_bool', 'test', 'Array me pl0x')
-    ->test( $c, 'is_bool', 'test', 'NULLIFY')
-    ->run();
+$v = true;
+echo $objUnit->assertTrue($v, true);
 
 ?>

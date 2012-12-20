@@ -42,6 +42,7 @@ class Unit extends coreObj{
             'is_double',
             'is_array',
             'is_null',
+            'is_true',
         );
 
         // are we using strict mode?
@@ -53,10 +54,18 @@ class Unit extends coreObj{
         if( in_array( $expectedResult, $allowedResults, true ) ){
 
             $expectedResult = str_replace('is_float', 'is_double', $expectedResult);
-            $result         = ($expectedResult($testItem) ? true : false);
+            if( $expectedResult == 'is_true' ){
+                $result = ( $testItem === true ? true : false );
+            } elseif( $expectedResult == 'is_false' ){
+                $result = ( $testItem === false ? true : false );
+            } else {
+                $result = ($expectedResult($testItem) ? true : false);
+            }
+
 
             // Get the result type
-            $resultType     = str_replace(array('true', 'false'), 'bool', str_replace('is_', '', $expectedResult) );
+            $resultType     = str_replace(array('true', 'false'), 'bool', $expectedResult);
+
         } else {
             // Explicitly check the types
             if($strict){
@@ -94,10 +103,12 @@ class Unit extends coreObj{
      * @since   1.0.0
      * @author  Richard Clifford
      *
+     * @param   bool    $state
+     *
      * @return  obj     $this
      */
-    public function useStrict(){
-        $this->setVar('strictMode', true);
+    public function useStrict($state = true){
+        $this->setVar('strictMode', ($state ? true : false));
         return $this;
     }
 
@@ -112,6 +123,13 @@ class Unit extends coreObj{
      */
     public function run(){
         return $this->_generateReport( $this->_reportData );
+    }
+
+    public function assertTrue( $var, $strict = true ){
+        if( $strict ){
+            $this->useStrict();
+        }
+        return $this->test($var, 'is_true')->run();
     }
 
 
