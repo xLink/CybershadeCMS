@@ -1456,5 +1456,13 @@ function correctURL($address){
 }
 
 
+function is_true( $var ){
+    return is_bool($var) && $var === true;
+}
+
+function is_false($var){
+    return is_bool($var) && $var === false;
+}
+
 
 ?>

@@ -7,6 +7,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Unit extends coreObj{
 
     protected $_reportData = array();
+    protected $_backtrace = array();
+
 
     public function __construct(){
         $this->setVar('strictMode', false);
@@ -27,88 +29,58 @@ class Unit extends coreObj{
      *
      * @return  obj     $this
      */
-    public function test( $testItem, $expectedResult, $testName = '', $notes = '' ){
+    public function &test( $testItem, $expectedResult, $testName = '', $notes = '' ){
 
         // Allowed results
         $allowedResults = array(
             'is_object',
             'is_string',
             'is_bool',
-            'is_true',
-            'is_false',
             'is_int',
             'is_numeric',
             'is_float',
             'is_double',
             'is_array',
             'is_null',
-            'is_true',
         );
 
-        // are we using strict mode?
-        $strict = $this->getVar('strictMode');
-
-        $result = false;
-
-        // Start the checking!
-        if( in_array( $expectedResult, $allowedResults, true ) ){
-
-            $expectedResult = str_replace('is_float', 'is_double', $expectedResult);
-            if( $expectedResult == 'is_true' ){
-                $result = ( $testItem === true ? true : false );
-            } elseif( $expectedResult == 'is_false' ){
-                $result = ( $testItem === false ? true : false );
-            } else {
-                $result = ($expectedResult($testItem) ? true : false);
-            }
-
-
-            // Get the result type
-            $resultType     = str_replace(array('true', 'false'), 'bool', $expectedResult);
-
-        } else {
-            // Explicitly check the types
-            if($strict){
-                $result = ( ( $testItem === $expectedResult ) ? true : false );
-            } else {
-                $result = ( ( $testItem == $expectedResult ) ? true : false );
-            }
-
-            // Get the result type
-            $resultType = gettype( $expectedResult );
+        if(function_exists('is_true')) {
+            $allowedResults[] = 'is_true';
         }
 
+        if(function_exists('is_false')) {
+            $allowedResults[] = 'is_false';
+        }
 
-        $report = array(
-            'test_name' => ( is_null($testItem) ? 'NULL' : $testItem ),
-            'test_datatype' => gettype($testItem),
-            'result_datatype' => $resultType,
-            'result' => ($result === true ? 'Passed.' : 'Failed.'),
-            'file' => __FILE__,
-            'line' => __LINE__,
-            'notes' => $notes,
-            'raw_result' => $result,
-        );
+        $result = false;
+        $key    = array_search( $expectedResult, $allowedResults);
 
-        $this->_reportData[] = $report;
+        if( $key !== false ){
 
-        return $this;
-    }
+            $expectedResult = str_replace('is_float', 'is_double', $expectedResult);
+            $test_method    = $allowedResults[$key];
+            $result         = $test_method($testItem);
 
+            // Get the backtrace
+            if( !count( $this->_backtrace ) ){
+                $this->_backtrace = debug_backtrace();
+            }
 
-    /**
-     * Sets the use mode to STRICT to explicitly check the data types
-     *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @param   bool    $state
-     *
-     * @return  obj     $this
-     */
-    public function useStrict($state = true){
-        $this->setVar('strictMode', ($state ? true : false));
+            $report = array(
+                'test_name'       => $testName,
+                'test_datatype'   => gettype($testItem),
+                'result_datatype' => $test_method,
+                'result'          => ($result === true ? 'Passed.' : 'Failed.'),
+                'file'            => $this->_backtrace[0]['file'],
+                'line'            => $this->_backtrace[0]['line'],
+                'notes'           => $notes,
+                'raw_result'      => $result,
+            );
+
+            // Get the backtrace
+            $this->_reportData[] = $report;
+        }
+        $this->_backtrace = array();
         return $this;
     }
 
@@ -125,11 +97,36 @@ class Unit extends coreObj{
         return $this->_generateReport( $this->_reportData );
     }
 
-    public function assertTrue( $var, $strict = true ){
-        if( $strict ){
-            $this->useStrict();
-        }
-        return $this->test($var, 'is_true')->run();
+    /**
+     * Checks to see if the given variable is explicitly true
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   mixed   $testItem
+     *
+     * @return  obj     $this
+     */
+    public function &assertTrue( $testItem ){
+        $this->_backtrace = debug_backtrace();
+        return $this->test($testItem, 'is_true');
+    }
+
+    /**
+     * Checks to see if the given variable is explicitly false
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   mixed   $testItem
+     *
+     * @return  obj     $this
+     */
+    public function &assertFalse( $testItem ){
+        $this->_backtrace = debug_backtrace();
+        return $this->test($testItem, 'is_false');
     }
 
 
@@ -166,7 +163,7 @@ class Unit extends coreObj{
                             <tr>
                                 <th>Test Name</th>
                                 <th>Expected Result</th>
-                                <th>Actual Result Type</th>
+                                <th>Result Test</th>
                                 <th>Result</th>
                                 <th>File</th>
                                 <th>Line Number</th>
