@@ -53,7 +53,7 @@ class Unit extends coreObj{
         }
 
         $result = false;
-        $key    = array_search( $expectedResult, $allowedResults);
+        $key    = array_search( $expectedResult, $allowedResults );
 
         if( $key !== false ){
 
@@ -190,14 +190,147 @@ class Unit extends coreObj{
                     $value['result'],
                     $value['file'],
                     $value['line'],
-                    $value['notes']
-                    );
+                    $value['notes']);
         }
 
         $output .=  '</tbody>
                     </table>';
 
         return $output;
+    }
+
+    /**
+     * Checks if the Class/Object has the specified Property/Attribute
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string $attr
+     * @param   string $class
+     *
+     * @return  bool
+     */
+    public function classHasAttr( $attr, $class ){
+        if( class_exists($class) && property_exists(new $class(), $attr)){
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the passed in variable is empty
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   mixed   $var
+     *
+     * @return  bool
+     */
+    public function assertEmpty( $var ){
+        return is_empty( $var );
+    }
+
+    /**
+     * Asserts if the specified variable only contains the test data-type
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string  $test
+     * @param   mixed   $var
+     *
+     * @return  bool
+     */
+    public function assertContainsOnly( $test, $var ){
+
+    }
+
+    /**
+     * Checks if the two given variables are exactly the same
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   mixed   $expected
+     * @param   mixed   $actual
+     *
+     * @return  bool
+     */
+   public function assertEquals( $expected, $actual ){
+
+        // If they two variables are of different types
+        if( gettype( $expected ) !== gettype( $actual ) ){
+            return false;
+        }
+
+        switch( strtolower(gettype($expected)) ){
+
+            case 'array':
+            case 'object':
+                if( !count($actual) || (count( $actual ) !== count( $expected )) ){
+                    return false;
+                }
+                foreach( $expected as $expectedKey => $expectedValue ){
+                    if(!array_key_exists($expectedKey, $actual)) {
+                        return false;
+                    }
+                    if($actual[$expectedKey] != $expectedValue) {
+                        return false;
+                    }
+                }
+                return true;
+
+
+            case 'null':
+                return ( is_null($expected) && is_null($actual) );
+
+            default:
+            case 'string':
+            case 'int':
+            case 'float':
+            case 'double':
+            case 'bool':
+            case 'true':
+            case 'false':
+                return ( $expected === $actual );
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks whether a regex will match (and optionally how many matches it will return)
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   mixed   $regex
+     * @param   mixed   $subject
+     * @param   bool    $count
+     *
+     * @return  mixed
+     */
+    public function assertRegex( $regex, $subject, $count = false ){
+        // Set the success var
+        $success = false;
+
+        // check the regex
+        if( preg_match($regex, $subject, $matches) ){
+            $success = true;
+            if( $count ){
+                // Get the count return
+                $c = count( $matches );
+            }
+        }
+
+        return ( ( $count && $success ) ? $c : $success );
     }
 }
 

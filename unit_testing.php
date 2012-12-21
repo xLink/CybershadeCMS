@@ -34,17 +34,7 @@ function test( $ab ){
   return $ab;
 }
 
-$v = true;
+$v = preg_match('/test/', 'test');
 
-echo $objUnit->assertTrue($v)
-    ->assertFalse($v)
-    ->test(array(), 'is_array', 'Array Test', 'Some notes')
-    ->test(array(), 'is_string', 'Array Test', 'Some notes')
-    ->test(new stdClass(), 'is_array', 'Object Test', 'Some notes')
-    ->test('test', 'is_string')
-    ->test(new stdClass(), 'is_object')
-    ->test(new stdClass(), 'is_array')
-    ->run();
-
-
+echo dump($v);
 ?>
