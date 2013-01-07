@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Module_core extends Module{
+class Module_cscms_core extends Module{
 
     public function __construct(){
         $objPage = coreobj::getPage();

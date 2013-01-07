@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Admin_core extends Module{
+class Admin_cscms_core extends Module{
 
     public function __construct(){
 
