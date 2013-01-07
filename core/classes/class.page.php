@@ -23,7 +23,7 @@ class page extends coreObj {
 
 /**
   //
-  //-- Setup Functions 
+  //-- Setup Functions
   //
 **/
 
@@ -647,13 +647,13 @@ class page extends coreObj {
         } elseif ( strstr($useragent, 'iphone')) {
             $classes[] = 'iphone';
 
+        } elseif ( strstr($useragent, 'android')) {
+            $classes[] = 'android';
+
         } elseif ( strstr($useragent, 'ipod')) {
             $classes[] = 'ipod';
 
-        } elseif ( strstr($useragent, 'mac')) {
-            $classes[] = 'mac';
-
-        } elseif ( strstr($useragent, 'darwin')) {
+        } elseif ( strstr($useragent, 'mac') || strstr($useragent, 'darwin')) {
             $classes[] = 'mac';
 
         } elseif ( strstr($useragent, 'webtv')) {

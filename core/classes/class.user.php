@@ -32,6 +32,7 @@ class User extends coreObj {
                 'ip'        => User::getIP(),
                 'useragent' => doArgs('HTTP_USER_AGENT', null, $_SERVER),
                 'browser'   => getBrowser($_SERVER['HTTP_USER_AGENT']),
+                'platform'  => Page::getCSSSelectors($_SERVER['HTTP_USER_AGENT']),
                 'language'  => 'en', //$language,
                 'secure'    => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? true : false ),
                 'referer'   => doArgs('HTTP_REFERER', null, $_SERVER),
