@@ -192,7 +192,7 @@ interface queryBuilder {
 	public function using( $field );
 
 	/**
-	 * Add On clause to the Join clause 
+	 * Add On clause to the Join clause
 	 *
 	 * @version 1.0
 	 * @since   1.0

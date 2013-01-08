@@ -29,7 +29,7 @@ class Unit extends coreObj{
      *
      * @return  obj     $this
      */
-    public function &test( $testItem, $expectedResult, $testName = '', $notes = '' ){
+    public function test( $testItem, $expectedResult, $testName = '', $notes = '' ){
 
         // Allowed results
         $allowedResults = array(
@@ -84,6 +84,7 @@ class Unit extends coreObj{
         return $this;
     }
 
+
     /**
      * Runs the tests and generates a report
      *
@@ -108,7 +109,7 @@ class Unit extends coreObj{
      *
      * @return  obj     $this
      */
-    public function &assertTrue( $testItem ){
+    public function assertTrue( $testItem ){
         $this->_backtrace = debug_backtrace();
         return $this->test($testItem, 'is_true');
     }
@@ -124,7 +125,7 @@ class Unit extends coreObj{
      *
      * @return  obj     $this
      */
-    public function &assertFalse( $testItem ){
+    public function assertFalse( $testItem ){
         $this->_backtrace = debug_backtrace();
         return $this->test($testItem, 'is_false');
     }
@@ -153,11 +154,6 @@ class Unit extends coreObj{
             return false;
         }
 
-        /**
-         //
-         // -- Put into a new template rather than from this class
-         //
-         */
         $output = '<table class="table table-condensed">
                         <thead>
                             <tr>
@@ -269,7 +265,7 @@ class Unit extends coreObj{
             return false;
         }
 
-        switch( strtolower(gettype($expected)) ){
+        switch( strtolower( gettype( $expected ) ) ){
 
             case 'array':
             case 'object':
@@ -295,9 +291,7 @@ class Unit extends coreObj{
             case 'int':
             case 'float':
             case 'double':
-            case 'bool':
-            case 'true':
-            case 'false':
+            case 'boolean':
                 return ( $expected === $actual );
         }
 

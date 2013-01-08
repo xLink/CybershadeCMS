@@ -26,13 +26,16 @@ class User extends coreObj {
             'userkey'   => doArgs('userkey', null, $_SESSION['user']),
         );
 
+        // Get the Page Object
+        $objPage = coreObj::getPage();
+
         self::addConfig(array(
             'global' => array(
                 'user'      => ( isset($_SESSION['user']['id']) ? $_SESSION['user'] : $guest['user']),
                 'ip'        => User::getIP(),
                 'useragent' => doArgs('HTTP_USER_AGENT', null, $_SERVER),
                 'browser'   => getBrowser($_SERVER['HTTP_USER_AGENT']),
-                'platform'  => Page::getCSSSelectors($_SERVER['HTTP_USER_AGENT']),
+                'platform'  => $objPage->getCSSSelectors($_SERVER['HTTP_USER_AGENT']),
                 'language'  => 'en', //$language,
                 'secure'    => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? true : false ),
                 'referer'   => doArgs('HTTP_REFERER', null, $_SERVER),
