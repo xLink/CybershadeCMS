@@ -59,9 +59,9 @@ class Upload extends coreObj {
             (cmsDEBUG ? memoryUsage('Upload: Failed to upload as desitnation folder was not accessible' ) : '');
             return false;
         }
-        
+
         // Get the current file extension
-        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_id]['name']); 
+        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_id]['name']);
         $extension  = end( explode( '.', $fileName ) );
         $fileSize   = $_FILES[$input_id]['size'];
 
@@ -239,7 +239,7 @@ class Upload extends coreObj {
         $objPlugins->hook( 'CMS_AUTHORIZE_UPLOAD' );
 
         // return true if the file is already authorized
-        if( $fileAuth['authorized'] == '1' ){
+        if( isset( $fileAuth['authorized'] ) && $fileAuth['authorized'] == '1' ){
             return true;
         }
 
@@ -255,7 +255,8 @@ class Upload extends coreObj {
         $result = $objSQL->query( $query );
 
         if( $result ){
-            if( $confirm ){
+            $uid = ( !is_empty( $fileAuth['uid'] ) ? $fileAuth['uid'] : false );
+            if( $confirm && $uid ){
                 $to      = $objUser->get( 'email', $fileAuth['uid'] );
                 $from    = sprintf('no-reply@', ltrim( $_SERVER['SERVER_NAME'], 'www.' ));
                 $subject = sprintf('Your upload has been authorized - %s', $_SERVER['SERVER_NAME']);
