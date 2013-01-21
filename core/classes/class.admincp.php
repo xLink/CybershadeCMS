@@ -14,7 +14,6 @@ class AdminCP extends coreObj{
         $this->module = doArgs('__module',    'core',       $options);
         $this->action = doArgs('__action',    'dashboard',  $options);
         $this->extra  = doArgs('__extra',     null,         $options);
-
     }
 
     /**
@@ -36,7 +35,7 @@ class AdminCP extends coreObj{
                 echo $page;
             }
 
-        }else{
+        } else {
             echo $objTPL->get_html('body');
         }
     }
@@ -80,8 +79,7 @@ class AdminCP extends coreObj{
                         'icon' => 'search',
                         'url'  => $acpROOT.'',
                     ),
-                )
-
+                ),
             ),
             'Users' => array(
                 'icon' => 'user',
@@ -98,8 +96,7 @@ class AdminCP extends coreObj{
                         'icon' => 'search',
                         'url'  => $acpROOT.'core/users/add/',
                     ),
-                )
-
+                ),
             ),
             '--' => array(),
             'Modules' => array(
@@ -133,11 +130,11 @@ class AdminCP extends coreObj{
             return null;
         }
 
-        $linkTPL = '<li><a href="%s"><i class="faicon-%s faicon-white"></i><span class="hidden-tablet"> %s</span></a>%s</li>';
-        $subTPL = '<ul> %s </ul>';
+        $linkTPL   = '<li><a href="%s"><i class="faicon-%s faicon-white"></i><span class="hidden-tablet"> %s</span></a>%s</li>';
+        $subTPL    = '<ul> %s </ul>';
         $spacerTPL = '<li> &nbsp; </li>';
+        $output    = null;
 
-        $output = null;
         foreach($links as $label => $link){
 
             if( doArgs('subs', false, $link) ){
@@ -146,7 +143,6 @@ class AdminCP extends coreObj{
 
             }else if( $label === '--' ){
                 $output .= $spacerTPL;
-
 
             }else if( doArgs('url', false, $link) ){
                 $output .= sprintf( $linkTPL, $link['url'], $link['icon'], $label, null );
@@ -163,18 +159,21 @@ class AdminCP extends coreObj{
 
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+   /**
+     * Outputs the ACP Dashboard
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     */
+    public function dashboard(){
+        $objPage = coreObj::getPage();
+        $this->getNav();
+        $this->invokeRoute();
+        $objPage->buildPage();
+        $objPage->showHeader();
+        $this->output();
+        $objPage->showFooter();
+    }
 }
 ?>

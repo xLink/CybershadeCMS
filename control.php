@@ -25,13 +25,6 @@ $objPage->addBreadcrumbs(array(
 
 $objPage->setTitle('Cybershade CMS Administration Panel');
 
-$objAdmin->getNav();
-$objAdmin->invokeRoute();
-
-$objPage->buildPage();
-$objPage->showHeader();
-
-    $objAdmin->output();
-
-$objPage->showFooter();
+// Output the dashboad
+$objAdmin->dashboard();
 ?>
