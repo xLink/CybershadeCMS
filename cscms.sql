@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `cscms_blocks` (
   `name` varchar(255) NOT NULL,
   `location` varchar(255) NOT NULL,
   `order` int(10) NOT NULL,
-  `enabled` enum('0','1') NOT NULL DEFAULT '0',
+  `enabled` tinyint(1) NOT NULL DEFAULT '0',
   `file_location` varchar(255) NOT NULL,
   `extra` varchar(255) NOT NULL DEFAULT '[]',
   PRIMARY KEY (`id`)
@@ -287,7 +287,7 @@ CREATE TABLE IF NOT EXISTS `cscms_routes` (
   `pattern` varchar(255) NOT NULL,
   `arguments` text NOT NULL,
   `requirements` text NOT NULL,
-  `status` int(1) NOT NULL DEFAULT '0',
+  `status` tinyint(1) NOT NULL DEFAULT '0',
   `redirect` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=12 ;
@@ -452,9 +452,9 @@ CREATE TABLE IF NOT EXISTS `cscms_uploads` (
   `filename` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `file_type` varchar(5) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `timestamp` int(12) NOT NULL,
-  `authorized` enum('1','0') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `authorized` tinyint(1) NOT NULL DEFAULT '0',
   `location` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `public` enum('1','0') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `public` tinyint(1) NOT NULL DEFAULT '0',
   `file_size` int(12) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=7 ;
