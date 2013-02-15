@@ -11,7 +11,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  * @since   1.0.0
  * @author  Dan Aldridge
  */
-class Module extends coreObj{
+class Core_Classes_Module extends Core_Classes_coreObj{
 
     public $tplSet  = false;
     public $_module = false;
@@ -29,8 +29,8 @@ class Module extends coreObj{
      * @return  bool
      */
     public function setView($view='default'){
-        $objTPL  = coreObj::getTPL();
-        $objUser = coreObj::getUser();
+        $objTPL  = Core_Classes_coreObj::getTPL();
+        $objUser = Core_Classes_coreObj::getUser();
 
         $classPrefix = array('Module_', 'Admin_');
         $module = str_replace($classPrefix, '', $this->getVar('_module') );
@@ -93,7 +93,7 @@ class Module extends coreObj{
         if( $this->getVar('viewSet') !== true ){
             return false;
         }
-        $objTPL = coreObj::getTPL();
+        $objTPL = Core_Classes_coreObj::getTPL();
 
         // if the handle isnt valid, then return
         if( !$objTPL->isHandle('body') ){
@@ -112,9 +112,9 @@ class Module extends coreObj{
      * @author  Dan Aldridge
      */
     public function output(){
-        $objTPL = coreObj::getTPL();
+        $objTPL = Core_Classes_coreObj::getTPL();
 
-        $page = coreObj::getPage()->getVar('contents');
+        $page = Core_Classes_coreObj::getPage()->getVar('contents');
 
         if( !$objTPL->isHandle('body') ){
 
@@ -179,7 +179,7 @@ class Module extends coreObj{
                         $className::getInstance($className, $args);
                     }
 
-                    return coreObj::$_classes[$className];
+                    return Core_Classes_coreObj::$_classes[$className];
                 }
 
             }
@@ -235,7 +235,7 @@ class Module extends coreObj{
         // return true here, apparently the module table isnt complete
         return true;
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
             ->select('enabled')

@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class coreSQL extends coreObj{
+class Core_Classes_coreSQL extends Core_Classes_coreObj{
 
     public  $queries        = array();
     public  $driver         = '';
@@ -49,11 +49,11 @@ class coreSQL extends coreObj{
             trigger_error('Error: You have selected to use PDO, the interface for this Driver dosen\'t exist.', E_USER_ERROR);
         }
 
-        if($this->dbSettings['driver'] == 'mysqli' && ( !class_exists('driver_mysqli', false) || !class_exists('mysqli', false) )){
+        if($this->dbSettings['driver'] == 'mysqli' && ( !class_exists('Core_Drivers_mysqli', false) || !class_exists('mysqli', false) )){
             trigger_error('Error: You have selected to use MySQLi, the interface for this Driver dosen\'t exist.', E_USER_ERROR);
         }
 
-        if($this->dbSettings['driver'] == 'mysql' && ( !class_exists('driver_mysql', false) || !function_exists('mysql_connect') )){
+        if($this->dbSettings['driver'] == 'mysql' && ( !class_exists('Core_Drivers_mysql', false) || !function_exists('mysql_connect') )){
             trigger_error('Error: You have selected to use MySQL, the interface for this Driver dosen\'t exist.', E_USER_ERROR);
         }
 
@@ -128,7 +128,13 @@ class coreSQL extends coreObj{
 **/
 
     public function queryBuilder(){
-        return new ${strtolower($this->driver).'_queryBuilder'}();
+        $driver = $this->driver;
+        if( in_array($this->driver, array('mysql', 'mysqli', 'pdomysql')) ){
+            $driver = 'mysqli';
+        }
+
+        $classname = 'Core_Drivers_'.strtolower($driver).'QueryBuilder';
+        return new $classname;
     }
 
     public function index($db){
@@ -306,31 +312,6 @@ class coreSQL extends coreObj{
 
         return implode('.', $parts);
     }
-}
-
-/**
- * SQL Class interface, defines the needed functionality for the SQL Drivers
- *
- * @version     1.0
- * @since       1.0.0
- * @author      Dan Aldridge
- */
-interface baseSQL{
-
-    public function __construct($config);
-
-    public static function getInstance($name=null, $options=array());
-
-    public function selectDB($db);
-    public function connect();
-    public function disconnect();
-    public function getError();
-
-    public function escape($string);
-    public function freeResult();
-    public function query($query);
-    public function results($key);
-    public function affectedRows();
 }
 
 ?>

@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Time extends coreObj{
+class Core_Classes_Time extends Core_Classes_coreObj{
 
 	public $currentLanguage = '';
 
@@ -28,7 +28,7 @@ class Time extends coreObj{
 	public function mk_time( $timestamp, $format='db', $return = 0 ) {
 
 		// Get the instances we need
-		$objUser = coreObj::getUser();
+		$objUser = Core_Classes_coreObj::getUser();
 
 		$translate = array();
 		$format    = ( $format == 'db'     ? $this->config( 'site', 'time', 'jS F h:ia' )  : $format );

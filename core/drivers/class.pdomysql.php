@@ -5,7 +5,7 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 
-class driver_pdomysql extends coreSQL implements baseSQL{
+class Core_Drivers_pdomysql extends Core_Classes_coreSQL implements Core_Classes_baseSQL{
 
     public static function getInstance($name=null, $options=array()){
         $c = __CLASS__;

@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Blocks extends coreObj{
+class Core_Classes_Blocks extends Core_Classes_coreObj{
 
     private $__cache = array();
 
@@ -25,7 +25,7 @@ class Blocks extends coreObj{
      *
      */
     public function installBlockByFile( $uniqueID, $title, $name, $fileLocation ) {
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         // Check the block doesn't already exist
         if( $this->getBlockByUniqueId( $uniqueID ) === false ) {
@@ -65,7 +65,7 @@ class Blocks extends coreObj{
      *
      */
     public function installBlockByModule( $uniqueID, $name, $moduleHash, $moduleMethod, $args ) {
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         return true;
     }
@@ -82,7 +82,7 @@ class Blocks extends coreObj{
      *
      */
     public function uninstallBlock( $id ) {
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
             ->select( 'id' )
@@ -139,7 +139,7 @@ class Blocks extends coreObj{
         }
 
         // Grab a sexy instance of the Database Object
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
             ->select()
@@ -162,7 +162,7 @@ class Blocks extends coreObj{
     public function getBlockByUniqueId( $id ) {
         $id = (int) $id;
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
             ->select( 'id')
@@ -253,10 +253,10 @@ class Blocks extends coreObj{
      *
      */
     public function insertBlocks( ) {
-        $objTPL = coreObj::getTPL();
+        $objTPL = Core_Classes_coreObj::getTPL();
 
         if( empty( $this->__cache ) ) {
-            $objCache = coreObj::getCache();
+            $objCache = Core_Classes_coreObj::getCache();
             $this->__cache = $objCache->load('blocks');
         }
 
@@ -294,7 +294,7 @@ class Blocks extends coreObj{
      */
     public static function generate_cache(){
         $output = array();
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
             ->select('id', 'uniqueid', 'title', 'name', 'location', 'order', 'enabled', 'file_location', 'extra')

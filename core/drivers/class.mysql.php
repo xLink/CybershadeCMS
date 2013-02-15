@@ -5,13 +5,13 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 /**
-* MySQLi Driver support for the SQLBase
+* MySQL Driver support for the SQLBase
 *
 * @version      1.0
 * @since        1.0.0
 * @author       Dan Aldridge
 */
-class driver_mysqli extends coreSQL implements baseSQL{
+class Core_Drivers_mysql extends Core_Classes_coreSQL implements Core_Classes_baseSQL{
 
     /**
      * Returns or Sets up Instance for this class.
@@ -39,31 +39,63 @@ class driver_mysqli extends coreSQL implements baseSQL{
   //-- Connection Functionality
   //
 **/
-
-    public function selectDB($database){
-        return $this->DBH->select_db($database);
+    /**
+     * Select new DB
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       array    $config
+     *
+     * @return      bool
+     */
+    public function selectDB($db){
+        return mysql_select_db($db, $this->DBH);
     }
 
+    /**
+     * Open a connection to MySQL & Select DB
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       array    $config
+     *
+     * @return      bool
+     */
     public function connect(){
+
+        // add check for port, and append it to the hostname
+        if(isset($this->dbSettings['port']) && is_number($this->dbSettings['port'])){
+            $this->dbSettings['host'] .= ':'. $this->dbSettings['port'];
+        }
+
         // if we have persistent enabled, we'll try that first
         if($this->dbSettings['persistent'] === true){
-            $this->DBH = new mysqli('p:'.$this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password'], $this->dbSettings['database'], (int)$this->dbSettings['port'] );
-            if($this->DBH->connect_error != null){
-                trigger_error('Database Connection: Connect Error ('.$mysqli->connect_errno.') '.$mysqli->connect_error, E_USER_ERROR);
-                return false;
+            $this->DBH = @mysql_pconnect($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password']);
+            if($this->DBH === false){
+                $this->dbSettings['persistent'] = false;
             }
         }
 
         //persistent is off, lets try and connect normally
         if($this->dbSettings['persistent'] === false){
-            $this->DBH = new mysqli($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password'], $this->dbSettings['database'], (int)$this->dbSettings['port'] );
+            $this->DBH = @mysql_connect($this->dbSettings['host'], $this->dbSettings['username'], $this->dbSettings['password']);
         }
 
             //we havent got a resource we need to bomb out now
-            if($this->DBH->connect_error != null){
+            if($this->DBH === false){
                 trigger_error('Cannot connect to the database - verify username and password.<br />', E_USER_ERROR);
                 return false;
             }
+
+        //select the DB
+        if($this->selectDB($this->dbSettings['database']) === false){
+            trigger_error('Cannot select database - check user permissions.<br />', E_USER_ERROR);
+            return false;
+        }
 
         $this->registerPrefix('#__', $this->dbSettings['prefix']);
 
@@ -74,21 +106,37 @@ class driver_mysqli extends coreSQL implements baseSQL{
         return true;
     }
 
+    /**
+     * Disconnect
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       array    $config
+     *
+     * @return      bool
+     */
     public function disconnect(){
         $this->freeResult();
-        if( !isset( $this->dbSettings['persistent'] ) || $this->dbSettings['persistent'] === false){
-            $this->DBH->close();
-            return true;
+        if($this->dbSettings['persistent'] === false){
+            mysql_close($this->DBH);
         }
-
-        return false;
     }
 
+    /**
+     * Error Handler for
+     *
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Dan Aldridge
+     *
+     * @param       array    $config
+     *
+     * @return      bool
+     */
     public function getError(){
-        if($this->DBH->errno != 0){
-            return sprintf(' (%d) %s ', $this->DBH->errno, $this->DBH->error);
-        }
-        return false;
+        return mysql_error();
     }
 
 /**
@@ -97,23 +145,16 @@ class driver_mysqli extends coreSQL implements baseSQL{
   //
 **/
 
-    public function queryBuilder(){
-        return new mysql_queryBuilder();
-    }
-
-
     public function escape($string){
-        return $this->DBH->real_escape_string($string);
+        return mysql_real_escape_string($string, $this->DBH);
     }
 
     public function freeResult(){
-
         if(isset($this->results) && is_resource($this->results)){
-            $this->results->close();
+            mysql_free_result($this->results);
             unset($this->results);
         }
     }
-
 
     public function query($query){
         $debug['query_start'] = microtime(true);
@@ -122,11 +163,12 @@ class driver_mysqli extends coreSQL implements baseSQL{
         $query = $this->_query = $this->_replacePrefix($query);
 
         //exec the query and cache it
-        $this->results = $result = $this->DBH->query($query);
+        $this->results = mysql_query($query, $this->DBH);
 
+        $debug = array();
         if( cmsDEBUG || User::$IS_ADMIN ){
             $backtrace = debug_backtrace();
-            $callee = $backtrace[1];
+            $callee = $backtrace[2];
 
             $debug['query']         = $query;
             $debug['method']        = $callee['function'];
@@ -145,61 +187,51 @@ class driver_mysqli extends coreSQL implements baseSQL{
         }
         $this->debug[] = $debug;
 
-        if( $result === false || $this->affectedRows() == -1 ){
-            $this->recordMessage($this->getError(), 'WARNING');
+        if( $this->results === false ){
+            $this->recordMessage(mysql_error(), 'WARNING');
         }
 
         return $this->results;
     }
 
-    /**
-     * Get results from latest query
-     *
-     * @version 1.0
-     * @since   1.0
-     * @author  Daniel Noel-Davies
-     *
-     * @param   mixed  $key     Index key for the results
-     *
-     */
-    public function results( $key = '' ){
-        if($this->results === false){ return false; }
-
-        $results = array();
-        while( $row = $this->results->fetch_array( MYSQLI_ASSOC ) ) {
-            if( !is_empty($key) && array_key_exists($key, $row)){
-                $results[$row[$key]] = $row;
-            }else{
-                $results[] = $row;
-            }
-        }
-        return $results;
-    }
+    public function results($key=false){
+        if(!is_resource($this->results) || $this->results === false){ return false; }
 
 
-    public function affectedRows(){
-        return $this->DBH->affected_rows;
-    }
-
-    public function recordMessage($message, $mode){
-        if(!$this->dbSettings['debug']){
+        if($this->affectedRows() == 0){
             return false;
         }
 
-        $backtrace = debug_backtrace();
-        $callee = $backtrace[1];
+        if($this->affectedRows() != 1){
+            $results = array();
+            while($row = mysql_fetch_assoc($this->results)){
+                if(!is_empty($key) && array_key_exists($key, $row)){
+                    $results[$row[$key]] = $row;
+                }else{
+                    $results[] = $row;
+                }
+            }
+            return $results;
+        }
 
-        $a = array($this->_query, $callee);
-        trigger_error('MySQL Error:');
-        echo dump($a, 'Query::'.$this->getError());
+        return array(mysql_fetch_assoc($this->results));
+    }
+
+    public function affectedRows(){
+        return mysql_affected_rows($this->DBH);
+    }
+
+
+    public function recordMessage($message, $mode){
+        if($this->dbSettings['debug']){
+            return false;
+        }
 
         $max = count($this->debug);
-
         $this->debug[($max - 1)]['status'] = 'error';
         $this->debug[($max - 1)]['error'] = $this->getError();
 
     }
-
 }
 
 ?>

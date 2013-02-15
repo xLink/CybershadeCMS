@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Debug extends coreObj{
+class Core_Classes_Debug extends Core_Classes_coreObj{
 
     public $errors          = array(),
            $includedFiles   = array(),
@@ -70,7 +70,7 @@ class Debug extends coreObj{
         }
 
         $output   = '';
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $debug = $objSQL->getVar('debug');
         if( !empty( $debug ) ) {
@@ -93,7 +93,7 @@ class Debug extends coreObj{
                 }
 
 
-                $geshi = new GeSHi($query['query'], 'sql');
+                $geshi = Core_Classes_coreObj::getLib('GeSHi', array($query['query'], 'sql'));
 
                 $output .= '</tr><tr>';
                     $output .= sprintf('<tr><td style="background-color: #1E1E1E; color: white;"> <strong>%1$s</strong> @ <strong>%2$s</strong> // Affected %3$d Rows <span class="pull-right">%5$s</span> <br /> %4$s </td></tr>',
@@ -142,7 +142,7 @@ class Debug extends coreObj{
         }
 
         $output   = '';
-        $files    = coreObj::getTPL()->files;
+        $files    = Core_Classes_coreObj::getTPL()->files;
 
         if( count( $files ) ) {
 
@@ -369,12 +369,12 @@ class Debug extends coreObj{
         $content = '';
 
         $perms = array(
-            'IS_ONLINE' => User::$IS_ONLINE,
-            'IS_USER'   => User::$IS_USER,
-            'IS_MOD'    => User::$IS_MOD,
-            'IS_ADMIN'  => User::$IS_ADMIN,
+            'IS_ONLINE' => Core_Classes_User::$IS_ONLINE,
+            'IS_USER'   => Core_Classes_User::$IS_USER,
+            'IS_MOD'    => Core_Classes_User::$IS_MOD,
+            'IS_ADMIN'  => Core_Classes_User::$IS_ADMIN,
         );
-        $objUser = coreObj::getUser();
+        $objUser = Core_Classes_coreObj::getUser();
         $content .= dump($perms, 'Global User Perms for '.$objUser->grab('username'));
 
         $config = $this->config();
@@ -442,7 +442,7 @@ class Debug extends coreObj{
             }
 
             $output   = '';
-            $objCache = coreObj::getCache();
+            $objCache = Core_Classes_coreObj::getCache();
 
             $output = array(
                 'loaded' => $objCache->loadedCaches,
@@ -469,7 +469,7 @@ class Debug extends coreObj{
                 return '';
             }
 
-            $objPlugin = coreObj::getPlugins();
+            $objPlugin = Core_Classes_coreObj::getPlugins();
             $hooks = $objPlugin->getAvailableHooks();
 
             return array('count' => count($hooks), 'content' => $hooks );
@@ -495,8 +495,8 @@ class Debug extends coreObj{
         $content   = '';
         $output    = '';
         $debugTabs = array( );
-        $objPlugin = coreObj::getPlugins();
-        $objPage   = coreObj::getPage();
+        $objPlugin = Core_Classes_coreObj::getPlugins();
+        $objPage   = Core_Classes_coreObj::getPage();
 
         $objPage->addJSFile(array('src' => '/'.root().'assets/javascript/tabs.js'), 'footer');
         $objPage->addJSFile(array('src' => '/'.root().'assets/javascript/debug.js'), 'footer');

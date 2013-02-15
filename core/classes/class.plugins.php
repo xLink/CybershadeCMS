@@ -11,7 +11,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 * @since       1.0.0
 * @author      Dan Aldridge
 */
-class Plugins extends coreObj{
+class Core_Classes_Plugins extends Core_Classes_coreObj{
     private $dontExec     = false,
             $hooks          = array(),
             $availableHooks = array();

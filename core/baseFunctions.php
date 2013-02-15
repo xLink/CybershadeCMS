@@ -441,7 +441,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @return  string
      */
     function langVar(){
-        $_lang = coreObj::$_lang;
+        $_lang = Core_Classes_coreObj::$_lang;
 
         //get how many arguments the function received
         $args = func_get_args();
@@ -486,7 +486,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
             include_once($file);
 
             if( is_array($_lang) && count($_lang)>1 ){
-                coreObj::$_lang = array_merge(coreObj::$_lang, $_lang);
+                Core_Classes_coreObj::$_lang = array_merge(Core_Classes_coreObj::$_lang, $_lang);
             }
 
             $return = true;
@@ -601,7 +601,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @return  string
      */
     function secureMe($string, $mode='html'){
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         switch(strtolower($mode)){
             case 'html':
@@ -963,8 +963,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @since   0.6.0
      */
     function msgDie($msg_type, $message, $line=null, $file=null, $query=null, $footer=true){
-        $objTPL = coreObj::getTPL();
-        $objPage = coreObj::getPage();
+        $objTPL = Core_Classes_coreObj::getTPL();
+        $objPage = Core_Classes_coreObj::getPage();
 
         //if(!is_object($objTPL) || !is_object($objPage)){ echo $message; exit; }
         $header = $objPage->getOptions('completed');

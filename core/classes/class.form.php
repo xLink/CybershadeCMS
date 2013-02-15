@@ -11,7 +11,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 * @since    1.0.0
 * @author   Dan Aldridge / Kev Bowler
 */
-class Form extends coreObj {
+class Core_Classes_Form extends Core_Classes_coreObj {
 
     /**
      * Starts a new form off

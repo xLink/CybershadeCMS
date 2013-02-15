@@ -11,7 +11,7 @@ if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
  * @since       1.0.0
  * @author      Dan Aldridge, Richard Clifford (Ported to CS v1.0)
  */
-class Groups extends coreObj {
+class Core_Classes_Groups extends Core_Classes_coreObj {
 
     /**
      * Returns information on a group
@@ -36,7 +36,7 @@ class Groups extends coreObj {
             return $this->group[$gid];
         }
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $group_id = $objSQL->queryBuilder()
             ->select('id', 'name', 'moderator', 'single_user_group')
@@ -98,8 +98,8 @@ class Groups extends coreObj {
         $insert['pending']  = $pending;
 
 
-        $objPlugins = coreObj::getPlugins();
-        $objSQL     = coreObj:: getDBO();
+        $objPlugins = Core_Classes_coreObj::getPlugins();
+        $objSQL     = Core_Classes_coreObj:: getDBO();
 
         $objPlugins->hook('CMSGroups_beforeJoin', $insert);
 
@@ -146,7 +146,7 @@ class Groups extends coreObj {
             return false;
         }
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
 
         // remove the user from the group
@@ -156,7 +156,7 @@ class Groups extends coreObj {
             ->build();
 
         if( $delete ){
-            $objUser = coreObj::getUsers();
+            $objUser = Core_Classes_coreObj::getUsers();
             $log = 'User Groups: Removed '.$objUser->profile($uid, RAW).' from '.$gid;
         }
 
@@ -202,8 +202,8 @@ class Groups extends coreObj {
             return false;
         }
 
-        $objSQL = coreObj::getDBO();
-        $objUser = coreObj::getUser();
+        $objSQL = Core_Classes_coreObj::getDBO();
+        $objUser = Core_Classes_coreObj::getUser();
 
         // make sure old moderator is a subscriber
         $oldModQuery = $objSQL->queryBuilder()
@@ -232,7 +232,7 @@ class Groups extends coreObj {
 
             $log = 'User Groups: '.$objUser->profile($uid, RAW).' has been made group Moderator of '.$group['name'];
 
-            coreObj::getPlugins()->hook('CMSGroups_changeModerator', array($uid, $gid));
+            Core_Classes_coreObj::getPlugins()->hook('CMSGroups_changeModerator', array($uid, $gid));
         }
 
         // make the moderator a subscriber too
@@ -264,7 +264,7 @@ class Groups extends coreObj {
             return false;
         }
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         // get group
         $group = $this->getGroup($gid);
@@ -333,7 +333,7 @@ class Groups extends coreObj {
             return false;
         }
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         // get group
         if(is_empty($query)){
@@ -395,7 +395,7 @@ class Groups extends coreObj {
             return false;
         }
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         // Get Group
         /*$query = $objSQL->query(vsprintf('SELECT ug.uid, ug.pending, g.type, g.moderator

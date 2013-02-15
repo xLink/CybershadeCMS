@@ -5,7 +5,7 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 
-class Permissions extends coreObj {
+class Core_Classes_Permissions extends Core_Classes_coreObj {
 
     /**
      * Returns permission state for given user and group

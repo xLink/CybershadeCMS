@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Unit extends coreObj{
+class Core_Classes_Unit extends Core_Classes_coreObj{
 
     protected $_reportData = array();
     protected $_backtrace = array();

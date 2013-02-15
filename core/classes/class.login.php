@@ -5,12 +5,12 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 
-class Login extends coreObj {
+class Core_Classes_Login extends Core_Classes_coreObj {
 
     public $errors = array();
 
     public function __construct(){
-        $objSession = coreObj::getSession();
+        $objSession = Core_Classes_coreObj::getSession();
 
         $this->onlineData = $objSession->getData();
     }
@@ -31,9 +31,9 @@ class Login extends coreObj {
             return false;
         }
 
-        $objUser = coreObj::getUser();
-        $objPlugins = coreObj::getPlugins();
-        $objSession = coreObj::getSession();
+        $objUser = Core_Classes_coreObj::getUser();
+        $objPlugins = Core_Classes_coreObj::getPlugins();
+        $objSession = Core_Classes_coreObj::getSession();
 
         if( !$objSession->checkToken('hash') ){
             $this->addError(1);
@@ -101,8 +101,8 @@ class Login extends coreObj {
 
         $objPlugins->hook( 'CMS_LOGIN_SUCCESS', $this->userData );
 
-        $objSQL = coreObj::getDBO();
-        $objTime = coreObj::getTime();
+        $objSQL = Core_Classes_coreObj::getDBO();
+        $objTime = Core_Classes_coreObj::getTime();
 
         $query = $objSQL->queryBuilder()
             ->update( '#__sessions' )
@@ -159,10 +159,10 @@ class Login extends coreObj {
      * @param   string $check    The user code to verify
      */
     public function logout($check){
-        $objSQL = coreObj::getDBO();
-        $objUser = coreObj::getUser();
-        $objTime = coreObj::getTime();
-        $objPage = coreObj::getPage();
+        $objSQL = Core_Classes_coreObj::getDBO();
+        $objUser = Core_Classes_coreObj::getUser();
+        $objTime = Core_Classes_coreObj::getTime();
+        $objPage = Core_Classes_coreObj::getPage();
 
         if( !is_empty($check) && $check == $objUser->grab('usercode') ){
 
@@ -188,8 +188,8 @@ class Login extends coreObj {
     }
 
     public function updateLoginAttempts(){
-        $objUser = coreObj::getUser();
-        $objSQL  = coreObj::getDBO();
+        $objUser = Core_Classes_coreObj::getUser();
+        $objSQL  = Core_Classes_coreObj::getDBO();
 
         if( !is_empty($this->userData) ){
             $objUser->update( $this->userData['id'], array('login_attempts' => '(login_attempts + 1)') );
@@ -224,9 +224,9 @@ class Login extends coreObj {
 
             if($this->onlineData['login_time'] == '0'){
 
-                $objSQL  = coreObj::getDBO();
-                $objTime = coreObj::getTime();
-                $objUser = coreObj::getUser();
+                $objSQL  = Core_Classes_coreObj::getDBO();
+                $objTime = Core_Classes_coreObj::getTime();
+                $objUser = Core_Classes_coreObj::getUser();
 
                 $query = $objSQL->queryBuilder()
                     ->update('#__sessions')
@@ -248,7 +248,7 @@ class Login extends coreObj {
             if( $this->userData['login_attempts'] === $this->config('login', 'max_login_tries') ){
 
                 //deactivate the users account
-                coreObj::getUser()->toggle( $this->userData['id'], 'active', false );
+                Core_Classes_coreObj::getUser()->toggle( $this->userData['id'], 'active', false );
             }
             return false;
         }

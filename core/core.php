@@ -93,37 +93,37 @@ require_once(cmsROOT.'core/classes/class.coreobj.php');
 
 // AUTOLOADER, I Choose You!
     // directories to use for the autoloading, these get glob'd over after
-    $dirs = coreObj::addClassDirs(array(
-        'classes'          => cmsROOT.'core/classes/*.php',
-        'libs'             => cmsROOT.'core/libs/*/class.*.php',
-        'drivers'          => cmsROOT.'core/drivers/driver.*.php',
-        'admin_panels'     => cmsROOT.'modules/*/admin.*.php',
-        'modules'          => cmsROOT.'modules/*/class.*.php',
-        'module_overrides' => cmsROOT.'themes/*/override/*/*.php',
-    ));
+    // $dirs = Core_Classes_coreObj::addClassDirs(array(
+    //     'classes'          => cmsROOT.'core/classes/*.php',
+    //     'libs'             => cmsROOT.'core/libs/*/class.*.php',
+    //     'drivers'          => cmsROOT.'core/drivers/driver.*.php',
+    //     'admin_panels'     => cmsROOT.'modules/*/admin.*.php',
+    //     'modules'          => cmsROOT.'modules/*/class.*.php',
+    //     'module_overrides' => cmsROOT.'themes/*/override/*/*.php',
+    // ));
 
 
 spl_autoload_extensions('.php');
-spl_autoload_register(array('coreObj', 'loadClass'));
+spl_autoload_register(array('Core_Classes_coreObj', 'loadClass'));
 // echo dump($dirs, 'Loading Classes From', 'orange');exit;
 
-    $objCore     = new coreObj;
+    $objCore    = new Core_Classes_coreObj;
     $objCore->addConfig($config);
 
     // Instance plugins so we can add hooks as early as possible.
-    $objPlugin  = coreObj::getPlugins();
+    $objPlugin  = Core_Classes_coreObj::getPlugins();
 
 $objPlugin->hook('CMS_PRE_SETUP_COMPLETE');
 
-    $objCache   = coreObj::getCache();
+    $objCache   = Core_Classes_coreObj::getCache();
 
     $confCache = $objCache->load( 'config' );
     $objCore->addConfig($confCache);
 
-    $objSession = coreObj::getSession();
-    $objUser    = coreObj::getUser();
-    $objDebug   = coreObj::getDebug();
-    $objRoute   = coreObj::getRoute()->modifyGET();
+    $objSession = Core_Classes_coreObj::getSession();
+    $objUser    = Core_Classes_coreObj::getUser();
+    $objDebug   = Core_Classes_coreObj::getDebug();
+    $objRoute   = Core_Classes_coreObj::getRoute()->modifyGET();
 
         if( is_object($objDebug) ){
             set_error_handler(array($objDebug, 'errorHandler'));

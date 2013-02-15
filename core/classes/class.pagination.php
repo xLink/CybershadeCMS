@@ -4,7 +4,7 @@
 \*======================================================================*/
 if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
-class Pagination extends coreObj {
+class Core_Classes_Pagination extends Core_Classes_coreObj {
 
     protected $instance = '';
     protected $total_per_page = 1;
@@ -52,7 +52,7 @@ class Pagination extends coreObj {
     public function getPagination($showOne=false, $style=null, $url=null){
         // global $objUser;
 
-        $objUser = coreObj::getInstance();
+        $objUser = Core_Classes_coreObj::getInstance();
 
         if($this->total_pages <= 1){
             if(!$showOne){ return ''; }
@@ -101,7 +101,7 @@ class Pagination extends coreObj {
     protected function paginationStyle1($url=null){
         // global $objForm;
 
-        $objForm = coreObj::getForm();
+        $objForm = Core_Classes_coreObj::getForm();
 
         $url = $this->parseQueryString((is_empty($url) ? $_SERVER['REQUEST_URI'] : $url));
 

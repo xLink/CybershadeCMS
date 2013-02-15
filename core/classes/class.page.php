@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class page extends coreObj {
+class Core_Classes_Page extends Core_Classes_coreObj {
     public static $THEME      = '',
                   $THEME_ROOT = '';
 
@@ -118,7 +118,7 @@ class page extends coreObj {
      *
      */
     public function buildBlocks() {
-        $objBlocks = coreObj::getBlocks();
+        $objBlocks = Core_Classes_coreObj::getBlocks();
         $objBlocks->insertBlocks();
     }
 
@@ -131,7 +131,7 @@ class page extends coreObj {
      *
      */
     public function buildMenu() {
-        $objTPL = coreObj::getTPL();
+        $objTPL = Core_Classes_coreObj::getTPL();
         /*$objTPL = self::getTPL();
 
         $noMenu = (defined('NO_MENU') && NO_MENU ? true : false);
@@ -173,7 +173,7 @@ class page extends coreObj {
      * @return bool
      */
     public function setTheme( $theme=null, $override=false ) {
-        $objUser = coreObj::getUser();
+        $objUser = Core_Classes_coreObj::getUser();
 
         // if nothing was passed in, grab the current site theme
         if (is_empty($theme)) {
@@ -183,7 +183,7 @@ class page extends coreObj {
 
         // if the user is online, then check if the theme they selected is valid & gogo use that
         if( $override === true
-                && User::$IS_ONLINE
+                && Core_Classes_User::$IS_ONLINE
                 && $objUser->grab('theme') !== null
                 && is_dir(cmsROOT.'themes/'.$objUser->grab('theme').'/') ){
 
@@ -227,13 +227,13 @@ class page extends coreObj {
      * @return bool
      */
     public function setLanguage() {
-        $objUser = coreObj::getUser();
+        $objUser = Core_Classes_coreObj::getUser();
 
         // Grab the default language info, and test to see if user has a request
         $language = $this->config('site', 'language');
         $langDir  = cmsROOT.'languages/';
 
-        if (User::$IS_ONLINE) {
+        if (Core_Classes_User::$IS_ONLINE) {
             $lang = $objUser->grab('language');
             if ( is_dir($langdir . $lang . '/') ) {
                 $language = $lang;
@@ -279,7 +279,7 @@ class page extends coreObj {
          */
         private function buildBreadcrumbs()
         {
-            $objTPL = coreObj::getTPL();
+            $objTPL = Core_Classes_coreObj::getTPL();
 
             $breadcrumbs = $this->getVar('breadcrumbs');
             $length = count( $breadcrumbs );
@@ -837,7 +837,7 @@ class page extends coreObj {
   //
         $tplGlobals = array(
             'ROOT'          => root(),
-            'THEME_ROOT'    => root(). Page::$THEME_ROOT,
+            'THEME_ROOT'    => root(). Core_Classes_Page::$THEME_ROOT,
 
             'SITE_NAME'     => $this->config('site', 'site_name'),
 
@@ -851,7 +851,7 @@ class page extends coreObj {
             'L_UCP'         => langVar('L_UCP'),
         );
 
-        if (!User::$IS_ONLINE) {
+        if (!Core_Classes_User::$IS_ONLINE) {
             $tplGlobals += array(
                 'U_LOGIN' => '/'.root().'login',
                 'L_LOGIN' => 'Login',
@@ -911,7 +911,7 @@ class page extends coreObj {
 
         if ( defined('cmsDEBUG') && cmsDEBUG === true ) {
 
-            $objDebug = coreObj::getDebug();
+            $objDebug = Core_Classes_coreObj::getDebug();
             $objTPL->assign_block_vars('debug', array(
                 'DEBUG' => $objDebug->output(),
             ));

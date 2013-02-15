@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Route extends coreObj{
+class Core_Classes_Route extends Core_Classes_coreObj{
 
     public  $routes = array(),    // Array holding all the routes
             $route  = array(),    // Contains the route matched
@@ -45,7 +45,7 @@ class Route extends coreObj{
         }
 
         // Load the routes cache in
-        $this->routes = coreObj::getCache()->load('routes');
+        $this->routes = Core_Classes_coreObj::getCache()->load('routes');
 
         // If we have no routes to use, then we need to stop here
         if( is_empty($this->routes) ){
@@ -68,7 +68,7 @@ class Route extends coreObj{
      * @return      mixed
      */
     public function processURL( $url ) {
-        $objPlugin  = coreObj::getPlugins();
+        $objPlugin  = Core_Classes_coreObj::getPlugins();
 
         $this->loadRoutes();
 
@@ -219,7 +219,7 @@ class Route extends coreObj{
             return false;
         }
 
-        $objPlugin  = coreObj::getPlugins();
+        $objPlugin  = Core_Classes_coreObj::getPlugins();
 
         // If the route matches the URL, we've got a winner!
         if( preg_match( '#^' . $pattern . '$#', $url, $matches ) ) {
@@ -272,7 +272,7 @@ class Route extends coreObj{
         }
         (cmsDEBUG ? memoryUsage('Route: Executing Route '.dump($route)) : '');
 
-        $objUser = coreObj::getUser();
+        $objUser = Core_Classes_coreObj::getUser();
 
         // Check if the route is a redirection
         if( !is_empty( $route['redirect'] ) ) {
@@ -349,7 +349,7 @@ class Route extends coreObj{
             ));
             $refMethod->invokeArgs( $objModule , $args );
 
-        coreObj::getPage()->setVar('contents', ob_get_clean() );
+        Core_Classes_coreObj::getPage()->setVar('contents', ob_get_clean() );
 
         return $objModule;
     }
@@ -379,8 +379,8 @@ class Route extends coreObj{
 
         $values   = array();
         $label    = $route['label'];
-        $objSQL   = coreObj::getDBO();
-        $objCache = coreObj::getCache();
+        $objSQL   = Core_Classes_coreObj::getDBO();
+        $objCache = Core_Classes_coreObj::getCache();
 
         $methods = array( 'HEAD', 'PUT', 'GET', 'OPTIONS', 'POST', 'DELETE', 'TRACE', 'CONNECT', 'PATCH' );
 
@@ -440,8 +440,8 @@ class Route extends coreObj{
      * @return      bool
      */
     public function deleteRoute( $id ) {
-        $objSQL   = coreObj::getDBO();
-        $objCache = coreObj::getCache();
+        $objSQL   = Core_Classes_coreObj::getDBO();
+        $objCache = Core_Classes_coreObj::getCache();
 
         $query  = $objSQL->queryBuilder()
             ->deleteFrom('#__routes')
@@ -470,8 +470,8 @@ class Route extends coreObj{
     public function toggleRoute( $id, $status = null ) {
 
         $update   = array();
-        $objSQL   = coreObj::getDBO();
-        $objCache = coreObj::getCache();
+        $objSQL   = Core_Classes_coreObj::getDBO();
+        $objCache = Core_Classes_coreObj::getCache();
         $query    = $objSQL->queryBuilder();
 
         if( is_bool( $status ) !== true ) {
@@ -513,7 +513,7 @@ class Route extends coreObj{
      */
     public static function generate_cache(){
         $output = array();
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
             ->select('module', 'label', 'pattern', 'method', 'arguments', 'requirements', 'status', 'redirect')
@@ -567,7 +567,7 @@ class Route extends coreObj{
         if(headers_sent()){ return false; }
 
         $msg = NULL;
-        $objPage = coreObj::getPage();
+        $objPage = Core_Classes_coreObj::getPage();
         switch($error){
             default:
             case 000:

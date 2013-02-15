@@ -12,7 +12,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  * @author  Dan Aldridge
  *
  */
-class Session extends coreObj{
+class Core_Classes_Session extends Core_Classes_coreObj{
 
     public $session_id = false;
 
@@ -31,7 +31,7 @@ class Session extends coreObj{
         $check = $this->checkValidSession();
         if( $check === false ){
             if( isset($_SESSION)){
-                $objSQL = coreObj::getDBO();
+                $objSQL = Core_Classes_coreObj::getDBO();
 
                 $query = $objSQL->queryBuilder()
                     ->deleteFrom('#__sessions')
@@ -63,7 +63,7 @@ class Session extends coreObj{
      */
     public function session_gc(){
         if( rand(1, 100) <= 25 ){
-            $objSQL = coreObj::getDBO();
+            $objSQL = Core_Classes_coreObj::getDBO();
 
             $query = $objSQL->queryBuilder()
                 ->deleteFrom('#__sessions')
@@ -108,7 +108,7 @@ class Session extends coreObj{
      */
     public function updateTime(){
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $update = array();
         $update['timestamp'] = time();
@@ -116,9 +116,9 @@ class Session extends coreObj{
         $query = $objSQL->queryBuilder()
             ->update('#__sessions')
             ->set($update)
-            ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0'))
+            ->where('admin',            '=', (Core_Classes_User::$IS_ADMIN ? '1' : '0'))
                 ->andWhere('sid',       '=', md5( session_id() ) )
-                ->andWhere('hostname',  '=', User::getIP() )
+                ->andWhere('hostname',  '=', Core_Classes_User::getIP() )
             ->build();
 
         $results = $objSQL->query( $query );
@@ -135,15 +135,15 @@ class Session extends coreObj{
      *
      */
     public function newSession(){
-        $objSQL  = coreObj::getDBO();
-        $objUser = coreObj::getUser();
+        $objSQL  = Core_Classes_coreObj::getDBO();
+        $objUser = Core_Classes_coreObj::getUser();
 
         //$this->regenSessionID();
 
         $insert = array();
-        $insert['uid']       = ( User::$IS_ONLINE ? $objUser->grab('id') : 0);
+        $insert['uid']       = ( Core_Classes_User::$IS_ONLINE ? $objUser->grab('id') : 0);
         $insert['sid']       = md5( session_id() );
-        $insert['hostname']  = $objSQL->escape( User::getIP() );
+        $insert['hostname']  = $objSQL->escape( Core_Classes_User::getIP() );
         $insert['store']     = $objSQL->escape( serialize( $_SESSION ) );
         $insert['timestamp'] = time();
         $insert['useragent'] = $objSQL->escape( htmlspecialchars( $_SERVER['HTTP_USER_AGENT'] ) );
@@ -175,15 +175,15 @@ class Session extends coreObj{
      *
      */
     public function getData(){
-        $objSQL = coreObj::getDBO();
-        $objUser = coreObj::getUser();
+        $objSQL = Core_Classes_coreObj::getDBO();
+        $objUser = Core_Classes_coreObj::getUser();
 
         $query = $objSQL->queryBuilder()
             ->select('*')
             ->from('#__sessions')
-            ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0') )
+            ->where('admin',            '=', (Core_Classes_User::$IS_ADMIN ? '1' : '0') )
                 ->andWhere('sid',       '=', md5( session_id() ) )
-                ->andWhere('hostname',  '=', User::getIP() )
+                ->andWhere('hostname',  '=', Core_Classes_User::getIP() )
             ->build();
 
         $results = $objSQL->fetchLine( $query );
@@ -209,7 +209,7 @@ class Session extends coreObj{
      * @return  string $token
      */
     public function getFormToken($forceNew=false){
-        $objUser = coreObj::getUser();
+        $objUser = Core_Classes_coreObj::getUser();
 
         return self::getToken($forceNew);
     }

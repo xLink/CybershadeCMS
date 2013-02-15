@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class AdminCP extends coreObj{
+class Core_Classes_AdminCP extends Core_Classes_coreObj{
 
     public function __construct($name, $options=array()){
         // apparently it wants to throw the args into an array first :/
@@ -24,10 +24,10 @@ class AdminCP extends coreObj{
      * @author  Dan Aldridge
      */
     public function output(){
-        $objTPL = coreObj::getTPL();
+        $objTPL = Core_Classes_coreObj::getTPL();
 
         if( !$objTPL->isHandle('body') ){
-            $page = coreObj::getPage()->getVar('contents');
+            $page = Core_Classes_coreObj::getPage()->getVar('contents');
 
             if( $page === null ){
                 msgDie('FAIL', 'No output received from module.');
@@ -42,7 +42,7 @@ class AdminCP extends coreObj{
 
     public function invokeRoute(){
         // Get instanced
-        $objRoute = coreObj::getRoute();
+        $objRoute = Core_Classes_coreObj::getRoute();
 
         $this->module = 'Admin_'.$this->module;
 
@@ -59,8 +59,8 @@ class AdminCP extends coreObj{
     }
 
     public function getNav(){
-        $objSQL = coreObj::getDBO();
-        $objTPL = coreObj::getTPL();
+        $objSQL = Core_Classes_coreObj::getDBO();
+        $objTPL = Core_Classes_coreObj::getTPL();
 
         $acpROOT = '/'.root().'admin/';
         $nav = array(
@@ -167,7 +167,7 @@ class AdminCP extends coreObj{
      * @author  Richard Clifford
      */
     public function dashboard(){
-        $objPage = coreObj::getPage();
+        $objPage = Core_Classes_coreObj::getPage();
         $this->getNav();
         $this->invokeRoute();
         $objPage->buildPage();

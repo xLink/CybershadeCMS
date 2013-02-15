@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Cache extends coreObj{
+class Core_Classes_Cache extends Core_Classes_coreObj{
     public $cacheToggle  = false,
            $output       = array(),
            $cacheDir     = '',

@@ -5,7 +5,7 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 
-class User extends coreObj {
+class Core_Classes_User extends Core_Classes_coreObj {
 
     //some static vars
     static  $IS_ONLINE  = false;
@@ -27,12 +27,12 @@ class User extends coreObj {
         );
 
         // Get the Page Object
-        $objPage = coreObj::getPage();
+        $objPage = Core_Classes_coreObj::getPage();
 
         self::addConfig(array(
             'global' => array(
                 'user'      => ( isset($_SESSION['user']['id']) ? $_SESSION['user'] : $guest['user']),
-                'ip'        => User::getIP(),
+                'ip'        => Core_Classes_User::getIP(),
                 'useragent' => doArgs('HTTP_USER_AGENT', null, $_SERVER),
                 'browser'   => getBrowser($_SERVER['HTTP_USER_AGENT']),
                 'platform'  => $objPage->getCSSSelectors($_SERVER['HTTP_USER_AGENT']),
@@ -132,7 +132,7 @@ class User extends coreObj {
         // we don't so we shall grab it
         } else {
 
-            $objSQL = coreObj::getDBO();
+            $objSQL = Core_Classes_coreObj::getDBO();
 
             //figure out if they gave us a username or a user id
             $user   = (is_number($uid) ? 'u.id = %s' : 'upper(u.username) = "%s"');
@@ -344,7 +344,7 @@ class User extends coreObj {
             return array();
         }
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $uid = ( is_null( $uid ) ? $objSession->getCurrentUser() : $uid );
 
@@ -412,7 +412,7 @@ class User extends coreObj {
             return false;
         }
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         // get the column names to check against
         $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
@@ -494,7 +494,7 @@ class User extends coreObj {
         if( is_empty( $password ) ){
             return false;
         }
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
             ->update('#__users')
@@ -527,7 +527,7 @@ class User extends coreObj {
      * @return  bool
      */
     public function toggle( $uid, $var, $state = null){
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
         $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
@@ -587,7 +587,7 @@ class User extends coreObj {
             return false;
         }
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
         $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
@@ -699,7 +699,7 @@ class User extends coreObj {
      * @return bool
      */
     public function verifyUserCredentials( $username, $password ) {
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         // Grab the user's id
         $uid = $this->getIDByUsername( $username );

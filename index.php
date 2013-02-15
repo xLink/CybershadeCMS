@@ -7,9 +7,9 @@ define('cmsDEBUG', true);
 set_time_limit(0);
 require_once 'core/core.php';
 
-$objRoute = coreObj::getRoute();
-$objPage  = coreObj::getPage();
-$objTPL   = coreObj::getTPL();
+$objRoute = Core_Classes_coreObj::getRoute();
+$objPage  = Core_Classes_coreObj::getPage();
+$objTPL   = Core_Classes_coreObj::getTPL();
 
 $objPage->setTheme();
 

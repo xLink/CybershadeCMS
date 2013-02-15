@@ -7,7 +7,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 /**
  * Upload class to upload files to a certain location
  */
-class Upload extends coreObj {
+class Core_Classes_Upload extends Core_Classes_coreObj {
 
     /**
      * Directory of the uploads location
@@ -49,7 +49,7 @@ class Upload extends coreObj {
      */
      public function doUpload( $extensions = array(), $size = 50000 ) {
 
-        $objPlugins = coreObj::getPlugins();
+        $objPlugins = Core_Classes_coreObj::getPlugins();
 
         $destination = $this->getVar('directory');
         $input_id    = $this->getVar('input_id');
@@ -87,8 +87,8 @@ class Upload extends coreObj {
 
                     // Check if the file was moved correctly
                     if( $moveFile ){
-                        $objSQL  = coreObj::getDBO();
-                        $objUser = coreObj::getUser();
+                        $objSQL  = Core_Classes_coreObj::getDBO();
+                        $objUser = Core_Classes_coreObj::getUser();
 
                         // Setup the data to be inserted into the db
                         $uploadData = array(
@@ -147,7 +147,7 @@ class Upload extends coreObj {
      * @return      boolean
      */
     public function setDirectory( $directory = '', $create = false ){
-        $objPlugins = coreObj::getPlugins();
+        $objPlugins = Core_Classes_coreObj::getPlugins();
 
         if( trim($directory) === '' ){
             (cmsDEBUG ? memoryUsage('Upload: Using default folder') : '');
@@ -223,9 +223,9 @@ class Upload extends coreObj {
             return false;
         }
 
-        $objPlugins = coreObj::getPlugins();
-        $objSQL     = coreObj::getDBO();
-        $objUser    = coreObj::getUser();
+        $objPlugins = Core_Classes_coreObj::getPlugins();
+        $objSQL     = Core_Classes_coreObj::getDBO();
+        $objUser    = Core_Classes_coreObj::getUser();
 
         // Check if the file is already authorized
         $checkAuth = $objSQL->queryBuilder()
@@ -287,8 +287,8 @@ class Upload extends coreObj {
             return false;
         }
 
-        $objPlugins = coreObj::getPlugins();
-        $objSQL     = coreObj::getDBO();
+        $objPlugins = Core_Classes_coreObj::getPlugins();
+        $objSQL     = Core_Classes_coreObj::getDBO();
 
         // Check if the file is already public
         $check = $objSQL->queryBuilder()

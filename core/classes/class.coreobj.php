@@ -11,7 +11,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  * @since       1.0.0
  * @author      Dan Aldridge <xLink@cybershade.org>
  */
-class coreObj {
+class Core_Classes_coreObj {
 
     public static   $classDirs      = array(),
                     $_classes       = array(),
@@ -57,64 +57,23 @@ class coreObj {
      * @return  bool
      */
     public static function loadClass($class) {
-        //echo dump($class, 'LOADING', 'pink');
-        if(empty(self::$classDirs)){
-            trigger_error('Error: No Directories to scan for class.', E_USER_ERROR);
-        }
 
-        // Grab all the dir's we've been given to search
-        $dirs = self::$classDirs;
+        if ( !class_exists($class) && !interface_exists($class) ){
 
-        // Loop through the dirs we've been given
-        foreach( $dirs as $dir => $files ) {
+            $fp = str_replace('_', DS, $class);
+            $fp = explode(DS, $fp);
+            $fp[(count($fp)-1)] = sprintf('class.%s.php', end($fp));
+            $fp = implode('/', $fp);
+            $fp = strtolower(cmsROOT.$fp);
 
-            // If there are no files in here, why the hell are we bothering?
-            if( !count( $files ) ){ continue; }
-
-            // Switch case through dirs for different naming structures.
-            switch( $dir ) {
-
-                case 'libs':
-                case 'classes':
-                    $filePrefix     = 'class.';
-                    $classPrefix    = '';
-                break;
-
-                case 'modules':
-                    $filePrefix     = 'class.';
-                    $classPrefix    = 'Module_';
-                break;
-
-
-                case 'admin_panels':
-                    $filePrefix     = 'admin.';
-                    $classPrefix    = 'Admin_';
-                break;
-
-                case 'drivers':
-                    $filePrefix     = 'driver.';
-                    $classPrefix    = 'driver_';
-                break;
-            }
-
-            // Within each dir, loop through the files using the prefixes generated above.
-            foreach( $files as $file ) {
-
-                // Generate what the classname should look like, if this is the file we're searching for
-                $possibleClassname = $classPrefix . inBetween( $filePrefix, '.php', $file );
-
-                // If this file dosent match the class name, carry on to the next one
-                if( strtolower( $possibleClassname ) !== strtolower( $class ) ) {
-                    continue;
-                }
-
-                include_once( $file );
+            if( file_exists($fp) && is_readable($fp) ){
+                include_once($fp);
                 return true;
             }
+
         }
 
-        //echo dump($dirs, $class);
-        trigger_error('No File found for this Class. '.$class, E_USER_ERROR);
+        trigger_error('No File found for this Class. '.$class.'. Tried File: '.$fp, E_USER_ERROR);
         return false;
     }
 
@@ -309,22 +268,22 @@ class coreObj {
      */
     public static function getInstance($name, $options=array()){
 
-        if (!isset(coreObj::$_classes[$name]) || empty(coreObj::$_classes[$name])){
+        if (!isset(Core_Classes_coreObj::$_classes[$name]) || empty(Core_Classes_coreObj::$_classes[$name])){
             $class = self::getStaticClassName();
             $iClass = new $class($name, $options);
 
             // default to returning the class as is, but test to see if we have setupInstance
             // && if so, we'll return that :D
-            coreObj::$_classes[$name] = $iClass;
+            Core_Classes_coreObj::$_classes[$name] = $iClass;
 
             // grab the methods for this clas & make if we have a setupInstance() then run it
             $iClass::$coreMethods = get_class_methods($iClass);
             if( in_array('setupInstance', $iClass::$coreMethods) && is_callable(array($iClass, 'setupInstance')) ){
-                coreObj::$_classes[$name] = $iClass->setupInstance($name, $options);
+                Core_Classes_coreObj::$_classes[$name] = $iClass->setupInstance($name, $options);
             }
         }
 
-        return coreObj::$_classes[$name];
+        return Core_Classes_coreObj::$_classes[$name];
     }
 
     /**
@@ -379,19 +338,20 @@ class coreObj {
         if( substr($method, 0, 3) === 'get' ){
             $className = str_replace('get', '', $method);
             $className = ucwords($className);
+            $className = 'Core_Classes_'.$className;
 
             if( !isset(self::$coreMethods) ){
-                $objCore = new coreObj;
+                $objCore = new Core_Classes_coreObj;
                 self::$coreMethods = get_class_methods($objCore);
             }
 
             if( class_exists($className) && !in_array($className, self::$coreMethods) ){
 
-                if( !isset(coreObj::$_classes[$className]) ){
+                if( !isset(Core_Classes_coreObj::$_classes[$className]) ){
                     $className::getInstance($className, $args);
                 }
 
-                return coreObj::$_classes[$className];
+                return Core_Classes_coreObj::$_classes[$className];
             }
         }
 
@@ -407,14 +367,41 @@ class coreObj {
         return null;
     }
 
+    public static function getLib( $name, $args=array() ){
+        $dir = 'core/libs/';
+
+        // if the class dosent exist, then we'll load it
+        if( !class_exists($name) ){
+            $path = strtolower($dir.$name.'/class.'.$name.'.php');
+
+            if( file_exists($path) ){
+                include_once($path);
+            }
+        }
+
+        // if it already exists, load it in and throw it the args array
+        if( class_exists($name) ){
+            $obj = new ReflectionClass($name);
+            
+            if( count($args) ){
+                return $obj->newInstanceArgs($args);
+            }else{
+                return $obj->newInstance();
+            }
+        }
+
+        // if nothing happened, return false
+        return false;
+    }
+
     public static function getDBO(){
         global $errorTPL;
 
-        if(!isset(coreObj::$_classes['database'])){
+        if(!isset(Core_Classes_coreObj::$_classes['database'])){
             $options = self::config('db');
                 if(!$options){ trigger_error('Error: Could not obtain values from the configuration file. Please ensure it is present.', E_USER_ERROR); }
 
-            $name = 'driver_'.$options['driver'];
+            $name = 'Core_Drivers_'.$options['driver'];
 
             $options['persistant'] = true;
             $options['debug']      = (cmsDEBUG ? true : false);
@@ -438,16 +425,16 @@ class coreObj {
                     )
                 );
             }
-            coreObj::$_classes['database'] = $objSQL;
+            Core_Classes_coreObj::$_classes['database'] = $objSQL;
         }
 
-        return coreObj::$_classes['database'];
+        return Core_Classes_coreObj::$_classes['database'];
     }
 
     public static function getTPL(){
         global $errorTPL;
 
-        if(!isset(coreObj::$_classes['tpl'])){
+        if(!isset(Core_Classes_coreObj::$_classes['tpl'])){
             $cachePath = cmsROOT.'cache/template/';
             if(is_dir($cachePath) && !is_writable($cachePath)){
                 @chmod($cachePath, 0755);
@@ -457,18 +444,18 @@ class coreObj {
                 trigger_error('Could not set CHMOD permissions on "<i>'.$cachePath.'</i>" set to 775 to continue.', E_USER_ERROR);
             }
 
-            template::getInstance('tpl', array(
+            Core_Classes_Template::getInstance('tpl', array(
                 'useCache' => (is_writable($cachePath) ? true : false),
                 'cacheDir' => $cachePath,
                 'root'     => '.',
             ));
         }
 
-        return coreObj::$_classes['tpl'];
+        return Core_Classes_coreObj::$_classes['tpl'];
     }
 
     public static function getCache(){
-        if(!isset(coreObj::$_classes['cache'])){
+        if(!isset(Core_Classes_coreObj::$_classes['cache'])){
 
             //cache setup
             $cachePath = cmsROOT.'cache/';
@@ -480,16 +467,16 @@ class coreObj {
                 trigger_error('Could not set CHMOD permissions on "<i>'.$cachePath.'</i>" set to 775 to continue.', E_USER_ERROR);
             }
 
-            cache::getInstance('cache', array(
+            Core_Classes_Cache::getInstance('cache', array(
                 'useCache' => (is_writable($cachePath) ? true : false),
                 'cacheDir' => $cachePath,
             ));
 
 
-            coreObj::$_classes['cache']->get( 'config' );
+            Core_Classes_coreObj::$_classes['cache']->get( 'config' );
         }
 
-        return coreObj::$_classes['cache'];
+        return Core_Classes_coreObj::$_classes['cache'];
     }
 
 }
