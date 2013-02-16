@@ -32,10 +32,12 @@ class Core_Classes_Module extends Core_Classes_coreObj{
         $objTPL  = Core_Classes_coreObj::getTPL();
         $objUser = Core_Classes_coreObj::getUser();
 
-        $classPrefix = array('Module_', 'Admin_');
-        $module = str_replace($classPrefix, '', $this->getVar('_module') );
+        $classPrefixes = array('Modules_', 'Admin_');
+        $module = $this->getVar('_module');
         $method = $this->getVar('_method');
         $view   = str_replace('.tpl', '', $view);
+
+        $moduleInfo = explode('_', $module);
 
         if( is_empty($view) ){
             trigger_error('You did not set a view for this method.');
@@ -54,12 +56,10 @@ class Core_Classes_Module extends Core_Classes_coreObj{
         }*/
 
         // define a path for the views, & check for an override within there too
-        $path = sprintf('modules/%s/views/%s.tpl', $module, $view);
-        if( strpos($module, 'Override_') !== false ){
-            echo dump($module);
-            $override = str_replace('Override_', '', $module);
-            $module = str_replace($classPrefix, '', get_parent_class($this));
-            $file = sprintf('themes/%1$s/override/%2$s/%3$s.tpl', $objUser->grab('theme'), $module, $view);
+        $path = sprintf('modules/%s/views/%s.tpl', str_replace( $classPrefixes, '', $module), $view);
+        if( in_array('Override', $moduleInfo) ){
+            $module = str_replace( $classPrefixes, '', get_parent_class($this));
+            $file = sprintf('themes/%1$s/override/modules/%2$s/%3$s.tpl', $objUser->grab('theme'), $module, $view);
 
             if( is_file($file) ){
                 $path = $file;
@@ -143,12 +143,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      * @param   array  $args
      */
     public function __call($method, $args){
-        $debug = array(
-            'Class Name'    => $this->getClassName(),
-            'Method Called' => $method,
-            'Method Args'   => $args,
-        );
-        trigger_error('Error: Method dosen\'t exist.'.dump($debug));
+        self::__callStatic($method, $args);
     }
 
 
@@ -172,10 +167,10 @@ class Core_Classes_Module extends Core_Classes_coreObj{
 
             if( self::moduleExists($className) && self::moduleInstalled($className) ){
 
-                $className = 'Module_'.$className;
+                $className = 'Modules_'.$className;
                 if( class_exists($className) && !in_array($className, self::$coreMethods) ){
 
-                    if( !isset(coreObj::$_classes[$className]) ){
+                    if( !isset(Core_Classes_coreObj::$_classes[$className]) ){
                         $className::getInstance($className, $args);
                     }
 
@@ -186,11 +181,12 @@ class Core_Classes_Module extends Core_Classes_coreObj{
 
         }
         $debug = array(
-            'Class Name'    => self::getClassName(),
+            'Class Name'    => self::getStaticClassName(),
             'Method Called' => $method,
             'Method Args'   => $args,
+            'rawr' => $className,
         );
-        trigger_error('Error: Static Method dosen\'t exist.'.dump($debug));
+        trigger_error('Error:: Static Method dosen\'t exist.'.dump($debug));
     }
 
 
@@ -205,7 +201,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      *
      * @return  bool
      */
-    public function moduleExists( $moduleName ) {
+    public static function moduleExists( $moduleName ) {
         if( is_empty( $moduleName ) || !is_dir( sprintf( '%smodules/%s', cmsROOT, $moduleName ) ) ) {
             return false;
         }
@@ -227,7 +223,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      *
      * @return  bool
      */
-    public function moduleInstalled( $moduleName ){
+    public static function moduleInstalled( $moduleName ){
         if( is_empty( $moduleName ) ){
             return false;
         }
@@ -253,10 +249,4 @@ class Core_Classes_Module extends Core_Classes_coreObj{
     }
 }
 
-interface baseDetails{
-    public function details();
-    public function getBlocks();
-    public function install();
-    public function uninstall();
-}
 ?>

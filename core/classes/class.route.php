@@ -294,22 +294,20 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         }
 
         // test for override within the directory
+        $_module = str_replace('Modules_', '', $module);
+        $path = cmsROOT.'themes/%1$s/override/modules/%2$s/%3$s/class.%3$s.php';
 
-        $_module = str_replace('Module_', '', $module);
-        $path = cmsROOT.'themes/%1$s/override/%2$s/%3$s/%3$s.php';
         if( is_readable( sprintf($path, $objUser->grab('theme'), $_module, $method) ) ){
 
-            include_once( sprintf($path, $objUser->grab('theme'), $_module, $method) );
-
-            $overrideClass = 'Override_'.$method;
-            $getMethod = new ReflectionMethod('Override_'.$method, $method);
+            $overrideClass = 'Override_Modules_'.$_module.'_'.$method;
+            $getMethod = new ReflectionMethod( $overrideClass, $method );
 
             // test to see if its callable, & declared in the right bloody class >.<
             if( is_callable( array( $overrideClass, $method ) )
                 && $getMethod->getDeclaringClass()->name === $overrideClass ){
 
 
-                $module = 'Override_'.$method;
+                $module = $overrideClass;
             }
 
         }

@@ -242,11 +242,11 @@ class Core_Classes_Cache extends Core_Classes_coreObj{
             break;
 
             case 'routes':
-                $return = coreObj::getRoute()->generate_cache();
+                $return = Core_Classes_coreObj::getRoute()->generate_cache();
             break;
 
             case 'blocks':
-                $return = coreObj::getBlocks()->generate_cache();
+                $return = Core_Classes_coreObj::getBlocks()->generate_cache();
             break;
 
             case 'statistics':
@@ -254,7 +254,7 @@ class Core_Classes_Cache extends Core_Classes_coreObj{
             break;
 
             case 'plugins':
-                $query = coreObj::getDBO()->queryBuilder()->select('*')->from('#__'.$file)->build();
+                $query = Core_Classes_coreObj::getDBO()->queryBuilder()->select('*')->from('#__'.$file)->build();
                 $this->setup($file, $query);
             break;
 
@@ -298,7 +298,7 @@ class Core_Classes_Cache extends Core_Classes_coreObj{
     public function generateCache($file, $query){
         $this->output = '';
 
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $this->output = $objSQL->fetchAll($query);
             if($this->output === false){
@@ -380,7 +380,7 @@ PHP;
      *
      */
     public function generate_config_cache(){
-        $objSQL = coreObj::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
             ->select('key', 'var', 'value', 'default')

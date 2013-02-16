@@ -4,7 +4,7 @@
 \*======================================================================*/
 if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
-class Module_cscms_comments extends Module {
+class Modules_comments extends Core_Classes_Module {
 
     /**
      * Set the comments up, this will handle the post form also.

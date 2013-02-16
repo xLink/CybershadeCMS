@@ -4,10 +4,10 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Module_cscms_core extends Module{
+class Modules_core extends Core_Classes_Module{
 
     public function __construct(){
-        $objPage = coreobj::getPage();
+        $objPage = Core_Classes_coreobj::getPage();
         $objPage->setMenu('core');
 
     }
@@ -15,7 +15,7 @@ class Module_cscms_core extends Module{
     public function viewIndex(){
         $this->setView('module/viewIndex/default.tpl');
 
-        $objComments = Module::getComments();
+        $objComments = Core_Classes_Module::getComments();
         echo dump($objComments);
 
 
@@ -30,13 +30,13 @@ class Module_cscms_core extends Module{
 **/
 
     public function login_form(){
-        $objTPL     = coreObj::getTPL();
-        $objForm    = coreObj::getForm();
-        $objSession = coreObj::getSession();
-        $objPage    = coreObj::getPage();
-        $objLogin   = coreObj::getLogin();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+        $objForm    = Core_Classes_coreObj::getForm();
+        $objSession = Core_Classes_coreObj::getSession();
+        $objPage    = Core_Classes_coreObj::getPage();
+        $objLogin   = Core_Classes_coreObj::getLogin();
 
-        if( User::$IS_ONLINE ){
+        if( Core_Classes_User::$IS_ONLINE ){
             $objPage->redirect('/'.root());
         }
 
@@ -89,12 +89,12 @@ class Module_cscms_core extends Module{
     }
 
     public function block_login( $block ){
-        $objTPL     = coreObj::getTPL();
-        $objForm    = coreObj::getForm();
-        $objSession = coreObj::getSession();
-        $objPage    = coreObj::getPage();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+        $objForm    = Core_Classes_coreObj::getForm();
+        $objSession = Core_Classes_coreObj::getSession();
+        $objPage    = Core_Classes_coreObj::getPage();
 
-        if( User::$IS_ONLINE ){
+        if( Core_Classes_User::$IS_ONLINE ){
             $objPage->redirect('/'.root());
         }
 
@@ -150,9 +150,9 @@ class Module_cscms_core extends Module{
     }
 
     public function login_process(){
-        $objUser  = coreObj::getUser();
-        $objLogin = coreObj::getLogin();
-        $objPage  = coreObj::getPage();
+        $objUser  = Core_Classes_coreObj::getUser();
+        $objLogin = Core_Classes_coreObj::getLogin();
+        $objPage  = Core_Classes_coreObj::getPage();
 
         if( $objLogin->process() !== true ){
             $this->login_form();
@@ -163,7 +163,7 @@ class Module_cscms_core extends Module{
     }
 
     public function logout(){
-        $objLogin = coreObj::getLogin();
+        $objLogin = Core_Classes_coreObj::getLogin();
 
         $objLogin->logout($_GET['check']);
     }

@@ -60,13 +60,39 @@ class Core_Classes_coreObj {
 
         if ( !class_exists($class) && !interface_exists($class) ){
 
-            $fp = str_replace('_', DS, $class);
-            $fp = explode(DS, $fp);
-            $fp[(count($fp)-1)] = sprintf('class.%s.php', end($fp));
-            $fp = implode('/', $fp);
-            $fp = strtolower(cmsROOT.$fp);
+            // explode the classname by _'s
+            $fp = explode('_', $class);
 
-            if( file_exists($fp) && is_readable($fp) ){
+            // grab the class name, and sprintf it into a filename
+            $fn = array_pop($fp);
+            $file = sprintf('class.%s.php', $fn);
+            $fp = array_map('strtolower', $fp);
+
+            // handle the modules, their dir structure is a little off
+                // modules just need the module adding to the path
+                if( $fp[0] == 'modules' ){
+                    $fp[] = $fn;
+
+                } else if( $fp[0] == 'admin' ){
+                    $fp[] = $fn;
+
+                // override means they are doing something from the themes folder, so we need to account for that by
+                // throwing in the theme name and making sure the directory route is right
+                } else if( $fp[0] == 'override' ){
+                    $fp = array_reverse($fp);
+                    $fp[] = self::config('site', 'theme');
+                    $fp[] = 'themes';
+                    $fp = array_reverse($fp);
+                    $fp[] = $fn;
+
+                }
+
+            // re-add the filename into the mix and implode it to make the filepath
+            $fp[] = ($fp[0] == 'core' ? strtolower($file) : $file);
+            $fp = implode('/', $fp);
+
+
+            if( file_exists($fp) && !is_dir($fp) ){
                 include_once($fp);
                 return true;
             }
@@ -358,7 +384,7 @@ class Core_Classes_coreObj {
         // Method name didnt match what we expected so just output an error now.
 
         $debug = array(
-            'Class Name'    => self::getClassName(),
+            'Class Name'    => self::getStaticClassName(),
             'Method Called' => $method,
             'Method Args'   => $args,
         );
