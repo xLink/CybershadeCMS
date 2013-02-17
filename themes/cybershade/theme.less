@@ -1,4 +1,6 @@
+@import "bootstrap/variables.less";
 @import "bootstrap/mixins.less";
+@import "bootstrap/utilities.less";
 @import url('http://fonts.googleapis.com/css?family=Muli');
  
 body{
@@ -72,6 +74,7 @@ body{
         div#nav{
             clear: both;
 
+
             div.navbar-inner{
                 padding-left: 0;
                 padding-right: 0;
@@ -82,76 +85,80 @@ body{
                 .border-radius(0);
                 .navGradient();
 
-                ul.nav{
-                    margin: 0;
-                    border-right: 1px solid #41C9FF;
+                div.container{
+                    width: 1170px;
 
-                    // each link
-                    li{
-                        //style the links
-                        a{
-                            color: white;
-                            text-shadow: 0 1px 0 #1d87ff;
+                    ul.nav{
+                        margin: 0;
+                        border-right: 1px solid #41C9FF;
 
-                            padding: 10px 25px;
-                            border-left: 1px solid #41c9ff;
-                            border-right: 1px solid #208dff;
-
-                            .transition(box-shadow .25s linear);
-                        }
-
-                        //add hovers, active class & the sub menus support
-                        &:hover, &.active, &.open{
-                            background: darken(#1eb2fc, 5%);
+                        // each link
+                        li{
+                            //style the links
                             a{
-                                text-shadow: 0 1px 0 #000000;
-                                background: transparent;
-                                .box-shadow(0 3px 8px rgba(0, 0, 0, 0.5) inset);
-                                //.transition(color .25s linear);
+                                color: white;
+                                text-shadow: 0 1px 0 #1d87ff;
+
+                                padding: 10px 25px;
+                                border-left: 1px solid #41c9ff;
+                                border-right: 1px solid #208dff;
+
+                                .transition(box-shadow .25s linear);
                             }
-                        }
 
-                        //sub menus
-                        &.dropdown{
-                            ul.dropdown-menu{
-                                padding: 0;
-                                .box-shadow(0);
-                                .border-radius(4px);
+                            //add hovers, active class & the sub menus support
+                            &:hover, &.active, &.open{
+                                background: darken(#1eb2fc, 5%);
+                                a{
+                                    text-shadow: 0 1px 0 #000000;
+                                    background: transparent;
+                                    .box-shadow(0 3px 8px rgba(0, 0, 0, 0.5) inset);
+                                    //.transition(color .25s linear);
+                                }
+                            }
 
-                                li{
-                                    background: white;
-                                    padding: 3px;
+                            //sub menus
+                            &.dropdown{
+                                ul.dropdown-menu{
+                                    padding: 0;
+                                    .box-shadow(0);
                                     .border-radius(4px);
 
-                                    a{
-                                        color: black;
-                                        padding: 5px;
-                                        .box-shadow(none);
+                                    li{
+                                        background: white;
+                                        padding: 3px;
                                         .border-radius(4px);
-                                        border-left: 0;
-                                        border-right: 0;
-                                    }
 
-                                    &:hover, &.active{
                                         a{
-                                            color: white;
-                                            background: darken(#1eb2fc, 5%);
-                                            .box-shadow(0 3px 8px rgba(0, 0, 0, 0.5) inset);
+                                            color: black;
+                                            padding: 5px;
+                                            .box-shadow(none);
+                                            .border-radius(4px);
+                                            border-left: 0;
+                                            border-right: 0;
+                                        }
+
+                                        &:hover, &.active{
+                                            a{
+                                                color: white;
+                                                background: darken(#1eb2fc, 5%);
+                                                .box-shadow(0 3px 8px rgba(0, 0, 0, 0.5) inset);
+                                            }
                                         }
                                     }
-                                }
 
-                                .divider{
-                                    height: 0;
-                                    padding: 0;
-                                    width: 80%;
-                                    margin: 0 auto;
-                                }
+                                    .divider{
+                                        height: 0;
+                                        padding: 0;
+                                        width: 80%;
+                                        margin: 0 auto;
+                                    }
 
-                                .nav-header{
-                                    padding-left: 10px;
-                                }
+                                    .nav-header{
+                                        padding-left: 10px;
+                                    }
 
+                                }
                             }
                         }
                     }
