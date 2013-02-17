@@ -673,7 +673,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
      * @return string
      */
     public function mkPassword( $password, $salt='' ) {
-        $objPass = new phpass( 8, true );
+        $objPass = Core_classes_coreObj::getLib('phpass', array( 8, true ));
 
         $hashed = $objPass->hashPassword( $salt . $password );
 
@@ -710,11 +710,11 @@ class Core_Classes_User extends Core_Classes_coreObj {
         }
 
         // Grab the phpass library
-        $phpass = new phpass( 8, true );
+        $objPass = Core_classes_coreObj::getLib('phpass', array( 8, true ));
 
         // Fetch the hashed password from the database
         $hash = $this->get( 'password', $uid );
-        if( $phpass->CheckPassword( $password, $hash ) ) {
+        if( $objPass->CheckPassword( $password, $hash ) ) {
             return true;
         }
 

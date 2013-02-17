@@ -15,8 +15,8 @@ class Modules_core extends Core_Classes_Module{
     public function viewIndex(){
         $this->setView('module/viewIndex/default.tpl');
 
-        $objComments = Core_Classes_Module::getComments();
-        echo dump($objComments);
+        $objUser = Core_Classes_User::$IS_ONLINE;
+        echo dump($objUser, 'Logged in?');
 
 
 
@@ -70,7 +70,7 @@ class Modules_core extends Core_Classes_Module{
                                     'selected' => 0
                                 )),
 
-            'SUBMIT'        => $objForm->button('submit', 'Login', array('class'=>'btn btn-success')),
+            'SUBMIT'        => $objForm->button('submit', 'Login', array('class' => 'btn btn-success')),
         );
 
         $objTPL->assign_block_vars('login', $form);

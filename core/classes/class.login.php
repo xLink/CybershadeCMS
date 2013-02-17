@@ -109,9 +109,9 @@ class Core_Classes_Login extends Core_Classes_coreObj {
             ->set(array(
                 'uid' => $objUser->grab('id'),
             ))
-            ->where('admin',            '=', (User::$IS_ADMIN ? '1' : '0'))
+            ->where('admin',            '=', (Core_Classes_User::$IS_ADMIN ? '1' : '0'))
                 ->andWhere('sid',       '=', md5( session_id() ) )
-                ->andWhere('hostname',  '=', User::getIP() )
+                ->andWhere('hostname',  '=', Core_Classes_User::getIP() )
             ->build();
 
         $results = $objSQL->query( $query );
@@ -128,7 +128,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
 
                 $cookieArray = array(
                     'uData'     => $uniqueKey,
-                    'uIP'       => User::getIP(),
+                    'uIP'       => Core_Classes_User::getIP(),
                     'uAgent'    => md5($_SERVER['HTTP_USER_AGENT'].$this->config('db', 'ckeauth'))
                 );
 
@@ -270,7 +270,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
             return true;
         }
 
-        $ip = User::getIP();
+        $ip = Core_Classes_User::getIP();
         $whitelist = json_decode($this->userData['whitelisted_ips']);
             if( !is_array($whitelist) || is_empty($whitelist) ){
                 return true;
