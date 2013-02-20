@@ -113,7 +113,7 @@ class Core_Drivers_pdomysql extends Core_Classes_coreSQL implements Core_Classes
         $this->results = $this->DBH->query($query) or trigger_error('MySQL Error:<br />'.dump($query, 'Query::'.$this->getError()), E_USER_ERROR);
 
 
-        if( cmsDEBUG || User::$IS_ADMIN ){
+        if( cmsDEBUG || Core_Classes_User::$IS_ADMIN ){
             $backtrace = debug_backtrace();
             $callee = next($backtrace);
 

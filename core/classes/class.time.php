@@ -36,7 +36,7 @@ class Core_Classes_Time extends Core_Classes_coreObj{
 		$timestamp = ( date( 'I' ) == 0    ? $this->mod_time( $timestamp, 0, 0, 1 )        : $timestamp);
 
 		// If User is logged in, Use his/her timezone
-		if( User::$IS_ONLINE && $objUser->grab( 'timezone' ) ) {
+		if( Core_Classes_User::$IS_ONLINE && $objUser->grab( 'timezone' ) ) {
 			$this->mod_time( $timestamp, 0, 0, $objUser->grab( 'timezone' ) );
 		}
 

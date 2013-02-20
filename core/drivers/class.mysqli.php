@@ -119,7 +119,7 @@ class Core_Drivers_mysqli extends Core_Classes_coreSQL implements Core_Classes_b
         //exec the query and cache it
         $this->results = $result = $this->DBH->query($query);
 
-        if( cmsDEBUG || User::$IS_ADMIN ){
+        if( cmsDEBUG || Core_Classes_User::$IS_ADMIN ){
             $backtrace = debug_backtrace();
             $callee = $backtrace[1];
 

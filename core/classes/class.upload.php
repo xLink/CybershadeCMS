@@ -103,7 +103,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                         );
 
                         // Automatically allow admins to have authorized content
-                        if( User::$IS_ADMIN ){
+                        if( Core_Classes_User::$IS_ADMIN ){
                             $uploadData['authorized'] = 1;
                         }
 

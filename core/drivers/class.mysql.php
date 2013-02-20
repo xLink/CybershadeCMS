@@ -166,7 +166,7 @@ class Core_Drivers_mysql extends Core_Classes_coreSQL implements Core_Classes_ba
         $this->results = mysql_query($query, $this->DBH);
 
         $debug = array();
-        if( cmsDEBUG || User::$IS_ADMIN ){
+        if( cmsDEBUG || Core_Classes_User::$IS_ADMIN ){
             $backtrace = debug_backtrace();
             $callee = $backtrace[2];
 
