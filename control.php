@@ -7,14 +7,14 @@ define('cmsDEBUG', true);
 $GET = $_GET;
 require_once 'core/core.php';
 
-$objRoute = coreObj::getRoute();
-$objPage  = coreObj::getPage();
-$objTPL   = coreObj::getTPL();
-$objAdmin = coreObj::getAdminCP($GET);
+$objRoute = Core_Classes_coreObj::getRoute();
+$objPage  = Core_Classes_coreObj::getPage();
+$objTPL   = Core_Classes_coreObj::getTPL();
+$objAdmin = Core_Classes_coreObj::getAdminCP($GET);
 
 $objRoute->modifyGET($GET);
 
-if ( !User::$IS_ONLINE || !User::$IS_ADMIN ) {
+if ( !Core_Classes_User::$IS_ONLINE || !Core_Classes_User::$IS_ADMIN ) {
     $objRoute->throwHTTP(404);
 }
 
