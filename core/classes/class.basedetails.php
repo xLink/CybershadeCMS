@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-interface baseDetails{
+interface Core_Classes_baseDetails{
     public function details();
     public function getBlocks();
     public function install();
