@@ -456,14 +456,13 @@ class Core_Classes_Page extends Core_Classes_coreObj {
     public function addJSCode($code) {
         if (empty($code)) { return false; }
 
-        $code = str_replace(DS, '-', $code);
-        $code = md5($code);
+        $id = md5($code);
 
-            if ( isset($this->jsCode) && array_key_exists($code, $this->jsCode) ) {
+            if ( isset($this->jsCode) && array_key_exists($id, $this->jsCode) ) {
                 return false;
             }
 
-        $this->jsCode[$code] = $js;
+        $this->jsCode[$id] = $code;
 
         return true;
     }
@@ -507,7 +506,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
             // & if we are in footer mode, do the js code too
             if ( $mode == 'footer' && !empty($this->jsCode) ) {
                 foreach ($this->jsCode as $args) {
-                    $return .= sprintf($_tag, '', $code);
+                    $return .= sprintf($_tag, '', $args);
                 }
             }
 
@@ -838,15 +837,15 @@ class Core_Classes_Page extends Core_Classes_coreObj {
         $tplGlobals = array(
             'ROOT'          => root(),
             'THEME_ROOT'    => root(). Core_Classes_Page::$THEME_ROOT,
-
-            'SITE_NAME'     => $this->config('site', 'site_name'),
-
-            // 'ROW_COLOR1'    => $vars['row_color1'],
-            // 'ROW_COLOR2'    => $vars['row_color2'],
-
+            
+            'SITE_TITLE'    => $this->config('site', 'title'),
+            
+            // 'ROW_COLOR1' => $vars['row_color1'],
+            // 'ROW_COLOR2' => $vars['row_color2'],
+            
             'USERNAME'      => $objUser->grab('username'),
-            //'TIME'          => $objTime->mk_time(time(), 'l H:i:s a'),
-
+            //'TIME'        => $objTime->mk_time(time(), 'l H:i:s a'),
+            
             'U_UCP'         => '/'.root().'user/',
             'L_UCP'         => langVar('L_UCP'),
         );
