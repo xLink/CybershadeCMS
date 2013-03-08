@@ -277,8 +277,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
          *
          * @return  bool
          */
-        private function buildBreadcrumbs()
-        {
+        private function buildBreadcrumbs() {
             $objTPL = Core_Classes_coreObj::getTPL();
 
             $breadcrumbs = $this->getVar('breadcrumbs');
@@ -364,8 +363,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
          *
          * @return  string
          */
-        private function buildCSS()
-        {
+        private function buildCSS() {
             $_tag = "\n".'<link%s />';
             $_arg = ' %s="%s"';
 
@@ -476,8 +474,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
          *
          * @return  string
          */
-        private function buildJS($mode)
-        {
+        private function buildJS($mode) {
             $_tag = "\n".'<script%s>%s</script>';
             $_arg = ' %s="%s"';
 
@@ -551,8 +548,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
          *
          * @return  string
          */
-        private function buildMeta()
-        {
+        private function buildMeta() {
             if (!count($this->metaTags)) { return false; }
 
             $_tag = "\n".'<meta%s />';
@@ -726,9 +722,9 @@ class Core_Classes_Page extends Core_Classes_coreObj {
     }
 
     public function buildPage() {
-        $objTPL     = self::getTPL();
-        $objPlugins = self::getPlugins();
-        $objUser    = self::getUser();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+        $objPlugins = Core_Classes_coreObj::getPlugins();
+        $objUser    = Core_Classes_coreObj::getUser();
 
 /**
   //
@@ -817,6 +813,19 @@ class Core_Classes_Page extends Core_Classes_coreObj {
                 'src' => $cssDir.'/debug.js',
                 'priority' => HIGH,
             ), 'footer');
+        }
+
+        //support for google analytics
+        if( $this->config('site', 'google_analytics', false) ){
+            $this->addJSCode('var _gaq = _gaq || []; '.
+                        '_gaq.push(["_setAccount", "'.$this->config('site', 'google_analytics').'"]); '.
+                        '_gaq.push(["_trackPageview"]); '.
+
+                        '(function() { '.
+                            'var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true; '.
+                            'ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js"; '.
+                            'var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s); '.
+                        '})(); ');
         }
 
 /**
