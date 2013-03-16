@@ -16,7 +16,7 @@ class Admin_Modules_core extends Core_Classes_Module{
   //
 **/
     public function dashboard(){
-        $objTPL = coreObj::getTPL();
+        $objTPL = Core_Classes_coreObj::getTPL();
         $this->setView('admin/dashboard/default.tpl');
 
         $blocks = array();
@@ -56,10 +56,10 @@ class Admin_Modules_core extends Core_Classes_Module{
      *
      */
     private function displayPortlets( $blocks ) {
-        $objTPL = coreObj::getTPL();
+        $objTPL = Core_Classes_coreObj::getTPL();
 
         $objTPL->set_filenames(array(
-            'block_notices' => cmsROOT . Page::$THEME_ROOT . 'block.tpl'
+            'block_notices' => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl'
         ));
 
         $rowCount = 12;
@@ -104,16 +104,16 @@ class Admin_Modules_core extends Core_Classes_Module{
   //
 **/
     public function siteConfig(){
-        coreObj::getPage()->addBreadcrumbs(array(
+        Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
             array( 'url' => doArgs('REQUEST_URI', '', $_SERVER), 'name' => 'Site Config' )
         ));
 
-        $objForm    = Form::getInstance('form');
-        $objTPL     = coreObj::getTPL();
+        $objForm    = Core_Classes_Form::getInstance('form');
+        $objTPL     = Core_Classes_coreObj::getTPL();
 
 
         $objTPL->set_filenames(array(
-            'body'  => cmsROOT . Page::$THEME_ROOT . 'block.tpl',
+            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
         ));
 
         $yn = array(1 => langVar('L_YES'), 0 => langVar('L_NO'));
@@ -188,7 +188,7 @@ class Admin_Modules_core extends Core_Classes_Module{
 **/
 
     public function users(){
-        coreObj::getPage()->addBreadcrumbs(array(
+        Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
             array( 'url' => doArgs('REQUEST_URI', '', $_SERVER), 'name' => 'User Manager' )
         ));
 
@@ -206,12 +206,12 @@ class Admin_Modules_core extends Core_Classes_Module{
     }
 
     public function users_manage(){
-        $objSQL     = coreObj::getDBO();
-        $objTPL     = coreObj::getTPL();
-        $objTime    = coreObj::getTime();
+        $objSQL     = Core_Classes_coreObj::getDBO();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+        $objTime    = Core_Classes_coreObj::getTime();
 
         $objTPL->set_filenames(array(
-            'body'  => cmsROOT . Page::$THEME_ROOT . 'block.tpl',
+            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
             'panel' => cmsROOT. 'modules/core/views/admin/users/default/default.tpl',
         ));
 
@@ -261,7 +261,7 @@ class Admin_Modules_core extends Core_Classes_Module{
     }
 
     public function users_add(){
-        coreObj::getPage()->addBreadcrumbs(array(
+        Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
             array( 'url' => doArgs('REQUEST_URI', '', $_SERVER), 'name' => 'Add User' )
         ));
 

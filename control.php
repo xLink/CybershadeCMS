@@ -27,4 +27,5 @@ $objPage->setTitle('Cybershade CMS Administration Panel');
 
 // Output the dashboad
 $objAdmin->dashboard();
+
 ?>
