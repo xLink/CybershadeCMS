@@ -602,24 +602,24 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
             } else {
                 if ( $found ) {
                     $colorize .= preg_replace(
-                                    array('/(&lt;\?php&nbsp;)+/', '/\/\//'),
-                                    '',
-                                    str_replace(
-                                        array('<code>', '</code>'),
-                                        array(''),
-                                        highlight_string('<?php //'.$line, true)
-                                    )
-                                ); // fix comment
+                        array('/(&lt;\?php&nbsp;)+/', '/\/\//'),
+                        '',
+                        str_replace(
+                            array('<code>', '</code>'),
+                            array(''),
+                            highlight_string('<?php //'.$line, true)
+                        )
+                    ); // fix comment
                 } else {
                     $colorize .= preg_replace(
-                                    '/(&lt;\?php&nbsp;)+/',
-                                    '',
-                                    str_replace(
-                                        array('<code>', '</code>'),
-                                        array(''),
-                                        highlight_string('<?php '.$line, true)
-                                    )
-                                ); // fix colors
+                        '/(&lt;\?php&nbsp;)+/',
+                        '',
+                        str_replace(
+                            array('<code>', '</code>'),
+                            array(''),
+                            highlight_string('<?php '.$line, true)
+                        )
+                    ); // fix colors
                 }
             }
             if (preg_match('/\*\//', $line)){

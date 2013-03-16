@@ -26,7 +26,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      *
      * @param   string $view
      *
-     * @return  bool
+     * @return  mixed
      */
     public function setView($view='default'){
         $objTPL  = Core_Classes_coreObj::getTPL();
@@ -76,7 +76,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
         ));
 
         $this->setVar('viewSet', true);
-        return true;
+        return $objTPL;
     }
 
     /**

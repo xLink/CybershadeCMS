@@ -12,7 +12,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 * @author      Dan Aldridge
 */
 class Core_Classes_Plugins extends Core_Classes_coreObj{
-    private $dontExec     = false,
+    private $dontExec       = false,
             $hooks          = array(),
             $availableHooks = array();
 
@@ -44,12 +44,12 @@ class Core_Classes_Plugins extends Core_Classes_coreObj{
      */
     public function load($plugins=array()){
         if($this->dontExec == true){ return false; }
-        $objSQL = self::getDBO();
+        $objSQL = Core_Classes_coreObj::getDBO();
 
         //make sure we didnt get an empty var...
         if(!is_array($plugins) || is_empty($plugins)){
             //if we did try and get a fresh copy from the db
-            $objCache = self::getCache();
+            $objCache = Core_Classes_coreObj::getCache();
 
             $plugins = $objCache->load('plugins');
 

@@ -336,13 +336,13 @@ class Core_Classes_Form extends Core_Classes_coreObj {
 
         $option = '<option value="%1$s"%2$s%4$s>%3$s</option>'."\n";
         $val = sprintf('<select name="%1$s" id="%2$s"%3$s%4$s%5$s%6$s>',
-                    $name,
-                    $args['id'],
-                    (!is_empty($args['class'])  ? ' class="'.$args['class'].'"' : null),
-                    ($args['disabled']===true   ? ' disabled="disabled"'        : null),
-                    (!is_empty($args['extra'])  ? ' '.$args['extra']            : null),
-                    (!is_empty($args['style'])  ? ' style="'.$args['style'].'"' : null)
-                )."\n";
+            $name,
+            $args['id'],
+            (!is_empty($args['class'])  ? ' class="'.$args['class'].'"' : null),
+            ($args['disabled']===true   ? ' disabled="disabled"'        : null),
+            (!is_empty($args['extra'])  ? ' '.$args['extra']            : null),
+            (!is_empty($args['style'])  ? ' style="'.$args['style'].'"' : null)
+        )."\n";
 
         //if we are playing with noKeys
         if($noKeys){
@@ -354,10 +354,10 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                     $val .= sprintf('<optgroup label="%s">'."\n", $k);
                     foreach($k as $a){
                         $val .= sprintf($option,
-                                    (md5($a)==md5($selected) ? ' selected' : null),
-                                    $a,
-                                    $args['opt_extra']
-                                );
+                            (md5($a)==md5($selected) ? ' selected' : null),
+                            $a,
+                            $args['opt_extra']
+                        );
                     }
                 } else {
                     $val .= sprintf($option,
@@ -381,20 +381,20 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                         $val .= self::processSelect($b, $args);
                     }else{
                         $val .= sprintf($option,
-                                    $a,
-                                    (md5($a)==md5($selected) ? ' selected="true"' : null),
-                                    $b,
-                                    doArgs('opt_extra', null, $args)
-                                );
+                            $a,
+                            (md5($a)==md5($selected) ? ' selected="true"' : null),
+                            $b,
+                            doArgs('opt_extra', null, $args)
+                        );
                     }
                 }
             } else {
                 $val .= sprintf($option,
-                            $k,
-                            (md5($k)==md5($selected) ? ' selected="true"' : null),
-                            $v,
-                            doArgs('opt_extra', null, $args)
-                        );
+                    $k,
+                    (md5($k)==md5($selected) ? ' selected="true"' : null),
+                    $v,
+                    doArgs('opt_extra', null, $args)
+                );
             }
         }
         $val .= '</select>'."\n";
@@ -448,7 +448,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
         //init the template, give it a rand id to stop it clashing with anything else
         $randID = inBetween('name="', '"', $vars['FORM_START']);
 
-        $objTPL = coreObj::getTPL();
+        $objTPL = Core_Classes_coreObj::getTPL();
         $objTPL->set_filenames(array(
             'form_body_'.$randID => 'modules/core/views/outputForm.tpl',
         ));

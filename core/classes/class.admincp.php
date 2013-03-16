@@ -44,7 +44,7 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         // Get instanced
         $objRoute = Core_Classes_coreObj::getRoute();
 
-        $this->module = 'Admin_'.$this->module;
+        $this->module = 'Admin_Modules_'.$this->module;
 
         $action = array($this->action);
         if( strpos($this->action, '/') !== false ){

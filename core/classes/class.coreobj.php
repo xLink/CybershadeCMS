@@ -69,28 +69,42 @@ class Core_Classes_coreObj {
             $fp = array_map('strtolower', $fp);
 
             // handle the modules, their dir structure is a little off
+            switch( $fp[0] ){
                 // modules just need the module adding to the path
-                if( $fp[0] == 'modules' ){
+                case 'modules':
                     $fp[] = $fn;
+                break;
 
-                } else if( $fp[0] == 'admin' ){
-                    $fp[] = $fn;
+                case 'admin':
+                    $acp = array();
+                    if( $fp[1] == 'modules' ){
+                        $acp[] = 'modules';
+                    }
+                    $acp[] = $fn;
+
+                    $fp = $acp;
+                break;
 
                 // override means they are doing something from the themes folder, so we need to account for that by
                 // throwing in the theme name and making sure the directory route is right
-                } else if( $fp[0] == 'override' ){
+                case 'override':
                     $fp = array_reverse($fp);
                     $fp[] = self::config('site', 'theme');
                     $fp[] = 'themes';
                     $fp = array_reverse($fp);
                     $fp[] = $fn;
 
-                }
+                break;
+            }
 
             // re-add the filename into the mix and implode it to make the filepath
-            $fp[] = ($fp[0] == 'core' ? strtolower($file) : $file);
-            $fp = implode('/', $fp);
+            if( $fp[0] == 'core' ){
+                $fp[] = strtolower($file);
+            }else{
+                $fp[] = ( isset($acp) ? str_replace('class.', 'admin.', $file) : $file );
+            }
 
+            $fp = implode('/', $fp);
 
             if( file_exists($fp) && !is_dir($fp) ){
                 include_once($fp);
@@ -397,7 +411,7 @@ class Core_Classes_coreObj {
         $dir = 'core/libs/';
 
         // if the class dosent exist, then we'll load it
-        if( !class_exists($name) ){
+        if( !class_exists($name, false) ){
             $path = strtolower($dir.$name.'/class.'.$name.'.php');
 
             if( file_exists($path) ){
@@ -406,7 +420,7 @@ class Core_Classes_coreObj {
         }
 
         // if it already exists, load it in and throw it the args array
-        if( class_exists($name) ){
+        if( class_exists($name, false) ){
             $obj = new ReflectionClass($name);
             
             if( count($args) ){
