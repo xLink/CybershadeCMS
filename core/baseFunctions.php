@@ -571,7 +571,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      */
     function contentParse($content, $echoContent=false, $showSmilies=true){
         //load a new instance up
-        $objBBCode = new BBCode;
+        $objBBCode = Core_Classes_coreObj::getLib('BBCode');
 
         //load in the smilies
         $objBBCode->SetSmileyDir('/'.root().'images/smilies');
@@ -1125,18 +1125,18 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 function doCode($content, $name=NULL, $lineNumbers=false, $killWS=true){
     $lang = (isset($name) && $name!==NULL ? strtolower($name) : 'text');
 
-    $extInfo = grabLangInfo($lang);
-    $ext = doArgs('ext', null, $extInfo);
-    $lang = doArgs('lang', null, $extInfo);
-    $geshiExt = doArgs('geshi', null, $extInfo);
+    $extInfo    = grabLangInfo($lang);
+    $ext        = doArgs('ext', null, $extInfo);
+    $lang       = doArgs('lang', null, $extInfo);
+    $geshiExt   = doArgs('geshi', null, $extInfo);
 
     if(is_empty($content)){
         $lang = isset($lang) ? '='.$params.'' : '';
         return "[code$lang][/code]";
     }
 
-    $content = html_entity_decode(trim($content));
-    $content = str_replace(array("<br />", "\t", '    '), array('', '    ', "\t"), $content);
+    $content    = html_entity_decode(trim($content));
+    $content    = str_replace(array("<br />", "\t", '    '), array('', '    ', "\t"), $content);
 
     if($killWS){
         $content = preg_replace('/[\n\r]+/', "\n", $content);
@@ -1145,7 +1145,8 @@ function doCode($content, $name=NULL, $lineNumbers=false, $killWS=true){
 
     if(!$lineNumbers){
         if($ext!='php'){
-            $geshi = new GeSHi($content, $geshiExt);
+            $geshi = Core_Classes_coreObj::getLib('GeSHi', array($content, $geshiExt));
+
             $geshi->set_header_type(GESHI_HEADER_PRE);
             $content = $geshi->parse_code();
         }
@@ -1162,7 +1163,7 @@ function doCode($content, $name=NULL, $lineNumbers=false, $killWS=true){
 
         */}
     }else{
-        $geshi = new GeSHi($content, $geshiExt);
+        $geshi = Core_Classes_coreObj::getLib('GeSHi', array($content, $geshiExt));
         $geshi->set_header_type(GESHI_HEADER_PRE);
         $geshi->enable_line_numbers(GESHI_FANCY_LINE_NUMBERS, 5);
         $content = $geshi->parse_code();
