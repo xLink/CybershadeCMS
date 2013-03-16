@@ -489,6 +489,39 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         return $result;
     }
 
+    /**
+     * Generates a URL from a route label
+     * @version     1.0
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     */
+    public function generateURL( $label, $options = array() ) {
+        $this->loadRoutes();
+
+        // Route label doesn't exist, die.
+        if( !isset( $this->routes[$label] ) ) {
+            msgDie('info', 'Route Label doesn\'t exist');
+            return false;
+        }
+
+        $route = $this->routes[$label];
+        $url   = $route['pattern'];
+        $vars  = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
+
+        // Add check for no options
+        if( count( $matches ) > count( $options ) ) {
+            trigger_error( '' );
+        }
+
+        if( sizeOf( $matches[1] ) > 0 ) {
+            foreach( $matches[1] as $variable ) {
+                $url = str_replace( ':' . $variable, $options[$variable], $url );
+            }
+        }
+
+        return $url;
+    }
+
 /**
   //
   //-- Helper Functions
