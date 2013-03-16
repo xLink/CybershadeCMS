@@ -339,13 +339,13 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
         ob_start();
 
-            $objModule = new $module;
-            $objModule->setVars(array(
-                '_method' => $method,
-                '_module' => $module,
-                '_params' => $route['arguments'],
-            ));
-            $refMethod->invokeArgs( $objModule , $args );
+        $objModule = new $module;
+        $objModule->setVars(array(
+            '_method' => $method,
+            '_module' => $module,
+            '_params' => $route['arguments'],
+        ));
+        $refMethod->invokeArgs( $objModule , $args );
 
         Core_Classes_coreObj::getPage()->setVar('contents', ob_get_clean() );
 
@@ -536,7 +536,12 @@ class Core_Classes_Route extends Core_Classes_coreObj{
                 $reqs = array();
             }
 
-            $output[] = array(
+            // Error if the route label exists more than once
+            if( isset( $output[ $result['label'] ] ) ) {
+                hmsgDie( 'fail', 'Route label exists more than once.. :/ Weird eh?' );
+            }
+
+            $output[$result['label']] = array(
                 'method'        => ( in_array( $result['method'], $methods ) ? $result['method'] : 'ANY' ),
                 'pattern'       => $result['pattern'],
                 'module'        => $result['module'],
@@ -634,6 +639,9 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         //and merge away :D
         $_GET = array_merge($params, $urlParams);
     }
+
+
+
 }
 
 ?>
