@@ -188,7 +188,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
     }
 
     /**
-     *
+     * 
      *
      * @version     1.0
      * @since       1.0.0
@@ -491,6 +491,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
     /**
      * Generates a URL from a route label
+     *
      * @version     1.0
      * @since       1.0.0
      * @author      Daniel Noel-Davies
@@ -500,7 +501,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
         // Route label doesn't exist, die.
         if( !isset( $this->routes[$label] ) ) {
-            msgDie('info', 'Route Label doesn\'t exist');
+            trigger_error('Route Label doesn\'t exist');
             return false;
         }
 
@@ -509,8 +510,8 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         $vars  = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
 
         // Add check for no options
-        if( count( $matches ) > count( $options ) ) {
-            trigger_error( '' );
+        if( count( $matches[1] ) > count( $options ) ) {
+            trigger_error( 'The options you gave dont match the route\'s arguments' );
         }
 
         if( sizeOf( $matches[1] ) > 0 ) {
