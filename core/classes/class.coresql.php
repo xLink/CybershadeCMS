@@ -129,7 +129,7 @@ class Core_Classes_coreSQL extends Core_Classes_coreObj{
 
     public function queryBuilder(){
         $driver = $this->driver;
-        if( in_array($this->driver, array('mysql', 'mysqli', 'pdomysql')) ){
+        if( !in_array($this->driver, array('mysql', 'mysqli', 'pdomysql')) ){
             $driver = 'mysqli';
         }
 

@@ -181,17 +181,13 @@ class Core_Drivers_mysqli extends Core_Classes_coreSQL implements Core_Classes_b
             return false;
         }
 
-        $backtrace = debug_backtrace();
-        $callee = $backtrace[1];
-
-        $a = array($this->_query, $callee);
-        trigger_error('MySQL Error:');
-        echo dump($a, 'Query::'.$this->getError());
+        $error = $this->getError();
+        trigger_error('MySQL Error: '.$error);
 
         $max = count($this->debug);
 
         $this->debug[($max - 1)]['status'] = 'error';
-        $this->debug[($max - 1)]['error'] = $this->getError();
+        $this->debug[($max - 1)]['error'] = $error;
 
     }
 
