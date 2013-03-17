@@ -22,7 +22,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     define('cmsROOT', (isset($cmsROOT) && !empty($cmsROOT) ? $cmsROOT : '')); unset($cmsROOT);
 
     //so we can turn errors off if we are not running locally
-    define('LOCALHOST', ( isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], array('localhost', '127.0.0.1', '::1', 'dora.dev')) ? true : false ));
+    define('LOCALHOST', ( isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], array('localhost', '127.0.0.1', '::1')) ? true : false ));
 
 // Some HTTP definitions
     define('HTTP_AJAX', ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')

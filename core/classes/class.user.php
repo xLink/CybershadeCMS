@@ -396,10 +396,8 @@ class Core_Classes_User extends Core_Classes_coreObj {
             $user = $this->cacheUsers[$ident]['username'];
             $group = $this->cacheUsers[$ident]['group'];
 
-
             $username   = '<font title="%s" class="username" style="color: %s;">%s</font>';
             $link       = '<a href="/'.root().'profile/view/%s" rel="nofollow">%s</a>';
-
 
             $banned     = sprintf($username, $group['description'], $group['color'].'; text-decoration: line-through', $user);
             $user_link  = sprintf($link, $user, sprintf($username, $group['description'], $group['color'], $user));
