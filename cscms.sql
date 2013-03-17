@@ -1,13 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 3.5.1
+-- version 4.0.0-beta1
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Nov 19, 2012 at 05:35 PM
--- Server version: 5.5.24-log
--- PHP Version: 5.3.13
+-- Generation Time: Mar 17, 2013 at 05:36 PM
+-- Server version: 5.5.28a-MariaDB-a1~squeeze-log
+-- PHP Version: 5.3.19-1~dotdeb.0
 
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 
@@ -23,6 +23,58 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `cscms_article_cats`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_article_cats` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` text,
+  `order` int(11) DEFAULT NULL,
+  `perms` int(11) NOT NULL DEFAULT '0',
+  `count` int(11) NOT NULL DEFAULT '0',
+  `locked` int(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=6 ;
+
+--
+-- Dumping data for table `cscms_article_cats`
+--
+
+INSERT INTO `cscms_article_cats` (`id`, `name`, `order`, `perms`, `count`, `locked`) VALUES
+(1, 'CMS Snippets', 1, 0, 0, 0),
+(2, 'How-To Articles', 2, 0, 0, 0),
+(3, 'User Contributed Articles', 5, 0, 0, 0),
+(4, 'Plugin Building', 4, 0, 0, 0),
+(5, 'Module Building', 3, 0, 0, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_article_content`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_article_content` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` int(11) NOT NULL DEFAULT '0',
+  `cat_id` int(11) NOT NULL DEFAULT '0',
+  `title` varchar(100) DEFAULT NULL,
+  `post` text,
+  `posted` int(11) NOT NULL,
+  `approved_by` int(11) NOT NULL,
+  `views` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+
+--
+-- Dumping data for table `cscms_article_content`
+--
+
+INSERT INTO `cscms_article_content` (`id`, `uid`, `cat_id`, `title`, `post`, `posted`, `approved_by`, `views`) VALUES
+(1, 1, 1, 'Testing category index', 'Some really random shit here :)', 1363490365, 1, 0);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `cscms_blocks`
 --
 
@@ -33,11 +85,11 @@ CREATE TABLE IF NOT EXISTS `cscms_blocks` (
   `name` varchar(255) NOT NULL,
   `location` varchar(255) NOT NULL,
   `order` int(10) NOT NULL,
-  `enabled` tinyint(1) NOT NULL DEFAULT '0',
+  `enabled` enum('0','1') NOT NULL DEFAULT '0',
   `file_location` varchar(255) NOT NULL,
   `extra` varchar(255) NOT NULL DEFAULT '[]',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
 
 --
 -- Dumping data for table `cscms_blocks`
@@ -198,6 +250,56 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_watch` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `cscms_groups`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_groups` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `type` tinyint(1) NOT NULL DEFAULT '1',
+  `name` varchar(30) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `description` text COLLATE utf8_unicode_ci,
+  `moderator` int(11) unsigned NOT NULL DEFAULT '0',
+  `single_user_group` tinyint(1) NOT NULL DEFAULT '1',
+  `color` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
+  `order` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=4 ;
+
+--
+-- Dumping data for table `cscms_groups`
+--
+
+INSERT INTO `cscms_groups` (`id`, `type`, `name`, `description`, `moderator`, `single_user_group`, `color`, `order`) VALUES
+(1, 1, 'Admin', 'Site Administrator', 1, 1, '#ff0000', 1),
+(2, 1, 'Mods', 'Site Moderator', 1, 0, '#146eca', 3),
+(3, 0, 'Users', 'Registered User', 1, 0, '#b7b7b7', 10);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_group_subs`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_group_subs` (
+  `uid` int(11) NOT NULL,
+  `gid` int(11) NOT NULL,
+  `pending` tinyint(1) NOT NULL DEFAULT '1',
+  KEY `gid` (`gid`),
+  KEY `uid` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `cscms_group_subs`
+--
+
+INSERT INTO `cscms_group_subs` (`uid`, `gid`, `pending`) VALUES
+(1, 1, 0),
+(1, 2, 0),
+(1, 3, 0);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `cscms_menus`
 --
 
@@ -287,26 +389,27 @@ CREATE TABLE IF NOT EXISTS `cscms_routes` (
   `pattern` varchar(255) NOT NULL,
   `arguments` text NOT NULL,
   `requirements` text NOT NULL,
-  `status` tinyint(1) NOT NULL DEFAULT '0',
+  `status` int(1) NOT NULL DEFAULT '0',
   `redirect` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=12 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=14 ;
 
 --
 -- Dumping data for table `cscms_routes`
 --
 
 INSERT INTO `cscms_routes` (`id`, `module`, `label`, `method`, `pattern`, `arguments`, `requirements`, `status`, `redirect`) VALUES
-(1, '88b91c187cc01b74e9e7fcc06cc286eb', 'index', 'ANY', '/forum', '{"module":"Module_forum","method":"viewIndex"}', '[]', 1, NULL),
-(2, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewCat', 'ANY', '/forum/:cat/', '{"module":"Module_forum","method":"viewCategory"}', '{"cat":"\\\\w+"}', 1, NULL),
-(3, '88b91c187cc01b74e9e7fcc06cc286eb', 'newThread', 'ANY', '/forum/:cat/new_thread.html', '{"module":"Module_forum","method":"newThread"}', '{"cat":"\\\\w+"}', 1, NULL),
-(4, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewThread', 'ANY', '/forum/:cat/:name-:id.html', '{"module":"Module_forum","method":"viewThread"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
-(5, '88b91c187cc01b74e9e7fcc06cc286eb', 'newReply', 'ANY', '/forum/:cat/:name-:id.html?reply', '{"module":"Module_forum","method":"newReply"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
-(6, NULL, 'backup', 'ANY', '/backup', '{"module":"Module_backup","method":"go"}', '[]', 1, NULL),
-(7, 'a74ad8dfacd4f985eb3977517615ce25', 'login_get', 'GET', '/login', '{"module":"Module_core","method":"login_form", "request":"get"}', '[]', 1, NULL),
-(9, 'a74ad8dfacd4f985eb3977517615ce25', 'login_process', 'POST', '/login', '{"module":"Module_core","method":"login_process", "request":"post"}', '[]', 1, NULL),
-(10, 'a74ad8dfacd4f985eb3977517615ce25', 'index', 'ANY', '/', '{"module":"Module_core","method":"viewIndex"}', '[]', 1, NULL),
-(11, 'a74ad8dfacd4f985eb3977517615ce25', 'logout', 'GET', '/logout', '{"module":"Module_core","method":"logout"}', '[]', 1, NULL);
+(1, '88b91c187cc01b74e9e7fcc06cc286eb', 'forumIndex', 'ANY', '/forum', '{"module":"Modules_forum","method":"viewIndex"}', '[]', 1, NULL),
+(2, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewCat', 'ANY', '/forum/:cat/', '{"module":"Modules_forum","method":"viewCategory"}', '{"cat":"\\\\w+"}', 1, NULL),
+(3, '88b91c187cc01b74e9e7fcc06cc286eb', 'newThread', 'ANY', '/forum/:cat/new_thread.html', '{"module":"Modules_forum","method":"newThread"}', '{"cat":"\\\\w+"}', 1, NULL),
+(4, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewThread', 'ANY', '/forum/:cat/:name-:id.html', '{"module":"Modules_forum","method":"viewThread"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
+(5, '88b91c187cc01b74e9e7fcc06cc286eb', 'newReply', 'ANY', '/forum/:cat/:name-:id.html?reply', '{"module":"Modules_forum","method":"newReply"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
+(7, 'a74ad8dfacd4f985eb3977517615ce25', 'login_get', 'GET', '/login', '{"module":"Modules_core","method":"login_form", "request":"get"}', '[]', 1, NULL),
+(9, 'a74ad8dfacd4f985eb3977517615ce25', 'login_process', 'POST', '/login', '{"module":"Modules_core","method":"login_process", "request":"post"}', '[]', 1, NULL),
+(10, 'a74ad8dfacd4f985eb3977517615ce25', 'index', 'ANY', '/', '{"module":"Modules_core","method":"viewIndex"}', '[]', 1, NULL),
+(11, 'a74ad8dfacd4f985eb3977517615ce25', 'logout', 'GET', '/logout', '{"module":"Modules_core","method":"logout"}', '[]', 1, NULL),
+(12, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_listCategories', 'ANY', '/articles', '{"module":"Modules_articles","method":"listCategories"}', '[]', 1, NULL),
+(13, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewCategories', 'ANY', '/articles/:name/', '{"module":"Modules_articles","method":"viewCategories"}', '[]', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -328,6 +431,50 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
   PRIMARY KEY (`sid`),
   KEY `timestamp` (`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `cscms_sessions`
+--
+
+INSERT INTO `cscms_sessions` (`uid`, `sid`, `hostname`, `timestamp`, `useragent`, `mode`, `admin`, `login_time`, `login_attempts`, `store`) VALUES
+(0, '0407641753846b1788609b2ebb9ff8ec', '86.29.99.241', 1363541150, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:19.0) Gecko/20100101 Firefox/19.0', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333533373734313b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a223034303736343137353338343662313738383630396232656262396666386563223b733a393a2274696d657374616d70223b693a313336333534313334303b7d7d),
+(0, '0ef812b8fbec36f9c5de96214cedc8d2', '109.153.105.51', 1363539424, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333533393432323b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a223065663831326238666265633336663963356465393632313463656463386432223b733a393a2274696d657374616d70223b693a313336333534313331323b7d7d),
+(0, '10fd406a226bb41c29e9178feea15c0d', '86.8.3.164', 1363522680, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323638303b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a223130666434303661323236626234316332396539313738666565613135633064223b733a393a2274696d657374616d70223b693a313336333532363237373b7d7d),
+(0, '1e691406027eed335f11eb2e0dea973c', '86.8.3.164', 1363522700, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323730303b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a223165363931343036303237656564333335663131656232653064656139373363223b733a393a2274696d657374616d70223b693a313336333532363239363b7d7d),
+(0, '3023c37b515436af4a181feba7fbdb60', '92.238.159.132', 1363533012, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333533333031323b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a223330323363333762353135343336616634613138316665626137666264623630223b7d7d),
+(0, '3d4afd22d98a4f644ad8052f370c1143', '86.8.3.164', 1363522664, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323636343b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a223364346166643232643938613466363434616438303532663337306331313433223b7d7d),
+(0, '4656660f75490a811c163468b7485008', '62.24.181.135', 1363489995, 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; InfoPath.2)', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333438393939353b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a223436353636363066373534393061383131633136333436386237343835303038223b7d7d),
+(0, '475006f212841d4cbc9cbca8699433c3', '86.8.3.164', 1363521057, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532313035373b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a223437353030366632313238343164346362633963626361383639393433336333223b733a393a2274696d657374616d70223b693a313336333436303331383b7d7d),
+(0, '9b65aae984809b078f0653c4768b9e94', '86.8.3.164', 1363522686, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323638363b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a223962363561616539383438303962303738663036353363343736386239653934223b733a393a2274696d657374616d70223b693a313336333532363238343b7d7d),
+(0, 'a81a0eadb1b1bad4e2b1ebaefe682814', '89.243.202.40', 1363489975, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333438393936343b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a226138316130656164623162316261643465326231656261656665363832383134223b7d7d),
+(0, 'b7875d6f79895210cfca3d6dddb0c523', '86.8.3.164', 1363522664, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323636343b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226237383735643666373938393532313063666361336436646464623063353233223b733a393a2274696d657374616d70223b693a313336333532343639323b7d7d),
+(0, 'c647872f7be418e35ecb62834bc7741f', '86.8.3.164', 1363522669, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323636393b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226336343738373266376265343138653335656362363238333462633737343166223b733a393a2274696d657374616d70223b693a313336333532363236353b7d7d),
+(0, 'cd60ca5e19af5c1a8181f9737110e995', '86.8.3.164', 1363522675, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323637353b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226364363063613565313961663563316138313831663937333731313065393935223b733a393a2274696d657374616d70223b693a313336333532363236393b7d7d),
+(0, 'd2df324003a88bc151638a546bc61fbe', '109.153.105.51', 1363539422, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333533393432323b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226432646633323430303361383862633135313633386135343662633631666265223b733a393a2274696d657374616d70223b693a313336333534313331323b7d7d),
+(0, 'e62b8b50256ae31fb5463ddcb5e6fa72', '86.8.3.164', 1363523316, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532333331363b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226536326238623530323536616533316662353436336464636235653666613732223b733a393a2274696d657374616d70223b693a313336333532363838333b7d7d),
+(0, 'e91a3e88a2d38fa353e5a577ab62d0a2', '86.8.3.164', 1363522779, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323737393b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226539316133653838613264333866613335336535613537376162363264306132223b733a393a2274696d657374616d70223b693a313336333532363335383b7d7d),
+(0, 'f022012090a738f1ed21e7a49a8606d3', '86.8.3.164', 1363523201, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532333230313b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226630323230313230393061373338663165643231653761343961383630366433223b733a393a2274696d657374616d70223b693a313336333532363738343b7d7d),
+(0, 'f900e26b98b1e5813e676cd8a988d234', '86.8.3.164', 1363522696, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323639363b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226639303065323662393862316535383133653637366364386139383864323334223b733a393a2274696d657374616d70223b693a313336333532363239363b7d7d),
+(0, 'ff3efe3ebb7024b44304111bd24b44e9', '86.8.3.164', 1363522677, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333532323637373b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226666336566653365626237303234623434333034313131626432346234346539223b733a393a2274696d657374616d70223b693a313336333532363237353b7d7d);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_uploads`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_uploads` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uid` int(11) NOT NULL,
+  `filename` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `file_type` varchar(5) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `timestamp` int(12) NOT NULL,
+  `authorized` enum('1','0') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `location` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `public` enum('1','0') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `file_size` int(12) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -401,9 +548,9 @@ CREATE TABLE IF NOT EXISTS `cscms_users` (
 --
 
 INSERT INTO `cscms_users` (`id`, `username`, `password`, `pin`, `register_date`, `last_active`, `usercode`, `email`, `show_email`, `avatar`, `title`, `language`, `timezone`, `theme`, `hidden`, `active`, `userlevel`, `banned`, `primary_group`, `login_attempts`, `pin_attempts`, `autologin`, `reffered_by`, `password_update`, `whitelist`, `whitelisted_ips`, `warnings`) VALUES
-(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xlink@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 3, 0, 0, 0, 0, 0, NULL, 0),
-(2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtws', 'Noeldavies@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0),
-(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 0, 0, 0, 1, 0, 0, 0, NULL, 0);
+(1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xLink@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 1, 3, 0, 0, 0, 0, 0, NULL, 0),
+(2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtws', 'Noeldavies@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 1, 0, 0, 1, 0, 0, 0, NULL, 0),
+(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 1, 0, 0, 1, 0, 0, 0, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -441,38 +588,6 @@ INSERT INTO `cscms_users_extras` (`uid`, `birthday`, `sex`, `contact_info`, `abo
 (2, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1),
 (3, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1);
 
-
---
--- Table structure for table `cscms_uploads`
---
-
-CREATE TABLE IF NOT EXISTS `cscms_uploads` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `uid` int(11) NOT NULL,
-  `filename` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `file_type` varchar(5) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `timestamp` int(12) NOT NULL,
-  `authorized` tinyint(1) NOT NULL DEFAULT '0',
-  `location` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `public` tinyint(1) NOT NULL DEFAULT '0',
-  `file_size` int(12) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=7 ;
-
-
-
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
--- phpMyAdmin SQL Dump
--- version 3.5.1
--- http://www.phpmyadmin.net
---
--- Host: localhost
--- Generation Time: Nov 27, 2012 at 11:23 PM
--- Server version: 5.5.24-log
--- PHP Version: 5.4.3
-
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-
