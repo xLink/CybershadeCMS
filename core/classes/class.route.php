@@ -505,19 +505,65 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             return false;
         }
 
-        $route = $this->routes[$label];
-        $url   = $route['pattern'];
-        $vars  = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
+        $route         = $this->routes[$label];
+        $url           = $route['pattern'];
+        $vars          = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
+        $remainingVars = ( isset( $matches[1] ) ? $matches[1] : array() );
 
         // Add check for no options
         if( count( $matches[1] ) > count( $options ) ) {
             trigger_error( 'The options you gave dont match the route\'s arguments' );
         }
 
+        // If there are parameters in the pattern, 
         if( sizeOf( $matches[1] ) > 0 ) {
-            foreach( $matches[1] as $variable ) {
-                $url = str_replace( ':' . $variable, $options[$variable], $url );
+
+            // Let's start looping through them
+            foreach( $matches[1] as $key => $variable ) {
+
+                // If there's a requirement on the param..
+                if ( isset( $route['requirements'][$variable] ) ) {
+
+                    // and that param was passed to us..
+                    if( isset( $options[$variable] ) ) {
+
+                        // Check the param we were given matches the requirement
+                        if( preg_match( '/^' . $route['requirements'][$variable] . '$/', $options[$variable] ) ) {
+                        
+                            // It does, woo.
+                            $url = str_replace( ':' . $variable, $options[$variable], $url );
+                            unset( $remainingVars[$key] );
+                        } else {
+
+                            // It didn't match, oopsie.. :/
+                            trigger_error( sprintf(
+                                'The Requirement on the route `%s` wasn\'t matched for param `%s`',
+                                $route['label'],
+                                $variable
+                            ));
+                        }
+                    } else { 
+
+                        // It didn't match, oopsie.. :/
+                        trigger_error( sprintf(
+                            'The Requirement on the route `%s` wasn\'t matched for param `%s`',
+                            $route['label'],
+                            $variable
+                        ));
+
+                    }
+
+                } else {
+                    // No requirement, so just fill it in.. [UNSECURE]
+                    $url = str_replace( ':' . $variable, $options[$variable], $url );
+                    unset( $remainingVars[$key] );
+                }
             }
+        }
+
+        if( count( $remainingVars ) > 0 ) {
+            trigger_error( 'Not enough params given for url generation' );
+            return false;
         }
 
         return $url;
