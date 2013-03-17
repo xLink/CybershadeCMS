@@ -512,7 +512,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
         // Add check for no options
         if( count( $matches[1] ) > count( $options ) ) {
-            trigger_error( 'The options you gave dont match the route\'s arguments' );
+            trigger_error( 'The options you gave don\'t match the route\'s arguments' );
         }
 
         // If there are parameters in the pattern, 
@@ -566,6 +566,11 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             return false;
         }
 
+        // check if we need to add the cms path in too
+        if( substr($url, 0, 1) == '/' ){
+            $url = '/'.root().substr($url, 1);
+        }
+        
         return $url;
     }
 
