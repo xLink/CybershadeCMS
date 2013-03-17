@@ -269,8 +269,175 @@ class Core_Classes_User extends Core_Classes_coreObj {
     }
 
     /**
+     * Makes a Username up from the ident, optionally links it to profile
+     *
+     * @version 1.0
+     * @since   0.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   mixed $ident    Either a Username, or a UserID
+     * @param   const $mode     0 | LINK                => Username colored and linked to profile.
+     *                          1 | NOLINK              => Username colored but not linked.
+     *                          3 | RETURN_USERNAME     => Return the raw username.
+     *                          4 | RETURN_UID          => Return the raw user id.
+     *
+     * @return  string
+     */
+    public function makeUsername( $ident, $mode=null ){
+        $objSQL = Core_Classes_coreObj::getDBO();
+
+        // do a check to see if we already have this beast in the array
+        if( isset($this->ident[$mode][$ident]) ){
+            return $this->ident[$mode][$ident];
+        }
+
+        // chcek to see if the ident is guest-worthy
+        if( $ident !== GUEST ){
+
+            $where = is_numeric($ident) ? 'u.id = '.$ident : 'u.username = "'.$ident.'"';
+
+            // see if we can load the user
+            if( !isset($this->cacheUsers[$ident]) ){
+                $uquery = $objSQL->queryBuilder()
+                    ->select(array( 'u.id', 'u.username', 'u.banned', 'g.name', 'g.description', 'g.color' ))
+                    ->from(array( 'u' => '#__users' ))
+                    ->where( $where )
+                    
+                    ->leftJoin(array( 'g' => '#__groups'))
+                        ->on('g.id', '=', 'u.primary_group')
+
+                    ->limit(1);
+
+                $uquery = $objSQL->fetchLine( $uquery->build() );
+            }
+
+            // if we havent got the user loaded, then we will try and get the bare details
+            if( !isset($uquery['username']) ){
+                $uquery = $objSQL->queryBuilder()
+                    ->select(array( 'u.id', 'u.username', 'u.banned' ))
+                    ->from(array( 'u' => '#__users' ))
+                    ->where( $where )
+                    ->limit(1);
+
+                $uquery = $objSQL->fetchLine( $uquery->build() );
+            }
+
+            // we didnt get anything we can use, so we will just stop here
+            if( $uquery === false ){
+                $this->ident[$mode][$ident] = ( $mode == RETURN_USERNAME ? $ident : 'Guest' );
+            }
+
+            $this->cacheUsers[$ident]['username'] = $uquery['username'];
+
+            // if we already have the color sorted, we dont need to do much
+            if( isset($uquery['color'])){
+                $this->cacheUsers[$ident]['group'] = array(
+                    'name'        => $uquery['name'],
+                    'description' => $uquery['description'],
+                    'color'       => $uquery['color'],
+                );
+
+            }else{
+                $where = is_numeric($ident) ? 'u.id = '.$ident : 'u.username = "'.$ident.'" AND ug.uid = u.id';
+
+
+                $query = $objSQL->queryBuilder()
+                    ->select(array( 'g.*' ))
+                    ->from(array( 'g' => '#__groups' ))
+                    ->where( $where )
+                        ->andWhere('g.single_user_group', '=', '0')
+                        ->andWhere('ug.pending', '=', '0')
+
+                    ->leftJoin(array( 'ug' => '#__group_subs' ))
+                        ->on('ug.gid', '=', 'g.id')
+
+                    ->leftJoin(array( 'u' => '#__users' ))
+                        ->on('ug.uid', '=', 'u.id')
+
+                    ->orderBy('g.`order`', 'ASC');
+
+                $query = $objSQL->fetchAll( $query->build() );
+
+                $current = 100000000000;
+                if( is_array($query) && count($query) ){
+                    foreach($query as $row){
+                        // If our new group in the list is a higher order number, it's color takes precedence
+                        if( $row['order'] < $current ){
+                            $current = $row['order'];
+                            $this->cacheUsers[$ident]['group'] = array(
+                                'name'        => $uquery['name'],
+                                'description' => $uquery['description'],
+                                'color'       => $uquery['color'],
+                            );
+
+                        }
+                    }
+                }
+
+                if( !isset($this->cacheUsers[$ident]['group']) && count($this->groups) ){
+                    foreach($this->groups as $group){
+                        if( $group['single_user_group'] == 1){ continue; }
+
+                        if( (int)$group['id'] === (int)$this->config('site', 'user_group') ){
+                            $userGroup = array(
+                                'name'        => $group['name'],
+                                'description' => $group['description'],
+                                'color'       => $group['color'],
+                            );
+                        }
+
+                        $this->cacheUsers[$ident]['group'] = $userGroup;
+                    }
+                }
+            }
+        
+
+            // setup the output for this method
+            $user = $this->cacheUsers[$ident]['username'];
+            $group = $this->cacheUsers[$ident]['group'];
+
+
+            $username   = '<font title="%s" class="username" style="color: %s;">%s</font>';
+            $link       = '<a href="/'.root().'profile/view/%s" rel="nofollow">%s</a>';
+
+
+            $banned     = sprintf($username, $group['description'], $group['color'].'; text-decoration: line-through', $user);
+            $user_link  = sprintf($link, $user, sprintf($username, $group['description'], $group['color'], $user));
+            $user_nlink  = sprintf($username, $group['description'], $group['color'], $user);
+
+            switch($mode){
+                default:
+                case LINK:
+                    $this->ident[$mode][$ident] = $user_link;
+                break;
+
+                case NOLINK:
+                    $this->ident[$mode][$ident] = $user_nlink;
+                break;
+
+                case RETURN_USERNAME:
+                case RAW:
+                    $this->ident[$mode][$ident] = $user;
+                break;
+
+                case RETURN_UID:
+                    $this->ident[$mode][$ident] = $ident;
+                break;
+
+            }
+
+        }else{
+            $this->ident[$mode][$ident] = ( $mode == RETURN_USERNAME ? $ident : 'Guest' );
+        }
+
+        $this->ident[$mode][ $uquery[( is_numeric($ident) ? 'username' : 'id' )] ] = $this->ident[$mode][$ident];
+        $this->cacheUsers[$mode][ $uquery[( is_numeric($ident) ? 'username' : 'id' )] ] = $this->cacheUsers[$ident];
+        return $this->ident[$mode][$ident];
+    }
+
+    /**
      //
-     // -- FINISH FUNCTION
+     // -- Todo: FINISH FUNCTION
      //
      */
     public function getLanguage(){

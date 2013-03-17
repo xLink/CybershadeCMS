@@ -46,7 +46,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     define('LINK',              0);
     define('NO_LINK',           1);
     define('RAW',               2);
-    define('RETURN_USER',       3);
+    define('RETURN_USERNAME',   3);
+    define('RETURN_UID',        4);
 
 // User levels
     define('BANNED',           -1);
