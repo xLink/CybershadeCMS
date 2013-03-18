@@ -505,10 +505,9 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             return false;
         }
 
+        // Sort out the options in length order
         $keys = array_map('strlen', array_keys($options));
         $x = array_multisort($keys, SORT_DESC, $options);
-
-        echo dump($options);
 
         $route         = $this->routes[$label];
         $url           = $route['pattern'];
