@@ -917,6 +917,8 @@ class Core_Classes_Page extends Core_Classes_coreObj {
 
         $this->buildBlocks();
 
+        (cmsDEBUG ? memoryUsage('System: Finished Loading.') : '');
+
         if ( defined('cmsDEBUG') && cmsDEBUG === true ) {
 
             $objDebug = Core_Classes_coreObj::getDebug();

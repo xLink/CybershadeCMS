@@ -798,7 +798,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @since   1.0.0
      */
     function doImage($content) {
-        global $objBBCode;
+        $objBBCode = Core_Classes_coreObj::getLib('BBCode');
 
         $content = trim($objBBCode->UnHTMLEncode(strip_tags($content)));
         if (preg_match("/\\.(?:gif|jpeg|jpg|jpe|png)$/", $content)) {
@@ -856,7 +856,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @since   1.0.0
      */
     function msg($msg_type, $message, $tplVar=NULL, $title=NULL){
-        global $objTPL, $objPage, $objModule;
+        $objPage = Core_Classes_coreObj::getPage();
+        $objTPL = Core_Classes_coreObj::getTPL();
+        $objModule = Core_Classes_coreObj::getModule();
 
         if(!is_object($objTPL) || !is_object($objPage)){ echo $message; exit; }
 
@@ -908,7 +910,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @return  bool
      */
     function confirmMsg($type, $msg, $title=NULL, $tplVar=NULL){
-        global $objPage, $objForm, $objUser;
+        $objPage = Core_Classes_coreObj::getPage();
+        $objForm = Core_Classes_coreObj::getForm();
+        $objUser = Core_Classes_coreObj::getUser();
 
         //check if we have confirmed either way yet
         if(!HTTP_POST){
@@ -969,6 +973,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         //if(!is_object($objTPL) || !is_object($objPage)){ echo $message; exit; }
         $header = $objPage->getOptions('completed');
         if(!$header){
+            $objPage->buildPage();
+
             $objPage->showHeader();
         }
 
@@ -1015,15 +1021,15 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @since    0.8.0
      */
     function hmsgDie($type, $msg){
-        global $objPage;
+        $objPage = Core_Classes_coreObj::getPage();
 
-        $doSimple = false;
-        if(HTTP_AJAX || isset($_GET['ajax']) || $objPage->getVar('simpleTpl')){
-            $doSimple = true;
-        }
+        // $doSimple = false;
+        // if(HTTP_AJAX || isset($_GET['ajax']) || $objPage->getVar('simpleTpl')){
+        //     $doSimple = true;
+        // }
 
-        $objPage->showHeader($doSimple);
-        msgDie($type, $msg, '', '', '', !$doSimple);
+        $objPage->showHeader();
+        msgDie($type, $msg, '', '', '');
     }
 
 /**

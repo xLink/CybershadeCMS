@@ -14,6 +14,10 @@ $objTPL   = Core_Classes_coreObj::getTPL();
 $objPage->setTheme();
 
 $objPage->setTitle('Test');
+$objPage->addBreadcrumbs(array(
+    array('url' => '/'.root(), 'name' => 'Home'),
+));
+
 
 $objModule = $objRoute->processURL($_SERVER['QUERY_STRING']);
 

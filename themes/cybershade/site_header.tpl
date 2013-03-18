@@ -56,11 +56,11 @@
 
 <section class="container">
     <!-- BEGIN breadcrumbs -->
-    <nav id="breadcrumbs" class="row">
+    <ul class="breadcrumb">
         <!-- BEGIN item -->
-            <div> <a href="{breadcrumbs.item.URL}">{breadcrumbs.item.NAME}</a> <span class="divider">/</span> </div>
+            <li><a href="{breadcrumbs.item.URL}">{breadcrumbs.item.NAME}</a> <span class="divider">/</span></li>
         <!-- END item -->
-    </nav>
+    </ul>
     <!-- END breadcrumbs -->
 
     <div class="row">
