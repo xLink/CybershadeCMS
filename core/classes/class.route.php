@@ -505,6 +505,10 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             return false;
         }
 
+        usort($options, function($a, $b) {
+            return strlen($b) - strlen($a);
+        });
+
         $route         = $this->routes[$label];
         $url           = $route['pattern'];
         $vars          = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
