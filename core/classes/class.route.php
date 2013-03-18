@@ -505,9 +505,10 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             return false;
         }
 
-        usort($options, function($a, $b) {
-            return strlen($b) - strlen($a);
-        });
+        $keys = array_map('strlen', array_keys($options));
+        $x = array_multisort($keys, SORT_DESC, $options);
+
+        echo dump($options);
 
         $route         = $this->routes[$label];
         $url           = $route['pattern'];
@@ -522,52 +523,37 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         // If there are parameters in the pattern, 
         if( sizeOf( $matches[1] ) > 0 ) {
 
-            // Let's start looping through them
-            foreach( $matches[1] as $key => $variable ) {
+            foreach( $options as $key => $value ) {
 
                 // If there's a requirement on the param..
-                if ( isset( $route['requirements'][$variable] ) ) {
+                if ( isset( $route['requirements'][$key] ) ) {
 
-                    // and that param was passed to us..
-                    if( isset( $options[$variable] ) ) {
+                    // Check the param we were given matches the requirement
+                    if( preg_match( '/^' . $route['requirements'][$key] . '$/', $value ) ) {
+                    
+                        // It does, woo.
+                        $url = str_replace( ':' . $key, $value, $url );
+                        unset( $remainingVars[$key] );
 
-                        // Check the param we were given matches the requirement
-                        if( preg_match( '/^' . $route['requirements'][$variable] . '$/', $options[$variable] ) ) {
-                        
-                            // It does, woo.
-                            $url = str_replace( ':' . $variable, $options[$variable], $url );
-                            unset( $remainingVars[$key] );
-                        } else {
-
-                            // It didn't match, oopsie.. :/
-                            trigger_error( sprintf(
-                                'The Requirement on the route `%s` wasn\'t matched for param `%s`',
-                                $route['label'],
-                                $variable
-                            ));
-                        }
-                    } else { 
+                    } else {
 
                         // It didn't match, oopsie.. :/
                         trigger_error( sprintf(
                             'The Requirement on the route `%s` wasn\'t matched for param `%s`',
                             $route['label'],
-                            $variable
+                            $key   
                         ));
 
+                        return;
                     }
 
                 } else {
+
                     // No requirement, so just fill it in.. [UNSECURE]
-                    $url = str_replace( ':' . $variable, $options[$variable], $url );
+                    $url = str_replace( ':' . $key, $options[$key], $url );
                     unset( $remainingVars[$key] );
                 }
             }
-        }
-
-        if( count( $remainingVars ) > 0 ) {
-            trigger_error( 'Not enough params given for url generation' );
-            return false;
         }
 
         // check if we need to add the cms path in too
