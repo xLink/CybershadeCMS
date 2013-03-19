@@ -141,7 +141,7 @@
         </nav>
         <!-- END breadcrumbs -->
 
-        <div class="row-fluid sortable">
+        <div class="row-fluid">
             <div class="box span12" style="min-height: 1000px;">
 
 

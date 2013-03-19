@@ -6,7 +6,7 @@
     <!-- END pre_end_row -->
 
     <!-- BEGIN start_row -->
-    <div class="row-fluid sortable">
+    <div class="row-fluid">
     <!-- END start_row -->
 
     <!-- BEGIN 1col -->
