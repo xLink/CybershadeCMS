@@ -60,11 +60,13 @@ class Core_Classes_coreObj {
 
         if ( !class_exists($class) && !interface_exists($class) ){
 
-            // explode the classname by _'s
-            $fp = explode('_', $class);
+            // Split the class names up as to allow for modules with underscores in the name
+            $splitNames = splitn( $class, '_', 2 );
+            $fp = explode( '_', $splitNames[0] );
+            $fn = $splitNames[1];
 
             // grab the class name, and sprintf it into a filename
-            $fn = array_pop($fp);
+            // $fn = array_pop($fp);
             $file = sprintf('class.%s.php', $fn);
             $fp = array_map('strtolower', $fp);
 

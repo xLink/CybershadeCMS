@@ -1472,4 +1472,35 @@ function is_false($var){
 }
 
 
+/**
+ * Split a string at the nth occurance
+ * Thanks to David Beck on PHP.net http://uk3.php.net/manual/en/function.parse-url.php#104726
+ *
+ * @author  David Beck (original), Richard Clifford (ported to CS style)
+ * @version 1.0.0
+ * @since   1.0.0
+ *
+ * @param string    $address
+ *
+ * @return mixed
+ */
+function splitn($string, $needle, $offset)
+{
+    $newString = $string;
+    $totalPos = 0;
+    $length = strlen($needle);
+    for($i = 0; $i < $offset; $i++)
+    {
+        $pos = strpos($newString, $needle);
+
+        // If you run out of string before you find all your needles
+        if($pos === false)
+            return false;
+        $newString = substr($newString, $pos+$length);
+        $totalPos += $pos+$length;
+    }
+    return array(substr($string, 0, $totalPos-$length),substr($string, $totalPos));
+}
+
+
 ?>
