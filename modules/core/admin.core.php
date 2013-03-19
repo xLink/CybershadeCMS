@@ -420,10 +420,6 @@ class Admin_Modules_core extends Core_Classes_Module{
             'panel' => cmsROOT. 'modules/core/views/admin/menus/default/menu_link_list.tpl',
         ));
 
-
-        $objSQL     = Core_Classes_coreObj::getDBO();
-        $objTPL     = Core_Classes_coreObj::getTPL();
-
         $queryList =  $objSQL->queryBuilder()
             ->select('*')
             ->from('#__menus')
