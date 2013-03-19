@@ -25,10 +25,11 @@ class Core_Classes_Plugins extends Core_Classes_coreObj{
      *
      * @return      bool
      */
-    public function __constructor(){
+    public function __construct(){
 
         // try and load the plugins
         $this->load();
+
     }
 
     /**
