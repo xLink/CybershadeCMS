@@ -7,14 +7,7 @@ if( !isset( $objPage ) ) {
 $browserCSSSelectors = explode('/', $browserCSSSelectors);
 
 $objPage->addCSSFile(array(
-    'href'     => '/'.root().self::$THEME_ROOT.'assets/styles/bootstrap.min.css',
-    'type'     => 'text/css',
-    'priority' => HIGH
-));
-
-$objPage->addCSSFile(array(
-    'href'     => '/'.root().self::$THEME_ROOT.'assets/styles/bootstrap-responsive.min.css',
-    'type'     => 'text/css',
+    'href'     => '/'.root().'assets/styles/bootstrap-min.css',
     'priority' => HIGH
 ));
 
