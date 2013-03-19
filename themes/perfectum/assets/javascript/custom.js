@@ -1539,7 +1539,7 @@ function widthFunctions( e ) {
 
 	if (winHeight) {
 		
-		$("#content").css("min-height",winHeight);
+		//$("#content").css("min-height",winHeight);
 		
 	}
     
