@@ -5,6 +5,17 @@ if( !isset( $objPage ) ) {
     $objPage = self::getPage();
 }
 
+// load bootstrap with the framework extras
+$objPage->addCSSFile(array(
+    'href'     => '/'.root().'assets/styles/bootstrap-min.css',
+    'priority' => HIGH
+));
+// $objPage->addCSSFile(array(
+//     'href'     => '/'.root().'assets/styles/extras-min.css',
+//     'priority' => HIGH
+// ));
+
+
 if(LOCALHOST){
     $objPage->addCSSFile(array(
         'href'     => '/'.root().self::$THEME_ROOT.'theme.less',
@@ -23,12 +34,10 @@ if(LOCALHOST){
     ));
 }
 
-    $objPage->addJSFile(array(
-        'src' => '/'.root().'assets/javascript/bootstrap.mootools.js',
-        'priority' => HIGH
-    ), 'footer');
+$objPage->addJSFile(array(
+    'src' => '/'.root().'assets/javascript/bootstrap.mootools.js',
+    'priority' => HIGH
+), 'footer');
 
-    $this->addCSSFile( '/'.root().'assets/styles/framework-min.css', 'text/css', 'stylesheet', HIGH);
-    $this->addCSSFile( '/'.root().'assets/styles/extras-min.css', 'text/css', 'stylesheet', HIGH);
 
 ?>

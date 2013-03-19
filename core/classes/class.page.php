@@ -775,8 +775,11 @@ class Core_Classes_Page extends Core_Classes_coreObj {
 **/
         $cssDir = '/'.root().'assets/styles';
 
-        // $this->addCSSFile($cssDir.'/framework-min.css', 'text/css', 'stylesheet', HIGH);
-        #$this->addCSSFile($cssDir.'/extras-min.css', 'text/css');
+        // load the css framework
+        $this->addCSSFile(array(
+            'href'     => $cssDir.'/framework-min.css',
+            'priority' => HIGH
+        ));
 
         // throw a hook here, so they have the ability to do...whatever
         $cssFiles = array();
