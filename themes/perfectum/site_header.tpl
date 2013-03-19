@@ -101,7 +101,24 @@
             <div class="nav-collapse sidebar-nav">
                 <ul class="nav nav-tabs nav-stacked main-menu">
                     {ACP_NAV}
-                </ul>
+                    <!-- BEGIN menu -->
+
+                        <!-- BEGIN normal -->
+                        <li><a href="{menu.normal.URL}"><i class="{menu.normal.ICONS} icon-white"></i><span class="hidden-tablet">{menu.normal.TITLE}</span></a></li>
+                        <!-- END normal -->
+
+                        <!-- BEGIN dropdown -->
+                        <li>
+                            <a class="dropmenu" href="#"><i class="{menu.dropdown.ICONS} icon-white"></i><span class="hidden-tablet">{menu.dropdown.TITLE}</span></a>
+                            <ul>
+                                <!-- BEGIN subnav -->
+                                <li><a class="submenu" href="{menu.dropdown.subnav.URL}"><i class="{menu.dropdown.subnav.ICONS} icon-white"></i><span class="hidden-tablet"> {menu.dropdown.subnav.TITLE}</span></a></li>
+                                <!-- END subnav -->
+                            </ul>   
+                        </li>
+                        <!-- END dropdown -->
+                        
+                    <!-- END menu -->
             </div>
         </div>
 

@@ -28,4 +28,7 @@ if(LOCALHOST){
         'priority' => HIGH
     ), 'footer');
 
+    $this->addCSSFile( '/'.root().'assets/styles/framework-min.css', 'text/css', 'stylesheet', HIGH);
+    $this->addCSSFile( '/'.root().'assets/styles/extras-min.css', 'text/css', 'stylesheet', HIGH);
+
 ?>

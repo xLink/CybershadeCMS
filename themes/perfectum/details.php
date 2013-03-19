@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Details_cybershade implements Core_Classes_baseDetails{
+class Details_Perfectum implements Core_Classes_baseDetails{
 
     public function details(){
         return array(
@@ -12,16 +12,15 @@ class Details_cybershade implements Core_Classes_baseDetails{
             'since'                => '1.0',
             'min_version_required' => '1.0',
 
-            'name'                 => 'perfectum',
+            'name'                 => 'Perfectum - jQuery',
             'mode'                 => 'admin',
-            'author'               => 'xLink',
+            'author'               => 'NoelDavies',
             'homepage_url'         => 'http://cybershade.org',
             'repo_url'             => 'http://github.com/cybershade/cscms/',
         );
     }
     public function getBlocks(){
         return array(
-
 
         );
     }
