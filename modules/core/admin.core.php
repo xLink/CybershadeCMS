@@ -215,7 +215,7 @@ class Admin_Modules_core extends Core_Classes_Module{
 ;--CMS Setup
     Install Path: /'.root().'
 
-'.serialize($objSQL->fetchAll('SELECT * FROM `#__config`')).'';
+'.json_encode($objSQL->fetchAll('SELECT * FROM `#__config`')).'';
 
         $objTPL->assign_block_vars('block', array(
             'TITLE'   => 'System Info',
