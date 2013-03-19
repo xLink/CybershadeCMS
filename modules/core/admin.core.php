@@ -108,7 +108,7 @@ class Admin_Modules_core extends Core_Classes_Module{
             array( 'url' => doArgs('REQUEST_URI', '', $_SERVER), 'name' => 'Site Config' )
         ));
 
-        $objForm    = Core_Classes_Form::getInstance('form');
+        $objForm    = Core_Classes_coreObj::getForm();
         $objTPL     = Core_Classes_coreObj::getTPL();
 
 
@@ -197,7 +197,7 @@ class Admin_Modules_core extends Core_Classes_Module{
 
             $this->users_default();
 
-        } else if( method_exists( $this, 'users_' . $this->_params[0]) ){
+        } else if( method_exists($this, 'users_' . $this->_params[0]) ){
             $this->{'users_' . $this->_params[0]}();
 
         } else {
@@ -212,20 +212,20 @@ class Admin_Modules_core extends Core_Classes_Module{
 
         $objTPL->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
-            'panel' => cmsROOT. 'modules/core/views/admin/users/default/list.tpl',
+            'panel' => cmsROOT . 'modules/core/views/admin/users/default/list.tpl',
         ));
 
         $query = $objSQL->queryBuilder()
             ->select('*')
             ->from('#__users')
+            ->orderby('id')
             ->build();
 
         $users = $objSQL->fetchAll( $query, 'id' );
-
-        if( !$users ){
-            msgDie('INFO', 'Cant query users :/');
-            return false;
-        }
+            if( !$users ){
+                msgDie('INFO', 'Cant query users :/');
+                return false;
+            }
 
         foreach( $users as $id => $user ){
             $objTPL->assign_block_vars('user', array(
@@ -348,8 +348,7 @@ class Admin_Modules_core extends Core_Classes_Module{
   //
 **/
 
-    public function menu(){
-
+    public function menu() {
         Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
             array( 'url' => doArgs('REQUEST_URI', '', $_SERVER), 'name' => 'Menu Manager' )
         ));
@@ -367,8 +366,7 @@ class Admin_Modules_core extends Core_Classes_Module{
         }
     }
 
-    public function menu_default( )
-    {
+    public function menu_default() {
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
 
@@ -379,10 +377,10 @@ class Admin_Modules_core extends Core_Classes_Module{
         
         // List the different types of menus
         $query = $objSQL->queryBuilder()
-                    ->select('id', 'name')
-                    ->from('#__menus')
-                    ->groupBy('name')
-                    ->build();
+            ->select('id', 'name')
+            ->from('#__menus')
+            ->groupBy('name')
+            ->build();
 
         $menus = $objSQL->fetchAll( $query, 'id' );
 
@@ -404,8 +402,7 @@ class Admin_Modules_core extends Core_Classes_Module{
         $objTPL->parse('body', false);
     }
 
-    public function menu_edit( )
-    {
+    public function menu_edit() {
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
 
@@ -428,19 +425,18 @@ class Admin_Modules_core extends Core_Classes_Module{
         $objTPL     = Core_Classes_coreObj::getTPL();
 
         $queryList =  $objSQL->queryBuilder()
-                        ->select('*')
-                        ->from('#__menus')
-                        ->where('name', '=', $menuName )
-                        ->orderBy( 'disporder' )
-                        ->build();
+            ->select('*')
+            ->from('#__menus')
+            ->where('name', '=', $menuName)
+            ->orderBy('disporder')
+            ->build();
 
         $links = $objSQL->fetchAll($queryList);
-
-        if( !is_array( $links ) ) {
-            // Trigger error
-            // Add error to tpl
-            return false;
-        }
+            if( !is_array( $links ) ) {
+                // Trigger error
+                // Add error to tpl
+                return false;
+            }
 
         foreach ($links as $key => $link) {
             $objTPL->assign_block_vars( 'link', array(
