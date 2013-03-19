@@ -337,8 +337,8 @@ INSERT INTO `cscms_menus` (`id`, `name`, `link`, `lname`, `blank`, `disporder`, 
 (14, 'menu_nav', '/blog/', 'Blog', 0, 7, NULL, 0, 0, 0),
 (15, 'admin_menu', '{ADMIN_ROOT}', 'Dashboard', 0, 0, NULL, 1, 0, 0),
 (16, 'admin_menu', '#', 'System', 1, 1, NULL, 0, 0, 0),
-(17, 'admin_menu', '{ADMIN_ROOT}core/siteConfig/', 'Site Configuration', 0, 2, NULL, 0, 0, 0),
-(21, 'admin_menu', '{ADMIN_ROOT}core/menu/', 'Menus', 0, 3, NULL, 0, 0, 17),
+(17, 'admin_menu', '{ADMIN_ROOT}core/siteConfig/', 'Site Configuration', 0, 2, NULL, 0, 0, 16),
+(21, 'admin_menu', '{ADMIN_ROOT}core/menu/', 'Menus', 0, 3, NULL, 0, 0, 16),
 (19, 'admin_menu', '#', 'Users', 1, 3, NULL, 1, 0, 0),
 (20, 'admin_menu', '{ADMIN_ROOT}core/users/search', 'User Search', 0, 4, NULL, 1, 0, 19);
 
