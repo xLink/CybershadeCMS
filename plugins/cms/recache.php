@@ -3,7 +3,7 @@
 function recache(){ 
     if(isset($_GET['_recache'])){
         echo dump($_GET, 'RECACHE BOOM!');
-        $objCache = coreObj::getCache();
+        $objCache = Core_Classes_coreObj::getCache();
 
         $objCache->remove('stores');
         $objCache->remove('media');
