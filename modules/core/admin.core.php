@@ -409,18 +409,20 @@ class Admin_Modules_core extends Core_Classes_Module{
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
 
+
         // Check we have the menu name
-        if( !is_string( $this->_params ) || strlen( $this->_params) == 0 ) {
+        if( !is_array( $this->_params ) || !is_string( $this->_params[0] ) || strlen( $this->_params) == 0 ) {
             // error
             echo 'bad stuff';
         }
+
+        $menuName = $this->_params[0];
 
         $objTPL->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
             'panel' => cmsROOT. 'modules/core/views/admin/menus/default/menu_link_list.tpl',
         ));
 
-        $menuName = $this->_params;
 
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
@@ -429,6 +431,7 @@ class Admin_Modules_core extends Core_Classes_Module{
                         ->select('*')
                         ->from('#__menus')
                         ->where('name', '=', $menuName )
+                        ->orderBy( 'disporder' )
                         ->build();
 
         $links = $objSQL->fetchAll($queryList);

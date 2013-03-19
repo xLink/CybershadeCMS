@@ -51,7 +51,7 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
             $action = explode('/', $this->action);
         }
 
-        $method = reflectMethod($this->module, array_shift($action), $this->extra);
+        $method = reflectMethod($this->module, array_shift($action), $action);
 
         if( !$method ) {
             $objRoute->throwHTTP(404);

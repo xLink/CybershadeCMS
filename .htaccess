@@ -27,7 +27,7 @@ RewriteRule ^modules/([^/]*)/styles/([^.]*)-min.css     core/libs/min/index.php?
 RewriteRule ^modules/([^/]*)/scripts/([^.]*)-min.js     core/libs/min/index.php?b=modules/$1/scripts&f=$2.js [QSA,L]
 
 ##control panels
-RewriteRule ^(admin|mod|user)/([^/]*)/([^/]*)/([^.]*)     control.php?__mode=$1&__module=$2&__action=$3&__extra=$4 [QSA,L]
+RewriteRule ^(admin|mod|user)/([^/]*)/([^.]*)(.*)       control.php?__mode=$1&__module=$2&__action=$3&__extra=$4 [QSA,L]
 RewriteRule ^(admin|mod|user)($|/)                      control.php?__mode=$1 [QSA,L]
 
 ##extra module bits
