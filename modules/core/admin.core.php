@@ -212,7 +212,64 @@ class Admin_Modules_core extends Core_Classes_Module{
 
         $objTPL->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
-            'panel' => cmsROOT. 'modules/core/views/admin/users/default/default.tpl',
+            'panel' => cmsROOT. 'modules/core/views/admin/users/default/list.tpl',
+        ));
+
+        $query = $objSQL->queryBuilder()
+            ->select('*')
+            ->from('#__users')
+            ->build();
+
+        $users = $objSQL->fetchAll( $query, 'id' );
+
+        if( !$users ){
+            msgDie('INFO', 'Cant query users :/');
+            return false;
+        }
+
+        foreach( $users as $id => $user ){
+            $objTPL->assign_block_vars('user', array(
+                'ID'              => $id,
+                'NAME'            => $user['username'],
+                'DATE_REGISTERED' => $objTime->mk_time($user['register_date']),
+                'STATUS'          => ( $user['active'] == '1' ? 'Active' : 'Disabled' )
+            ));
+
+            $objTPL->assign_block_vars('user.actions.edit', array(
+                'URL'   => '',
+                'ICON'  => '',
+            ));
+
+            $objTPL->assign_block_vars('user.actions.activate', array(
+                'URL'   => '',
+                'ICON'  => '',
+            ));
+
+            $objTPL->assign_block_vars('user.actions.disable', array(
+                'URL'   => '',
+                'ICON'  => '',
+            ));
+        }
+
+        $objTPL->parse('panel', false);
+
+        $objTPL->assign_block_vars('block', array(
+            'TITLE'   => 'User Management',
+            'CONTENT' => $objTPL->get_html('panel', false),
+            'ICON'    => 'faicon-user',
+        ));
+
+        $objTPL->parse('body', false);
+    }
+
+    /*public function users_manage(){
+        $objSQL     = Core_Classes_coreObj::getDBO();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+        $objTime    = Core_Classes_coreObj::getTime();
+
+        $objTPL->set_filenames(array(
+            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
+            'panel' => cmsROOT. 'modules/core/views/admin/users/default/manage.tpl',
         ));
 
             $query = $objSQL->queryBuilder()
@@ -258,19 +315,149 @@ class Admin_Modules_core extends Core_Classes_Module{
         ));
 
         $objTPL->parse('body', false);
-    }
+    }*/
 
-    public function users_add(){
+    public function users_add() {
+        $objSQL     = Core_Classes_coreObj::getDBO();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+        $objTime    = Core_Classes_coreObj::getTime();
+
         Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
             array( 'url' => doArgs('REQUEST_URI', '', $_SERVER), 'name' => 'Add User' )
         ));
 
+        $objTPL->set_filenames(array(
+            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
+            'panel' => cmsROOT. 'modules/core/views/admin/users/default/add.tpl',
+        ));
 
+        $objTPL->parse('panel', false);
+
+        $objTPL->assign_block_vars('block', array(
+            'TITLE'   => 'Add User',
+            'CONTENT' => $objTPL->get_html('panel', false),
+            'ICON'    => 'faicon-user',
+        ));
+
+        $objTPL->parse('body', false);
     }
 
+/**
+  //
+  //-- Menu Admin Section
+  //
+**/
 
+    public function menu(){
 
-    //public function index() {}
+        Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
+            array( 'url' => doArgs('REQUEST_URI', '', $_SERVER), 'name' => 'Menu Manager' )
+        ));
 
+        if( ( !count($this->_params) || (count($this->_params) === 1 && empty($this->_params[0])) )
+            && method_exists( $this, 'menu_default') ){
+
+            $this->menu_default();
+
+        } else if( method_exists( $this, 'users_' . $this->_params[0]) ){
+            $this->{'menu_' . $this->_params[0]}();
+
+        } else {
+            trigger_error('Ah crap...404');
+        }
+    }
+
+    public function menu_default( )
+    {
+        $objSQL     = Core_Classes_coreObj::getDBO();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+
+        $objTPL->set_filenames(array(
+            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
+            'panel' => cmsROOT. 'modules/core/views/admin/menus/default/menu_list.tpl',
+        ));
+        
+        // List the different types of menus
+        $query = $objSQL->queryBuilder()
+                    ->select('id', 'name')
+                    ->from('#__menus')
+                    ->groupBy('name')
+                    ->build();
+
+        $menus = $objSQL->fetchAll( $query, 'id' );
+
+        foreach( $menus as $menu ) {
+            $objTPL->assign_block_vars( 'menu', array(
+                'URL'  => '/' . root() . 'admin/core/menu_edit/' . $menu['name'],
+                'NAME' => $menu['name']
+            ));
+        }
+
+        $objTPL->parse('panel', false);
+
+        $objTPL->assign_block_vars('block', array(
+            'TITLE'   => 'Menu Administration',
+            'CONTENT' => $objTPL->get_html('panel', false),
+            'ICON'    => 'icon-th-list',
+        ));
+
+        $objTPL->parse('body', false);
+    }
+
+    public function menu_edit( )
+    {
+        $objSQL     = Core_Classes_coreObj::getDBO();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+
+        // Check we have the menu name
+        if( !is_string( $this->_params ) || strlen( $this->_params) == 0 ) {
+            // error
+            echo 'bad stuff';
+        }
+
+        $objTPL->set_filenames(array(
+            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
+            'panel' => cmsROOT. 'modules/core/views/admin/menus/default/menu_link_list.tpl',
+        ));
+
+        $menuName = $this->_params;
+
+        $objSQL     = Core_Classes_coreObj::getDBO();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+
+        $queryList =  $objSQL->queryBuilder()
+                        ->select('*')
+                        ->from('#__menus')
+                        ->where('name', '=', $menuName )
+                        ->build();
+
+        $links = $objSQL->fetchAll($queryList);
+
+        if( !is_array( $links ) ) {
+            // Trigger error
+            // Add error to tpl
+            return false;
+        }
+
+        foreach ($links as $key => $link) {
+            $objTPL->assign_block_vars( 'link', array(
+                'LABEL' => $link['lname'],
+                'URL'   => $link['link'],
+                'ID'    => $link['id']
+                // 'STATUS_CLASS' => ( $link['status'] == 1 ? 'success' : 'error'),
+                // 'STATUS'       => $link['status']
+            ));
+        }
+
+        $objTPL->parse('panel', false);
+
+        $objTPL->assign_block_vars('block', array(
+            'TITLE'   => 'Menu Administration',
+            'CONTENT' => $objTPL->get_html('panel', false),
+            'ICON'    => 'icon-th-list',
+        ));
+
+        $objTPL->parse('body', false);
+    }
 }
 ?>

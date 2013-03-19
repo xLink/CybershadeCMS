@@ -51,7 +51,7 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
             $action = explode('/', $this->action);
         }
 
-        $method = reflectMethod($this->module, array_shift($action), $action);
+        $method = reflectMethod($this->module, array_shift($action), $this->extra);
 
         if( !$method ) {
             $objRoute->throwHTTP(404);
@@ -63,95 +63,151 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         $objTPL = Core_Classes_coreObj::getTPL();
 
         $acpROOT = '/'.root().'admin/';
-        $nav = array(
-            'Dashboard' => array(
-                'icon' => 'dashboard',
-                'url'  => $acpROOT,
-            ),
-            'System' => array(
-                'icon' => 'cog',
-                'subs' => array(
-                    'Site Configuration' => array(
-                        'icon' => 'search',
-                        'url'  => $acpROOT.'core/siteConfig/',
-                    ),
-                    '' => array(
-                        'icon' => 'search',
-                        'url'  => $acpROOT.'',
-                    ),
-                ),
-            ),
-            'Users' => array(
-                'icon' => 'user',
-                'subs' => array(
-                    'Search' => array(
-                        'icon' => 'search',
-                        'url'  => $acpROOT.'core/users/search/',
-                    ),
-                    'Manage Users' => array(
-                        'icon' => 'cogs',
-                        'url'  => $acpROOT.'core/users/manage/',
-                    ),
-                    'Add New User' => array(
-                        'icon' => 'search',
-                        'url'  => $acpROOT.'core/users/add/',
-                    ),
-                ),
-            ),
-            '--' => array(),
-            'Modules' => array(
-                'icon' => 'sign-blank',
-                'url'  => $acpROOT,
-            ),
-            'Themes' => array(
-                'icon' => 'picture',
-                'url'  => $acpROOT,
-            ),
-            'Blocks' => array(
-                'icon' => 'check-empty',
-                'url'  => $acpROOT,
-            ),
-            'Plugins' => array(
-                'icon' => 'folder-close',
-                'url'  => $acpROOT,
-            ),
-            'Languages' => array(
-                'icon' => 'globe',
-                'url'  => $acpROOT,
-            ),
-        );
 
-        $objTPL->assign_var('ACP_NAV', $this->generateNav($nav));
+        $query = $objSQL->queryBuilder()
+                    ->select('id', 'link', 'lname', 'blank', 'parent')
+                    ->from('#__menus')
+                    ->orderBy('name, disporder')
+                    ->where('name', '=', 'admin_menu')
+                    ->build();
+
+        $results = $objSQL->fetchAll( $query, 'id' );
+
+        if( sizeOf( $results ) <= 0 ) {
+            trigger_error('No results could be found for the admin menu');
+            return false;
+        }
+
+        foreach( $results as $id => $result ) {
+            $results[$id]['icon'] = $result['icon'] = 'icon-dashboard';
+            $results[$id]['link'] = $result['link'] = str_replace( '{ADMIN_ROOT}', $acpROOT, $result['link'] );
+
+            if( $result['parent'] !== '0' ) {
+                
+                if( !isset( $results[$result['parent']]['subs'] ) ) {
+                    $results[$result['parent']]['subs'] = array();
+                }
+                
+                $results[$result['parent']]['subs'][$id] = $result;
+
+                unset( $results[$id] );
+            }
+        }
+
+        // $nav = array(
+        //     'Dashboard' => array(
+        //         'icon' => 'fa-icon-dashboard',
+        //         'url'  => $acpROOT,
+        //     ),
+
+        //     'System' => array(
+        //         'icon' => 'icon-cog',
+        //         'subs' => array(
+        //             'Site Configuration' => array(
+        //                 'icon' => 'icon-wrench',
+        //                 'url'  => $acpROOT.'core/siteConfig/',
+        //             ),
+        //         ),
+        //     ),
+
+        //     'Users' => array(
+        //         'icon' => 'icon-user',
+        //         'subs' => array(
+        //             'Search' => array(
+        //                 'icon' => 'fa-icon-search',
+        //                 'url'  => $acpROOT.'core/users/search/',
+        //             ),
+        //             'Manage Users' => array(
+        //                 'icon' => 'fa-icon-user',
+        //                 'url'  => $acpROOT.'core/users/manage/',
+        //             ),
+        //             'Add New User' => array(
+        //                 'icon' => 'fa-icon-plus',
+        //                 'url'  => $acpROOT.'core/users/add/',
+        //             ),
+        //         ),
+        //     ),
+
+        //     'Modules' => array(
+        //         'icon' => 'fa-icon-sitemap',
+        //         'url'  => $acpROOT . 'modules/',
+        //     ),
+
+        //     'Themes' => array(
+        //         'icon' => 'icon-picture',
+        //         'url'  => $acpROOT . 'themes/',
+        //     ),
+
+        //     'Blocks' => array(
+        //         'icon' => 'fa-icon-check-empty',
+        //         'url'  => $acpROOT . 'blocks/',
+        //     ),
+
+        //     'Plugins' => array(
+        //         'icon' => 'fa-icon-folder-close',
+        //         'url'  => $acpROOT . 'plugins/',
+        //     ),
+            
+        //     'Languages' => array(
+        //         'icon' => 'icon-globe',
+        //         'url'  => $acpROOT . 'languages/',
+        //     ),
+        // );
+
+        $this->generateNav($results);
     }
 
     protected function generateNav( $links=array() ){
 
-        if( !count($links) ){
-            return null;
-        }
+        $objSQL = Core_Classes_coreObj::getDBO();
+        $objTPL = Core_Classes_coreObj::getTPL();
+        $objPage = Core_Classes_coreObj::getPage();
 
-        $linkTPL   = '<li><a href="%s"><i class="faicon-%s faicon-white"></i><span class="hidden-tablet"> %s</span></a>%s</li>';
-        $subTPL    = '<ul> %s </ul>';
-        $spacerTPL = '<li> &nbsp; </li>';
-        $output    = null;
+        // Loop through the links
+        foreach( $links as $link ) {
 
-        foreach($links as $label => $link){
+            $objTPL->assign_block_vars('menu', array());
 
-            if( doArgs('subs', false, $link) ){
-                $subNav = sprintf( $subTPL, self::generateNav($link['subs']) );
-                $output .= sprintf( $linkTPL, 'javascript:;', $link['icon'], $label, $subNav );
+            // If the icon isn't set, ignore this link
+            if( !isset( $link['icon'] ) ) {
+                continue;
+            }
 
-            }else if( $label === '--' ){
-                $output .= $spacerTPL;
+            // If this navigational piece has subnavigation, deal with it.
+            if ( isset( $link['subs'] ) && !empty( $link['subs'] ) ) {
 
-            }else if( doArgs('url', false, $link) ){
-                $output .= sprintf( $linkTPL, $link['url'], $link['icon'], $label, null );
+                // Setup our dropdown parent item
+                $objTPL->assign_block_vars('menu.dropdown', array(
+                    'TITLE' => $link['lname'],
+                    'ICONS' => $link['icon']
+                ));
 
+                // Loop through our subnavigational items
+                foreach( $link['subs'] as $subLink ) {
+
+                    // If the icon and / or url isn't set, ignore it
+                    if( !isset( $subLink['icon'] ) || !isset( $subLink['link'] ) ) {
+                        continue;
+                    }
+
+                    $objTPL->assign_block_vars('menu.dropdown.subnav', array(
+                        'URL'   => $subLink['link'],
+                        'ICONS' => $subLink['icon'],
+                        'TITLE' => $subLink['lname']
+                    ));
+                }
+
+            // Looks like a normal link, sweet.
+            } else if( isset( $link['link'] ) ) {
+
+                $objTPL->assign_block_vars('menu.normal', array(
+                    'URL'   => $link['link'],
+                    'ICONS' => $link['icon'],
+                    'TITLE' => $link['lname']
+                ));
             }
 
         }
-
-        return $output;
     }
 
 

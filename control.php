@@ -15,7 +15,8 @@ $objAdmin = Core_Classes_coreObj::getAdminCP($GET);
 $objRoute->modifyGET($GET);
 
 if ( !Core_Classes_User::$IS_ONLINE || !Core_Classes_User::$IS_ADMIN ) {
-    $objRoute->throwHTTP(404);
+	// Need to sort out login
+    // $objRoute->throwHTTP(404);
 }
 
 $objPage->setTheme('perfectum', true);
