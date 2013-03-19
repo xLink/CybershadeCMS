@@ -30,6 +30,7 @@
 </table>
 
 <script type="text/javascript">
+// Damn jquery, this doesn't work..
 	(function(){
 		$( "#sortable" ).sortable({
 			update: function( event, ui ) {
