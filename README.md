@@ -11,7 +11,7 @@
 ## Dependencies (included in this project)
 
 ### CSS
-- [Twitter Bootstrap 2.1.1](http://twitter.github.com/bootstrap/)
+- [Twitter Bootstrap 2.3.0](http://twitter.github.com/bootstrap/)
 
 ### Javascript
 - [Mootools Core 1.4.4](http://mootools.net/)
