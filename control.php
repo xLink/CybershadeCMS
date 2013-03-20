@@ -19,7 +19,7 @@ if ( !Core_Classes_User::$IS_ONLINE || !Core_Classes_User::$IS_ADMIN ) {
     // $objRoute->throwHTTP(404);
 }
 
-$objPage->setTheme('perfectum', true);
+$objPage->setTheme('perfectum-jquery', true);
 $objPage->addBreadcrumbs(array(
     array('url' => '/'. root() . $objAdmin->mode .'/', 'name' => ucwords($objAdmin->mode).' Control Panel' )
 ));
