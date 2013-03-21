@@ -122,7 +122,8 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                     $name, $args['id'],
                     (
                         (!is_empty($args['style'])          ? ' style="'.$args['style'].'"'             : null).
-
+                        (!is_empty($args['class'])          ? ' class="'.$args['class'].'"'             : null).
+                        
                         ($args['checked']===true            ? ' checked="checked"'                      : null).
                         ($args['disabled']===true           ? ' disabled="disabled"'                    : null).
                         ($args['autocomplete']===false      ? ' autocomplete="off"'                     : null).
@@ -204,7 +205,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      */
     public function button($name=null, $value='submit', $args=array()){
         $args['name']  = doArgs('name', $name, $args);
-        $args['class'] = (!isset($args['class']) ? 'button' : $args['class'].' button');
+        $args['class'] = (!isset($args['class']) ? 'btn' : 'btn ' . $args['class']);
         $type          = doArgs('type', 'button', $args);
 
         if(in_array(strtolower($name), array('submit', 'reset'))){
@@ -280,7 +281,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      * @return      string
      */
     public function checkbox($name='check', $value='', $checked=false, $args=array()){
-        $args['checked'] = $checked;
+        $args['checked'] = filter_var($checked, FILTER_VALIDATE_BOOLEAN);
 
         return self::inputbox($name, 'checkbox', $value, $args);
     }

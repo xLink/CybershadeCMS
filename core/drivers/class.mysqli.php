@@ -176,6 +176,10 @@ class Core_Drivers_mysqli extends Core_Classes_coreSQL implements Core_Classes_b
         return $this->DBH->affected_rows;
     }
 
+    public function fetchInsertId(){
+        return $this->DBH->insert_id;
+    }
+
     public function recordMessage($message, $mode){
         if(!$this->dbSettings['debug']){
             return false;

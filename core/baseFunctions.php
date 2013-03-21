@@ -1484,13 +1484,11 @@ function is_false($var){
  *
  * @return mixed
  */
-function splitn($string, $needle, $offset)
-{
+function splitn($string, $needle, $offset) {
     $newString = $string;
     $totalPos = 0;
     $length = strlen($needle);
-    for($i = 0; $i < $offset; $i++)
-    {
+    for($i = 0; $i < $offset; $i++) {
         $pos = strpos($newString, $needle);
 
         // If you run out of string before you find all your needles
@@ -1500,6 +1498,50 @@ function splitn($string, $needle, $offset)
         $totalPos += $pos+$length;
     }
     return array(substr($string, 0, $totalPos-$length),substr($string, $totalPos));
+}
+
+
+/**
+ * Generates a Tree from an multidimensional array
+ * http://sandeepsamajdar.blogspot.co.uk/2011/05/generate-tree-from-php-array.html
+ *
+ * @version 1.0.0
+ * @since   1.0.0
+ * @author  Modified by Dan Aldridge
+ * 
+ * @param   $array  The array you want to map
+ * @param   $args   The arguments to customize the output
+ *                     Vars = array(
+ *                          'parent'        // parent id column
+ *                          'title'         // title column
+ *                          'id'            // id column
+ *                          'parentTag'     // parentTag - ul, select
+ *                          'childTag'      // childTag - li, option
+ *                      )
+ * @param   $parent  The parent ID for this call
+ * @param   $level   The level of iteration
+ *
+ * @return  string
+ */
+function generateTree($array, $args, $parent=0, $level=0) {
+    $has_children = false; $output = null;
+    foreach($array as $key => $value){
+        if ($value[ $args['parent'] ] == $parent){              
+            if ($has_children === false){
+                $has_children = true;
+
+                $output .= '<'. $args['parentTag'] .'>';
+                $level++;
+            }
+            $output .= '<'. $args['childTag'] .'>' . $value[ $args['title'] ] . '';
+            $output .= generateTree($array, $args, $value[ $args['id'] ], $level);
+            $output .= '</'. $args['childTag'] .'>';
+        }
+    }
+    if ($has_children === true){
+        $output .= '</'. $args['parentTag'] .'>';
+    }
+    return $output;
 }
 
 
