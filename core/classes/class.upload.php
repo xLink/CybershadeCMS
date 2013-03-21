@@ -21,15 +21,15 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
      *
      * @access protected
      */
-    protected $input_namee = 'file';
+    protected $input_name = 'file';
 
     /**
      * The class constructor
      */
-    public function __construct( $input_namee = '' ){
+    public function __construct( $input_name = '' ){
         // Specifies the $_FILES array key
-        if( !is_empty( $input_namee ) ){
-            $this->setVar( 'input_id', $input_namee );
+        if( !is_empty( $input_name ) ){
+            $this->setVar( 'input_id', $input_name );
         }
 
         $this->setDirectory();
@@ -52,7 +52,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $objPlugins = Core_Classes_coreObj::getPlugins();
 
         $destination = $this->getVar('directory');
-        $input_namee    = $this->getVar('input_id');
+        $input_name    = $this->getVar('input_id');
 
         // Checks if the destination was false (from the getVar())
         if( !$destination ){
@@ -61,21 +61,21 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         }
 
         // Get the current file extension
-        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_namee]['name']);
+        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_name]['name']);
         $extension  = end( explode( '.', $fileName ) );
-        $fileSize   = $_FILES[$input_namee]['size'];
+        $fileSize   = $_FILES[$input_name]['size'];
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
         if( in_array( $extension, $extensions ) && ( $fileSize <= $size ) ){
 
-            if( $_FILES[$input_namee]['error'] > 0 ){
+            if( $_FILES[$input_name]['error'] > 0 ){
 
                 (cmsDEBUG ? memoryUsage(sprintf(
                     'Upload: Error uploading file, error code: %s',
-                    $_FILES[$input_namee]['error']
+                    $_FILES[$input_name]['error']
                 )) : '');
 
-                trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES[$input_namee]['error'] ) );
+                trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES[$input_name]['error'] ) );
                 return false;
             } else {
                 if( file_exists( $destination . '/' . $fileName ) ) {
@@ -83,7 +83,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                     return false;
                 } else {
 
-                    $moveFile = move_uploaded_file( $_FILES[$input_namee]['tmp_name'], $destination . '/' . $fileName );
+                    $moveFile = move_uploaded_file( $_FILES[$input_name]['tmp_name'], $destination . '/' . $fileName );
 
                     // Check if the file was moved correctly
                     if( $moveFile ){
