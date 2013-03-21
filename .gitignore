@@ -1,9 +1,10 @@
 .DS_STORE
+.DS_Store
 themes/cybershade/
 thumbs.db
 test.php
 assets/config.php
 sublime.*
-/nbproject/private/
-cs.sublime-*
+cscms.sublime-*
+assets/images/avatars/*
 
