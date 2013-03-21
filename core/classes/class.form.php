@@ -122,7 +122,8 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                     $name, $args['id'],
                     (
                         (!is_empty($args['style'])          ? ' style="'.$args['style'].'"'             : null).
-
+                        (!is_empty($args['class'])          ? ' class="'.$args['class'].'"'             : null).
+                        
                         ($args['checked']===true            ? ' checked="checked"'                      : null).
                         ($args['disabled']===true           ? ' disabled="disabled"'                    : null).
                         ($args['autocomplete']===false      ? ' autocomplete="off"'                     : null).
