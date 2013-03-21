@@ -221,6 +221,9 @@ class Core_Drivers_mysql extends Core_Classes_coreSQL implements Core_Classes_ba
         return mysql_affected_rows($this->DBH);
     }
 
+    public function fetchInsertId(){
+        return mysql_insert_id();
+    }
 
     public function recordMessage($message, $mode){
         if($this->dbSettings['debug']){
