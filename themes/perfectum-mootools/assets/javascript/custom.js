@@ -1,7 +1,7 @@
 window.addEvent('domready', function() {
 
     /** ACP Menu Dropdowns **/
-    $$('li > a.dropmenu').each(function(ele){
+    /*$$('li > a.dropmenu').each(function(ele){
         // get the nav
         var ul = ele.getParent().getChildren('ul')[0];
 
@@ -19,7 +19,12 @@ window.addEvent('domready', function() {
             fx.toggle();
         });
 
-    });
+    });*/
 
+    $$('li > ul.dropmenu').show();
+    var myAccordion = new Fx.Accordion($$('li > a.dropmenu'), $$('li > ul.dropmenu'), {
+        display: -1,
+        alwaysHide: true
+    });
 
 });

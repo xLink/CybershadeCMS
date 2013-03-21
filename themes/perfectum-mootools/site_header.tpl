@@ -110,7 +110,7 @@
                         <!-- BEGIN dropdown -->
                         <li>
                             <a class="dropmenu" href="#"><i class="{menu.dropdown.ICONS} icon-white"></i><span class="hidden-tablet">{menu.dropdown.TITLE}</span></a>
-                            <ul>
+                            <ul class="dropmenu">
                                 <!-- BEGIN subnav -->
                                 <li><a class="submenu" href="{menu.dropdown.subnav.URL}"><i class="{menu.dropdown.subnav.ICONS} icon-white"></i><span class="hidden-tablet"> {menu.dropdown.subnav.TITLE}</span></a></li>
                                 <!-- END subnav -->
