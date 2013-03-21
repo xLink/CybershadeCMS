@@ -17,19 +17,19 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
     protected $directory;
 
     /**
-     * The input id of the input box which is generated
+     * The input name of the input box which is generated
      *
      * @access protected
      */
-    protected $input_id = 'file';
+    protected $input_namee = 'file';
 
     /**
      * The class constructor
      */
-    public function __construct( $input_id = '' ){
+    public function __construct( $input_namee = '' ){
         // Specifies the $_FILES array key
-        if( !is_empty( $input_id ) ){
-            $this->setVar( 'input_id', $input_id );
+        if( !is_empty( $input_namee ) ){
+            $this->setVar( 'input_id', $input_namee );
         }
 
         $this->setDirectory();
@@ -52,7 +52,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $objPlugins = Core_Classes_coreObj::getPlugins();
 
         $destination = $this->getVar('directory');
-        $input_id    = $this->getVar('input_id');
+        $input_namee    = $this->getVar('input_id');
 
         // Checks if the destination was false (from the getVar())
         if( !$destination ){
@@ -61,21 +61,21 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         }
 
         // Get the current file extension
-        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_id]['name']);
+        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_namee]['name']);
         $extension  = end( explode( '.', $fileName ) );
-        $fileSize   = $_FILES[$input_id]['size'];
+        $fileSize   = $_FILES[$input_namee]['size'];
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
         if( in_array( $extension, $extensions ) && ( $fileSize <= $size ) ){
 
-            if( $_FILES[$input_id]['error'] > 0 ){
+            if( $_FILES[$input_namee]['error'] > 0 ){
 
                 (cmsDEBUG ? memoryUsage(sprintf(
                     'Upload: Error uploading file, error code: %s',
-                    $_FILES[$input_id]['error']
+                    $_FILES[$input_namee]['error']
                 )) : '');
 
-                trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES[$input_id]['error'] ) );
+                trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES[$input_namee]['error'] ) );
                 return false;
             } else {
                 if( file_exists( $destination . '/' . $fileName ) ) {
@@ -83,7 +83,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                     return false;
                 } else {
 
-                    $moveFile = move_uploaded_file( $_FILES[$input_id]['tmp_name'], $destination . '/' . $fileName );
+                    $moveFile = move_uploaded_file( $_FILES[$input_namee]['tmp_name'], $destination . '/' . $fileName );
 
                     // Check if the file was moved correctly
                     if( $moveFile ){

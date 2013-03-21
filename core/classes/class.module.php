@@ -191,6 +191,44 @@ class Core_Classes_Module extends Core_Classes_coreObj{
 
 
     /**
+     * Retrieve the details from the details file of a module
+     *
+     * @version 1.1
+     * @since   1.0.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   string     $moduleName
+     *
+     * @return  array
+     */
+    public static function getModuleDetails( $moduleName ) {
+        // Check module exists
+        if( self::moduleExists( $moduleName ) === false ) {
+            return false;
+        }
+
+        $detailsFile = sprintf( '%1$smodules/%2$s/details.php', cmsROOT, $moduleName );
+        $detailsClassName = sprintf( 'Details_%s', $moduleName );
+
+        // Make sure the details file exists
+        if( file_exists( $detailsFile ) === false ) {
+            trigger_error( 'Error getting Module Details :: Details file doesn\'t exist' );
+            return false;
+        }
+
+        require_once( $detailsFile );
+        $details = reflectMethod( $detailsClassName, 'details' );
+
+        return array(
+            'version' => doArgs( 'version', 'N/A', $details ),
+            'hash'    => doArgs( 'hash',    'N/A', $details ),
+            'name'    => doArgs( 'name',    'N/A', $details ),
+            'author'  => doArgs( 'author',  'N/A', $details ),
+        );
+    }
+
+
+    /**
      * Check if a module exists in the file structure
      *
      * @version 1.1
@@ -203,6 +241,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      */
     public static function moduleExists( $moduleName ) {
         if( is_empty( $moduleName ) || !is_dir( sprintf( '%smodules/%s', cmsROOT, $moduleName ) ) ) {
+            trigger_error( sprintf( 'Error :: Module `%s` Doesn\'t Exist', htmlentities($moduleName) ) );
             return false;
         }
 
@@ -229,7 +268,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
         }
 
         // return true here, apparently the module table isnt complete
-        return true;
+        // return true;
 
         $objSQL = Core_Classes_coreObj::getDBO();
 
