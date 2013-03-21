@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Details_comments_module extends Module implements baseDetails{
+class Details_comments extends Core_Classes_Module implements Core_Classes_baseDetails{
 
     public function details(){
         return array(
