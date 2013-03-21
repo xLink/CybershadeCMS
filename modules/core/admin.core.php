@@ -196,17 +196,17 @@ class Admin_Modules_core extends Core_Classes_Module{
 
         // grab some info about GD
         if(function_exists('gd_info')){
-            $a = gd_info(); $gdVer = preg_replace('/[[:alpha:][:space:]()]+/', '', $a['GD Version']); 
+            $a = gd_info(); $gdVer = preg_replace('/[[:alpha:][:space:]()]+/', '', $a['GD Version']);
         }else{
             $gdVer = 'Not Installed.';
         }
-    
+
         $info = '<div class="alert alert-info"><strong>Important!</strong> This panel needs more updating to output more useful data that has been made avaliable during the last overhaul</div>';
         $content = 'This panel gives the CMS dev team some information about your setup.
 
 ;--System Setup
     CMS Version: '.CMS_VERSION.'
-    PHP Version: '.PHP_VERSION.' ('.(@ini_get('safe_mode') == '1' || strtolower(@ini_get('safe_mode')) == 'on' ? 
+    PHP Version: '.PHP_VERSION.' ('.(@ini_get('safe_mode') == '1' || strtolower(@ini_get('safe_mode')) == 'on' ?
                                             'Safe Mode Enabled' : 'Safe Mode Disabled').')
     MySQL Version: '.mysql_get_server_info().'
 
@@ -422,7 +422,7 @@ class Admin_Modules_core extends Core_Classes_Module{
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
             'panel' => cmsROOT. 'modules/core/views/admin/menus/default/menu_list.tpl',
         ));
-        
+
         // List the different types of menus
         $query = $objSQL->queryBuilder()
             ->select('id', 'name')
@@ -481,7 +481,7 @@ class Admin_Modules_core extends Core_Classes_Module{
             'src' => '/'.root().'modules/core/assets/javascript/admin/menus/Collapse.js',
         ), 'footer');
 
-$js = 
+$js =
 <<<JSS
 document.addEvent('domready', function(){
     var tree = new Tree('tree', {
@@ -494,10 +494,12 @@ document.addEvent('domready', function(){
             return !element.hasClass('nodrop');
         }
 
-    }); 
+    });
 
     tree.addEvent('change', function(){
-        var json = JSON.encode(tree.serialize());
+        var stree = tree.serialize();
+        console.log(stree);
+        var json = JSON.encode( stree );
 
         $$('pre')[0].set('html', json);
     });
@@ -552,20 +554,9 @@ $objPage->addJSCode($js);
                 return false;
             }
 
-
         $args = array( 'title' => 'lname', 'id' => 'id', 'parent' => 'parent' );
         $tree = $this->generateTree($links, $args);
         $objTPL->assign_var( 'tree_menu', str_replace('<ul>', '<ul id="tree" class="tree">', $tree) );
-
-        /*foreach ($links as $key => $link) {
-            $objTPL->assign_block_vars( 'link', array(
-                'LABEL' => $link['lname'],
-                'URL'   => $link['link'],
-                'ID'    => $link['id']
-                // 'STATUS_CLASS' => ( $link['status'] == 1 ? 'success' : 'error'),
-                // 'STATUS'       => $link['status']
-            ));
-        }*/
 
         $objTPL->parse('panel', false);
 
@@ -591,14 +582,14 @@ $objPage->addJSCode($js);
     function generateTree($array, $args, $parent= 0, $level= 0) {
         $has_children = false; $output = null;
         foreach($array as $key => $value){
-            if ($value[ $args['parent'] ] == $parent){              
+            if ($value[ $args['parent'] ] == $parent){
                 if ($has_children === false){
                     $has_children = true;
 
                     $output .= '<ul>';
                     $level++;
                 }
-                $output .= '<li'. ($level>900 ? ' class="nodrop"' :'') .'><span>' . $value[ $args['title'] ] . '</span>';
+                $output .= '<li'. ($level>900 ? ' class="nodrop"' :'') .' id="'. $value[ $args['id'] ] .'"><span>' . '('.$value[ $args['id'] ].') '. $value[ $args['title'] ] . '</span>';
                 $output .= $this->generateTree($array, $args, $value[ $args['id'] ], $level);
                 $output .= '</li>';
             }
