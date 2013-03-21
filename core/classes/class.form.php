@@ -281,7 +281,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      * @return      string
      */
     public function checkbox($name='check', $value='', $checked=false, $args=array()){
-        $args['checked'] = $checked;
+        $args['checked'] = filter_var($checked, FILTER_VALIDATE_BOOLEAN);
 
         return self::inputbox($name, 'checkbox', $value, $args);
     }
