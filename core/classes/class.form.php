@@ -205,7 +205,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      */
     public function button($name=null, $value='submit', $args=array()){
         $args['name']  = doArgs('name', $name, $args);
-        $args['class'] = (!isset($args['class']) ? 'button' : $args['class'].' button');
+        $args['class'] = (!isset($args['class']) ? 'button' : 'btn ' . $args['class']);
         $type          = doArgs('type', 'button', $args);
 
         if(in_array(strtolower($name), array('submit', 'reset'))){
