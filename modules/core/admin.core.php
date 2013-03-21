@@ -453,13 +453,83 @@ class Admin_Modules_core extends Core_Classes_Module{
     public function menu_edit() {
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
+        $objPage    = Core_Classes_coreObj::getPage();
 
 
         // Check we have the menu name
-        if( !is_array( $this->_params ) || !is_string( $this->_params[0] ) || strlen( $this->_params) == 0 ) {
+        if( !is_array( $this->_params ) || !is_string( $this->_params[0] ) || strlen( $this->_params[0] ) == 0 ) {
             // error
             echo 'bad stuff';
         }
+
+        /** Menu JS **/
+        $objPage->addCSSFile(array(
+            'href' => '/'.root().'modules/core/assets/styles/admin/menus/Tree.css',
+            'type' => 'text/css',
+        ));
+
+        $objPage->addCSSFile(array(
+            'href' => '/'.root().'modules/core/assets/styles/admin/menus/Collapse.css',
+            'type' => 'text/css',
+        ));
+
+        $objPage->addJSFile(array(
+            'src' => '/'.root().'modules/core/assets/javascript/admin/menus/Tree.js',
+        ), 'footer');
+
+        $objPage->addJSFile(array(
+            'src' => '/'.root().'modules/core/assets/javascript/admin/menus/Collapse.js',
+        ), 'footer');
+
+$js = 
+<<<JSS
+document.addEvent('domready', function(){
+    var tree = new Tree('tree', {
+        indicatorOffset: 1,
+        checkDrag: function(element){
+            return !element.hasClass('nodrag');
+        },
+
+        checkDrop: function(element){
+            return !element.hasClass('nodrop');
+        }
+
+    }); 
+
+    tree.addEvent('change', function(){
+        var json = JSON.encode(tree.serialize());
+
+        $$('pre')[0].set('html', json);
+    });
+
+    var dispose = new Element('span.dispose[text=(remove)]').addEvents({
+
+        mousedown: function(event){
+            event.preventDefault();
+        },
+
+        click: function(){
+            this.getParent('li').dispose();
+        }
+
+    });
+
+    $('tree').addEvents({
+
+        'mouseover:relay(li)': function(){
+            this.getElement('span').adopt(dispose);
+        },
+
+        mouseleave: function(){
+            dispose.dispose();
+        }
+
+    });
+
+});
+JSS;
+$objPage->addJSCode($js);
+
 
         $menuName = $this->_params[0];
 
@@ -472,17 +542,22 @@ class Admin_Modules_core extends Core_Classes_Module{
             ->select('*')
             ->from('#__menus')
             ->where('name', '=', $menuName)
-            ->orderBy('disporder')
+            ->orderBy('`parent`, `disporder`', 'ASC')
             ->build();
 
-        $links = $objSQL->fetchAll($queryList);
+        $links = $objSQL->fetchAll( $queryList );
             if( !is_array( $links ) ) {
                 // Trigger error
                 // Add error to tpl
                 return false;
             }
 
-        foreach ($links as $key => $link) {
+
+        $args = array( 'title' => 'lname', 'id' => 'id', 'parent' => 'parent' );
+        $tree = $this->generateTree($links, $args);
+        $objTPL->assign_var( 'tree_menu', str_replace('<ul>', '<ul id="tree" class="tree">', $tree) );
+
+        /*foreach ($links as $key => $link) {
             $objTPL->assign_block_vars( 'link', array(
                 'LABEL' => $link['lname'],
                 'URL'   => $link['link'],
@@ -490,7 +565,7 @@ class Admin_Modules_core extends Core_Classes_Module{
                 // 'STATUS_CLASS' => ( $link['status'] == 1 ? 'success' : 'error'),
                 // 'STATUS'       => $link['status']
             ));
-        }
+        }*/
 
         $objTPL->parse('panel', false);
 
@@ -501,6 +576,37 @@ class Admin_Modules_core extends Core_Classes_Module{
         ));
 
         $objTPL->parse('body', false);
+    }
+
+    /**
+     * Generates a Tree from an multidimensional array
+     * http://sandeepsamajdar.blogspot.co.uk/2011/05/generate-tree-from-php-array.html
+     *
+     * @version 1.0.0
+     * @since   1.0.0
+     * @author  Modified by Dan Aldridge
+     *
+     * @return  string
+     */
+    function generateTree($array, $args, $parent= 0, $level= 0) {
+        $has_children = false; $output = null;
+        foreach($array as $key => $value){
+            if ($value[ $args['parent'] ] == $parent){              
+                if ($has_children === false){
+                    $has_children = true;
+
+                    $output .= '<ul>';
+                    $level++;
+                }
+                $output .= '<li'. ($level>900 ? ' class="nodrop"' :'') .'><span>' . $value[ $args['title'] ] . '</span>';
+                $output .= $this->generateTree($array, $args, $value[ $args['id'] ], $level);
+                $output .= '</li>';
+            }
+        }
+        if ($has_children === true){
+            $output .= '</ul>';
+        }
+        return $output;
     }
 }
 ?>
