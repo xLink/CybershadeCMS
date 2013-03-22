@@ -10,9 +10,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
            $includedFiles   = array(),
            $templateFiles   = array();
 
-    public function __construct( ) {
-
-    }
+    public function __construct( ) { }
 
 /**
   //
@@ -32,14 +30,13 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
      * @return      array
      */
     public function getIncludedFiles( $output = false ) {
-        $this->includedFiles = get_included_files();
-
         if( $output !== true ) {
             return;
         }
 
         $output = '';
 
+        $this->includedFiles = get_included_files();
         foreach( $this->includedFiles as $file ) {
             $output .= sprintf('<li>%s</li>', $file);
         }
@@ -121,7 +118,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
 
 /**
   //
-  //-- Template Files Tab
+  //-- Template Debug Tabs
   //
 **/
 
@@ -130,22 +127,24 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
      *
      * @version     1.0
      * @since       1.0.0
-     * @author      Daniel Noel-Davies
+     * @author      Dan Aldridge
      *
      * @param       bool        $output     If True, The function will output the HTML
      *
      * @return      array
      */
-    public function getTemplates( $output = false ) {
+    public function getTemplateInfo( $output = false ) {
         if( $output !== true ) {
             return '';
         }
 
-        $output   = '';
-        $files    = Core_Classes_coreObj::getTPL()->files;
+        $output     = '';
+        $objTPL     = Core_Classes_coreObj::getTPL();
+        $files      = $objTPL->files;
 
-        if( count( $files ) ) {
+        if( count( $objTPL->files ) ) {
 
+            $output .= '<h4>Template Files</h4>';
             $output .= '<table class="table table-bordered"><tbody>';
                 $output .= sprintf('<thead><th>%s</th>', 'TPL Handle');
                 $output .= sprintf('<th>%s</th></thead>', 'Path');
@@ -155,10 +154,15 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
                 $output .= sprintf('<td>%s</td></tr>', $file);
             }
             $output .= '</tbody></table>';
+
+            $output .= '<h4>Template Variables</h4>';
+            $output .= dump($objTPL->_tpldata);
+
         }
 
-        return array('count' => count($files), 'content' => $output);
+        return array('count' => count($objTPL->files), 'content' => $output);
     }
+
 
 /**
   //
@@ -316,7 +320,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
     /**
      * Gathers Output info for the Globals
      *
-     * @version     1.0
+     * @version     1.1
      * @since       1.0.0
      * @author      Dan Aldridge
      *
@@ -332,6 +336,10 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
 
         if( !is_empty($_POST) ){
             $content .= dump($_POST, '_POST');
+        }
+
+        if( !is_empty($_FILES) ){
+            $content .= dump($_FILES, '_FILES');
         }
 
         if( !is_empty($_SESSION) ){
@@ -517,37 +525,37 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
 
         $tab = $this->getPHPErrors(true);
         $debugTabs['errors']    = array(
-            'title'     => sprintf('PHP / CMS Errors <div class="label  label-info">%s</div>', $tab['count']),
+            'title'     => sprintf('PHP / CMS Errors <div class="label label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
         $tab = $this->getMemoryUse(true);
         $debugTabs['memory']    = array(
-            'title'     => sprintf('Memory Usage <div class="label  label-info">%s</div>', $tab['count']),
+            'title'     => sprintf('Memory Usage <div class="label label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
         $tab = $this->getSQLQueries(true);
         $debugTabs['queries']   = array(
-            'title'     => sprintf('SQL Queries <div class="label  label-info">%s</div>', $tab['count']),
+            'title'     => sprintf('SQL Queries <div class="label label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
         $tab = $this->getIncludedFiles(true);
         $debugTabs['included']  = array(
-            'title'     => sprintf('Included Files <div class="label  label-info">%s</div>', $tab['count']),
+            'title'     => sprintf('Included Files <div class="label label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
-        $tab = $this->getTemplates(true);
-        $debugTabs['templates'] = array(
-            'title'     => sprintf('Template Files <div class="label  label-info">%s</div>', $tab['count']),
+        $tab = $this->getTemplateInfo(true);
+        $debugTabs['templateFiles'] = array(
+            'title'     => sprintf('Template Info'),
             'content'   => $tab['content'],
         );
 
         $tab = $this->getOtherTab(true);
         $debugTabs['other']     = array(
-            'title'     => sprintf('Others <div class="label  label-info">%s</div>', $tab['count']),
+            'title'     => sprintf('Others <div class="label label-info">%s</div>', $tab['count']),
             'content'   => $tab['content'],
         );
 
