@@ -1,13 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 3.5.1
+-- version 4.0.0-beta1
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 19, 2013 at 01:26 AM
--- Server version: 5.5.24-log
--- PHP Version: 5.4.3
+-- Generation Time: Mar 22, 2013 at 06:53 PM
+-- Server version: 5.5.28a-MariaDB-a1~squeeze-log
+-- PHP Version: 5.3.19-1~dotdeb.0
 
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 
@@ -17,7 +17,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8 */;
 
 --
--- Database: `cybershade`
+-- Database: `cscms`
 --
 
 -- --------------------------------------------------------
@@ -145,6 +145,65 @@ INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
 (21, 'login', 'max_login_tries', '5', '5'),
 (22, 'login', 'remember_me', '1', '1'),
 (23, 'time', 'timezone', '0', '0');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_fforum_cats`
+--
+
+CREATE TABLE IF NOT EXISTS `cscms_fforum_cats` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `parentid` int(11) NOT NULL DEFAULT '0',
+  `title` varchar(255) NOT NULL,
+  `desc` text,
+  `order` int(11) NOT NULL DEFAULT '0',
+  `mods` text,
+  `last_poster` int(15) NOT NULL DEFAULT '0',
+  `last_post_id` int(11) NOT NULL DEFAULT '0',
+  `thread_count` int(11) NOT NULL DEFAULT '0',
+  `post_count` int(11) NOT NULL DEFAULT '0',
+  `auth_view` int(1) NOT NULL DEFAULT '0',
+  `auth_read` int(1) NOT NULL DEFAULT '0',
+  `auth_post` int(1) NOT NULL DEFAULT '0',
+  `auth_reply` int(1) NOT NULL DEFAULT '0',
+  `auth_edit` int(1) NOT NULL DEFAULT '0',
+  `auth_del` int(1) NOT NULL DEFAULT '0',
+  `auth_move` int(1) NOT NULL DEFAULT '0',
+  `auth_special` int(1) NOT NULL DEFAULT '0',
+  `auth_mod` int(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=25 ;
+
+--
+-- Dumping data for table `cscms_fforum_cats`
+--
+
+INSERT INTO `cscms_fforum_cats` (`id`, `parentid`, `title`, `desc`, `order`, `mods`, `last_poster`, `last_post_id`, `thread_count`, `post_count`, `auth_view`, `auth_read`, `auth_post`, `auth_reply`, `auth_edit`, `auth_del`, `auth_move`, `auth_special`, `auth_mod`) VALUES
+(1, 0, 'General', NULL, 0, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(2, 1, 'Suggestions, Ideas and Feedback', 'A dedicated place to discuss all the suggestions, ideas and give feedback.', 2, NULL, 1, 40, 4, 15, 0, 0, 1, 1, 1, 3, 3, 3, 0),
+(3, 1, 'Introductions', 'Introduce yourself to the rest of the community.', 1, NULL, 13, 29, 13, 61, 0, 0, 1, 1, 1, 3, 3, 3, 0),
+(4, 1, 'Lounge', 'A place to talk about anything and everything.', 3, NULL, 10, 36, 4, 8, 1, 1, 1, 1, 1, 3, 3, 3, 0),
+(5, 0, 'Community Projects', NULL, 2, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(6, 5, 'Project Talk', 'Push your ideas for community projects here.', 1, NULL, 4, 18, 2, 9, 0, 0, 1, 1, 1, 3, 3, 3, 0),
+(7, 0, 'Cybershade CMS', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(8, 7, 'Core Development', 'Talk about the core CMS development here.', 1, NULL, 1, 10, 1, 3, 0, 0, 1, 1, 1, 3, 3, 3, 0),
+(9, 7, 'Modules', 'Get help with your module development here.', 2, NULL, 7, 41, 7, 19, 0, 0, 1, 1, 1, 3, 3, 3, 0),
+(10, 7, 'Plugins / Hooks', 'Hooks allow you to expand the funcitonality of the core without disrupting the internal code.', 3, NULL, 1, 11, 1, 0, 0, 0, 1, 1, 1, 3, 3, 3, 0),
+(11, 7, 'Themes and Templates', 'Unsure how the override system works? or how to setup your theme? Ask Here.', 4, NULL, 1, 30, 1, 0, 0, 0, 1, 1, 1, 3, 3, 3, 0),
+(12, 4, 'Programmer''s Lounge', 'A place to talk 1''s and 0''s', 0, NULL, 1, 22, 3, 11, 0, 0, 1, 1, 1, 3, 3, 3, 3),
+(13, 4, 'Designer''s Lounge', 'Creative conversation at its best.', 0, NULL, 0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 3),
+(14, 5, 'CScreenie', 'Screenshot program written by [user]Biber[/user] to help make Dev''s lives easier with screenshotting. \r\n[url]http://cscreenie.sourceforge.net/[/url]', 2, NULL, 10, 38, 1, 8, 0, 0, 1, 1, 1, 1, 3, 3, 3),
+(15, 1, 'Staff Hangout', 'Place for Staff to talk etc', 4, NULL, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 3, 3, 3),
+(16, 7, 'Support', 'Use this forum for getting support on a new install. [b]WARNING[/b]: We will not support installations that have had their core edited.', 5, NULL, 1, 31, 1, 0, 0, 0, 1, 1, 1, 1, 3, 3, 3),
+(17, 0, 'RECURSE', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(18, 17, 'ALL', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(19, 18, 'THE', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(20, 19, 'THINGS', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(21, 20, 'x5', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(22, 21, 'x6', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(23, 22, 'x7', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(24, 23, 'x8', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -315,7 +374,7 @@ CREATE TABLE IF NOT EXISTS `cscms_menus` (
   `external` int(1) NOT NULL DEFAULT '0',
   `parent` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=22 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=27 ;
 
 --
 -- Dumping data for table `cscms_menus`
@@ -337,13 +396,16 @@ INSERT INTO `cscms_menus` (`id`, `name`, `link`, `lname`, `blank`, `disporder`, 
 (14, 'menu_nav', '/blog/', 'Blog', 0, 7, NULL, 0, 0, 0),
 (15, 'admin_menu', '{ADMIN_ROOT}', 'Dashboard', 0, 0, NULL, 1, 0, 0),
 (16, 'admin_menu', '#', 'System', 1, 1, NULL, 0, 0, 0),
-(17, 'admin_menu', '{ADMIN_ROOT}core/siteConfig/', 'Site Configuration', 0, 0, NULL, 0, 0, 16),
-(18, 'admin_menu', '{ADMIN_ROOT}core/menu/', 'Menus', 0, 0, NULL, 0, 0, 16),
+(17, 'admin_menu', '{ADMIN_ROOT}core/siteconfig/', 'Site Configuration', 0, 0, NULL, 0, 0, 16),
+(18, 'admin_menu', '{ADMIN_ROOT}core/menus/edit', 'Edit a Menu', 0, 2, NULL, 0, 0, 24),
 (19, 'admin_menu', '#', 'Users', 1, 3, NULL, 1, 0, 0),
 (20, 'admin_menu', '{ADMIN_ROOT}core/users/search', 'Search', 0, 4, NULL, 1, 0, 19),
 (21, 'admin_menu', '{ADMIN_ROOT}core/users/manage', 'Manage User ', 0, 4, NULL, 1, 0, 19),
 (22, 'admin_menu', '{ADMIN_ROOT}core/users/add', 'Add new User', 0, 4, NULL, 1, 0, 19),
-(23, 'admin_menu', '{ADMIN_ROOT}core/systemInfo/', 'System Info', 0, 0, NULL, 1, 0, 16);
+(23, 'admin_menu', '{ADMIN_ROOT}core/systeminfo/', 'System Info', 0, 0, NULL, 1, 0, 16),
+(24, 'admin_menu', '#', 'Menus', 1, 2, NULL, 0, 0, 0),
+(25, 'admin_menu', '{ADMIN_ROOT}core/menus/add', 'Add a Menu', 1, 1, NULL, 0, 0, 24),
+(26, 'admin_menu', '{ADMIN_ROOT}core/menus/newlink', 'New Link', 0, 3, NULL, 0, 0, 24);
 
 -- --------------------------------------------------------
 
@@ -410,7 +472,7 @@ CREATE TABLE IF NOT EXISTS `cscms_routes` (
 
 INSERT INTO `cscms_routes` (`id`, `module`, `label`, `method`, `pattern`, `arguments`, `requirements`, `status`, `redirect`) VALUES
 (1, '88b91c187cc01b74e9e7fcc06cc286eb', 'forumIndex', 'ANY', '/forum', '{"module":"Modules_forum","method":"viewIndex"}', '[]', 1, NULL),
-(2, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewCat', 'ANY', '/forum/:cat/', '{"module":"Modules_forum","method":"viewCategory"}', '{"cat":"\\\\w+"}', 1, NULL),
+(2, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewCat', 'ANY', '/forum/:cat', '{"module":"Modules_forum","method":"viewCategory"}', '{"cat":"\\\\w+"}', 1, NULL),
 (3, '88b91c187cc01b74e9e7fcc06cc286eb', 'newThread', 'ANY', '/forum/:cat/new_thread.html', '{"module":"Modules_forum","method":"newThread"}', '{"cat":"\\\\w+"}', 1, NULL),
 (4, '88b91c187cc01b74e9e7fcc06cc286eb', 'viewThread', 'ANY', '/forum/:cat/:name-:id.html', '{"module":"Modules_forum","method":"viewThread"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
 (5, '88b91c187cc01b74e9e7fcc06cc286eb', 'newReply', 'ANY', '/forum/:cat/:name-:id.html?reply', '{"module":"Modules_forum","method":"newReply"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL),
@@ -419,8 +481,8 @@ INSERT INTO `cscms_routes` (`id`, `module`, `label`, `method`, `pattern`, `argum
 (10, 'a74ad8dfacd4f985eb3977517615ce25', 'index', 'ANY', '/', '{"module":"Modules_core","method":"viewIndex"}', '[]', 1, NULL),
 (11, 'a74ad8dfacd4f985eb3977517615ce25', 'logout', 'GET', '/logout', '{"module":"Modules_core","method":"logout"}', '[]', 1, NULL),
 (12, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_listCategories', 'ANY', '/articles', '{"module":"Modules_articles","method":"listCategories"}', '[]', 1, NULL),
-(13, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewCategories', 'ANY', '/articles/:name/', '{"module":"Modules_articles","method":"viewCategories"}', '[]', 1, NULL),
-(14, '88b91c187cc0fdf74e9e7fcc06cc286eb', 'viewArticle', 'ANY', '/articles/:cat-:catid/:title-:id.html', '{"module":"Modules_forum","method":"viewThread"}', '{"cat":"\\\\w+","id":"\\\\d+"}', 1, NULL);
+(13, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewCategory', 'ANY', '/articles/:name-:id', '{"module":"Modules_articles","method":"viewCategory"}', '[]', 1, NULL),
+(14, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewArticle', 'ANY', '/articles/:cat-:catid/:title-:id.html', '{"module":"Modules_articles","method":"viewArticle"}', '[]', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -448,7 +510,13 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
 --
 
 INSERT INTO `cscms_sessions` (`uid`, `sid`, `hostname`, `timestamp`, `useragent`, `mode`, `admin`, `login_time`, `login_attempts`, `store`) VALUES
-(0, '1e7941a5b08e90bda2db9ca72a33f2f3', '127.0.0.1', 1363656365, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333536373630363b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a223165373934316135623038653930626461326462396361373261333366326633223b733a393a2274696d657374616d70223b693a313336333438393137373b7d7d);
+(0, '159a0afd471f10feb200d66b328287c1', '176.24.141.85', 1363917734, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:19.0) Gecko/20100101 Firefox/19.0', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333931373733343b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a223135396130616664343731663130666562323030643636623332383238376331223b7d7d),
+(0, '509aee2ea44cae767a643d5856056a77', '86.9.255.55', 1363974440, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:19.0) Gecko/20100101 Firefox/19.0', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333937343434303b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a223530396165653265613434636165373637613634336435383536303536613737223b7d7d),
+(0, '9bafedb35ad6b3ac69ce5d2c4aa62603', '109.153.105.51', 1363921122, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333932313132323b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a223962616665646233356164366233616336396365356432633461613632363033223b733a393a2274696d657374616d70223b693a313336333932343732323b7d7d),
+(0, 'b2f5cdbb84d98d7b2605251e712bd7e1', '109.153.105.51', 1363920837, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333932303833373b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226232663563646262383464393864376232363035323531653731326264376531223b733a393a2274696d657374616d70223b693a313336333932343433343b7d7d),
+(0, 'd3d6f2b030546990e33d853413861d83', '86.9.255.55', 1363963461, 'Mozilla/5.0 (Linux; U; Android 4.1.2; en-gb; HTC One X Build/JZO54K; CyanogenMod-10.0.0) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333736333836363b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a226433643666326230333035343639393065333364383533343133383631643833223b7d7d),
+(1, 'e9167d2d89057f4f4ff0b23c0c5d2611', '86.9.255.55', 1363978357, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:19.0) Gecko/20100101 Firefox/19.0', 'active', 0, 0, 0, 0x613a333a7b733a31333a2273657373696f6e5f7374617274223b693a313336333937383335373b733a343a2275736572223b613a34363a7b733a373a22757365726b6579223b733a33323a226539313637643264383930353766346634666630623233633063356432363131223b733a393a2274696d657374616d70223b693a313336333938313737313b733a323a226964223b733a313a2231223b733a383a22757365726e616d65223b733a353a22784c696e6b223b733a383a2270617373776f7264223b733a33343a222a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a223b733a333a2270696e223b733a303a22223b733a31333a2272656769737465725f64617465223b733a31303a2231333339363736373935223b733a31313a226c6173745f616374697665223b693a313336333931373731313b733a383a2275736572636f6465223b733a363a22673664747774223b733a353a22656d61696c223b733a32303a22784c696e6b40637962657273686164652e6f7267223b733a31303a2273686f775f656d61696c223b733a313a2230223b733a363a22617661746172223b4e3b733a353a227469746c65223b4e3b733a383a226c616e6775616765223b733a323a22656e223b733a383a2274696d657a6f6e65223b733a333a22302e30223b733a353a227468656d65223b733a373a2264656661756c74223b733a363a2268696464656e223b733a313a2230223b733a363a22616374697665223b733a313a2231223b733a393a22757365726c6576656c223b733a313a2233223b733a363a2262616e6e6564223b733a313a2230223b733a31333a227072696d6172795f67726f7570223b733a313a2231223b733a31343a226c6f67696e5f617474656d707473223b733a313a2233223b733a31323a2270696e5f617474656d707473223b733a313a2230223b733a393a226175746f6c6f67696e223b733a313a2230223b733a31313a2272656666657265645f6279223b733a313a2230223b733a31353a2270617373776f72645f757064617465223b733a313a2230223b733a393a2277686974656c697374223b733a313a2230223b733a31353a2277686974656c69737465645f697073223b4e3b733a383a227761726e696e6773223b733a313a2230223b733a333a22756964223b733a313a2231223b733a383a226269727468646179223b733a31303a2232312f31322f31393930223b733a333a22736578223b733a313a2231223b733a31323a22636f6e746163745f696e666f223b4e3b733a353a2261626f7574223b4e3b733a393a22696e74657265737473223b4e3b733a393a227369676e6174757265223b4e3b733a393a22757365726e6f746573223b733a303a22223b733a31333a22616a61785f73657474696e6773223b4e3b733a32313a226e6f74696669636174696f6e5f73657474696e6773223b4e3b733a31353a22666f72756d5f73686f775f73696773223b733a313a2230223b733a31353a22666f72756d5f6175746f7761746368223b733a313a2230223b733a31363a22666f72756d5f717569636b7265706c79223b733a313a2230223b733a31353a22666f72756d5f6361745f6f72646572223b4e3b733a31333a22666f72756d5f747261636b6572223b733a3130363a22613a313a7b693a313b613a343a7b733a323a226964223b733a313a2231223b733a363a226361745f6964223b733a313a2232223b733a31313a226c6173745f706f73746572223b733a31303a2231333339363736373935223b733a343a2272656164223b623a303b7d7d223b733a31363a22706167696e6174696f6e5f7374796c65223b733a313a2231223b733a31383a2270617373776f72645f706c61696e74657874223b733a343a2274657374223b7d733a353a22746f6b656e223b733a33323a226366623439643135666231336539383233303066323938386637666531613539223b7d),
+(1, 'f5cc6f88f5639d75e51d49e7e83c3264', '86.8.3.164', 1363976283, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a333a7b733a31333a2273657373696f6e5f7374617274223b693a313336333937363231353b733a343a2275736572223b613a34363a7b733a373a22757365726b6579223b733a33323a226635636336663838663536333964373565353164343965376538336333323634223b733a393a2274696d657374616d70223b693a313336333937383434383b733a323a226964223b733a313a2231223b733a383a22757365726e616d65223b733a353a22784c696e6b223b733a383a2270617373776f7264223b733a33343a222a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a223b733a333a2270696e223b733a303a22223b733a31333a2272656769737465725f64617465223b733a31303a2231333339363736373935223b733a31313a226c6173745f616374697665223b693a313336333937313936323b733a383a2275736572636f6465223b733a363a22673664747774223b733a353a22656d61696c223b733a32303a22784c696e6b40637962657273686164652e6f7267223b733a31303a2273686f775f656d61696c223b733a313a2230223b733a363a22617661746172223b4e3b733a353a227469746c65223b4e3b733a383a226c616e6775616765223b733a323a22656e223b733a383a2274696d657a6f6e65223b733a333a22302e30223b733a353a227468656d65223b733a373a2264656661756c74223b733a363a2268696464656e223b733a313a2230223b733a363a22616374697665223b733a313a2231223b733a393a22757365726c6576656c223b733a313a2233223b733a363a2262616e6e6564223b733a313a2230223b733a31333a227072696d6172795f67726f7570223b733a313a2231223b733a31343a226c6f67696e5f617474656d707473223b733a313a2233223b733a31323a2270696e5f617474656d707473223b733a313a2230223b733a393a226175746f6c6f67696e223b733a313a2230223b733a31313a2272656666657265645f6279223b733a313a2230223b733a31353a2270617373776f72645f757064617465223b733a313a2230223b733a393a2277686974656c697374223b733a313a2230223b733a31353a2277686974656c69737465645f697073223b4e3b733a383a227761726e696e6773223b733a313a2230223b733a333a22756964223b733a313a2231223b733a383a226269727468646179223b733a31303a2232312f31322f31393930223b733a333a22736578223b733a313a2231223b733a31323a22636f6e746163745f696e666f223b4e3b733a353a2261626f7574223b4e3b733a393a22696e74657265737473223b4e3b733a393a227369676e6174757265223b4e3b733a393a22757365726e6f746573223b733a303a22223b733a31333a22616a61785f73657474696e6773223b4e3b733a32313a226e6f74696669636174696f6e5f73657474696e6773223b4e3b733a31353a22666f72756d5f73686f775f73696773223b733a313a2230223b733a31353a22666f72756d5f6175746f7761746368223b733a313a2230223b733a31363a22666f72756d5f717569636b7265706c79223b733a313a2230223b733a31353a22666f72756d5f6361745f6f72646572223b4e3b733a31333a22666f72756d5f747261636b6572223b733a3130363a22613a313a7b693a313b613a343a7b733a323a226964223b733a313a2231223b733a363a226361745f6964223b733a313a2232223b733a31313a226c6173745f706f73746572223b733a31303a2231333339363736373935223b733a343a2272656164223b623a303b7d7d223b733a31363a22706167696e6174696f6e5f7374796c65223b733a313a2231223b733a31383a2270617373776f72645f706c61696e74657874223b733a343a2274657374223b7d733a353a22746f6b656e223b733a33323a226333636466643737336235353736636263666335356531396162343335306639223b7d);
 
 -- --------------------------------------------------------
 
