@@ -296,7 +296,7 @@ class Core_Classes_coreSQL extends Core_Classes_coreObj{
         }
     }
 
-    protected function quoteNameStr($strArr) {
+    public function quoteNameStr($strArr) {
         $parts = array();
         $q = $this->nameQuote;
 

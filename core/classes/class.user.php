@@ -939,9 +939,9 @@ class Core_Classes_User extends Core_Classes_coreObj {
 
             case ADMIN:
                 if($userlevel == ADMIN){
-                    if(LOCALHOST || doArgs('adminAuth', false, $_SESSION['acp'])){
+                    //if(LOCALHOST || doArgs('adminAuth', false, $_SESSION['acp'])){
                         return true;
-                    }
+                    //}
                 }
             break;
 

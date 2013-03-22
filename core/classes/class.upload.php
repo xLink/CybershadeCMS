@@ -94,8 +94,10 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $fileSize  = $_FILES[$input_name]['size'];
         $finalPath = $destination . '/' . $fileName;
 
+        array_walk( $extensions, 'strtolower' );
+
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
-        if( in_array( $extension, $extensions ) && ( $fileSize <= $allowedSize ) ){
+        if( in_array( strtolower( $extension ), $extensions ) && ( $fileSize <= $allowedSize ) ){
             if( $_FILES[$input_name]['error'] > 0 ){
 
                 (cmsDEBUG ? memoryUsage(sprintf(
@@ -152,6 +154,9 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                         // If all went well, return true
                         if( $result ){
                             $this->uploadData[$input_name] = $uploadData;
+
+                            // Add the insert id for reference to
+                            $this->uploadData[$input_name]['fileid'] = $objSQL->fetchInsertId();
 
                             // Add a hook to allow developers to add extra functionality
                             $objPlugins->hook( 'CMS_UPLOADED_FILE', $uploadData );

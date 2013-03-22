@@ -11,12 +11,16 @@ $objRoute = Core_Classes_coreObj::getRoute();
 $objPage  = Core_Classes_coreObj::getPage();
 $objTPL   = Core_Classes_coreObj::getTPL();
 $objAdmin = Core_Classes_coreObj::getAdminCP($GET);
+$objUser  = Core_Classes_coreObj::getUser();
 
 $objRoute->modifyGET($GET);
 
 if ( !Core_Classes_User::$IS_ONLINE || !Core_Classes_User::$IS_ADMIN ) {
+
 	// Need to sort out login
     // $objRoute->throwHTTP(404);
+    $objPage->redirect('/'.root().'login');
+	exit;
 }
 
 $objPage->setTheme('perfectum-mootools', true);
