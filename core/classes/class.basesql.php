@@ -28,7 +28,6 @@ interface Core_Classes_baseSQL{
     public function results($key);
     public function affectedRows();
     public function fetchInsertId();
-
 }
 
 ?>

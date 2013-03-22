@@ -24,15 +24,41 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
     protected $input_name = 'file';
 
     /**
+     * The list of upload logs
+     *
+     * @access protected
+     */
+    public $uploadData = array();
+
+    /**
+     * A list of errors that happened during upload
+     *
+     * @access public
+     */
+    public $uploadErrors = array();
+
+    /**
      * The class constructor
      */
-    public function __construct( $input_name = '' ){
-        // Specifies the $_FILES array key
-        if( !is_empty( $input_name ) ){
-            $this->setVar( 'input_id', $input_name );
-        }
-
+    public function __construct( $className, $input_name = '' ){
         $this->setDirectory();
+    }
+
+
+    /**
+     * Set the field name to be used for file upload
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   string  $input_name       Name of the input field used for fileuploads
+     *
+     */
+    public function setInputName( $input_name ) {
+        if( !is_empty( $input_name ) ){
+            $this->setVar( 'input_name', $input_name );
+        }
     }
 
     /**
@@ -47,12 +73,13 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
      *
      * @return      boolean
      */
-     public function doUpload( $extensions = array(), $size = 50000 ) {
+     public function doUpload( $extensions = array(), $allowedSize = 100000 ) {
 
         $objPlugins = Core_Classes_coreObj::getPlugins();
 
         $destination = $this->getVar('directory');
-        $input_name    = $this->getVar('input_id');
+        $input_name  = $this->getVar('input_name');
+
 
         // Checks if the destination was false (from the getVar())
         if( !$destination ){
@@ -61,13 +88,14 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         }
 
         // Get the current file extension
-        $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_name]['name']);
-        $extension  = end( explode( '.', $fileName ) );
-        $fileSize   = $_FILES[$input_name]['size'];
+        $fileName  = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_name]['name']);
+        $fileParts = explode( '.', $fileName );
+        $extension = end($fileParts);
+        $fileSize  = $_FILES[$input_name]['size'];
+        $finalPath = $destination . '/' . $fileName;
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
-        if( in_array( $extension, $extensions ) && ( $fileSize <= $size ) ){
-
+        if( in_array( $extension, $extensions ) && ( $fileSize <= $allowedSize ) ){
             if( $_FILES[$input_name]['error'] > 0 ){
 
                 (cmsDEBUG ? memoryUsage(sprintf(
@@ -75,15 +103,22 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                     $_FILES[$input_name]['error']
                 )) : '');
 
-                trigger_error( sprintf( 'Upload Failed due to the following error: %s', $_FILES[$input_name]['error'] ) );
+                $error = sprintf( 'Upload Failed due to the following error: %s', $_FILES[$input_name]['error'] );
+
+                $this->uploadErrors[] = $error;
+                trigger_error( $error );
+
                 return false;
             } else {
-                if( file_exists( $destination . '/' . $fileName ) ) {
-                    trigger_error( sprintf( 'The uploaded file already exists: %s/%s', $destination, $fileName ) );
+                if( file_exists( $finalPath ) ) {
+                     $error = sprintf( 'The uploaded file already exists: %s', $finalPath );
+
+                    $this->uploadErrors[] = $error;
+                    trigger_error( $error );
                     return false;
                 } else {
 
-                    $moveFile = move_uploaded_file( $_FILES[$input_name]['tmp_name'], $destination . '/' . $fileName );
+                    $moveFile = move_uploaded_file( $_FILES[$input_name]['tmp_name'], $finalPath );
 
                     // Check if the file was moved correctly
                     if( $moveFile ){
@@ -99,7 +134,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                             'public'     => 0,
                             'authorized' => 0,
                             'file_size'  => $fileSize,
-                            'location'   => $destination,
+                            'location'   => $finalPath,
                         );
 
                         // Automatically allow admins to have authorized content
@@ -116,6 +151,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
 
                         // If all went well, return true
                         if( $result ){
+                            $this->uploadData[$input_name] = $uploadData;
 
                             // Add a hook to allow developers to add extra functionality
                             $objPlugins->hook( 'CMS_UPLOADED_FILE', $uploadData );
@@ -124,7 +160,10 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                             return true;
                         }
                     } else {
-                        trigger_error( sprintf('Could not move uploaded file to %s/%s', $destination, $fileName ) );
+                         $error = sprintf('Could not move uploaded file to %s.', $finalPath );
+
+                        $this->uploadErrors[] = $error;
+                        trigger_error( $error );
                         return false;
                     }
                 }
