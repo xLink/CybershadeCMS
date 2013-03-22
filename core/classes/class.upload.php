@@ -26,10 +26,11 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
     /**
      * The class constructor
      */
-    public function __construct( $input_name = '' ){
+    public function __construct( $class, $args = array() ){
+
         // Specifies the $_FILES array key
-        if( !is_empty( $input_name ) ){
-            $this->setVar( 'input_id', $input_name );
+        if( !is_empty( $args[0] ) ){
+            $this->setVar( 'input_name', $args[0] );
         }
 
         $this->setDirectory();
@@ -52,7 +53,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $objPlugins = Core_Classes_coreObj::getPlugins();
 
         $destination = $this->getVar('directory');
-        $input_name    = $this->getVar('input_id');
+        $input_name  = $this->getVar('input_name');
 
         // Checks if the destination was false (from the getVar())
         if( !$destination ){
@@ -62,7 +63,10 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
 
         // Get the current file extension
         $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_name]['name']);
-        $extension  = end( explode( '.', $fileName ) );
+        $explodedFileName = explode( '.', $fileName );
+
+        // Only vars can be passed by ref
+        $extension  = end( $explodedFileName );
         $fileSize   = $_FILES[$input_name]['size'];
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
@@ -130,6 +134,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                 }
             }
         }
+
 
         return false;
     }
