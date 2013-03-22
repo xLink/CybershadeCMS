@@ -51,7 +51,27 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
             $action = explode('/', $this->action);
         }
 
-        $method = reflectMethod($this->module, array_shift($action), $action);
+        // check if we are dealing with the core panels or not
+        if( $this->module == 'Admin_Modules_core' ){
+            // we are !
+            $args = array(
+                'method' => array_shift($action),
+                'args'   => $action,
+            );
+
+            // check the panel to see if it exists, if so include it
+            $path = cmsROOT.'modules/core/panels/'.$args['method'].'/panel.php';
+                if( file_exists($path) ){
+                    require_once($path);
+                }else{
+                    trigger_error('Error: Could not load ACP Panel: '.$path);
+                }
+
+            // then call to it like normal :D
+            $method = reflectMethod($this->module.'_'.$args['method'], $args['args'][0], $args);
+        }else{
+            $method = reflectMethod($this->module, array_shift($action), $action);
+        }
 
         if( !$method ) {
             $objRoute->throwHTTP(404);

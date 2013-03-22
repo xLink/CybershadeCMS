@@ -23,7 +23,7 @@ if ( !Core_Classes_User::$IS_ONLINE || !Core_Classes_User::$IS_ADMIN ) {
 	exit;
 }
 
-$objPage->setTheme('perfectum-jquery', true);
+$objPage->setTheme('perfectum-mootools', true);
 $objPage->addBreadcrumbs(array(
     array('url' => '/'. root() . $objAdmin->mode .'/', 'name' => ucwords($objAdmin->mode).' Control Panel' )
 ));
