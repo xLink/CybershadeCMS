@@ -54,8 +54,14 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         // check if we are dealing with the core panels or not
         if( $this->module == 'Admin_Modules_core' ){
             // we are !
+            $method = array_shift($action);
+
+            if( !isset($action[0]) || is_empty($action[0]) ){
+                $action[0] = $method;
+            }
+
             $args = array(
-                'method' => array_shift($action),
+                'method' => $method,
                 'args'   => $action,
             );
 
@@ -63,6 +69,7 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
             $path = cmsROOT.'modules/core/panels/panel.'.$args['method'].'.php';
                 if( file_exists($path) && is_readable($path) ){
                     require_once($path);
+                    (DEBUG ? memoryUsage('System: Loaded panel...') : '');
                 }else{
                     trigger_error('Error: Could not load ACP Panel: '.$path);
                 }
