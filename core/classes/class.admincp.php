@@ -60,8 +60,8 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
             );
 
             // check the panel to see if it exists, if so include it
-            $path = cmsROOT.'modules/core/panels/'.$args['method'].'/panel.php';
-                if( file_exists($path) ){
+            $path = cmsROOT.'modules/core/panels/panel.'.$args['method'].'.php';
+                if( file_exists($path) && is_readable($path) ){
                     require_once($path);
                 }else{
                     trigger_error('Error: Could not load ACP Panel: '.$path);
