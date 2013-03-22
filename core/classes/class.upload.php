@@ -65,21 +65,9 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $fileName   = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_name]['name']);
         $explodedFileName = explode( '.', $fileName );
 
-        echo dump( $explodedFileName );
-
         // Only vars can be passed by ref
         $extension  = end( $explodedFileName );
         $fileSize   = $_FILES[$input_name]['size'];
-
-
-
-
-        $chk = in_array( $extension, $extensions );
-        $chk2 = $fileSize <= $size;
-
-        echo dump( $input_name, 'In array' );
-        echo dump( $chk2, 'Filesize' );
-
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
         if( in_array( $extension, $extensions ) && ( $fileSize <= $size ) ){
