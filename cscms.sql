@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 23, 2013 at 12:50 AM
+-- Generation Time: Mar 23, 2013 at 12:54 AM
 -- Server version: 5.5.28a-MariaDB-a1~squeeze-log
 -- PHP Version: 5.3.19-1~dotdeb.0
 
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `cscms_article_cats` (
   `count` int(11) NOT NULL DEFAULT '0',
   `locked` int(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=6 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=6 ;
 
 --
 -- Dumping data for table `cscms_article_cats`
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS `cscms_article_content` (
   `approved_by` int(11) NOT NULL,
   `views` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
 
 --
 -- Dumping data for table `cscms_article_content`
@@ -151,59 +151,8 @@ INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
 --
 -- Table structure for table `cscms_fforum_cats`
 --
-
-CREATE TABLE IF NOT EXISTS `cscms_fforum_cats` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `parentid` int(11) NOT NULL DEFAULT '0',
-  `title` varchar(255) NOT NULL,
-  `desc` text,
-  `order` int(11) NOT NULL DEFAULT '0',
-  `mods` text,
-  `last_poster` int(15) NOT NULL DEFAULT '0',
-  `last_post_id` int(11) NOT NULL DEFAULT '0',
-  `thread_count` int(11) NOT NULL DEFAULT '0',
-  `post_count` int(11) NOT NULL DEFAULT '0',
-  `auth_view` int(1) NOT NULL DEFAULT '0',
-  `auth_read` int(1) NOT NULL DEFAULT '0',
-  `auth_post` int(1) NOT NULL DEFAULT '0',
-  `auth_reply` int(1) NOT NULL DEFAULT '0',
-  `auth_edit` int(1) NOT NULL DEFAULT '0',
-  `auth_del` int(1) NOT NULL DEFAULT '0',
-  `auth_move` int(1) NOT NULL DEFAULT '0',
-  `auth_special` int(1) NOT NULL DEFAULT '0',
-  `auth_mod` int(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=25 ;
-
---
--- Dumping data for table `cscms_fforum_cats`
---
-
-INSERT INTO `cscms_fforum_cats` (`id`, `parentid`, `title`, `desc`, `order`, `mods`, `last_poster`, `last_post_id`, `thread_count`, `post_count`, `auth_view`, `auth_read`, `auth_post`, `auth_reply`, `auth_edit`, `auth_del`, `auth_move`, `auth_special`, `auth_mod`) VALUES
-(1, 0, 'General', NULL, 0, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(2, 1, 'Suggestions, Ideas and Feedback', 'A dedicated place to discuss all the suggestions, ideas and give feedback.', 2, NULL, 1, 40, 4, 15, 0, 0, 1, 1, 1, 3, 3, 3, 0),
-(3, 1, 'Introductions', 'Introduce yourself to the rest of the community.', 1, NULL, 13, 29, 13, 61, 0, 0, 1, 1, 1, 3, 3, 3, 0),
-(4, 1, 'Lounge', 'A place to talk about anything and everything.', 3, NULL, 10, 36, 4, 8, 1, 1, 1, 1, 1, 3, 3, 3, 0),
-(5, 0, 'Community Projects', NULL, 2, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(6, 5, 'Project Talk', 'Push your ideas for community projects here.', 1, NULL, 4, 18, 2, 9, 0, 0, 1, 1, 1, 3, 3, 3, 0),
-(7, 0, 'Cybershade CMS', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(8, 7, 'Core Development', 'Talk about the core CMS development here.', 1, NULL, 1, 10, 1, 3, 0, 0, 1, 1, 1, 3, 3, 3, 0),
-(9, 7, 'Modules', 'Get help with your module development here.', 2, NULL, 7, 41, 7, 19, 0, 0, 1, 1, 1, 3, 3, 3, 0),
-(10, 7, 'Plugins / Hooks', 'Hooks allow you to expand the funcitonality of the core without disrupting the internal code.', 3, NULL, 1, 11, 1, 0, 0, 0, 1, 1, 1, 3, 3, 3, 0),
-(11, 7, 'Themes and Templates', 'Unsure how the override system works? or how to setup your theme? Ask Here.', 4, NULL, 1, 30, 1, 0, 0, 0, 1, 1, 1, 3, 3, 3, 0),
-(12, 4, 'Programmer''s Lounge', 'A place to talk 1''s and 0''s', 0, NULL, 1, 22, 3, 11, 0, 0, 1, 1, 1, 3, 3, 3, 3),
-(13, 4, 'Designer''s Lounge', 'Creative conversation at its best.', 0, NULL, 0, 0, 0, 0, 0, 0, 1, 1, 1, 3, 3, 3, 3),
-(14, 5, 'CScreenie', 'Screenshot program written by [user]Biber[/user] to help make Dev''s lives easier with screenshotting. \r\n[url]http://cscreenie.sourceforge.net/[/url]', 2, NULL, 10, 38, 1, 8, 0, 0, 1, 1, 1, 1, 3, 3, 3),
-(15, 1, 'Staff Hangout', 'Place for Staff to talk etc', 4, NULL, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 3, 3, 3),
-(16, 7, 'Support', 'Use this forum for getting support on a new install. [b]WARNING[/b]: We will not support installations that have had their core edited.', 5, NULL, 1, 31, 1, 0, 0, 0, 1, 1, 1, 1, 3, 3, 3),
-(17, 0, 'RECURSE', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(18, 17, 'ALL', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(19, 18, 'THE', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(20, 19, 'THINGS', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(21, 20, 'x5', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(22, 21, 'x6', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(23, 22, 'x7', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(24, 23, 'x8', NULL, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+-- in use(#1146 - Table 'cscms.cscms_fforum_cats' doesn't exist)
+-- Error reading data: (#1146 - Table 'cscms.cscms_fforum_cats' doesn't exist)
 
 -- --------------------------------------------------------
 
@@ -224,7 +173,7 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_auth` (
   `auth_special` int(1) NOT NULL DEFAULT '0',
   `auth_mod` int(1) NOT NULL DEFAULT '0',
   KEY `cat_id` (`cat_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -250,7 +199,7 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_cats` (
   `auth_special` int(1) NOT NULL DEFAULT '0',
   `auth_mod` int(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -269,7 +218,7 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_posts` (
   `edited_by` int(15) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `thread_id` (`thread_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -290,7 +239,7 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_threads` (
   `views` int(1) NOT NULL DEFAULT '0',
   `old_cat_id` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -304,7 +253,7 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_watch` (
   `thread_id` int(11) NOT NULL DEFAULT '0',
   `seen` int(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -373,7 +322,7 @@ CREATE TABLE IF NOT EXISTS `cscms_menus` (
   `external` int(1) NOT NULL DEFAULT '0',
   `parent_id` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=27 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=27 ;
 
 --
 -- Dumping data for table `cscms_menus`
@@ -547,7 +496,7 @@ CREATE TABLE IF NOT EXISTS `cscms_userkeys` (
   `uAgent` text NOT NULL,
   `uIP` varchar(15) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=8 ;
 
 --
 -- Dumping data for table `cscms_userkeys`
