@@ -48,15 +48,15 @@ if( in_array('ie', $browserCSSSelectors) && !in_array('ie9', $browserCSSSelector
     ));
 }
 
+/*
 $objPage->addJSFile(array(
     'src' => '/'.root().'assets/javascript/bootstrap.mootools.js',
     'priority' => HIGH
 ), 'footer');
-
+*/
 
 $objPage->addJSFile(array(
     'src' => '/' . root() . self::$THEME_ROOT . 'assets/javascript/custom.js',
-    'priority' => HIGH
 ), 'footer' ); 
 
 ?>

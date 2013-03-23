@@ -116,7 +116,9 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             'ICON'    => 'icon-th-list',
         ));
 
-            $objTPL->assign_vars('block.custom.BUTTON', '<a href="javascript:;" class="btn btn-success" id="save"><i class="icon icon-save"></i> Save Menu</a>');
+            $objTPL->assign_block_vars('block.custom', array(
+                'ICON' => 'icon-save',
+            )); 
 
         $objTPL->parse('body', false);
     }

@@ -17,10 +17,10 @@
 ### Javascript
 - [Mootools Core 1.4.4](http://mootools.net/)
 - [Mootools More 1.4.0](http://mootools.net/)
-- [MooTools for Bootstrap](http://anutron.github.com/mootools-bootstrap/)
-- [Modernizr 2.6.1](http://modernizr.com)
+- [MooTools for Bootstrap](https://github.com/piotr-cz/Mootools-Bootstrap-plugins/)
+- [Modernizr 2.6.1](http://modernizr.com/)
 - [Less 1.3.0](http://lesscss.org/)
-- [PHP.js](http://phpjs.org)
+- [PHP.js](http://phpjs.org/)
 - [Prefixfree 1.0.7](http://leaverou.github.com/prefixfree/)
 - [Selectivizr 1.0.2](http://selectivizr.com/)
 
@@ -29,7 +29,7 @@
 - [Minify](http://code.google.com/p/minify/)
 - [NBBC 1.4.3](http://nbbc.sourceforge.net/)
 - [phpass 0.3](http://www.openwall.com/phpass/)
-- [PHPBB2's Template Class](http://phpbb.com)
+- [PHPBB2's Template Class](http://phpbb.com/)
 
 ## Versioning
 
