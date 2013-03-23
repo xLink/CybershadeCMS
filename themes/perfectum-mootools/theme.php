@@ -11,6 +11,17 @@ $objPage->addCSSFile(array(
     'priority' => HIGH
 ));
 
+$objPage->addCSSFile(array(
+    'href'     => '/'.root().'assets/styles/font-awesome.css',
+    'priority' => HIGH
+));
+if( in_array('ie', $browserCSSSelectors) && in_array('ie7', $browserCSSSelectors) ){
+    $objPage->addCSSFile(array(
+        'href'     => '/'.root().'assets/styles/font-awesome-ie7.min.css',
+        'priority' => HIGH
+    ));
+}
+
 // $objPage->addCSSFile(array(
 //     'href'     => '/'.root().'assets/styles/default.css',
 //     'type'     => 'text/css',
