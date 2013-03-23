@@ -1,7 +1,7 @@
 <ul class="nav nav-pills nav-stacked">
-	<!-- BEGIN menu -->
+	<!-- BEGIN list -->
 	<li>
-		<a href="{menu.URL}">{menu.NAME}</a>
+		<a href="{list.URL}">{list.NAME}</a>
 	</li>
-	<!-- END menu -->
+	<!-- END list -->
 </ul>

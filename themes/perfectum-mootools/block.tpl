@@ -1,6 +1,5 @@
 <!-- BEGIN block -->
 
-
     <!-- BEGIN pre_end_row -->
     </div>
     <!-- END pre_end_row -->
@@ -30,6 +29,9 @@
                 <!-- BEGIN remove -->
                     <a href="#" class="btn-close"><i class="icon-remove"></i></a>
                 <!-- END remove -->
+                <!-- BEGIN custom -->
+                    {block.custom.BUTTON}
+                <!-- END custom -->
             </div>
         </div>
         <div class="box-content">
@@ -40,4 +42,5 @@
     <!-- BEGIN end_row -->
     </div>
     <!-- END end_row -->
+
 <!-- END block -->

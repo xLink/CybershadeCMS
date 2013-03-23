@@ -24,17 +24,17 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
 
         // List the different types of menus
         $query = $objSQL->queryBuilder()
-            ->select('id', 'name')
+            ->select('id', 'menu_name')
             ->from('#__menus')
-            ->groupBy('name')
+            ->groupBy('menu_name')
             ->build();
 
         $menus = $objSQL->fetchAll( $query, 'id' );
 
         foreach( $menus as $menu ) {
-            $objTPL->assign_block_vars( 'menu', array(
-                'URL'  => '/' . root() . 'admin/core/menus/edit/' . $menu['name'],
-                'NAME' => $menu['name']
+            $objTPL->assign_block_vars( 'list', array(
+                'URL'  => '/' . root() . 'admin/core/menus/edit/' . secureMe($menu['menu_name']),
+                'NAME' => secureMe($menu['menu_name'])
             ));
         }
 
@@ -93,8 +93,8 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         $queryList =  $objSQL->queryBuilder()
             ->select('*')
             ->from('#__menus')
-            ->where('name', '=', $menuName)
-            ->orderBy('`parent`, `disporder`', 'ASC')
+            ->where('menu_name', '=', $menuName)
+            ->orderBy('`parent_id`, `order`', 'ASC')
             ->build();
 
         $links = $objSQL->fetchAll( $queryList );
@@ -104,10 +104,9 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
                 return false;
             }
 
-        $args = array( 'title' => 'lname', 'id' => 'id', 'parent' => 'parent' );
+        $args = array( 'title' => 'link_title', 'id' => 'id', 'parent' => 'parent_id' );
         $tree = $this->generateTree($links, $args);
         $objTPL->assign_var( 'tree_menu', str_replace('<ul>', '<ul id="tree" class="tree">', $tree) );
-
 
         $objTPL->parse('panel', false);
 
@@ -116,6 +115,8 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             'CONTENT' => $objTPL->get_html('panel', false),
             'ICON'    => 'icon-th-list',
         ));
+
+            $objTPL->assign_vars('block.custom.BUTTON', '<a href="javascript:;" class="btn btn-success" id="save"><i class="icon icon-save"></i> Save Menu</a>');
 
         $objTPL->parse('body', false);
     }

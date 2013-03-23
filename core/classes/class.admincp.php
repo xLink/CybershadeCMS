@@ -92,94 +92,32 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         $acpROOT = '/'.root().'admin/';
 
         $query = $objSQL->queryBuilder()
-                    ->select('id', 'link', 'lname', 'blank', 'parent')
+                    ->select('id', 'link_url', 'link_title', 'parent_id')
                     ->from('#__menus')
-                    ->orderBy('name, disporder')
-                    ->where('name', '=', 'admin_menu')
+                    ->orderBy('`menu_name`, `order`')
+                    ->where('menu_name', '=', 'admin_menu')
                     ->build();
 
         $results = $objSQL->fetchAll( $query, 'id' );
-
-        if( sizeOf( $results ) <= 0 ) {
-            trigger_error('No results could be found for the admin menu');
-            return false;
-        }
+            if( count( $results ) <= 0 ) {
+                trigger_error('No results could be found for the admin menu');
+                return false;
+            }
 
         foreach( $results as $id => $result ) {
-            $results[$id]['icon'] = $result['icon'] = 'icon-dashboard';
-            $results[$id]['link'] = $result['link'] = str_replace( '{ADMIN_ROOT}', $acpROOT, $result['link'] );
+            $results[$id]['link_url'] = $result['link_url'] = str_replace( '{ADMIN_ROOT}', $acpROOT, $result['link_url'] );
 
-            if( $result['parent'] !== '0' ) {
+            if( $result['parent_id'] !== '0' ) {
                 
-                if( !isset( $results[$result['parent']]['subs'] ) ) {
-                    $results[$result['parent']]['subs'] = array();
+                if( !isset( $results[$result['parent_id']]['subs'] ) ) {
+                    $results[$result['parent_id']]['subs'] = array();
                 }
                 
-                $results[$result['parent']]['subs'][$id] = $result;
+                $results[$result['parent_id']]['subs'][$id] = $result;
 
                 unset( $results[$id] );
             }
         }
-
-        // $nav = array(
-        //     'Dashboard' => array(
-        //         'icon' => 'fa-icon-dashboard',
-        //         'url'  => $acpROOT,
-        //     ),
-
-        //     'System' => array(
-        //         'icon' => 'icon-cog',
-        //         'subs' => array(
-        //             'Site Configuration' => array(
-        //                 'icon' => 'icon-wrench',
-        //                 'url'  => $acpROOT.'core/siteConfig/',
-        //             ),
-        //         ),
-        //     ),
-
-        //     'Users' => array(
-        //         'icon' => 'icon-user',
-        //         'subs' => array(
-        //             'Search' => array(
-        //                 'icon' => 'fa-icon-search',
-        //                 'url'  => $acpROOT.'core/users/search/',
-        //             ),
-        //             'Manage Users' => array(
-        //                 'icon' => 'fa-icon-user',
-        //                 'url'  => $acpROOT.'core/users/manage/',
-        //             ),
-        //             'Add New User' => array(
-        //                 'icon' => 'fa-icon-plus',
-        //                 'url'  => $acpROOT.'core/users/add/',
-        //             ),
-        //         ),
-        //     ),
-
-        //     'Modules' => array(
-        //         'icon' => 'fa-icon-sitemap',
-        //         'url'  => $acpROOT . 'modules/',
-        //     ),
-
-        //     'Themes' => array(
-        //         'icon' => 'icon-picture',
-        //         'url'  => $acpROOT . 'themes/',
-        //     ),
-
-        //     'Blocks' => array(
-        //         'icon' => 'fa-icon-check-empty',
-        //         'url'  => $acpROOT . 'blocks/',
-        //     ),
-
-        //     'Plugins' => array(
-        //         'icon' => 'fa-icon-folder-close',
-        //         'url'  => $acpROOT . 'plugins/',
-        //     ),
-            
-        //     'Languages' => array(
-        //         'icon' => 'icon-globe',
-        //         'url'  => $acpROOT . 'languages/',
-        //     ),
-        // );
 
         $this->generateNav($results);
     }
@@ -195,43 +133,37 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
 
             $objTPL->assign_block_vars('menu', array());
 
-            // If the icon isn't set, ignore this link
-            if( !isset( $link['icon'] ) ) {
-                continue;
-            }
-
             // If this navigational piece has subnavigation, deal with it.
             if ( isset( $link['subs'] ) && !empty( $link['subs'] ) ) {
 
                 // Setup our dropdown parent item
                 $objTPL->assign_block_vars('menu.dropdown', array(
-                    'TITLE' => $link['lname'],
-                    'ICONS' => $link['icon']
+                    'TITLE' => $link['link_title'],
                 ));
 
                 // Loop through our subnavigational items
                 foreach( $link['subs'] as $subLink ) {
 
-                    // If the icon and / or url isn't set, ignore it
-                    if( !isset( $subLink['icon'] ) || !isset( $subLink['link'] ) ) {
+                    // If the title and / or url isn't set, ignore it
+                    if( !isset( $subLink['link_title'] ) || !isset( $subLink['link_url'] ) ) {
                         continue;
                     }
 
                     $objTPL->assign_block_vars('menu.dropdown.subnav', array(
-                        'URL'   => $subLink['link'],
-                        'ICONS' => $subLink['icon'],
-                        'TITLE' => $subLink['lname']
+                        'URL'   => $subLink['link_url'],
+                        'TITLE' => $subLink['link_title'],
                     ));
+
                 }
 
             // Looks like a normal link, sweet.
-            } else if( isset( $link['link'] ) ) {
+            } else if( isset( $link['link_url'] ) ) {
 
                 $objTPL->assign_block_vars('menu.normal', array(
-                    'URL'   => $link['link'],
-                    'ICONS' => $link['icon'],
-                    'TITLE' => $link['lname']
+                    'URL'   => $link['link_url'],
+                    'TITLE' => $link['link_title'],
                 ));
+
             }
 
         }
