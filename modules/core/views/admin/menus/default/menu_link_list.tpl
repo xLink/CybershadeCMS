@@ -3,5 +3,3 @@
 </div>
 
 {tree_menu}
-
-<pre>Updates go here</pre>

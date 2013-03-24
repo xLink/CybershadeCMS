@@ -49,6 +49,15 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         $objTPL->parse('body', false);
     }
 
+    /**
+     * Editor for the menu system
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *  
+     * @return  void
+     */
     public function edit($args = array()) {
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
@@ -58,7 +67,7 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         // Check we have the menu name
         if( !is_array( $args ) || !is_string( $args[1] ) || strlen( $args[1] ) == 0 ) {
             // error
-            trigger_error('Error: Could not get menu name');
+            trigger_error('Error: Could not get menu name.');
             $this->menus();
             return;
         }
@@ -94,24 +103,24 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             ->select('*')
             ->from('#__menus')
             ->where('menu_name', '=', $menuName)
-            ->orderBy('`parent_id`, `order`', 'ASC')
-            ->build();
+            ->orderBy('`parent_id`, `order`', 'ASC');
 
-        $links = $objSQL->fetchAll( $queryList );
+        $links = $objSQL->fetchAll( $queryList->build() );
             if( !is_array( $links ) ) {
-                // Trigger error
-                // Add error to tpl
+                // error
+                trigger_error('Error: Menu does not exist.');
+                $this->menus();
                 return false;
             }
 
         $args = array( 'title' => 'link_title', 'id' => 'id', 'parent' => 'parent_id' );
         $tree = $this->generateTree($links, $args);
-        $objTPL->assign_var( 'tree_menu', str_replace('<ul>', '<ul id="tree" class="tree">', $tree) );
+        $objTPL->assign_var( 'tree_menu', $tree );
 
         $objTPL->parse('panel', false);
 
         $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'Menu Administration - <strong>'.secureMe($links[0]['name']).'</strong>',
+            'TITLE'   => 'Menu Administration - <strong>'.secureMe( $menuName ).'</strong>',
             'CONTENT' => $objTPL->get_html('panel', false),
             'ICON'    => 'icon-th-list',
         ));
@@ -123,12 +132,71 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         $objTPL->parse('body', false);
     }
 
+    /**
+     * Saves the data from the menu editor
+     *
+     * @version         1.0
+     * @since           1.0.0
+     * @author          Dan Aldridge
+     * @data-access     AJAX Only
+     *  
+     * @return          string
+     */
+    public function save($args = array()){
+
+        if( !HTTP_POST ){
+            die('Error: Could not get post data.');
+        }
+
+        $data = array(
+            'menu_name' => doArgs('1', false, $args),
+            'menu_data' => doArgs('menu', false, $_POST),
+        );
+            if( in_array($data, false) ){
+                die('Error: could not retrieve proper data.');
+            }
+
+        $data['menu_data'] = json_decode($data['menu_data'], true);
+        $data['menu_data'] = $this->generateFlatTable($data['menu_data']);
+
+        if( !is_array($data['menu_data']) || is_empty($data['menu_data']) ){
+            die('Error: Could not process array.');
+        }
+
+        $parents = null; $orders = null;
+        foreach( $data['menu_data'] as $id => $row ){
+            $parents .= sprintf(' WHEN `id`="%s" THEN "%s"'."\n", $id, $row['parent']);
+            $orders  .= sprintf(' WHEN `id`="%s" THEN "%s"'."\n", $id, $row['order']);
+        }
+
+        // raw query, but honestly wouldnt know where to start with the query builder & this baby XD
+        $objSQL = Core_Classes_coreObj::getDBO();
+        $query = '
+            UPDATE #__menus SET 
+                `parent_id` = CASE 
+                    '.$parents.'
+                ELSE `parent_id` END,
+
+                `order` = CASE 
+                    '.$orders.'
+                ELSE `order` END
+            WHERE id IN("'. implode('", "', array_keys($data['menu_data'])).'")
+        ';
+
+        $query = $objSQL->query($query);
+            if( $query === false ){
+                die('Error: Could not run update query. SQL Said: '.$objSQL->getError() );
+            }
+
+        die('Info: Updated Successfully.');
+        exit;
+    }
 
     /**
      * Generates a Tree from an multidimensional array
      * http://sandeepsamajdar.blogspot.co.uk/2011/05/generate-tree-from-php-array.html
      *
-     * @version 1.0.0
+     * @version 1.0
      * @since   1.0.0
      * @author  Modified by Dan Aldridge
      *
@@ -137,22 +205,61 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
     function generateTree($array, $args, $parent= 0, $level= 0) {
         $has_children = false; $output = null;
         foreach($array as $key => $value){
-            if ($value[ $args['parent'] ] == $parent){
-                if ($has_children === false){
+            if ($value[ $args['parent'] ] == $parent) {
+                if ($has_children === false) {
                     $has_children = true;
 
-                    $output .= '<ul>';
+                    $output .= "\n".str_repeat("\t", $level+1).($level>=1 ? '<ul>' : '<ul class="tree" id="tree">')."\n";
                     $level++;
                 }
-                $output .= '<li'. ($level>900 ? ' class="nodrop"' :'') .' id="'. $value[ $args['id'] ] .'"><span>' . '('.$value[ $args['id'] ].') '. $value[ $args['title'] ] . '</span>';
+                $output .= str_repeat("\t", $level+1).'<li'. ($level>9000 ? ' class="nodrop"' : '') .' id="'. $value[ $args['id'] ] .'"><span>' . '('.$value[ $args['id'] ].') '. $value[ $args['title'] ] . '</span>';
                 $output .= $this->generateTree($array, $args, $value[ $args['id'] ], $level);
-                $output .= '</li>';
+                $output .= str_repeat("\t", $level+1).'</li>'."\n";
             }
         }
-        if ($has_children === true){
-            $output .= '</ul>';
+        if ($has_children === true) {
+            $output .= str_repeat("\t", $level).'</ul>'."\n";
         }
         return $output;
+    }
+
+    /**
+     * Generates a flat array from an multidimensional array
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @return  array
+     */
+    function generateFlatTable($array, $parent=0, $orders=array()){
+
+        // if we have nothing passed through, just stop here
+        if( is_empty($array) ){
+            return array();
+        }
+
+        // look through each element in the array
+        $rows = array();
+        foreach($array as $key => $value){
+            // if this one has children, then recurse into that array before continuing
+            if( !is_empty($value['child']) ){
+                $rows += $this->generateFlatTable( $value['child'], $value['id'], $orders );
+            }
+
+            // output this row
+            $rows[ $value['id'] ]['parent'] = (int)$parent;
+
+            // reset the menus order, whatever we set on the UI is what should stick
+            if( !isset($orders[ $parent ]) ){
+                $orders[ $parent ] = 0;
+            }
+            $rows[ $value['id'] ]['order'] = ++$orders[ $parent ];
+        }
+
+        // sort the array by key & return!
+        ksort($rows); 
+        return $rows;
     }
 
 }

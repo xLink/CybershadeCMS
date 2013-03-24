@@ -16,7 +16,7 @@ $objPage->addCSSFile(array(
 // ));
 
 
-if(LOCALHOST){
+if(false){
     $objPage->addCSSFile(array(
         'href'     => '/'.root().self::$THEME_ROOT.'theme.less',
         'rel'      => 'stylesheet/less',
@@ -34,10 +34,6 @@ if(LOCALHOST){
     ));
 }
 
-$objPage->addJSFile(array(
-    'src' => '/'.root().'assets/javascript/bootstrap.mootools.js',
-    'priority' => HIGH
-), 'footer');
 
 
 ?>

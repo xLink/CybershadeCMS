@@ -15,7 +15,7 @@ $scripts['extras'] = array(
     //'growl.js',
 
     'core.js',
-    //'cscms.js',
+    'cscms.js',
 );
 
 ?>
