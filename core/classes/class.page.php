@@ -752,9 +752,11 @@ class Core_Classes_Page extends Core_Classes_coreObj {
                 //'copyright'     => langVar('L_SITE_COPYRIGHT', $this->config('site', 'title'), $this->config('cms', 'name'), CMS_VERSION),
                 'generator'     => $this->config('cms',  'name').' v'.CMS_VERSION,
 
-                'user_id'       => -1,
+                'user_id'       => ($objUser->grab('id') ? $objUser->grab('id') : -1),
                 'root'          => '/'.root(),
-                'url'           => $this->config('global', 'url', ''),
+                'url'           => $this->config('global', 'url', 'false'),
+                'rootUrl'       => $this->config('global', 'rootUrl', 'false'),
+                'fullPath'      => $this->config('global', 'fullPath', 'false'),
 
                 'ROBOTS'        => 'INDEX, FOLLOW',
                 'GOOGLEBOT'     => 'INDEX, FOLLOW',

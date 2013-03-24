@@ -564,19 +564,19 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
 
         $counter = 0;
         foreach( $debugTabs as $k => $tab ) {
-            $tabs .= sprintf( '<li class="tab" id="%1$s" data-toggle="tab"><a href="#%1$s">%2$s</a></li>',
+            $tabs .= sprintf( '<li class="tab"><a href="javascript:;" data-toggle="tab" data-target="#%1$s">%2$s</a></li>'."\n",
                 $k,
                 $tab['title']
             );
 
-            $content .= sprintf( '<div class="tab-pane content %s">%s</div>',
+            $content .= sprintf( '<div class="tab-pane content fade" id="%1$s">%2$s</div>'."\n",
                 $k,
                 $tab['content']
             );
         }
 
 
-        return sprintf( '<div id="debug-tabs" data-tabs="true"><ul class="nav nav-tabs">%s</ul><div class="tab-content well">%s</div></div>',
+        return sprintf( '<div id="debug-tabs" data-tabs="true"><ul class="nav nav-tabs">%s</ul><div class="tab-content well">%s</div></div>'."\n",
             $tabs,
             $content
         );

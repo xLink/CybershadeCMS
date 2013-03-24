@@ -25,7 +25,7 @@
 - [Selectivizr 1.0.2](http://selectivizr.com/)
 
 ### PHP
-- [GeSHi 1.0.8.4](http://qbnz.com/highlighter/)
+- [GeSHi 1.0.8.11](http://qbnz.com/highlighter/)
 - [Minify](http://code.google.com/p/minify/)
 - [NBBC 1.4.3](http://nbbc.sourceforge.net/)
 - [phpass 0.3](http://www.openwall.com/phpass/)
