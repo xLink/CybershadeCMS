@@ -289,7 +289,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         if ( !is_callable( array( $module, $method ) ) ) {
             trigger_error( 'The module or method you are trying to call, dosen\'t exist.' );
             $a = array('module' => $module, 'method' => $method);
-            echo dump($a, 'You are trying to call..');
+            // echo dump($a, 'You are trying to call..');
             return false;
         }
 
