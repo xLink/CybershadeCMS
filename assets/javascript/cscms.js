@@ -77,10 +77,10 @@ var cscms = cscms || (function() {
     modules = {
         dashboard: {
             init: function(){
-                dump('Auto Loading Dashboard Init Function');
+                utils.dump('Auto Loading Dashboard Init Function');
             },
             following: function() {
-                dump('Doing code for the Following Page');
+                utils.dump('Doing code for the Following Page');
             }
         }
     };
@@ -90,20 +90,20 @@ var cscms = cscms || (function() {
     app = {
         demoLogs: function() {
             if(utils.settings.currentUser == -1){
-                dump('User is not logged in');
+                utils.dump('User is not logged in');
             }
-            dump('Dynamic Links: ' + utils.root('some/link'));
+            utils.dump('Dynamic Links: ' + utils.root('some/link'));
         },
         init: function() {
 
-            dump('My App Initializing');
+            utils.dump('My App Initializing');
 
             utils.settings.init();
             utils.bootstrap();
             app.demoLogs();
 
-            dump('My App Initialized');
-            dump(utils);
+            utils.dump('My App Initialized');
+            utils.dump(utils);
 
         }
     };
