@@ -131,13 +131,13 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                         (!is_empty($args['placeholder'])    ? ' placeholder="'.$args['placeholder'].'"' : null).
                         (!is_empty($args['autofocus'])      ? ' autofocus="'.$args['autofocus'].'"'     : null).
 
-                        (!is_empty($args['min'])            ? 'min="'.$args['min'].'" '                 : null).
-                        (!is_empty($args['max'])            ? 'max="'.$args['max'].'" '                 : null).
-                        (!is_empty($args['step'])           ? 'step="'.$args['step'].'" '               : null).
+                        (!is_empty($args['min'])            ? ' min="'.$args['min'].'"'                 : null).
+                        (!is_empty($args['max'])            ? ' max="'.$args['max'].'"'                 : null).
+                        (!is_empty($args['step'])           ? ' step="'.$args['step'].'"'               : null).
 
                         ($args['required']===true           ? ' required="required"'                    : null).
-                        (!is_empty($args['extra'])          ? $args['extra']                            : null).
-                        ($args['xssFilter']===true          ? ' value="'.htmlspecialchars($value).'" '   : ' value="'.$value.'" ')
+                        (!is_empty($args['extra'])          ? ' '.$args['extra']                        : null).
+                        ($args['xssFilter']===true          ? ' value="'.htmlspecialchars($value).'" '  : ' value="'.$value.'" ')
                     )
                 ).
                 ($args['br'] ? '<br />'."\n" : null);
@@ -525,7 +525,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
     }
 
     function loadCaptcha($var){
-        $objPlugins = $this->getPlugins();
+        $objPlugins = Core_Classes_coreObj::getPlugins();
         return $objPlugins->hook('CMSForm_Captcha', $var);
     }
 }

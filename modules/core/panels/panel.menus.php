@@ -13,12 +13,28 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class Admin_Modules_core_menus extends Admin_Modules_core{
 
+    public function __construct() {
+        $objTPL     = Core_Classes_coreObj::getTPL();
+        $objTPL->set_filenames(array(
+            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
+        ));
+
+    }
+
+    /**
+     * Lists the menus for easier access
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *  
+     * @return  void
+     */
     public function menus() {
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
 
         $objTPL->set_filenames(array(
-            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
             'panel' => cmsROOT. 'modules/core/views/admin/menus/default/menu_list.tpl',
         ));
 
@@ -39,7 +55,6 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         }
 
         $objTPL->parse('panel', false);
-
         $objTPL->assign_block_vars('block', array(
             'TITLE'   => 'Menu Administration',
             'CONTENT' => $objTPL->get_html('panel', false),
@@ -47,6 +62,145 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         ));
 
         $objTPL->parse('body', false);
+    }
+
+    /**
+     * Adds a new link to the menu
+     * 
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
+    public function newlink() {
+        $objTPL     = Core_Classes_coreObj::getTPL();
+        $objSQL     = Core_Classes_coreObj::getDBO();
+        $objPage    = Core_Classes_coreObj::getPage();
+        $objForm    = Core_Classes_coreObj::getForm();
+
+        $objPage->addJSFile(array(
+            'src' => '/'.root().'modules/core/assets/javascript/admin/menus/custom.js',
+        ), 'footer');
+
+        // List the different types of menus
+        $query = $objSQL->queryBuilder()
+            ->select('id', 'menu_name')
+            ->from('#__menus')
+            ->groupBy('menu_name')
+            ->build();
+
+        $menus = $objSQL->fetchAll( $query, 'id' );
+
+        $options = array();
+        foreach( $menus as $id => $menu ){
+            $options[ $menu['menu_name'] ] = $menu['menu_name'];
+        }
+        $options[ '*add*' ] = 'Add to new menu..';
+
+
+        $form = $objForm->outputForm(array(
+            'FORM_START'     => $objForm->start('new_link', array('method'=>'POST', 'action'=>'/'.root().'admin/core/menus/newlinkSave/', 'class'=>'form-horizontal')),
+            'FORM_END'       => $objForm->finish(),
+
+            'FORM_TITLE'     => 'Add a link',
+            'FORM_SUBMIT'    => $objForm->button('submit', 'Submit', array('class' => 'btn btn-info')),
+            'FORM_RESET'     => $objForm->button('reset', 'Reset'),
+        ),
+        array(
+            'field' => array(
+                'Link Name'       => $objForm->inputbox('name', 'text'),
+                'URL'             => $objForm->inputbox('url', 'text'),
+
+                'Menu Identifier' => $objForm->select('ident1', $options).
+                    $objForm->inputbox('ident2', 'input', '', array(
+                        'class' => 'hide'
+                    )),
+
+                'External Link?'  => $objForm->radio('external', array(
+                    '0' => langVar('L_YES'),
+                    '1' => langVar('L_NO'),
+                ), 0),
+
+            ),
+            'desc' => array(
+            ),
+            'errors' => $_SESSION['errors']['menus'],
+        ));
+
+        $objTPL->assign_block_vars('block', array(
+            'TITLE'   => 'Menu Administration',
+            'CONTENT' => $form,
+            'ICON'    => 'icon-th-list',
+        ));
+
+        $objTPL->parse('body', false);
+    }
+
+    /**
+     * Adds a new link to the menu
+     * 
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
+    public function newlinkSave() {
+        $_SESSION['errors']['menus'] = array();
+        $objPage = Core_Classes_coreObj::getPage();
+        $objSQL = Core_Classes_coreObj::getDBO();
+
+        $url = $this->config('global', 'fullPath');
+
+        if( !HTTP_POST ){
+            $_SESSION['errors']['menus'][] = 'Please use the form to submit the data.';
+
+            $objPage->redirect( str_replace('newlinkSave', 'newlink', $url) );
+            exit;
+        }
+
+        $save = array('ident1', 'ident2', 'name', 'url', 'external');
+
+        foreach( $save as $key ){
+            if( !isset($_POST[ $key ]) ){
+                $_SESSION['errors']['menus'][] = 'Not all required data is available, please try again.';
+
+                $objPage->redirect( str_replace('newlinkSave', 'newlink', $url) );
+                exit;
+            }
+        }
+
+
+        $ident = doArgs('ident1', false, $_POST);
+        if( $ident === false || $ident == '*add*' ){
+            $ident = doArgs('ident2', null, $_POST);
+        }
+
+
+        $insert = array();
+        $insert['menu_name']  = $ident;
+        $insert['link_url']   = doArgs('url', null, $_POST);
+        $insert['link_title'] = doArgs('name',  null, $_POST);
+        $insert['external']   = doArgs('external', 0, $_POST);
+        $insert['order']      = 1000;
+
+        $insertQuery = $objSQL->queryBuilder()
+            ->insertInto('#__menus')
+            ->set($insert)
+            ->build();
+
+        $insertResult = $objSQL->query( $insertQuery );
+            if( $insertResult === false ){
+                $_SESSION['errors']['menus'][] = 'There was a problem saving the menu, SQL Said: '.$objSQL->getError();
+
+                $objPage->redirect( str_replace('newlinkSave', 'newlink', $url) );
+                exit;
+            }
+
+        $menuIdent = urlencode( $ident );
+        $objPage->redirect( str_replace('newlinkSave', 'edit/'.$menuIdent, $url) );
+        exit;
     }
 
     /**
@@ -59,10 +213,9 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
      * @return  void
      */
     public function edit($args = array()) {
-        $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
+        $objSQL     = Core_Classes_coreObj::getDBO();
         $objPage    = Core_Classes_coreObj::getPage();
-
 
         // Check we have the menu name
         if( !is_array( $args ) || !is_string( $args[1] ) || strlen( $args[1] ) == 0 ) {
@@ -95,7 +248,6 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         $menuName = $args[1];
 
         $objTPL->set_filenames(array(
-            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
             'panel' => cmsROOT . 'modules/core/views/admin/menus/default/menu_link_list.tpl',
         ));
 
@@ -107,7 +259,6 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
 
         $links = $objSQL->fetchAll( $queryList->build() );
             if( !is_array( $links ) ) {
-                // error
                 trigger_error('Error: Menu does not exist.');
                 $this->menus();
                 return false;
@@ -118,9 +269,8 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         $objTPL->assign_var( 'tree_menu', $tree );
 
         $objTPL->parse('panel', false);
-
         $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'Menu Administration - <strong>'.secureMe( $menuName ).'</strong>',
+            'TITLE'   => 'Edit Menu - <strong>'.secureMe( $menuName ).'</strong>',
             'CONTENT' => $objTPL->get_html('panel', false),
             'ICON'    => 'icon-th-list',
         ));
@@ -142,7 +292,7 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
      *  
      * @return          string
      */
-    public function save($args = array()){
+    public function editSave($args = array()){
 
         if( !HTTP_POST ){
             die('Error: Could not get post data.');
@@ -153,14 +303,14 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             'menu_data' => doArgs('menu', false, $_POST),
         );
             if( in_array($data, false) ){
-                die('Error: could not retrieve proper data.');
+                die( 'Error: could not retrieve proper data.' );
             }
 
         $data['menu_data'] = json_decode($data['menu_data'], true);
         $data['menu_data'] = $this->generateFlatTable($data['menu_data']);
 
         if( !is_array($data['menu_data']) || is_empty($data['menu_data']) ){
-            die('Error: Could not process array.');
+            die( 'Error: Could not process array.' );
         }
 
         $parents = null; $orders = null;
@@ -185,12 +335,19 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
 
         $query = $objSQL->query($query);
             if( $query === false ){
-                die('Error: Could not run update query. SQL Said: '.$objSQL->getError() );
+                die( 'Error: Could not run update query. SQL Said: '.$objSQL->getError() );
             }
 
-        die('Info: Updated Successfully.');
+        die( 'Info: Updated Successfully.' );
         exit;
     }
+
+
+/**
+ //
+ //--Helper Functions
+ //
+**/
 
     /**
      * Generates a Tree from an multidimensional array

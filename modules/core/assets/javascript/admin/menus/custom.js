@@ -32,26 +32,43 @@ document.addEvent('domready', function(){
             }
         });
 
+
+        var ajax = new Request({
+            url: str_replace('/edit/', '/editSave/', document.location),
+            method: 'post',
+            onSuccess: function(responseText){
+                $$('div#updates')[0].set('html', responseText);
+                $$('div#updates')[0].addClass('alert-info').removeClass('alert-error');
+            },
+            onFailure: function(responseText){
+                $$('div#updates')[0].set('html', responseText);
+                $$('div#updates')[0].addClass('alert-error').removeClass('alert-info');
+            }
+        });
+        $$('a.btn-custom')[0].addEvent('click', function(){
+            var stree = tree.serialize();
+            var json = JSON.encode( stree );
+
+            ajax.send('menu=' + json );
+        });
+
+    }
+
+    if( $$('select#ident1').length > 0 ){
+        $$('select#ident1')[0].addEvent('change', function(){
+            var value = this.getSelected().get('value')[0];
+
+            if( value == '*add*' ){
+                this.addClass('hide');
+                $$('input#ident2')[0].removeClass('hide');
+            }
+
+        });
     }
 
 
-    var ajax = new Request({
-        url: str_replace('/edit/', '/save/', document.location),
-        method: 'post',
-        onSuccess: function(responseText){
-            $$('div#updates')[0].set('html', responseText);
-            $$('div#updates')[0].addClass('alert-info').removeClass('alert-error');
-        },
-        onFailure: function(responseText){
-            $$('div#updates')[0].set('html', responseText);
-            $$('div#updates')[0].addClass('alert-error').removeClass('alert-info');
-        }
-    });
-    $$('a.btn-custom')[0].addEvent('click', function(){
-        var stree = tree.serialize();
-        var json = JSON.encode( stree );
 
-        ajax.send('menu=' + json );
-    });
+
+
 
 });
