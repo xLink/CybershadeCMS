@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Details_cybershade implements Core_Classes_baseDetails{
+class Details_default extends Core_Classes_coreObj implements Core_Classes_baseDetails{
 
     public function details(){
         return array(

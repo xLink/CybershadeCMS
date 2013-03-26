@@ -80,7 +80,7 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
             $method = reflectMethod($this->module, array_shift($action), $action);
         }
 
-        if( !$method ) {
+        if( $method === false ) {
             $objRoute->throwHTTP(404);
         }
     }
@@ -92,11 +92,11 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         $acpROOT = '/'.root().'admin/';
 
         $query = $objSQL->queryBuilder()
-                    ->select('id', 'link_url', 'link_title', 'parent_id')
-                    ->from('#__menus')
-                    ->orderBy('`menu_name`, `order`')
-                    ->where('menu_name', '=', 'admin_menu')
-                    ->build();
+            ->select('id', 'link_url', 'link_title', 'parent_id')
+            ->from('#__menus')
+            ->orderBy('`menu_name`, `order`')
+            ->where('menu_name', '=', 'admin_menu')
+            ->build();
 
         $results = $objSQL->fetchAll( $query, 'id' );
             if( count( $results ) <= 0 ) {

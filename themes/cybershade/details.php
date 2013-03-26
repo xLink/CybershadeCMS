@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Themes_Cybershade_details implements Core_Classes_baseDetails{
+class Details_cybershade extends Core_Classes_coreObj implements Core_Classes_baseDetails {
 
     public function details(){
         return array(
@@ -12,7 +12,7 @@ class Themes_Cybershade_details implements Core_Classes_baseDetails{
             'since'                => '1.0',
             'min_version_required' => '1.0',
 
-            'name'                 => 'cybershade',
+            'name'                 => 'Cybershade',
             'mode'                 => 'user',
             'author'               => 'xLink',
             'homepage_url'         => 'http://cybershade.org',

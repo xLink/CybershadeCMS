@@ -49,7 +49,7 @@ class Admin_Modules_core_siteconfig extends Admin_Modules_core{
             );
 
         $form = $objForm->outputForm(array(
-            'FORM_START'    => $objForm->start('panel', array('method' => 'POST', 'action' => $saveUrl)),
+            'FORM_START'    => $objForm->start('panel', array('method' => 'POST', 'action' => $saveUrl, 'class' => 'form-horizontal')),
             'FORM_END'      => $objForm->finish(),
 
             'FORM_TITLE'    => $mod_name,
