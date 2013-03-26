@@ -1246,20 +1246,18 @@ function bbcode_quote($bbcode, $action, $name, $default, $params, $content) {
  * @return  mixed
  */
 function reflectMethod( $class, $method, $parameters = array()) {
-    if( !class_exists( $class ) ) {
+    if( !class_exists( $class, false ) ) {
         return false;
     }
 
-    $obj = new $class;
-
     // Check the class and subsequent method are callable, else trigger an error
-    if ( !method_exists( $obj, $method ) || !is_callable( array( $obj, $method ) ) ) {
+    if ( !method_exists( $class, $method ) || !is_callable( array( $class, $method ) ) ) {
         trigger_error( 'The class or method you are trying to call, dosen\'t exist.' );
         return false;
     }
 
     // Retrieve the info we need about the class and method
-    $refMethod = new ReflectionMethod( $obj, $method );
+    $refMethod = new ReflectionMethod( $class, $method );
     $params    = $refMethod->getParameters( );
     $args = array();
 
