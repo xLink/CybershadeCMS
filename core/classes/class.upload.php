@@ -94,7 +94,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $fileSize  = $_FILES[$input_name]['size'];
         $finalPath = $destination . '/' . $fileName;
 
-        array_walk( $extensions, 'strtolower' );
+        $extensions = array_map( 'strtolower', $extensions );
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
         if( in_array( strtolower( $extension ), $extensions ) && ( $fileSize <= $allowedSize ) ){
