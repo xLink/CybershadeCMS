@@ -167,6 +167,11 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
         // Collect all the replacement 'variables' from the route structure into an array
         $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
+
+        usort($matches[1], function($a, $b) {
+            return strlen($b) - strlen($a);
+        });
+
         $this->replacements = $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
         // Loop through our replacements (if there are any),
