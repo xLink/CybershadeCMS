@@ -46,14 +46,14 @@ class Core_Classes_Form extends Core_Classes_coreObj {
             $name,
             (
                 (!is_empty($args['method'])     ? ' method="'.$args['method'].'"'       : null).
-                (!is_empty($args['action'])     ? ' action="'.$args['action'].'"'       : 'action="'.htmlentities($_SERVER['PHP_SELF']).'" ').
+                (!is_empty($args['action'])     ? ' action="'.$args['action'].'"'       : ' action="'.htmlentities($_SERVER['PHP_SELF']).'"').
                 ($args['onsubmit']              ? ' onsubmit="'.$args['onsubmit'].'"'   : null).
                 (!$args['validate']             ? ' novalidate'                         : null).
                 (!$args['autocomplete']         ? ' autocomplete="off"'                 : null).
                 (!is_empty($args['style'])      ? ' style="'.$args['style'].'"'         : null).
                 (!is_empty($args['class'])      ? ' class="'.$args['class'].'"'         : null).
                 (!is_empty($args['upload'])     ? ' enctype="multipart/form-data"'      : null).
-                (!is_empty($args['extra'])      ? $args['extra']                        : null)
+                (!is_empty($args['extra'])      ? ' '.$args['extra']                    : null)
             )
         )."\n";
     }
@@ -137,7 +137,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
 
                         ($args['required']===true           ? ' required="required"'                    : null).
                         (!is_empty($args['extra'])          ? ' '.$args['extra']                        : null).
-                        ($args['xssFilter']===true          ? ' value="'.htmlspecialchars($value).'" '  : ' value="'.$value.'" ')
+                        ($args['xssFilter']===true          ? ' value="'.htmlspecialchars($value).'" '  : ' value="'.$value.'"')
                     )
                 ).
                 ($args['br']===true ? '<br />'."\n" : '');
@@ -184,7 +184,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                     (is_number($args['rows'])           ? ' rows="'.$args['rows'].'"'               : null).
                     (!is_empty($args['placeholder'])    ? ' placeholder="'.$args['placeholder'].'"' : null).
                     (!is_empty($args['style'])          ? ' style="'.$args['style'].'"'             : null).
-                    (!is_empty($args['extra'])          ? $args['extra']                            : null).
+                    (!is_empty($args['extra'])          ? ' '.$args['extra']                        : null).
                     ($args['disabled']===true           ? ' disabled="disabled"'                    : null)
                 )
         ). ($args['br']===true ? '<br />'."\n" : '');
@@ -249,13 +249,13 @@ class Core_Classes_Form extends Core_Classes_coreObj {
         foreach($values as $key => $value){
             $value = ($args['xssFilter']===true ? htmlspecialchars($value) : $value);
 
-            $return .=  ($args['showLabels']===true ? '<label for="'.$args['id'].'">' : null).
+            $return .=  ($args['showLabels']===true ? '<label for="'.$args['id'].'_'.(++$counter).'">' : null).
                             sprintf($inputVal,
-                                $name, $args['id'],
+                                $name, $args['id'].'_'.$counter,
                                 (
-                                    (!is_empty($args['style'])      ? ' style="'.$args['style'].'"'         : null).
-                                    ($defaultSetting==$key          ? ' checked="checked"'                  : null).
-                                    ($args['xssFilter']===true      ? ' value="'.htmlspecialchars($key).'" ' : ' value="'.$key.'" ')
+                                    (!is_empty($args['style'])      ? ' style="'.$args['style'].'"'             : null).
+                                    ($defaultSetting==$key          ? ' checked="checked"'                      : null).
+                                    ($args['xssFilter']===true      ? ' value="'.htmlspecialchars($key).'"'    : ' value="'.$key.'"')
                                 )
                             ). $value.
                         ($args['showLabels']===true ? '</label>' : null).
