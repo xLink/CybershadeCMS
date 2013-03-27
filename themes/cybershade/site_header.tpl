@@ -16,7 +16,7 @@
             <div class="pull-right hidden-phone share-wrapper">
                 <div class="share-action socicon-share"></div>
                 <div class="share-container">
-                    <a href="http://facebook.com/CybershadeCMS" class="share-btn tl socicon-facebook"></a>
+                    <a href="http://facebook.com/CSCMS" class="share-btn tl socicon-facebook"></a>
                     <a href="http://twitter.com/CybershadeCMS" class="share-btn tr socicon-twitter"></a>
                     <a href="http://github.com/Cybershade" class="share-btn bl socicon-github"></a>
                     <a href="contact.php" class="share-btn br socicon-envelope"></a>
