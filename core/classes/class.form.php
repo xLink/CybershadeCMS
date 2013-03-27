@@ -140,7 +140,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                         ($args['xssFilter']===true          ? ' value="'.htmlspecialchars($value).'" '  : ' value="'.$value.'" ')
                     )
                 ).
-                ($args['br'] ? '<br />'."\n" : null);
+                ($args['br']===true ? '<br />'."\n" : '');
     }
 
     /**
@@ -259,7 +259,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                                 )
                             ). $value.
                         ($args['showLabels']===true ? '</label>' : null).
-                        (!$args['br'] ?: '<br />'."\n");
+                        ($args['br']===true ? '<br />'."\n" : '');
         }
 
 

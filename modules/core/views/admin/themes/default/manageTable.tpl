@@ -1,3 +1,7 @@
+<div class="alert alert-info">
+	<strong>Info!</strong> This panel is just for show at the moment...functionality still needs to be added!
+</div>
+
 <table class="table table-hover">
 	<tr>
 		<th>Name</th>
