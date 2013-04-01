@@ -388,7 +388,7 @@ class Core_Classes_coreObj {
             if( class_exists($className) && !in_array($className, self::$coreMethods) ){
 
                 if( !isset(Core_Classes_coreObj::$_classes[$className]) ){
-                    $className::getInstance($className, $args);
+                    $className::getInstance($className, $args[1]);
                 }
 
                 return Core_Classes_coreObj::$_classes[$className];
@@ -407,7 +407,7 @@ class Core_Classes_coreObj {
         return null;
     }
 
-    public static function getLib( $name, $args=array() ){
+    public static function getLib( $name, $args = array() ){
         $dir = 'core/libs/';
 
         // if the class dosent exist, then we'll load it
