@@ -144,6 +144,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
             } elseif(is_object($avar)) {
                 $return .= $indent.$var_name.' <span class="ident">'.$type.'</span>'.$indent.'<ul>(';
                 $_indent = $indent.$do_dump_indent;
+
+                $avar = (array)$avar;
                 foreach($avar as $key => $value){
                     $return .= doDump($value, "->". $key, $indent.$do_dump_indent, $reference, $counter++);
                 }
