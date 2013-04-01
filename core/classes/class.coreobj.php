@@ -5,11 +5,11 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 /**
+ * Core Obj, the class that extends all other classes
  *
- *
- * @version     1.0
- * @since       1.0.0
- * @author      Dan Aldridge <xLink@cybershade.org>
+ * @version  1.1
+ * @since    1.0.0
+ * @author   Dan Aldridge
  */
 class Core_Classes_coreObj {
 
