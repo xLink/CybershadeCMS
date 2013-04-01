@@ -6,29 +6,30 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
 class Core_Classes_Pagination extends Core_Classes_coreObj {
 
-    protected $instance = '';
-    protected $total_per_page = 1;
-    protected $total_items = 1;
-    protected $total_pages = 1;
-    protected $current_page = 1;
-    protected $query_string = '';
+    public $instance = '';
+    public $total_per_page = 1;
+    public $total_items = 1;
+    public $total_pages = 1;
+    public $current_page = 1;
+    public $query_string = '';
 
-    public function __construct($instance, $total_per_page, $total_items=0) {
-        $this->instance       = $instance;
-        $this->total_per_page = $total_per_page;
-        $this->total_items    = $total_items;
+    public function __construct($name=null, $args=array()) {
+        $this->instance       = doArgs('instance', '', $args);
+        $this->total_per_page = doArgs('perPage', 1, $args);
+
+        $this->total_items    = doArgs('count', 1, $args);
 
         //calculate some more basic vars
-        $this->total_pages  = ceil($total_items / $total_per_page);
-        $this->current_page = doArgs($instance, 1, $_GET, 'is_number');
+        $this->total_pages  = ceil( $this->total_items / $this->total_per_page );
+        $this->current_page = doArgs( $this->instance, 1, $_GET, 'is_number' );
 
         //check that the current page is not over the max pages
-        if($this->current_page > $this->total_pages){
+        if( $this->current_page > $this->total_pages ){
             $this->current_page = $this->total_pages;
         }
 
         //check that the current page is not below 0
-        if($this->current_page < 1){
+        if( $this->current_page < 1 ){
             $this->current_page = 1;
         }
     }
@@ -52,19 +53,21 @@ class Core_Classes_Pagination extends Core_Classes_coreObj {
     public function getPagination($showOne=false, $style=null, $url=null){
         // global $objUser;
 
-        $objUser = Core_Classes_coreObj::getInstance();
+        $objUser = Core_Classes_coreObj::getUser();
 
-        if($this->total_pages <= 1){
-            if(!$showOne){ return ''; }
+        if( $this->total_pages <= 1 ){
+            if( $showOne === false ){ 
+                return ''; 
+            }
         }
 
-        if(!User::$IS_ONLINE){
-            $switch = 1;
+        if(!Core_Classes_User::$IS_ONLINE){
+            $switch = 'mini';
         }else{
-            $switch = $objUser->grab('paginationStyle');
+            $switch = $objUser->get('paginationStyle');
         }
 
-        if(!is_empty($style)){
+        if( !is_empty($style) ){
             $switch = $style;
         }
 
@@ -242,7 +245,7 @@ class Core_Classes_Pagination extends Core_Classes_coreObj {
 
         $pagination = '';
         if($lastpage > 1){
-            $pagination .= '<div class="mini-pagination">';
+            $pagination .= '<div class="pagination mini">';
             //pages
             if($lastpage < 7+($adjacents * 2)){    //not enough pages to bother breaking it up
                 for($counter = 1; $counter <= $lastpage; $counter++){
@@ -300,6 +303,12 @@ class Core_Classes_Pagination extends Core_Classes_coreObj {
         }
 
         return $pagination;
+    }
+
+
+    public function paginationTpl( $url=null ){
+        $url = $this->parseQueryString((is_empty($url) ? $_SERVER['REQUEST_URI'] : $url));
+
     }
 }
 
