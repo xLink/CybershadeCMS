@@ -574,17 +574,21 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $objBBCode = Core_Classes_coreObj::getLib('BBCode');
 
         //load in the smilies
-        $objBBCode->SetSmileyDir('/'.root().'images/smilies');
+        $objBBCode->SetSmileyDir('/'.root().'assets/images/smilies');
 
         //load in the bbcode_tags
-        $file = cmsROOT.'core/bbcode_tags.php';
-            if(is_readable($file)){ include($file); }
+        $file = cmsROOT.'core/bbcodeTags.php';
+            if(is_readable($file)){ 
+                include_once($file); 
+            }
 
         //set smilies on or off
         $objBBCode->SetEnableSmileys($showSmilies);
 
         //output the $content
-        if(!$echoContent){ return $objBBCode->parse(htmlspecialchars_decode($content)); }
+        if( $echoContent === false ){ 
+            return $objBBCode->parse(htmlspecialchars_decode($content)); 
+        }
         echo $objBBCode->parse(htmlspecialchars_decode($content));
     }
 
