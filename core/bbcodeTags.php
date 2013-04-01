@@ -81,7 +81,9 @@ while($x <= 6){
 }
 
 //load smilies in
-$pack = is_empty($objCore->config('site', 'smilie_pack')) ? $objCore->config('site', 'smilie_pack') : 'default';
+$objPage = Core_Classes_coreObj::getPage();
+
+$pack = is_empty($objPage->config('site', 'smilie_pack')) ? $objPage->config('site', 'smilie_pack') : 'default';
 $smilieDir = cmsROOT.'images/smilies/'.$pack.'/';
 if(is_dir($smilieDir) && is_readable($smilieDir.'smilies.txt')){
     $smilies = file($smilieDir.'smilies.txt');
