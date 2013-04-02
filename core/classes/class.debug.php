@@ -359,6 +359,90 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
 
 /**
   //
+  //-- Debug Log Tab
+  //
+**/
+
+    /**
+     * Log something to the debug tab
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   mixed  $var       Variable / String / Array, etc to be output to the debug bar
+     * @param   string $title     Title of the output (optional)                
+     *
+     */
+    public function log( $var, $title = '', $type = 'info' ) {
+        $this->dumpOutput[] = array(
+            'title'   => $title,
+            'type'    => $type,
+            'content' => $var
+        );
+
+        return end( $this->dumpOutput );
+    }
+
+    /**
+     * Gathers developer output for debug
+     *
+     * @version     1.1
+     * @since       1.0.0
+     * @author      Daniel Noel-Davies
+     *
+     * @return      array
+     */
+    public function getDumpOutput(){
+        $count   = 0;
+        $content = ''; //$this->dumpOutput ? implode('<br>', $this->dumpOutput) : null ;
+
+        if( empty( $this->dumpOutput ) ) {
+            return array('count' => $count, 'content' => $content );
+        }
+
+        foreach( $this->dumpOutput as $log ) {
+            $type  = $log['type'] ?: 'info';
+            $title = htmlentities( $log['title'] ) ?: 'Debug' ;
+
+            $content .= sprintf(
+                '<table class="table">
+                    <thead>
+                        <tr class="%s">
+                            <td colspan="3" style="height:5px; padding:0;"></td>
+                        </tr>
+                        <tr>
+                            <td>File Number</td>
+                            <td>Title</td>
+                            <td>Content</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                %s<br>
+                                %s - %s
+                            </td>
+                            <td>%s</td>
+                            <td>%s</td>
+                        </tr>
+                    </tbody>
+                </table>',
+
+                    $type,
+                    'file.php',
+                    '0',
+                    '1',
+                    $title,
+                    dump( $log['content'], $title )
+                );
+        }
+
+        return array('count' => $count, 'content' => $content );
+    }
+
+/**
+  //
   //-- Config Tab
   //
 **/
@@ -513,6 +597,13 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         $tab = $this->getGlobals(true);
         $debugTabs['globals']   = array(
             'title'     => 'Globals',
+            'content'   => $tab['content'],
+        );
+
+        // Setup the tabs
+        $tab = $this->getDumpOutput(true);
+        $debugTabs['debuglog']   = array(
+            'title'     => 'Dev Debug',
             'content'   => $tab['content'],
         );
 
