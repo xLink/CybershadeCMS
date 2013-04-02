@@ -378,7 +378,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
      * @param   int|array  $id       Single Upload ID, or array of Upload IDs
      *
      */
-    public function getUpload( $id, $onlyPublic = true ) {
+    public function getInfo( $id, $onlyPublic = true ) {
         
         // Check we've got what we need
         if( !is_int( $id ) && !is_numeric( $id ) && !is_array( $id ) ) {
