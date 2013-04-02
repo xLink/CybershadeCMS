@@ -306,4 +306,23 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         return round($size, 2).$units[$i];
     }
 
+    /**
+     * Global func to log data
+     *
+     * @version  1.0
+     * @since    1.0.0
+     * @author   Richard Clifford
+     *
+     * @param    mixed        $var
+     * @param    mixed        $message
+     * @param    string       $color
+     * @param    bool         $fx
+     *
+     * @return   string
+     */
+    function debugLog( $var, $message = '', $type = 'info' ){
+        $objDebug = Core_Classes_coreObj::getDebug();
+        return $objDebug->log( $var, $message, $type );
+    }
+
 ?>

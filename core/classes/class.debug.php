@@ -371,7 +371,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
      * @author  Daniel Noel-Davies
      *
      * @param   mixed  $var       Variable / String / Array, etc to be output to the debug bar
-     * @param   string $title     Title of the output (optional)                
+     * @param   string $title     Title of the output (optional)
      *
      */
     public function log( $var, $title = '', $type = 'info' ) {
