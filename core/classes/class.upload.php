@@ -367,6 +367,55 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
 
         return false;
     }
+
+    /**
+     * Retrieves one uploaded image, or set of them
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   int|array  $id       Single Upload ID, or array of Upload IDs
+     *
+     */
+    public function getInfo( $id, $onlyPublic = true ) {
+        
+        // Check we've got what we need
+        if( !is_int( $id ) && !is_numeric( $id ) && !is_array( $id ) ) {
+            trigger_error('Invalid arguments supplied for ' . __FUNCTION__ );
+            return array();
+        }
+
+        $objSQL = Core_Classes_coreObj::getDBO();
+
+        $where  = false;
+        $query  = $objSQL->queryBuilder()
+                    ->select('*')
+                    ->from('#__uploads');
+
+        if( is_array( $id ) ) {
+            foreach( $id as $i ) {
+                if( is_int( $i ) ) {
+                    if( $where == true ) {
+                        $query->orWhere( 'id', '=', $i );
+                    } else {
+                        $query->where('id', '=', $i);
+                    }
+                }
+            }
+        } else {
+            $query->where( 'id', '=', $id );
+        }
+
+        $query = $query->build();
+        $info  = $objSQL->fetchAll( $query, 'id' );
+
+        if( sizeOf( $info ) == 1 ) {
+            return $info[$id];
+        }
+
+        return $info;
+    }
 }
 
 ?>

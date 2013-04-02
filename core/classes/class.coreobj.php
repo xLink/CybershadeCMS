@@ -5,11 +5,11 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 /**
+ * Core Obj, the class that extends all other classes
  *
- *
- * @version     1.0
- * @since       1.0.0
- * @author      Dan Aldridge <xLink@cybershade.org>
+ * @version  1.1
+ * @since    1.0.0
+ * @author   Dan Aldridge
  */
 class Core_Classes_coreObj {
 
@@ -388,7 +388,7 @@ class Core_Classes_coreObj {
             if( class_exists($className) && !in_array($className, self::$coreMethods) ){
 
                 if( !isset(Core_Classes_coreObj::$_classes[$className]) ){
-                    $className::getInstance($className, $args);
+                    $className::getInstance($className, $args[1]);
                 }
 
                 return Core_Classes_coreObj::$_classes[$className];
@@ -407,7 +407,7 @@ class Core_Classes_coreObj {
         return null;
     }
 
-    public static function getLib( $name, $args=array() ){
+    public static function getLib( $name, $args = array() ){
         $dir = 'core/libs/';
 
         // if the class dosent exist, then we'll load it

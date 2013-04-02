@@ -574,17 +574,21 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $objBBCode = Core_Classes_coreObj::getLib('BBCode');
 
         //load in the smilies
-        $objBBCode->SetSmileyDir('/'.root().'images/smilies');
+        $objBBCode->SetSmileyDir('/'.root().'assets/images/smilies');
 
         //load in the bbcode_tags
-        $file = cmsROOT.'core/bbcode_tags.php';
-            if(is_readable($file)){ include($file); }
+        $file = cmsROOT.'core/bbcodeTags.php';
+            if(is_readable($file)){ 
+                include_once($file); 
+            }
 
         //set smilies on or off
         $objBBCode->SetEnableSmileys($showSmilies);
 
         //output the $content
-        if(!$echoContent){ return $objBBCode->parse(htmlspecialchars_decode($content)); }
+        if( $echoContent === false ){ 
+            return $objBBCode->parse(htmlspecialchars_decode($content)); 
+        }
         echo $objBBCode->parse(htmlspecialchars_decode($content));
     }
 
@@ -1246,20 +1250,21 @@ function bbcode_quote($bbcode, $action, $name, $default, $params, $content) {
  * @return  mixed
  */
 function reflectMethod( $class, $method, $parameters = array()) {
-    if( !class_exists( $class, false ) ) {
+    if( !class_exists( $class ) ) {
+        trigger_error( 'The class you are trying to call, dosen\'t exist.' );
         return false;
     }
 
     // Check the class and subsequent method are callable, else trigger an error
     if ( !method_exists( $class, $method ) || !is_callable( array( $class, $method ) ) ) {
-        trigger_error( 'The class or method you are trying to call, dosen\'t exist.' );
+        trigger_error( 'The method you are trying to call, dosen\'t exist or is not callable.' );
         return false;
     }
 
     // Retrieve the info we need about the class and method
     $refMethod = new ReflectionMethod( $class, $method );
     $params    = $refMethod->getParameters( );
-    $args = array();
+    $args      = array();
 
     // Loop through the parameters the method asks for,
     //  and match them up with our arguments where possible
