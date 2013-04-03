@@ -10,11 +10,40 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
   //
 **/
     /**
+     * Finds the nth occurance of a string
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string   $haystack    haystack
+     * @param   string   $needle      The needle to search for
+     * @param   int      $nth         The occurance to search for
+     *
+     * @return  string
+     */
+    function strnstr($haystack, $needle, $nth){
+        $max = strlen($haystack);
+        $n = 0;
+        for($i=0;$i<$max;$i++){
+            if($haystack[$i]==$needle){
+                $n++;
+                if($n>=$nth){
+                    break;
+                }
+            }
+        }
+        $arr[] = substr($haystack,0,$i);
+        // $arr[] = substr($haystack,$i+1,$max);
+
+        return $arr[0];
+    }
+    /**
      * Used to determine the base path of the CMS installation;
      *
-     * @version 1.2
+     * @version 1.3
      * @since   1.0.0
-     * @author  Daniel Noel-Davies
+     * @author  Daniel Noel-Davies, Richard Clifford
      *
      * @return  string
      */
@@ -26,10 +55,30 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
             return substr($_SERVER['REQUEST_URI'], 1);
         }
 
+        $docRoot = $_SERVER['DOCUMENT_ROOT'];
+        $rootDifference = '';
+
+        // Do checks on the urls
+        $docRootCheck = strnstr( $docRoot, '/', 2 );
+        $pathCheck    = strnstr( $path, '/', 2 );
+
+        if( $docRootCheck !== $pathCheck ){
+            if(preg_match( '(/(\w+)/)', dirname($_SERVER['DOCUMENT_ROOT']), $matches )){
+                // Rtrim so we don't get 2 slashes
+                $rootDifference = rtrim($matches[0], '/');
+            }
+        }
+
+        // Prepend the "X Factor" incase the URLs differ
+        $path = $rootDifference . $path;
+
         //else we are dealing with a propper url setup
-        $newPath = str_replace($_SERVER['DOCUMENT_ROOT'], '', $path);
+        $newPath = str_replace($docRoot, '', $path);
         $newPath = substr($newPath, 0, strrpos($newPath, 'core/baseFunctions.php'));
-        if(substr($newPath, 0, 1) == '/'){ $newPath = substr($newPath, 1); }
+
+        if(substr($newPath, 0, 1) == '/'){
+            $newPath = substr($newPath, 1);
+        }
         return ($newPath != '' && $newPath != '/' ? $newPath : '');
     }
 
@@ -578,16 +627,16 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
         //load in the bbcode_tags
         $file = cmsROOT.'core/bbcodeTags.php';
-            if(is_readable($file)){ 
-                include_once($file); 
+            if(is_readable($file)){
+                include_once($file);
             }
 
         //set smilies on or off
         $objBBCode->SetEnableSmileys($showSmilies);
 
         //output the $content
-        if( $echoContent === false ){ 
-            return $objBBCode->parse(htmlspecialchars_decode($content)); 
+        if( $echoContent === false ){
+            return $objBBCode->parse(htmlspecialchars_decode($content));
         }
         echo $objBBCode->parse(htmlspecialchars_decode($content));
     }
@@ -1511,7 +1560,7 @@ function splitn($string, $needle, $offset) {
  * @version 1.0.0
  * @since   1.0.0
  * @author  Modified by Dan Aldridge
- * 
+ *
  * @param   $array  The array you want to map
  * @param   $args   The arguments to customize the output
  *                     Vars = array(
@@ -1529,7 +1578,7 @@ function splitn($string, $needle, $offset) {
 function generateTree($array, $args, $parent=0, $level=0) {
     $has_children = false; $output = null;
     foreach($array as $key => $value){
-        if ($value[ $args['parent'] ] == $parent){              
+        if ($value[ $args['parent'] ] == $parent){
             if ($has_children === false){
                 $has_children = true;
 
