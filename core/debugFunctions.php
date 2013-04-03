@@ -315,10 +315,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      *
      * @param    mixed        $var
      * @param    mixed        $message
-     * @param    string       $color
-     * @param    bool         $fx
+     * @param    string       $info
      *
-     * @return   string
+     * @return   mixed
      */
     function debugLog( $var, $message = '', $type = 'info' ){
         $objDebug = Core_Classes_coreObj::getDebug();
