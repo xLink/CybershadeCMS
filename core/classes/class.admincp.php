@@ -7,12 +7,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Core_Classes_AdminCP extends Core_Classes_coreObj{
 
     public function __construct($name, $options=array()){
-        // apparently it wants to throw the args into an array first :/
-        $options = $options[0];
-
         $this->mode   = doArgs('__mode',      null,         $options);
         $this->module = doArgs('__module',    'core',       $options);
-        $this->action = doArgs('__action',    'dashboard',  $options);
+        $this->action = doArgs('__action',    'dashboard',  $options, 'is_empty');
         $this->extra  = doArgs('__extra',     null,         $options);
     }
 
@@ -44,15 +41,27 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         // Get instanced
         $objRoute = Core_Classes_coreObj::getRoute();
 
+        $module = $this->module;
         $this->module = 'Admin_Modules_'.$this->module;
 
-        $action = array($this->action);
+        if( $this->action == 'dashboard' && $module != 'core' ){
+            $this->action = 'index';
+        }
+
+        if( is_empty($this->action) ){
+            $this->action = 'index';
+        }
+
+        $action = array( $this->action );
         if( strpos($this->action, '/') !== false ){
             $action = explode('/', $this->action);
         }
 
-        // check if we are dealing with the core panels or not
-        if( $this->module == 'Admin_Modules_core' ){
+        $panels = cmsROOT.'modules/%s/panels/';
+        $panels = sprintf($panels, $module);
+
+        // check if we are dealing with the sub panels or not
+        if( file_exists( $panels ) && is_readable( $panels ) && count( glob($panels.'panel.*.php') ) ){
             // we are !
             $method = array_shift($action);
 
@@ -66,10 +75,10 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
             );
 
             // check the panel to see if it exists, if so include it
-            $path = cmsROOT.'modules/core/panels/panel.'.$args['method'].'.php';
+            $path = sprintf($panels, $module).'panel.'.$args['method'].'.php';
                 if( file_exists($path) && is_readable($path) ){
                     require_once($path);
-                    (DEBUG ? memoryUsage('System: Loaded panel...') : '');
+                    (DEBUG ? memoryUsage('System: Loaded sub panel... '.$path) : '');
                 }else{
                     trigger_error('Error: Could not load ACP Panel: '.$path);
                 }

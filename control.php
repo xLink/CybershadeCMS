@@ -10,7 +10,7 @@ require_once 'core/core.php';
 $objRoute = Core_Classes_coreObj::getRoute();
 $objPage  = Core_Classes_coreObj::getPage();
 $objTPL   = Core_Classes_coreObj::getTPL();
-$objAdmin = Core_Classes_coreObj::getAdminCP($GET);
+$objAdmin = Core_Classes_coreObj::getAdminCP('', $GET);
 $objUser  = Core_Classes_coreObj::getUser();
 
 $objRoute->modifyGET($GET);
