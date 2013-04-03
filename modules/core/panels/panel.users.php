@@ -20,7 +20,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
 
         $objTPL->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
-            'panel' => cmsROOT . 'modules/core/views/admin/users/default/list.tpl',
+            'panel' => cmsROOT . 'modules/core/views/admin/users/list.tpl',
         ));
 
         $query = $objSQL->queryBuilder()
@@ -81,7 +81,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
 
         $objTPL->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
-            'panel' => cmsROOT. 'modules/core/views/admin/users/default/add.tpl',
+            'panel' => cmsROOT. 'modules/core/views/admin/users/add.tpl',
         ));
 
         $objTPL->parse('panel', false);

@@ -9,7 +9,7 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
     public function __construct($name, $options=array()){
         $this->mode   = doArgs('__mode',      null,         $options);
         $this->module = doArgs('__module',    'core',       $options);
-        $this->action = doArgs('__action',    'dashboard',  $options, 'is_empty');
+        $this->action = doArgs('__action',    'index',      $options);
         $this->extra  = doArgs('__extra',     null,         $options);
     }
 
@@ -44,10 +44,12 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         $module = $this->module;
         $this->module = 'Admin_Modules_'.$this->module;
 
-        if( $this->action == 'dashboard' && $module != 'core' ){
-            $this->action = 'index';
+        // if defaults are being loaded for the core acp panel, then we want dashboard not index
+        if( $this->action == 'index' && $module == 'core' ){
+            $this->action = 'dashboard';
         }
 
+        // if nothing is selected, index all the way
         if( is_empty($this->action) ){
             $this->action = 'index';
         }
@@ -78,7 +80,7 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
             $path = sprintf($panels, $module).'panel.'.$args['method'].'.php';
                 if( file_exists($path) && is_readable($path) ){
                     require_once($path);
-                    (DEBUG ? memoryUsage('System: Loaded sub panel... '.$path) : '');
+                    (DEBUG ? debugLog($path, 'invokeRoute(): Loaded sub panel... ') : '');
                 }else{
                     trigger_error('Error: Could not load ACP Panel: '.$path);
                 }

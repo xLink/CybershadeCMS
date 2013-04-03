@@ -35,7 +35,7 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         $objTPL     = Core_Classes_coreObj::getTPL();
 
         $objTPL->set_filenames(array(
-            'panel' => cmsROOT. 'modules/core/views/admin/menus/default/menu_list.tpl',
+            'panel' => cmsROOT. 'modules/core/views/admin/menus/menu_list.tpl',
         ));
 
         // List the different types of menus
@@ -248,7 +248,7 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         $menuName = $args[1];
 
         $objTPL->set_filenames(array(
-            'panel' => cmsROOT . 'modules/core/views/admin/menus/default/menu_link_list.tpl',
+            'panel' => cmsROOT . 'modules/core/views/admin/menus/menu_link_list.tpl',
         ));
 
         $queryList =  $objSQL->queryBuilder()
