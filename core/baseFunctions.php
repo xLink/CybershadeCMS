@@ -10,35 +10,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
   //
 **/
     /**
-     * Finds the nth occurance of a string
-     *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     *
-     * @param   string   $haystack    haystack
-     * @param   string   $needle      The needle to search for
-     * @param   int      $nth         The occurance to search for
-     *
-     * @return  string
-     */
-    function strnstr($haystack, $needle, $nth){
-        $max = strlen($haystack);
-        $n = 0;
-        for($i=0;$i<$max;$i++){
-            if($haystack[$i]==$needle){
-                $n++;
-                if($n>=$nth){
-                    break;
-                }
-            }
-        }
-        $arr[] = substr($haystack,0,$i);
-        // $arr[] = substr($haystack,$i+1,$max);
-
-        return $arr[0];
-    }
-    /**
      * Used to determine the base path of the CMS installation;
      *
      * @version 1.3
@@ -400,49 +371,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
   //--String Functions
   //
 **/
-    /**
-     * Parse an .ini string into a useable array
-     *
-     * @version 1.0
-     * @since   1.0.0
-     *
-     * @param   string      $string
-     * @param   bool        $processSelections
-     *
-     * @return  string
-     */
-    function parseMenuParams($str, $processSections=false){
-        $lines  = explode("\n", $str);
-        $return = array();
-        $inSect = false;
-
-        //make sure we have something to play with first
-        if(!count($lines)){ return false; }
-
-        foreach($lines as $line){
-            $line = trim($line);
-
-            //make sure $line isnt empty, or starts with a comment
-            if(is_empty($line) || $line[0] == '#' || $line[0] == ';'){ continue; }
-
-            //test to see if we are in a section
-            if($line[0] == '[' && $endIdx = strpos($line, ']')){
-                $inSect = substr($line, 1, $endIdx-1);
-                continue;
-            }
-
-            //We dont use "=== false" because value 0 is not valid as well
-            if(!strpos($line, '=')){ continue; }
-
-            $tmp = explode('=', $line, 2);
-            if($processSections && $inSect){
-                $return[$inSect][trim($tmp[0])] = ltrim($tmp[1]);
-            }else{
-                $return[trim($tmp[0])] = ltrim($tmp[1]);
-            }
-        }
-        return $return;
-    }
 
     /**
      * Set a cookie, this cookie shouldnt be accessable via scripting languages such as JS.
@@ -465,17 +393,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
 
         return false;
-    }
-
-    /**
-     * Joins a path together using proper directory separators
-     * Taken from: http://www.php.net/manual/en/ref.dir.php
-     *
-     * @since 1.0.0
-     */
-    function joinPath(){
-        $args = func_get_args();
-        return implode(DS, $args);
     }
 
     /**
@@ -768,31 +685,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     }
 
     /**
-     * Retreives part of a string
-     *
-     * @version 1.0
-     * @since   1.0.0
-     *
-     * @param   string     $begin
-     * @param   string     $end
-     * @param   string     $contents
-     *
-     * @return  string
-     */
-    function inBetween($begin, $end, $contents) {
-        $pos1 = strpos($contents, $begin);
-        if($pos1 !== false){
-            $pos1 += strlen($begin);
-            $pos2 = strpos($contents, $end, $pos1);
-            if($pos2 !== false){
-                $substr = substr($contents, $pos1, $pos2 - $pos1);
-                return $substr;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Cuts down a string to the specified length
      *
      * @version 1.1
@@ -821,6 +713,35 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
         $etc = '...';
         return $text.$etc;
+    }
+
+    /**
+     * Finds the nth occurance of a string
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Richard Clifford
+     *
+     * @param   string   $haystack    haystack
+     * @param   string   $needle      The needle to search for
+     * @param   int      $nth         The occurance to search for
+     *
+     * @return  string
+     */
+    function strnstr($haystack, $needle, $nth){
+        $max = strlen($haystack);
+        $n = 0;
+        for( $i=0; $i < $max; $i++ ){
+            if( $haystack[$i] == $needle ){
+                $n++;
+                if( $n >= $nth ){
+                    break;
+                }
+            }
+        }
+        $arr[] = substr($haystack, 0, $i);
+
+        return $arr[0];
     }
 
     /**
@@ -1377,224 +1298,5 @@ function reflectClass( $class ) {
         trigger_error( $e->getMessage() );
     }
 }
-
-/**
- * Returns the associated token type for a 'sprintf' function by the passed variable
- *
- * @version 1.0
- * @since   1.0
- * @author  Richard Clifford
- *
- * @todo    Expand this function to accept all data-types
- *
- * @param   mixed  $value_one [,$value_two, $value_three...]
- *
- * @return  string
- */
-
-function getTokenType(){
-
-    $values = func_get_args();
-
-    if( is_empty( $values ) ){
-      return '';
-    }
-
-    $token = '';
-    foreach( $values as $value ){
-
-        if( $value === '%' ){
-            $token .= '%%';
-        }
-
-        switch( gettype( $value ) ){
-
-
-            case 'boolean':
-            case 'integer':
-                $token .= '%d,';
-                break;
-
-            case 'double':
-                $token .= '%f,';
-                break;
-
-            case 'NULL':
-            case 'string':
-                $token .= '\'%s\',';
-                break;
-
-            default:
-                trigger_error( sprintf('Unknown token type for ', $value) );
-                return '';
-        }
-    }
-
-    return $token;
-}
-
-/**
- * Thanks to David Beck on PHP.net http://uk3.php.net/manual/en/function.parse-url.php#104726
- *
- * @author  David Beck (original), Richard Clifford (ported to CS style)
- * @version 1.0.0
- * @since   1.0.0
- *
- * @param string    $address
- *
- * @return mixed
- */
-function correctURL($address){
-
-    if (!empty($address) && $address{0} != '#' &&
-        strpos(strtolower($address), 'mailto:') === FALSE &&
-        strpos(strtolower($address), 'javascript:') === FALSE) {
-
-        $address = explode('/', $address);
-        $keys = array_keys($address, '..');
-
-        foreach($keys AS $keypos => $key){
-            array_splice($address, $key - ($keypos * 2 + 1), 2);
-        }
-
-        $address = implode('/', $address);
-        $address = str_replace('./', '', $address);
-
-        $scheme = parse_url($address);
-
-        if (empty($scheme['scheme'])){
-            $address = 'http://' . $address;
-        }
-
-        $parts   = parse_url($address);
-        $address = strtolower($parts['scheme']) . '://';
-
-        if (!empty($parts['user'])){
-            $address .= $parts['user'];
-
-            if (!empty($parts['pass'])){
-                $address .= ':' . $parts['pass'];
-            }
-            $address .= '@';
-        }
-
-        if (!empty($parts['host'])){
-            $host = str_replace(',', '.', strtolower($parts['host']));
-
-            if (strpos(ltrim($host, 'www.'), '.') === FALSE){
-                $host .= '.com';
-            }
-
-            $address .= $host;
-        }
-
-        if (!empty($parts['port'])){
-            $address .= ':' . $parts['port'];
-        }
-
-        $address .= '/';
-
-        if (!empty($parts['path'])) {
-            $path = trim($parts['path'], ' /\\');
-
-            if (!empty($path) AND strpos($path, '.') === FALSE){
-                $path .= '/';
-            }
-
-            $address .= $path;
-        }
-
-        if (!empty($parts['query'])){
-            $address .= '?' . $parts['query'];
-        }
-
-        return $address;
-    } else {
-        return FALSE;
-    }
-}
-
-
-function is_true( $var ){
-    return is_bool($var) && $var === true;
-}
-
-function is_false($var){
-    return is_bool($var) && $var === false;
-}
-
-
-/**
- * Split a string at the nth occurance
- * Thanks to David Beck on PHP.net http://uk3.php.net/manual/en/function.parse-url.php#104726
- *
- * @author  David Beck (original), Richard Clifford (ported to CS style)
- * @version 1.0.0
- * @since   1.0.0
- *
- * @param string    $address
- *
- * @return mixed
- */
-function splitn($string, $needle, $offset) {
-    $newString = $string;
-    $totalPos = 0;
-    $length = strlen($needle);
-    for($i = 0; $i < $offset; $i++) {
-        $pos = strpos($newString, $needle);
-
-        // If you run out of string before you find all your needles
-        if($pos === false)
-            return false;
-        $newString = substr($newString, $pos+$length);
-        $totalPos += $pos+$length;
-    }
-    return array(substr($string, 0, $totalPos-$length),substr($string, $totalPos));
-}
-
-
-/**
- * Generates a Tree from an multidimensional array
- * http://sandeepsamajdar.blogspot.co.uk/2011/05/generate-tree-from-php-array.html
- *
- * @version 1.0.0
- * @since   1.0.0
- * @author  Modified by Dan Aldridge
- *
- * @param   $array  The array you want to map
- * @param   $args   The arguments to customize the output
- *                     Vars = array(
- *                          'parent'        // parent id column
- *                          'title'         // title column
- *                          'id'            // id column
- *                          'parentTag'     // parentTag - ul, select
- *                          'childTag'      // childTag - li, option
- *                      )
- * @param   $parent  The parent ID for this call
- * @param   $level   The level of iteration
- *
- * @return  string
- */
-function generateTree($array, $args, $parent=0, $level=0) {
-    $has_children = false; $output = null;
-    foreach($array as $key => $value){
-        if ($value[ $args['parent'] ] == $parent){
-            if ($has_children === false){
-                $has_children = true;
-
-                $output .= '<'. $args['parentTag'] .'>';
-                $level++;
-            }
-            $output .= '<'. $args['childTag'] .'>' . $value[ $args['title'] ] . '';
-            $output .= generateTree($array, $args, $value[ $args['id'] ], $level);
-            $output .= '</'. $args['childTag'] .'>';
-        }
-    }
-    if ($has_children === true){
-        $output .= '</'. $args['parentTag'] .'>';
-    }
-    return $output;
-}
-
 
 ?>
