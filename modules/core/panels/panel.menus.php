@@ -14,8 +14,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Admin_Modules_core_menus extends Admin_Modules_core{
 
     public function __construct() {
-        $objTPL     = Core_Classes_coreObj::getTPL();
-        $objTPL->set_filenames(array(
+        Core_Classes_coreObj::getTPL()->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
         ));
 
