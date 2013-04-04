@@ -463,6 +463,31 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     }
 
     /**
+     * Retreives part of a string
+     *
+     * @version 1.0
+     * @since   1.0.0
+     *
+     * @param   string     $begin
+     * @param   string     $end
+     * @param   string     $contents
+     *
+     * @return  string
+     */
+    function inBetween($begin, $end, $contents) {
+        $pos1 = strpos($contents, $begin);
+        if($pos1 !== false){
+            $pos1 += strlen($begin);
+            $pos2 = strpos($contents, $end, $pos1);
+            if($pos2 !== false){
+                $substr = substr($contents, $pos1, $pos2 - $pos1);
+                return $substr;
+            }
+        }
+        return false;
+    }
+    
+    /**
      * Verifies an IP against a IPv4 range.
      *         127.0.0.1 would verify against 127.0.0.* but not *.*.*.2
      *

@@ -60,7 +60,6 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             'ICON'    => 'icon-th-list',
         ));
 
-        $objTPL->parse('body', false);
     }
 
     /**
@@ -133,7 +132,6 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             'ICON'    => 'icon-th-list',
         ));
 
-        $objTPL->parse('body', false);
     }
 
     /**

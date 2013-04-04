@@ -844,13 +844,25 @@ class Core_Classes_Page extends Core_Classes_coreObj {
             include_once($themeConfig);
         }
 
-        // Set the index.tpl file as the template
   //
   //-- Template Stuff
   //
+        $objTPL->assign_vars(array(
+            'BREADCRUMBS'       => $this->buildBreadcrumbs(),
+            '_CSS_SELECTORS'    => $this->getCSSSelectors(),
+            '_META'             => $this->buildMeta(),
+            '_CSS'              => $this->buildCSS(),
+            '_JS_HEADER'        => $this->buildJS('header'),
+            '_JS_FOOTER'        => $this->buildJS('footer'),
+        ));
+    }
+
+    public function tplGlobals(){
+        $objUser = Core_Classes_coreObj::getUser();
+        
         $tplGlobals = array(
             'ROOT'          => root(),
-            'THEME_ROOT'    => root(). Core_Classes_Page::$THEME_ROOT,
+            'THEME_ROOT'    => root(). self::$THEME_ROOT,
             
             'SITE_TITLE'    => $this->config('site', 'title'),
             
@@ -876,15 +888,9 @@ class Core_Classes_Page extends Core_Classes_coreObj {
             );
         }
 
-        $objPlugins->hook('CMS_PAGE_TPL_GLOBALS', $tplGlobals);
+        Core_Classes_coreObj::getPlugins()->hook('CMS_PAGE_TPL_GLOBALS', $tplGlobals);
 
-        $objTPL->assign_vars($tplGlobals);
-        $objTPL->assign_var('BREADCRUMBS',      $this->buildBreadcrumbs());
-        $objTPL->assign_var('_CSS_SELECTORS',   $this->getCSSSelectors());
-        $objTPL->assign_var('_META',            $this->buildMeta());
-        $objTPL->assign_var('_CSS',             $this->buildCSS());
-        $objTPL->assign_var('_JS_HEADER',       $this->buildJS('header'));
-        $objTPL->assign_var('_JS_FOOTER',       $this->buildJS('footer'));
+        Core_Classes_coreObj::getTPL()->assign_vars($tplGlobals);
     }
 
     public function showHeader() {

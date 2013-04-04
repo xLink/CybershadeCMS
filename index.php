@@ -19,6 +19,7 @@ $objPage->addBreadcrumbs(array(
 ));
 
 
+$objPage->tplGlobals();
 $objModule = $objRoute->processURL($_SERVER['QUERY_STRING']);
 
 $objPage->buildPage();
