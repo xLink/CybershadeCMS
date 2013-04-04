@@ -15,7 +15,7 @@ $objUser  = Core_Classes_coreObj::getUser();
 
 $objRoute->modifyGET($GET);
 
-if ( !Core_Classes_User::$IS_ONLINE || !Core_Classes_User::$IS_ADMIN ) {
+if ( !IS_ONLINE || !IS_ADMIN ) {
 
 	// Need to sort out login
     // $objRoute->throwHTTP(404);
@@ -30,7 +30,16 @@ $objPage->addBreadcrumbs(array(
 
 $objPage->setTitle('Cybershade CMS Administration Panel');
 
-// Output the dashboad
-$objAdmin->dashboard();
+// grab the nav and throw the baic tpl setups together
+$objAdmin->getNav();
+$objPage->buildPage();
+
+// sort the route out, see what we need to do
+$objAdmin->invokeRoute();
+
+// and then output..something
+$objPage->showHeader();
+$objAdmin->output();
+$objPage->showFooter();
 
 ?>

@@ -185,21 +185,5 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
 
     }
 
-   /**
-     * Outputs the ACP Dashboard
-     *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Richard Clifford
-     */
-    public function dashboard(){
-        $objPage = Core_Classes_coreObj::getPage();
-        $this->getNav();
-        $this->invokeRoute();
-        $objPage->buildPage();
-        $objPage->showHeader();
-        $this->output();
-        $objPage->showFooter();
-    }
 }
 ?>
