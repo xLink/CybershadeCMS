@@ -34,7 +34,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $pathCheck    = strnstr( $path, '/', 2 );
 
         if( $docRootCheck !== $pathCheck ){
-            if(preg_match( '(/(\w+)/)', dirname($_SERVER['DOCUMENT_ROOT']), $matches )){
+            if(preg_match( '(/(\w+)/)', dirname($docRoot), $matches )){
                 // Rtrim so we don't get 2 slashes
                 $rootDifference = rtrim($matches[0], '/');
             }
