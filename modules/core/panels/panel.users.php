@@ -79,7 +79,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
         $objTPL->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
             'panel' => cmsROOT. 'modules/core/views/admin/users/add.tpl',
-        ));to 
+        ));
 
         $objTPL->parse('panel', false);
 
