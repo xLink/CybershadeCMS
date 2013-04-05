@@ -55,13 +55,14 @@ class Admin_Modules_core_systeminfo extends Admin_Modules_core{
                 'style' => 'width: 99%',
                 'rows' => 20,
             )),
-            'ICON'    => 'faicon-user',
+            'ICON'    => 'fa-icon-user',
         ));
+        $objTPL->assign_block_vars('block.start_row', array());
+        $objTPL->assign_block_vars('block.3col', array());          
+        $objTPL->assign_block_vars('block.end_row', array());
 
         $objTPL->parse('body', false);
     }
-
-
 }
 
 

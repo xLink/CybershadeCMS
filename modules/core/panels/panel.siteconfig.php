@@ -53,7 +53,7 @@ class Admin_Modules_core_siteconfig extends Admin_Modules_core{
             'FORM_END'      => $objForm->finish(),
 
             'FORM_TITLE'    => $mod_name,
-            'FORM_SUBMIT'   => $objForm->button('submit', 'Submit'),
+            'FORM_SUBMIT'   => $objForm->button('submit', 'Submit', array( 'class' => 'btn-primary' )),
             'FORM_RESET'    => $objForm->button('reset', 'Reset'),
 
             'HIDDEN'        => $objForm->inputbox('sessid', 'hidden', $sessid).$objForm->inputbox('id', 'hidden', $uid),
@@ -78,16 +78,16 @@ class Admin_Modules_core_siteconfig extends Admin_Modules_core{
             'header' => '<h4>%s</h4>',
             'dedicatedHeader' => true,
             'parseDesc' => true,
-        ));
-
+        ));           
 
         $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'User Management',
+            'TITLE'   => 'Site Configuration',
             'CONTENT' => $form,
-            'ICON'    => 'faicon-user',
+            'ICON'    => 'fa-icon-user',
         ));
-
-        $objTPL->parse('body', false);
+        $objTPL->assign_block_vars('block.start_row', array());
+        $objTPL->assign_block_vars('block.3col', array());          
+        $objTPL->assign_block_vars('block.end_row', array());
 
     }
 

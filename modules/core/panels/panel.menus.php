@@ -59,6 +59,9 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             'CONTENT' => $objTPL->get_html('panel', false),
             'ICON'    => 'icon-th-list',
         ));
+        $objTPL->assign_block_vars('block.start_row', array());
+        $objTPL->assign_block_vars('block.3col', array());          
+        $objTPL->assign_block_vars('block.end_row', array());
 
     }
 
@@ -131,6 +134,9 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             'CONTENT' => $form,
             'ICON'    => 'icon-th-list',
         ));
+        $objTPL->assign_block_vars('block.start_row', array());
+        $objTPL->assign_block_vars('block.3col', array());          
+        $objTPL->assign_block_vars('block.end_row', array());
 
     }
 
@@ -271,6 +277,9 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             'CONTENT' => $objTPL->get_html('panel', false),
             'ICON'    => 'icon-th-list',
         ));
+        $objTPL->assign_block_vars('block.start_row', array());
+        $objTPL->assign_block_vars('block.3col', array());          
+        $objTPL->assign_block_vars('block.end_row', array());
 
             $objTPL->assign_block_vars('block.custom', array(
                 'ICON' => 'icon-save',
