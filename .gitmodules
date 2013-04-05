@@ -1,0 +1,3 @@
+[submodule "modules/articles"]
+	path = modules/articles
+	url = git@github.com:cybershade/CS-Articles.git
