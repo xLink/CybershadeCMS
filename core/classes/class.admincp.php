@@ -185,6 +185,7 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         $options = array(
             'cols' => doArgs('cols', 3, $options),
             'vars' => ( isset($options['vars']) && is_array($options['vars']) ? $options['vars'] : array()),
+            'custom' => ( isset($options['custom']) && is_array($options['custom']) ? $options['custom'] : array()),
         );
 
         if( is_empty( $options['vars'] ) ){
@@ -205,7 +206,14 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         $objTPL->assign_block_vars('block.start_row', array());
 
         $objTPL->assign_block_vars('block.'.$options['cols'].'col', array());
+
+        if( !is_empty($options['custom']) ){
+            $objTPL->assign_block_vars('block.custom', $options['custom']);
+        }
+
         $objTPL->assign_block_vars('block.end_row', array());
+
+        $objTPL->parse($handle, false);
     }
 
 }

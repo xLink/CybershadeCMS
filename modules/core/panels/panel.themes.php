@@ -50,20 +50,15 @@ class Admin_Modules_core_themes extends Admin_Modules_core{
             ));
         }
 
-
-
-
-
-        $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'Theme Management',
-            'CONTENT' => $objTPL->get_html('table', false),
-            'ICON'    => 'fa-icon-user',
+        $objTPL->parse('table', false);
+        Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
+            'cols'  => 3,
+            'vars'  => array(
+                'TITLE'   =>  'Theme Management',
+                'CONTENT' =>  $objTPL->get_html('table', false),
+                'ICON'    =>  'fa-icon-user',
+            ),
         ));
-        $objTPL->assign_block_vars('block.start_row', array());
-        $objTPL->assign_block_vars('block.3col', array());          
-        $objTPL->assign_block_vars('block.end_row', array());
-
-        $objTPL->parse('body', false);
 
     }
 

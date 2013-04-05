@@ -30,8 +30,11 @@
                     <a href="#" class="btn-close"><i class="icon-remove"></i></a>
                 <!-- END remove -->
                 <!-- BEGIN custom -->
-                    <a href="#" class="btn-custom" title="Save the menu structure"><i class="{block.custom.ICON}"></i></a>
+                    <a href="{block.custom.URL}" class="btn-custom {block.custom.CLASS}" title="{block.custom.TITLE}"><i class="{block.custom.ICON}"></i> {block.custom.LINK}</a>
                 <!-- END custom -->
+                <!-- BEGIN custom_html -->
+                    {block.custom_html.HTML}
+                <!-- END custom_html -->
             </div>
         </div>
         <div class="box-content">

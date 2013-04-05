@@ -80,14 +80,14 @@ class Admin_Modules_core_siteconfig extends Admin_Modules_core{
             'parseDesc' => true,
         ));           
 
-        $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'Site Configuration',
-            'CONTENT' => $form,
-            'ICON'    => 'fa-icon-user',
+        Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
+            'cols'  => 3,
+            'vars'  => array(
+                'TITLE'   =>  'Site Configuration',
+                'CONTENT' =>  $form,
+                'ICON'    =>  'fa-icon-user',
+            ),
         ));
-        $objTPL->assign_block_vars('block.start_row', array());
-        $objTPL->assign_block_vars('block.3col', array());          
-        $objTPL->assign_block_vars('block.end_row', array());
 
     }
 

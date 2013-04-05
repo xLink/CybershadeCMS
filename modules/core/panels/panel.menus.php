@@ -272,20 +272,22 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         $objTPL->assign_var( 'tree_menu', $tree );
 
         $objTPL->parse('panel', false);
-        $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'Edit Menu - <strong>'.secureMe( $menuName ).'</strong>',
-            'CONTENT' => $objTPL->get_html('panel', false),
-            'ICON'    => 'icon-th-list',
-        ));
-        $objTPL->assign_block_vars('block.start_row', array());
-        $objTPL->assign_block_vars('block.3col', array());          
-        $objTPL->assign_block_vars('block.end_row', array());
-
-            $objTPL->assign_block_vars('block.custom', array(
+        Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
+            'cols'  => 3,
+            'vars'  => array(
+                'TITLE'   => 'Edit Menu - <strong>'.secureMe( $menuName ).'</strong>',
+                'CONTENT' => $objTPL->get_html('panel', false),
+                'ICON'    => 'icon-th-list',
+            ),
+            'custom' => array(
                 'ICON' => 'icon-save',
-            )); 
+                'URL'   => '#',
+                'TITLE' => 'Save the menu structure',
+                'LINK'  => '',
+                'CLASS' => '',
+            ),
+        ));
 
-        $objTPL->parse('body', false);
     }
 
     /**

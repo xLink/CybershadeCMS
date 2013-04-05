@@ -63,17 +63,14 @@ class Admin_Modules_core_modules extends Admin_Modules_core{
         }
 
         $objTPL->parse('panel', false);
-
-        $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'Module List',
-            'CONTENT' => $objTPL->get_html('panel', false),
-            'ICON'    => 'icon-th-list',
+        Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
+            'cols'  => 3,
+            'vars'  => array(
+                'TITLE'   => 'Module List',
+                'CONTENT' => $objTPL->get_html('panel', false),
+                'ICON'    => 'icon-th-list',
+            ),
         ));
-        $objTPL->assign_block_vars('block.start_row', array());
-        $objTPL->assign_block_vars('block.3col', array());          
-        $objTPL->assign_block_vars('block.end_row', array());
-
-        $objTPL->parse('body', false);
     }
 
 

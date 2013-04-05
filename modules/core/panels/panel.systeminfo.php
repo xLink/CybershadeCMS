@@ -49,19 +49,17 @@ class Admin_Modules_core_systeminfo extends Admin_Modules_core{
 
 '.json_encode($objSQL->fetchAll('SELECT * FROM `#__config`')).'';
 
-        $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'System Info',
-            'CONTENT' => $info. $objForm->textarea('sysInfo', $content, array(
-                'style' => 'width: 99%',
-                'rows' => 20,
-            )),
-            'ICON'    => 'fa-icon-user',
+        Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
+            'cols'  => 3,
+            'vars'  => array(
+                'TITLE'   => 'System Info',
+                'CONTENT' => $info. $objForm->textarea('sysInfo', $content, array(
+                    'style' => 'width: 99%',
+                    'rows' => 20,
+                )),
+                'ICON'    => 'fa-icon-user',
+            ),
         ));
-        $objTPL->assign_block_vars('block.start_row', array());
-        $objTPL->assign_block_vars('block.3col', array());          
-        $objTPL->assign_block_vars('block.end_row', array());
-
-        $objTPL->parse('body', false);
     }
 }
 

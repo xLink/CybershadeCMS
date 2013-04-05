@@ -57,13 +57,20 @@ class Admin_Modules_core_users extends Admin_Modules_core{
         }
 
         $objTPL->parse('panel', false);
-        Core_Classes_coreObj::getAdminCP()->setupBlock('page', array(
+        Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
             'cols'  => 3,
             'vars'  => array(
                 'TITLE'   => 'User Management',
                 'CONTENT' => $objTPL->get_html('panel', false),
-                'ICON'    => 'faicon-user',
-            )
+                'ICON'    => 'fa-icon-user',
+            ),
+            'custom' => array(
+                'ICON' => 'icon-save',
+                'URL'   => '#',
+                'TITLE' => 'Save the menu structure',
+                'LINK'  => '',
+                'CLASS' => '',
+            ),
         ));
     }
 
@@ -82,14 +89,14 @@ class Admin_Modules_core_users extends Admin_Modules_core{
         ));
 
         $objTPL->parse('panel', false);
-
-        $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'Add User',
-            'CONTENT' => $objTPL->get_html('panel', false),
-            'ICON'    => 'faicon-user',
+        Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
+            'cols'  => 3,
+            'vars'  => array(
+                'TITLE'   =>  'Add User',
+                'CONTENT' =>  $objTPL->get_html('panel', false),
+                'ICON'    =>  'faicon-user',
+            ),
         ));
-
-        $objTPL->parse('body', false);
     }
 
 
