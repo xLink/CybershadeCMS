@@ -1,7 +1,8 @@
-<table class="table table-striped table-bordered bootstrap-datatable datatable">
+<table class="table table-hover">
 	<thead>
         <tr>
             <th>Username</th>
+            <th>Email</th>
             <th>Date registered</th>
             <th>Role</th>
             <th>Status</th>
@@ -12,21 +13,24 @@
         <!-- BEGIN user -->
         <tr>
             <td>{user.NAME}</td>
+            <td class="center">{user.EMAIL}</td>
             <td class="center">{user.DATE_REGISTERED}</td>
             <td class="center">{user.ROLE}</td>
             <td class="center">
-                <span class="label label-success">{user.STATUS}</span>
+                <span class="label label-{user.STATUS_LABEL}">{user.STATUS}</span>
             </td>
             <td class="center">
-                <a class="btn btn-success" href="#">
-                <i class="icon-zoom-in icon-white"></i>  
-                </a>
-                <a class="btn btn-info" href="#">
-                <i class="icon-edit icon-white"></i>  
-                </a>
-                <a class="btn btn-danger" href="#">
-                <i class="icon-trash icon-white"></i> 
-                </a>
+                <div class="btn-group">
+                    <a href="{user.ACTION_EDIT}" class="btn btn-small"><i class="icon-edit"></i> Edit</a>
+                    <button class="btn btn-small dropdown-toggle" data-toggle="dropdown">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" class="">Ban User</a></li>
+                        <li><a href="#"></a></li>
+                        <li><a href="#"></a></li>
+                    </ul>
+                </div>
             </td>
         </tr>
         <!-- END user -->

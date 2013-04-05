@@ -36,38 +36,35 @@ class Admin_Modules_core_users extends Admin_Modules_core{
             }
 
         foreach( $users as $id => $user ){
+
+            //$role = 
+
+
+
+
+
+
             $objTPL->assign_block_vars('user', array(
                 'ID'              => $id,
                 'NAME'            => $user['username'],
+                'EMAIL'           => $user['email'],
                 'DATE_REGISTERED' => $objTime->mk_time($user['register_date']),
-                'STATUS'          => ( $user['active'] == '1' ? 'Active' : 'Disabled' )
+                'STATUS'          => ( $user['active'] == '1' ? 'Active' : 'Disabled' ),
+                'STATUS_LABEL'    => ( $user['active'] == '1' ? 'success' : 'error' ),
+
             ));
 
-            $objTPL->assign_block_vars('user.actions.edit', array(
-                'URL'   => '',
-                'ICON'  => '',
-            ));
-
-            $objTPL->assign_block_vars('user.actions.activate', array(
-                'URL'   => '',
-                'ICON'  => '',
-            ));
-
-            $objTPL->assign_block_vars('user.actions.disable', array(
-                'URL'   => '',
-                'ICON'  => '',
-            ));
         }
 
         $objTPL->parse('panel', false);
-
-        $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'User Management',
-            'CONTENT' => $objTPL->get_html('panel', false),
-            'ICON'    => 'faicon-user',
+        Core_Classes_coreObj::getAdminCP()->setupBlock('page', array(
+            'cols'  => 3,
+            'vars'  => array(
+                'TITLE'   => 'User Management',
+                'CONTENT' => $objTPL->get_html('panel', false),
+                'ICON'    => 'faicon-user',
+            )
         ));
-
-        $objTPL->parse('body', false);
     }
 
     public function add() {
@@ -82,7 +79,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
         $objTPL->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
             'panel' => cmsROOT. 'modules/core/views/admin/users/add.tpl',
-        ));
+        ));to 
 
         $objTPL->parse('panel', false);
 
@@ -94,7 +91,6 @@ class Admin_Modules_core_users extends Admin_Modules_core{
 
         $objTPL->parse('body', false);
     }
-
 
 
 }

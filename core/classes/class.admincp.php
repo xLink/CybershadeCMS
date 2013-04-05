@@ -181,8 +181,31 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
     }
 
 
-    public function getNotifications(){
+    public static function setupBlock($handle, $options=array()){
+        $options = array(
+            'cols' => doArgs('cols', 3, $options),
+            'vars' => ( isset($options['vars']) && is_array($options['vars']) ? $options['vars'] : array()),
+        );
 
+        if( is_empty( $options['vars'] ) ){
+            trigger_error('No vars passed to setupBlock()');
+            return;
+        }
+        if( !in_array( $options['cols'], array(1,2,3)) ){
+            trigger_error('Columns option needs to be 1 2 or 3');
+            return;
+        }
+
+
+        $objTPL = Core_Classes_coreObj::getTPL();
+
+
+        $objTPL->assign_block_vars('block', $options['vars']);
+
+        $objTPL->assign_block_vars('block.start_row', array());
+
+        $objTPL->assign_block_vars('block.'.$options['cols'].'col', array());
+        $objTPL->assign_block_vars('block.end_row', array());
     }
 
 }
