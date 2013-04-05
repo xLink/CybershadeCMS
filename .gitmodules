@@ -1,6 +1,3 @@
 [submodule "modules/articles"]
 	path = modules/articles
 	url = git@github.com:cybershade/CS-Articles.git
-[submodule "modules/pages"]
-	path = modules/pages
-	url = git@github.com:cybershade/CS-Pages.git
