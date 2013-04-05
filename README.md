@@ -1,6 +1,6 @@
 #Cybershade CMS
 
-[Cybershade](http://cybersha.de/) CMS (CSCMS) is a powerful open source, modular content management system.
+[Cybershade](http://cybershade.org/) CMS (CSCMS) is a powerful open source, modular content management system.
 
 ## Requirements
 

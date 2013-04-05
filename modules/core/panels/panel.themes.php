@@ -26,7 +26,7 @@ class Admin_Modules_core_themes extends Admin_Modules_core{
 
         $objTPL->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
-            'table'  => cmsROOT . 'modules/core/views/admin/themes/default/manageTable.tpl',
+            'table'  => cmsROOT . 'modules/core/views/admin/themes/manageTable.tpl',
         ));
 
         $dir = cmsROOT.'themes';
