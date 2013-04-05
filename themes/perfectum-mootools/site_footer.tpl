@@ -1,8 +1,3 @@
-
-
-            </div>
-        </div>
-
                 <hr>
         </div>
     </div>
@@ -39,7 +34,6 @@
     </footer>
 
 </div>
-
 
 {_JS_FOOTER}
 

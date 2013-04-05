@@ -11,10 +11,6 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     define('CMS_VERSION_ID', '10000');
     define('DS', (substr(PHP_OS, 0, 3)=='WIN' ? '/' : '\\'));
 
-    if(!defined('cmsDEBUG')){
-        define('cmsDEBUG', false);
-    }
-
     /**
      * cmsROOT - Internal way of getting to the project root
      * @note for internal use, use cmsROOT, for external use, eg js and html paths, use root();
@@ -23,6 +19,14 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
     //so we can turn errors off if we are not running locally
     define('LOCALHOST', ( isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], array('localhost', '127.0.0.1', '::1')) ? true : false ));
+
+    if(!defined('cmsDEBUG')){
+        if( LOCALHOST === true ) {
+            define('cmsDEBUG', true);
+        } else {
+            define('cmsDEBUG', false);
+        }
+    }
 
 // Some HTTP definitions
     define('HTTP_AJAX', ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
