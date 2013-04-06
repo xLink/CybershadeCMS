@@ -17,6 +17,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
         $objTime    = Core_Classes_coreObj::getTime();
+        $objUser    = Core_Classes_coreObj::getUser();
 
         $objTPL->set_filenames(array(
             'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
@@ -37,18 +38,28 @@ class Admin_Modules_core_users extends Admin_Modules_core{
 
         foreach( $users as $id => $user ){
 
-            //$role = 
+            switch( $user['userlevel'] ){
+                case ADMIN:
+                    $role = 'Administrator';
+                break;
 
+                case MOD:
+                    $role = 'Moderator';
+                break;
 
-
-
-
+                case USER:
+                    $role = 'User';
+                break;
+            }
 
             $objTPL->assign_block_vars('user', array(
                 'ID'              => $id,
-                'NAME'            => $user['username'],
+                'NAME'            => $objUser->makeUsername($id),
                 'EMAIL'           => $user['email'],
                 'DATE_REGISTERED' => $objTime->mk_time($user['register_date']),
+
+                'ROLE'            => $role,
+
                 'STATUS'          => ( $user['active'] == '1' ? 'Active' : 'Disabled' ),
                 'STATUS_LABEL'    => ( $user['active'] == '1' ? 'success' : 'error' ),
 
@@ -64,12 +75,11 @@ class Admin_Modules_core_users extends Admin_Modules_core{
                 'CONTENT' => $objTPL->get_html('panel', false),
                 'ICON'    => 'fa-icon-user',
             ),
-            'custom' => array(
-                'ICON' => 'icon-save',
-                'URL'   => '#',
-                'TITLE' => 'Save the menu structure',
-                'LINK'  => '',
-                'CLASS' => '',
+            'custom_html' => array(
+                'HTML' => Core_Classes_coreObj::getForm()->inputBox('search_user', 'text', '', array(
+                    'class'       => 'input-mini',
+                    'placeholder' => 'Search..',
+                )),
             ),
         ));
     }

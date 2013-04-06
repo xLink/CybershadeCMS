@@ -13,13 +13,13 @@
         <!-- BEGIN user -->
         <tr>
             <td>{user.NAME}</td>
-            <td class="center">{user.EMAIL}</td>
-            <td class="center">{user.DATE_REGISTERED}</td>
-            <td class="center">{user.ROLE}</td>
-            <td class="center">
+            <td>{user.EMAIL}</td>
+            <td>{user.DATE_REGISTERED}</td>
+            <td><div class="username">{user.ROLE}</div></td>
+            <td>
                 <span class="label label-{user.STATUS_LABEL}">{user.STATUS}</span>
             </td>
-            <td class="center">
+            <td>
                 <div class="btn-group">
                     <a href="{user.ACTION_EDIT}" class="btn btn-small"><i class="icon-edit"></i> Edit</a>
                     <button class="btn btn-small dropdown-toggle" data-toggle="dropdown">
