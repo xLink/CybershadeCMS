@@ -143,7 +143,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      * @param   array  $args
      */
     public function __call($method, $args){
-        self::__callStatic($method, $args);
+        return self::__callStatic($method, $args);
     }
 
 
@@ -165,13 +165,15 @@ class Core_Classes_Module extends Core_Classes_coreObj{
             $className = str_replace('get', '', $method);
             $className = strtolower($className);
 
+            // check to see if the module they are after is installed
             if( self::moduleExists($className) && self::moduleInstalled($className) ){
-
+                // check class exists
                 $className = 'Modules_'.$className;
-                if( class_exists($className) && !in_array($className, self::$coreMethods) ){
+                if( class_exists($className) ){
 
+                    // if we havent already got an instance, then create one
                     if( !isset(Core_Classes_coreObj::$_classes[$className]) ){
-                        $className::getInstance($className, $args);
+                        Core_Classes_coreObj::$_classes[$className] = reflectClass($className);
                     }
 
                     return Core_Classes_coreObj::$_classes[$className];
@@ -184,7 +186,6 @@ class Core_Classes_Module extends Core_Classes_coreObj{
             'Class Name'    => self::getStaticClassName(),
             'Method Called' => $method,
             'Method Args'   => $args,
-            'rawr' => $className,
         );
         trigger_error('Error:: Static Method dosen\'t exist.'.dump($debug));
     }
@@ -263,6 +264,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      * @return  bool
      */
     public static function moduleInstalled( $moduleName ){
+        return true; // Temp Fix
         if( is_empty( $moduleName ) ){
             return false;
         }
