@@ -96,6 +96,8 @@ class Core_Classes_Form extends Core_Classes_coreObj {
             'style'        => doArgs('style',            null,   $args),
             'extra'        => doArgs('extra',            null,   $args),
             'xssFilter'    => doArgs('xssFilter',        true,   $args),
+            'prepend'      => doArgs('prepend',          false,  $args),
+            'append'       => doArgs('append',           false,  $args),
 
             //HTML5 tag additions
             'required'     => doArgs('required',         false,  $args),
@@ -127,6 +129,9 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                         ($args['checked']===true            ? ' checked="checked"'                      : null).
                         ($args['disabled']===true           ? ' disabled="disabled"'                    : null).
                         ($args['autocomplete']===false      ? ' autocomplete="off"'                     : null).
+
+                        (!is_empty($args['prepend'])        ? ' data-prepend="'.$args['prepend'].'"'    : null).
+                        (!is_empty($args['append'])         ? ' data-append="'.$args['append'].'"'      : null).
 
                         (!is_empty($args['placeholder'])    ? ' placeholder="'.$args['placeholder'].'"' : null).
                         (!is_empty($args['autofocus'])      ? ' autofocus="'.$args['autofocus'].'"'     : null).
@@ -498,8 +503,8 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                 $objTPL->assign_block_vars('_form_row._header', array(
                     'L_LABEL' => $label,
                 ));
-            } else {
-                //assign some vars to the template
+            } else {               
+                // assign some vars to the template
                 $objTPL->assign_block_vars('_form_row._field', array(
                     'F_ELEMENT'  => $header ? null : $field,
                     'F_INFO'     => (doArgs('parseDesc', false, $options) ? contentParse($desc) : $desc),
@@ -508,14 +513,27 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                     'L_LABELFOR' => inBetween('name="', '"', $field),
                 ));
 
-                //if this isnt a 'header' then output the label
+                // if this isnt a 'header' then output the label
                 if(!$header){
                     $objTPL->assign_block_vars('_form_row._field._label', array());
                 }
 
-                //if we have a description, lets output it with the label
+                // if we have a description, lets output it with the label
                 if(!is_empty($desc)){
                     $objTPL->assign_block_vars('_form_row._field._desc', array());
+                }
+
+                // see if we need to prepend or append anything to the field
+                $pre = inBetween('data-prepend="', '"', $field);
+                $app = inBetween('data-append="', '"', $field);
+
+                if( !is_empty($pre) ){
+                    $objTPL->assign_block_vars('_form_row._field._prepend', array('ADDON' => $pre));
+                } else if( !is_empty($app) ){
+                    $objTPL->assign_block_vars('_form_row._field._append', array('ADDON' => $app));
+                }else{
+                    $objTPL->assign_block_vars('_form_row._field._normal', array());
+
                 }
             }
         }
