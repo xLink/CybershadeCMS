@@ -13,6 +13,15 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class Admin_Modules_core_themes extends Admin_Modules_core{
 
+    /**
+     * Panel Constructor
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function __construct(){
         Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
             array( 'url' => '/'.root().'admin/core/themes/', 'name' => 'Themes' )
@@ -20,6 +29,15 @@ class Admin_Modules_core_themes extends Admin_Modules_core{
         
     }
 
+    /**
+     * Outputs a table with currently detected themes in
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function themes(){
         $objForm    = Core_Classes_coreObj::getForm();
         $objTPL     = Core_Classes_coreObj::getTPL();

@@ -19,6 +19,8 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
+     *
+     * @return  void
      */
     public function output(){
         $objTPL = Core_Classes_coreObj::getTPL();
@@ -37,6 +39,15 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         }
     }
 
+    /**
+     * Decides what to do with the current url setup
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function invokeRoute(){
         // Get instanced
         $objRoute = Core_Classes_coreObj::getRoute();
@@ -96,6 +107,15 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         }
     }
 
+    /**
+     * Makes the menu into a multidimensional array for processing
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function getNav(){
         $objSQL = Core_Classes_coreObj::getDBO();
         $objTPL = Core_Classes_coreObj::getTPL();
@@ -133,6 +153,15 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         $this->generateNav($results);
     }
 
+    /**
+     * Generates a menu from an array
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     protected function generateNav( $links=array() ){
 
         $objSQL = Core_Classes_coreObj::getDBO();
@@ -180,7 +209,15 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
         }
     }
 
-
+    /**
+     * Outputs a block with content in for the ACP
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public static function setupBlock($handle, $options=array()){
         $options = array(
             'cols' => doArgs('cols', 3, $options),
@@ -200,7 +237,9 @@ class Core_Classes_AdminCP extends Core_Classes_coreObj{
 
 
         $objTPL = Core_Classes_coreObj::getTPL();
-
+        $objTPL->set_filenames(array(
+            $handle  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
+        ));
 
         $objTPL->assign_block_vars('block', $options['vars']);
 

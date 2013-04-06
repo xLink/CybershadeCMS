@@ -13,12 +13,16 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class Admin_Modules_core_menus extends Admin_Modules_core{
 
-    public function __construct() {
-        Core_Classes_coreObj::getTPL()->set_filenames(array(
-            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
-        ));
-
-    }
+    /**
+     * Panel Constructor 
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
+    public function __construct() { }
 
     /**
      * Lists the menus for easier access
@@ -54,15 +58,14 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         }
 
         $objTPL->parse('panel', false);
-        $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'Menu Administration',
-            'CONTENT' => $objTPL->get_html('panel', false),
-            'ICON'    => 'icon-th-list',
+        Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
+            'cols'  => 3,
+            'vars'  => array(
+                'TITLE'   => 'Menu Administration',
+                'CONTENT' => $objTPL->get_html('panel', false),
+                'ICON'    => 'icon-th-list',
+            ),
         ));
-        $objTPL->assign_block_vars('block.start_row', array());
-        $objTPL->assign_block_vars('block.3col', array());          
-        $objTPL->assign_block_vars('block.end_row', array());
-
     }
 
     /**
@@ -129,15 +132,15 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
             'errors' => $_SESSION['errors']['menus'],
         ));
 
-        $objTPL->assign_block_vars('block', array(
-            'TITLE'   => 'Menu Administration',
-            'CONTENT' => $form,
-            'ICON'    => 'icon-th-list',
+        $objTPL->parse('panel', false);
+        Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
+            'cols'  => 3,
+            'vars'  => array(
+                'TITLE'   => 'Menu Administration',
+                'CONTENT' => $form,
+                'ICON'    => 'icon-th-list',
+            ),
         ));
-        $objTPL->assign_block_vars('block.start_row', array());
-        $objTPL->assign_block_vars('block.3col', array());          
-        $objTPL->assign_block_vars('block.end_row', array());
-
     }
 
     /**

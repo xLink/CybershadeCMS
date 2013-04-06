@@ -9,10 +9,19 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  *
  * @version 1.0
  * @since   1.0.0
- * @author  Daniel Noel-Davies
+ * @author  Dan Aldridge
  */
 class Admin_Modules_core_users extends Admin_Modules_core{
 
+    /**
+     * List current set of users
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function manage(){
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();
@@ -84,6 +93,15 @@ class Admin_Modules_core_users extends Admin_Modules_core{
         ));
     }
 
+    /**
+     * Add a new user to the system
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function add() {
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();

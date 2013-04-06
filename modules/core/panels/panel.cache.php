@@ -13,17 +13,31 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class Admin_Modules_core_cache extends Admin_Modules_core{
 
+    /**
+     * Panel Constructor
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function __construct(){
         Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
             array( 'url' => '/'.root().'admin/core/cache/', 'name' => 'Cache Control' )
         ));
 
-        Core_Classes_coreObj::getTPL()->set_filenames(array(
-            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
-        ));
-
     }
 
+    /**
+     * Default Panel - Outputs simple interface for the cache mech
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function cache(){
         $objForm    = Core_Classes_coreObj::getForm();
         $objTPL     = Core_Classes_coreObj::getTPL();
@@ -62,7 +76,15 @@ class Admin_Modules_core_cache extends Admin_Modules_core{
         ));
     }
 
-
+    /**
+     * Clears the specific cache based on selection
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function clear(){
         $objPage = Core_Classes_coreObj::getPage();
         $item    = doArgs('clear', false, $_GET);

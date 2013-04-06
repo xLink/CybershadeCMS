@@ -9,10 +9,19 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  *
  * @version 1.0
  * @since   1.0.0
- * @author  Daniel Noel-Davies
+ * @author  Dan Aldridge
  */
 class Admin_Modules_core_modules extends Admin_Modules_core{
 
+    /**
+     * Outputs a table with the currently detected set of modules on
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function modules( ) {
         $objSQL     = Core_Classes_coreObj::getDBO();
         $objTPL     = Core_Classes_coreObj::getTPL();

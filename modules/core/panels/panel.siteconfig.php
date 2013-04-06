@@ -13,6 +13,15 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  */
 class Admin_Modules_core_siteconfig extends Admin_Modules_core{
 
+    /**
+     * Generates a form for the site configuration
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     * 
+     * @return  void
+     */
     public function siteConfig(){
         Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
             array( 'url' => doArgs('REQUEST_URI', '', $_SERVER), 'name' => 'Site Config' )
@@ -20,11 +29,6 @@ class Admin_Modules_core_siteconfig extends Admin_Modules_core{
 
         $objForm    = Core_Classes_coreObj::getForm();
         $objTPL     = Core_Classes_coreObj::getTPL();
-
-
-        $objTPL->set_filenames(array(
-            'body'  => cmsROOT . Core_Classes_Page::$THEME_ROOT . 'block.tpl',
-        ));
 
         $yn = array(1 => langVar('L_YES'), 0 => langVar('L_NO'));
 
@@ -75,9 +79,9 @@ class Admin_Modules_core_siteconfig extends Admin_Modules_core{
             'errors' => $_SESSION['site']['panel']['error'],
         ),
         array(
-            'header' => '<h4>%s</h4>',
+            'header'          => '<h4>%s</h4>',
             'dedicatedHeader' => true,
-            'parseDesc' => true,
+            'parseDesc'       => true,
         ));           
 
         Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
