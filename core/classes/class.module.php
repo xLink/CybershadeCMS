@@ -173,7 +173,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
 
                     // if we havent already got an instance, then create one
                     if( !isset(Core_Classes_coreObj::$_classes[$className]) ){
-                        Core_Classes_coreObj::$_classes[$className] = reflectClass($className);
+                        $className::getInstance($className, $args); 
                     }
 
                     return Core_Classes_coreObj::$_classes[$className];
