@@ -24,8 +24,31 @@ class Core_Classes_Session extends Core_Classes_coreObj{
      * @author  Dan Aldridge
      *
      */
-    public function __construct(){ }
+    public function __construct(){ 
 
+        $this->session_gc();
+    }
+
+    /**
+     * Has a 25% chance at running the query to remove the old/inactive sessions from the database.
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function session_gc(){
+        if( rand(1, 100) <= 25 ){
+            $objSQL = Core_Classes_coreObj::getDBO();
+
+            $query = $objSQL->queryBuilder()
+                ->deleteFrom('#__sessions')
+                ->where( sprintf('timestamp < %d', time()-((60*60)*20)) )
+                ->build();
+
+            $objSQL->query( $query );
+        }
+    }
 
     /**
      * 
