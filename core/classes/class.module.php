@@ -143,51 +143,54 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      * @param   array  $args
      */
     public function __call($method, $args){
-        return self::__callStatic($method, $args);
+        $debug = array(
+            'Class Name'    => self::getStaticClassName(),
+            'Method Called' => $module,
+            'Method Args'   => $args,
+        );
+        trigger_error('Error: Module dosen\'t exist.'.dump($debug));
     }
 
 
     /**
-     * Executes if a static method has been called to & it dosen't exist
+     * Returns new instance of a module
      *
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     * @param   string $method
+     * @param   string $module
      * @param   array  $args
+     *
+     * @return  mixed  
      */
-    public static function __callStatic($method, $args){
+    public static function getModule( $module, $args=array() ){
 
         // check to see if we have called a get*() method
-        if( substr($method, 0, 3) === 'get' ){
+        $module = strtolower($module);
 
-            $className = str_replace('get', '', $method);
-            $className = strtolower($className);
+        // check to see if the module they are after is installed
+        if( self::moduleExists($module) && self::moduleInstalled($module) ){
+            // check class exists
+            $module = 'Modules_'.$module;
+            if( class_exists($module) ){
 
-            // check to see if the module they are after is installed
-            if( self::moduleExists($className) && self::moduleInstalled($className) ){
-                // check class exists
-                $className = 'Modules_'.$className;
-                if( class_exists($className) ){
-
-                    // if we havent already got an instance, then create one
-                    if( !isset(Core_Classes_coreObj::$_classes[$className]) ){
-                        $className::getInstance($className, $args); 
-                    }
-
-                    return Core_Classes_coreObj::$_classes[$className];
+                // if we havent already got an instance, then create one
+                if( !isset(Core_Classes_coreObj::$_classes[$module]) ){
+                    $module::getInstance($module, $args); 
                 }
 
+                return Core_Classes_coreObj::$_classes[$module];
             }
 
         }
+
         $debug = array(
             'Class Name'    => self::getStaticClassName(),
-            'Method Called' => $method,
+            'Method Called' => $module,
             'Method Args'   => $args,
         );
-        trigger_error('Error:: Static Method dosen\'t exist.'.dump($debug));
+        trigger_error('Error: Module dosen\'t exist.'.dump($debug));
     }
 
 
