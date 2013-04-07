@@ -10,9 +10,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
     public $errors = array();
 
     public function __construct(){
-        $objSession = Core_Classes_coreObj::getSession();
-        return;
-        $this->onlineData = $objSession->getData();
+        $this->onlineData = Core_Classes_coreObj::getSession()->getData();
     }
 
     /**
