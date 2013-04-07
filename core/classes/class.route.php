@@ -352,7 +352,11 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         ));
         $refMethod->invokeArgs( $objModule , $args );
 
-        Core_Classes_coreObj::getPage()->setVar('contents', ob_get_clean() );
+        $objPage = Core_Classes_coreObj::getPage();
+
+        $objPage->addMeta(array( 'name' => 'module', 'content' => $module ));
+        $objPage->addMeta(array( 'name' => 'method', 'content' => $method ));
+        $objPage->setVar('contents', ob_get_clean() );
 
         return $objModule;
     }

@@ -121,6 +121,7 @@ class Core_Classes_Pagination extends Core_Classes_coreObj {
             'url'      => doArgs('url', '', $options),
             'controls' => doArgs('controls', false, $options),
             'type'     => doArgs('type', 'pagination-mini', $options),
+            'showOne'  => doArgs('showOne', false, $options),
         );
 
         $objTPL = Core_Classes_coreObj::getTPL();
@@ -128,7 +129,7 @@ class Core_Classes_Pagination extends Core_Classes_coreObj {
 
         // if we have 1 or less pages, then unless we specifically want to see it, hide the pagination
         if( $this->getTotalPages() <= 1 ){
-            if( $showOne === false ){ 
+            if( $options['showOne'] === false ){ 
                 return ''; 
             }
         }

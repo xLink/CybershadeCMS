@@ -205,6 +205,15 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj{
     }
 
     public function limit($limit = 0){
+        $args = func_get_args();
+        if (count($args) == 2) {
+            $limit = $args[1];
+            $this->offset( (int)$args[0] );
+        } else if( count( $args = explode(',', $limit) ) == 2 ) {
+            $limit = $args[1];
+            $this->offset( (int)$args[0] );
+        } 
+
         $limit =(int)abs($limit);
         $this->_limit = $limit;
 
