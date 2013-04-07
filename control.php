@@ -38,7 +38,6 @@ $objPage->tplGlobals();
 $objAdmin->invokeRoute();
 
 // and then output..something
-$objPage->buildPage();
 $objPage->showHeader();
 $objAdmin->output();
 $objPage->showFooter();
