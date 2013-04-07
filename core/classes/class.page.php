@@ -757,6 +757,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
                 'url'           => $this->config('global', 'url', 'false'),
                 'rootUrl'       => $this->config('global', 'rootUrl', 'false'),
                 'fullPath'      => $this->config('global', 'fullPath', 'false'),
+                'localhost'     => (LOCALHOST ? 'true' : 'false'),
 
                 'ROBOTS'        => 'INDEX, FOLLOW',
                 'GOOGLEBOT'     => 'INDEX, FOLLOW',

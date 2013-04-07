@@ -14,11 +14,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 $START_CMS_LOAD = microtime(true); $START_RAM_USE = memory_get_usage();
 $cmsROOT = (isset($cmsROOT) && !empty($cmsROOT) ? $cmsROOT : '');
 
-if( !isset($_SESSION) ){
-    session_start();
-}
-
-    //we need constants.php, same deal as above
+    // we need constants.php
     $file = $cmsROOT.'core/constants.php';
         if(!is_readable($file)){
             die(sprintf($errorTPL, 'Fatal Error - 404', 'We have been unable to locate/read the constants file.'));
@@ -62,6 +58,15 @@ $errorTPL = '<h3>%s</h3> <p>%s Killing Process...</p>';
         die(sprintf($errorTPL, 'Fatal Error - 500',
             'This server is not capable of running this CMS, please upgrade PHP to version 5.3+ before trying to continue.'));
     }
+
+    // spawn the session now we got the config
+    if( !isset($_SESSION) ){
+        if( isset($config['db']['ckefix']) ){
+            session_name( md5($config['db']['ckefix']) );
+        }
+        session_start();
+    }
+
 
     $file = cmsROOT.'core/baseFunctions.php';
         if(!is_readable($file)){
@@ -121,9 +126,11 @@ $objPlugin->hook('CMS_PRE_SETUP_COMPLETE');
     $objCore->addConfig($confCache);
 
     $objSession = Core_Classes_coreObj::getSession();
-    $objUser    = Core_Classes_coreObj::getUser();
+        $objSession->trackerInit();
+
     $objDebug   = Core_Classes_coreObj::getDebug();
-    $objRoute   = Core_Classes_coreObj::getRoute()->modifyGET();
+    $objRoute   = Core_Classes_coreObj::getRoute();
+        $objRoute->modifyGET();
 
         if( is_object($objDebug) ){
             set_error_handler(array($objDebug, 'errorHandler'));

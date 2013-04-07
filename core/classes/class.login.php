@@ -11,7 +11,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
 
     public function __construct(){
         $objSession = Core_Classes_coreObj::getSession();
-
+        return;
         $this->onlineData = $objSession->getData();
     }
 
@@ -136,9 +136,9 @@ class Core_Classes_Login extends Core_Classes_coreObj {
                 $cookieArray['uData'] .= ':'.$this->userData['id']; //add the uid into the db
 
                 $query = $objSQL->queryBuilder()
-                                ->insertInto('#__userkeys')
-                                ->set( $cookieArray )
-                                ->build();
+                    ->insertInto('#__userkeys')
+                    ->set( $cookieArray )
+                    ->build();
 
                 $results = $objSQL->query( $query );
 
@@ -148,6 +148,21 @@ class Core_Classes_Login extends Core_Classes_coreObj {
 
         return true;
     }
+
+    /**
+     * Tests the remember me cookie for valid details
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     *
+     */
+    public function rememberMe() {
+        
+
+    }
+
 
     /**
      * Logs the user out

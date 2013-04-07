@@ -691,7 +691,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
      *
      * @return  bool
      */
-    public function toggle( $uid, $var, $state = null){
+    public function toggle( $uid, $var, $state = null ){
         $objSQL = Core_Classes_coreObj::getDBO();
 
         $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
@@ -703,7 +703,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
 
         // if we want to toggle it to a specific value then we need to set it
         } else {
-            $state = ($state === true ? '1' : '0');
+            $state = ( (bool)$state === true ? '1' : '0');
         }
 
         if( in_array( $var, $userColumnData ) ){

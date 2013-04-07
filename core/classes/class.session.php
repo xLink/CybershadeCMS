@@ -5,97 +5,185 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 /**
- *
+ * Session Class
  *
  * @version 1.0
  * @since   1.0.0
  * @author  Dan Aldridge
  *
+ * @todo    This Class is a direct port from the old 0.8 system, UPGRADE AT WILL >.<
+ *
  */
 class Core_Classes_Session extends Core_Classes_coreObj{
 
-    public $session_id = false;
-
     /**
-     * Checks whether the session is valid & present in db
+     * 
      *
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
      *
      */
-    public function __construct(){
+    public function __construct(){ }
 
-        //session_start();
 
-        $check = $this->checkValidSession();
-        if( $check === false ){
-            if( isset($_SESSION)){
-                $objSQL = Core_Classes_coreObj::getDBO();
+    /**
+     * 
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     * @param   string  $var       Parameter Description
+     *
+     */
+    public function trackerInit(){
+        
+        $update = false; $rmCookie = false; $logout = false; $action = null;
 
-                $query = $objSQL->queryBuilder()
-                    ->deleteFrom('#__sessions')
-                    ->where('sid', '=', md5( session_id() ) )
-                    ->build();
+        $objLogin = Core_Classes_coreObj::getLogin();
+        $objSQL   = Core_Classes_coreObj::getDBO();
+        $objUse   = Core_Classes_coreObj::getUser();
 
-                $objSQL->query( $query );
+        // if the user is logged in
+        if( Core_Classes_User::$IS_ONLINE ){
+            $action = 'check user key, and reset if needed';
+            if( is_empty( doArgs('userkey', null, $this->config('global', 'user')) ) ){
+                //$this->newKey();
             }
 
-            session_regenerate_id( true );
+            // force update
+            $update = true;
+        }else{
+            // check for remember me
+            if( !is_empty( doArgs('login', null, $_COOKIE) ) ){
 
-            /*$_SESSION = array();*/
-            $_SESSION['session_start']   = time();
-            $_SESSION['user']['userkey'] = md5( session_id() );
+                // try and remember who they are, this sometimes is hard, but we try anyway
+                if( !$objLogin->rememberMe() ){
+                    $action = 'remove remember me cookie';
+                    $rmCookie = true;
 
-            $this->newSession();
+                // you should be logged in now, so redirect 
+                }else{
+                    $action = 'remember me worked';
+
+                    $objPage->redirect('', 1);
+                    exit;
+                }
+
+            // no remember me found, lets treat them as a new guest
+            }else{
+
+                $online = $this->getData();
+                if( !is_array($online) ){
+                    $action = 'register new guest';
+                    $this->newSession();
+                }else{
+                    $action = 'update guest';
+                    $update = true;
+                }
+            }
+
         }
 
-        $this->session_gc();
+        if( $update === true ){
+
+            // we haven't got any data about this user, lets get some
+            if( !isset($online) ){
+                $online = $this->getData();
+            }
+
+            // perform an action based on the database switch
+            if( isset($online['mode']) ){
+                (LOCALHOST ? debugLog($online['mode'], 'mode') : '');
+                switch( strtolower($online['mode']) ){
+                    default:
+                    case 'active':
+                        $action = 'update user location';
+
+                        if( IS_ONLINE && $online['username'] == 'Guest' ){
+                            $query = $objSQL->queryBuilder->deleteFrom('#__sessions')->where('userkey', '=', $objUser->grab('userkey'));
+                            $objSQL->query( $query->build() );
+
+                            $this->newSession();
+                        }
+
+                        $this->updateTime();
+                    break;
+
+                    case 'kill':
+                        $action = 'kill user';
+
+                        // and log em out
+                        $logout = true;
+                    break;
+
+                    case 'ban':
+                        $action = 'ban user';
+
+                        // ban the user account if they are online
+                        if( IS_ONLINE ){
+                            $objUser->toggle( $objUser->grab('id'), 'ban', true );
+
+                        // ban the ip if they are a guest
+                        }else{
+                            // TODO: sort this out
+                            //$this->banIP( Core_Classes_User::getIP() );
+                        }
+
+                        $logout = true;
+                    break;
+
+                    case 'update':
+                        $action = 'update user info';
+                        //so we want to grab a new set of sessions
+                        if( IS_ONLINE ){
+                            $this->setSessions( $this->grab('id') );
+                        }
+                    break;
+                }   
+            }
+        }
+
+        (LOCALHOST ? debugLog($action, 'action') : '');
+        (LOCALHOST ? debugLog($update, 'update') : '');
+
+        return $this;
     }
 
     /**
-     * Has a 25% chance at running the query to remove the old/inactive sessions from the database.
+     * Sets the sessions for the user
      *
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
      *
-     */
-    public function session_gc(){
-        if( rand(1, 100) <= 25 ){
-            $objSQL = Core_Classes_coreObj::getDBO();
-
-            $query = $objSQL->queryBuilder()
-                ->deleteFrom('#__sessions')
-                ->where( sprintf('timestamp < %d', time()-((60*60)*20)) )
-                ->build();
-
-            $objSQL->query( $query );
-        }
-    }
-
-    /**
-     * Checks whether the session is valid & present in db
+     * @param   mixed  $uid         Username or ID
+     * @param   bool   $autoLogin   
      *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Dan Aldridge
-     *
+     * @return  bool
      */
-    public function checkValidSession(){
-        $session_id = session_id();
-
-        if( $session_id ){
-            $update = $this->updateTime();
-
-            if( $update === false ){
-                $this->setVar('session_id', '');
+    public function setSessions( $uid, $autoLogin=false ) {
+        
+        // grab the user info
+        $userInfo = $this->get( '*', $uid );
+            if( !is_array($userInfo) || empty($userInfo) ){
+                return false;
             }
 
-            return $update;
-        }
+        // grab the timestamp before we reset the session array
+        $timestamp = doArgs('last_active', time(), $_SESSION['user']);
 
-        return false;
+        $_SESSION['user'] = array();
+        $_SESSION['user'] = $userInfo;
+        $_SESSION['user']['last_active'] = $timestamp;
+
+        // if we are auto logging in, then update last_active
+        if( $autoLogin !== false ){
+            $update['last_active'] = time();
+            $objUser->update( $uid, $update );
+        }
+        return true;
     }
 
     /**
@@ -105,6 +193,7 @@ class Core_Classes_Session extends Core_Classes_coreObj{
      * @since   1.0.0
      * @author  Dan Aldridge
      *
+     * @return  bool
      */
     public function updateTime(){
 
@@ -125,6 +214,7 @@ class Core_Classes_Session extends Core_Classes_coreObj{
 
         return ($objSQL->affectedRows() ? true : false);
     }
+
 
     /**
      * Creates a new user session
@@ -176,7 +266,6 @@ class Core_Classes_Session extends Core_Classes_coreObj{
      */
     public function getData(){
         $objSQL = Core_Classes_coreObj::getDBO();
-        $objUser = Core_Classes_coreObj::getUser();
 
         $query = $objSQL->queryBuilder()
             ->select('*')
@@ -194,8 +283,6 @@ class Core_Classes_Session extends Core_Classes_coreObj{
 
         return false;
     }
-
-
 
     /**
      * Gets the form token for the session
