@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 23, 2013 at 12:54 AM
+-- Generation Time: Apr 07, 2013 at 05:09 AM
 -- Server version: 5.5.28a-MariaDB-a1~squeeze-log
 -- PHP Version: 5.3.19-1~dotdeb.0
 
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `cscms_article_content` (
 --
 
 INSERT INTO `cscms_article_content` (`id`, `uid`, `cat_id`, `title`, `post`, `posted`, `approved_by`, `views`) VALUES
-(1, 1, 1, 'Testing category index', 'Some really random shit here :)', 1363490365, 1, 0);
+(1, 1, 1, 'Testing category index', '[h3]Page1[/h3]\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Age sane, inquam. Verum tamen cum de rebus grandioribus dicas, ipsae res verba rapiunt; Quod ea non occurrentia fingunt, vincunt Aristonem; Duo Reges: constructio interrete. Memini me adesse P. Est autem etiam actio quaedam corporis, quae motus et status naturae congruentis tenet;\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page2[/h3]\r\n\r\nDempta enim aeternitate nihilo beatior Iuppiter quam Epicurus; Erat enim res aperta. Non quam nostram quidem, inquit Pomponius iocans; Si enim ita est, vide ne facinus facias, cum mori suadeas. Sed tu istuc dixti bene Latine, parum plane. Illa argumenta propria videamus, cur omnia sint paria peccata. Quam ob rem tandem, inquit, non satisfacit? Esse enim quam vellet iniquus iustus poterat inpune. Cui Tubuli nomen odio non est?\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page3[/h3]\r\n\r\nEarum etiam rerum, quas terra gignit, educatio quaedam et perfectio est non dissimilis animantium. Amicitiam autem adhibendam esse censent, quia sit ex eo genere, quae prosunt. Ut scias me intellegere, primum idem esse dico voluptatem, quod ille don. Neque solum ea communia, verum etiam paria esse dixerunt.\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page4[/h3]\r\n\r\nInde sermone vario sex illa a Dipylo stadia confecimus. Est enim effectrix multarum et magnarum voluptatum. Tria genera bonorum; Quo modo autem philosophus loquitur? At certe gravius. Non igitur potestis voluptate omnia dirigentes aut tueri aut retinere virtutem.\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page5[/h3]\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Summum ením bonum exposuit vacuitatem doloris; Est enim effectrix multarum et magnarum voluptatum. Apud ceteros autem philosophos, qui quaesivit aliquid, tacet; Duo Reges: constructio interrete. Cur deinde Metrodori liberos commendas? Qui autem esse poteris, nisi te amor ipse ceperit? Cui Tubuli nomen odio non est? Portenta haec esse dicit, neque ea ratione ullo modo posse vivi; Quis suae urbis conservatorem Codrum, quis Erechthei filias non maxime laudat? Quid est igitur, cur ita semper deum appellet Epicurus beatum et aeternum? \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page6[/h3]\r\n\r\nPhilosophi autem in suis lectulis plerumque moriuntur. Mihi, inquam, qui te id ipsum rogavi? Polemoni et iam ante Aristoteli ea prima visa sunt, quae paulo ante dixi. Summus dolor plures dies manere non potest? Si longus, levis. Quae autem natura suae primae institutionis oblita est? Easdemne res? Si quicquam extra virtutem habeatur in bonis. Ergo in gubernando nihil, in officio plurimum interest, quo in genere peccetur. Est enim tanti philosophi tamque nobilis audacter sua decreta defendere. \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page7[/h3]\r\n\r\nQuantum Aristoxeni ingenium consumptum videmus in musicis? Sed utrum hortandus es nobis, Luci, inquit, an etiam tua sponte propensus es? At, si voluptas esset bonum, desideraret. Quorum altera prosunt, nocent altera. Fatebuntur Stoici haec omnia dicta esse praeclare, neque eam causam Zenoni desciscendi fuisse. Quae si potest singula consolando levare, universa quo modo sustinebit? Apparet statim, quae sint officia, quae actiones. Tubulum fuisse, qua illum, cuius is condemnatus est rogatione, P. \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page8[/h3]\r\n\r\nEquidem e Cn. Hoc ipsum elegantius poni meliusque potuit. Aperiendum est igitur, quid sit voluptas; Quis non odit sordidos, vanos, leves, futtiles? \r\n[h3]Page1[/h3]\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Age sane, inquam. Verum tamen cum de rebus grandioribus dicas, ipsae res verba rapiunt; Quod ea non occurrentia fingunt, vincunt Aristonem; Duo Reges: constructio interrete. Memini me adesse P. Est autem etiam actio quaedam corporis, quae motus et status naturae congruentis tenet;\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page2[/h3]\r\n\r\nDempta enim aeternitate nihilo beatior Iuppiter quam Epicurus; Erat enim res aperta. Non quam nostram quidem, inquit Pomponius iocans; Si enim ita est, vide ne facinus facias, cum mori suadeas. Sed tu istuc dixti bene Latine, parum plane. Illa argumenta propria videamus, cur omnia sint paria peccata. Quam ob rem tandem, inquit, non satisfacit? Esse enim quam vellet iniquus iustus poterat inpune. Cui Tubuli nomen odio non est?\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page3[/h3]\r\n\r\nEarum etiam rerum, quas terra gignit, educatio quaedam et perfectio est non dissimilis animantium. Amicitiam autem adhibendam esse censent, quia sit ex eo genere, quae prosunt. Ut scias me intellegere, primum idem esse dico voluptatem, quod ille don. Neque solum ea communia, verum etiam paria esse dixerunt.\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page4[/h3]\r\n\r\nInde sermone vario sex illa a Dipylo stadia confecimus. Est enim effectrix multarum et magnarum voluptatum. Tria genera bonorum; Quo modo autem philosophus loquitur? At certe gravius. Non igitur potestis voluptate omnia dirigentes aut tueri aut retinere virtutem.\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page5[/h3]\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Summum ením bonum exposuit vacuitatem doloris; Est enim effectrix multarum et magnarum voluptatum. Apud ceteros autem philosophos, qui quaesivit aliquid, tacet; Duo Reges: constructio interrete. Cur deinde Metrodori liberos commendas? Qui autem esse poteris, nisi te amor ipse ceperit? Cui Tubuli nomen odio non est? Portenta haec esse dicit, neque ea ratione ullo modo posse vivi; Quis suae urbis conservatorem Codrum, quis Erechthei filias non maxime laudat? Quid est igitur, cur ita semper deum appellet Epicurus beatum et aeternum? \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page6[/h3]\r\n\r\nPhilosophi autem in suis lectulis plerumque moriuntur. Mihi, inquam, qui te id ipsum rogavi? Polemoni et iam ante Aristoteli ea prima visa sunt, quae paulo ante dixi. Summus dolor plures dies manere non potest? Si longus, levis. Quae autem natura suae primae institutionis oblita est? Easdemne res? Si quicquam extra virtutem habeatur in bonis. Ergo in gubernando nihil, in officio plurimum interest, quo in genere peccetur. Est enim tanti philosophi tamque nobilis audacter sua decreta defendere. \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page7[/h3]\r\n\r\nQuantum Aristoxeni ingenium consumptum videmus in musicis? Sed utrum hortandus es nobis, Luci, inquit, an etiam tua sponte propensus es? At, si voluptas esset bonum, desideraret. Quorum altera prosunt, nocent altera. Fatebuntur Stoici haec omnia dicta esse praeclare, neque eam causam Zenoni desciscendi fuisse. Quae si potest singula consolando levare, universa quo modo sustinebit? Apparet statim, quae sint officia, quae actiones. Tubulum fuisse, qua illum, cuius is condemnatus est rogatione, P. \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page8[/h3]\r\n\r\nEquidem e Cn. Hoc ipsum elegantius poni meliusque potuit. Aperiendum est igitur, quid sit voluptas; Quis non odit sordidos, vanos, leves, futtiles? \r\n', 1363490365, 1, 17);
 
 -- --------------------------------------------------------
 
@@ -145,14 +145,6 @@ INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
 (21, 'login', 'max_login_tries', '5', '5'),
 (22, 'login', 'remember_me', '1', '1'),
 (23, 'time', 'timezone', '0', '0');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `cscms_fforum_cats`
---
--- in use(#1146 - Table 'cscms.cscms_fforum_cats' doesn't exist)
--- Error reading data: (#1146 - Table 'cscms.cscms_fforum_cats' doesn't exist)
 
 -- --------------------------------------------------------
 
@@ -317,43 +309,47 @@ CREATE TABLE IF NOT EXISTS `cscms_menus` (
   `link_url` text,
   `link_title` varchar(50) DEFAULT NULL,
   `order` int(11) NOT NULL DEFAULT '0',
-  `color` varchar(20) DEFAULT NULL,
   `perms` int(1) NOT NULL DEFAULT '0',
   `external` int(1) NOT NULL DEFAULT '0',
   `parent_id` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=27 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=38 ;
 
 --
 -- Dumping data for table `cscms_menus`
 --
 
-INSERT INTO `cscms_menus` (`id`, `menu_name`, `link_url`, `link_title`, `order`, `color`, `perms`, `external`, `parent_id`) VALUES
-(1, 'menu_mm', '/', 'Site home', 1, NULL, 0, 0, 0),
-(2, 'menu_mm', '/admin/', 'Admin Panel', 10, '#FF0000', 3, 0, 0),
-(3, 'menu_mm', '/forum/', 'Forum', 2, NULL, 0, 0, 0),
-(5, 'menu_mm', '/messages/', 'Private Messages', 3, NULL, 1, 0, 0),
-(6, 'menu_mm', '/user/', 'User Control Panel', 4, NULL, 1, 0, 0),
-(7, 'menu_mm', '/mod/', 'Moderator Panel', 9, NULL, 3, 0, 0),
-(8, 'main_nav', '/', 'Site Home', 1, NULL, 0, 0, 0),
-(9, 'main_nav', '/profile/', 'Profile', 2, NULL, 1, 0, 0),
-(10, 'main_nav', '/forum/', 'Forum', 3, NULL, 0, 0, 0),
-(11, 'main_nav', '/articles/', 'Articles', 4, NULL, 0, 0, 0),
-(12, 'main_nav', '/codebase/', 'Codebase', 5, NULL, 0, 0, 0),
-(13, 'main_nav', '/pastebin/', 'PasteBin', 6, NULL, 0, 0, 0),
-(14, 'menu_nav', '/blog/', 'Blog', 7, NULL, 0, 0, 0),
-(15, 'admin_menu', '{ADMIN_ROOT}', 'Dashboard', 0, NULL, 1, 0, 0),
-(16, 'admin_menu', '#', 'System', 1, NULL, 0, 0, 0),
-(17, 'admin_menu', '{ADMIN_ROOT}core/siteconfig/', 'Site Configuration', 1, NULL, 0, 0, 16),
-(18, 'admin_menu', '{ADMIN_ROOT}core/menus/edit', 'Edit a Menu', 2, NULL, 0, 0, 24),
-(19, 'admin_menu', '#', 'Users', 3, NULL, 1, 0, 0),
-(20, 'admin_menu', '{ADMIN_ROOT}core/users/search', 'Search', 1, NULL, 1, 0, 19),
-(21, 'admin_menu', '{ADMIN_ROOT}core/users/manage', 'Manage User ', 2, NULL, 1, 0, 19),
-(22, 'admin_menu', '{ADMIN_ROOT}core/users/add', 'Add new User', 3, NULL, 1, 0, 19),
-(23, 'admin_menu', '{ADMIN_ROOT}core/systeminfo/', 'System Info', 10, NULL, 1, 0, 16),
-(24, 'admin_menu', '#', 'Menus', 2, NULL, 0, 0, 0),
-(25, 'admin_menu', '{ADMIN_ROOT}core/menus/add', 'Add a Menu', 1, NULL, 0, 0, 24),
-(26, 'admin_menu', '{ADMIN_ROOT}core/menus/newlink', 'New Link', 3, NULL, 0, 0, 24);
+INSERT INTO `cscms_menus` (`id`, `menu_name`, `link_url`, `link_title`, `order`, `perms`, `external`, `parent_id`) VALUES
+(1, 'menu_mm', '/', 'Site Home', 1, 0, 0, 0),
+(2, 'menu_mm', '/admin/', 'Admin Panel', 6, 3, 0, 0),
+(3, 'menu_mm', '/forum/', 'Forum', 2, 0, 0, 0),
+(5, 'menu_mm', '/messages/', 'Private Messages', 3, 1, 0, 0),
+(6, 'menu_mm', '/user/', 'User Control Panel', 4, 1, 0, 0),
+(7, 'menu_mm', '/mod/', 'Moderator Panel', 5, 3, 0, 0),
+(8, 'main_nav', '/', 'Site Home', 1, 0, 0, 0),
+(9, 'main_nav', '/profile/', 'Profile', 2, 1, 0, 0),
+(10, 'main_nav', '/forum/', 'Forum', 3, 0, 0, 0),
+(11, 'main_nav', '/articles/', 'Articles', 4, 0, 0, 0),
+(12, 'main_nav', '/codebase/', 'Codebase', 5, 0, 0, 0),
+(13, 'main_nav', '/pastebin/', 'PasteBin', 6, 0, 0, 0),
+(15, 'admin_menu', '{ADMIN_ROOT}', 'Dashboard', 1, 1, 0, 0),
+(16, 'admin_menu', '#', 'System', 2, 0, 0, 0),
+(17, 'admin_menu', '{ADMIN_ROOT}core/siteconfig/', 'Site Configuration', 1, 0, 0, 16),
+(18, 'admin_menu', '{ADMIN_ROOT}core/menus/edit', 'Edit a Menu', 2, 0, 0, 24),
+(19, 'admin_menu', '#', 'Users', 5, 1, 0, 0),
+(20, 'admin_menu', '{ADMIN_ROOT}core/users/search', 'Search', 1, 1, 0, 19),
+(21, 'admin_menu', '{ADMIN_ROOT}core/users/manage', 'Manage User ', 2, 1, 0, 19),
+(22, 'admin_menu', '{ADMIN_ROOT}core/users/add', 'Add new User', 3, 1, 0, 19),
+(23, 'admin_menu', '{ADMIN_ROOT}core/systeminfo/', 'System Info', 5, 1, 0, 16),
+(24, 'admin_menu', '#', 'Menus', 3, 0, 0, 0),
+(26, 'admin_menu', '{ADMIN_ROOT}core/menus/newlink', 'New Link', 1, 0, 0, 24),
+(31, 'admin_menu', '{ADMIN_ROOT}core/themes/', 'Themes', 3, 0, 0, 16),
+(32, 'admin_menu', '{ADMIN_ROOT}articles/', 'Article Manager', 6, 0, 1, 0),
+(33, 'admin_menu', '{ADMIN_ROOT}core/cache/', 'Cache Control', 2, 0, 1, 16),
+(34, 'admin_menu', '{ADMIN_ROOT}core/modules/', 'Module Manager', 4, 0, 1, 16),
+(35, 'admin_menu', '#', 'Content', 4, 0, 1, 0),
+(36, 'admin_menu', '{ADMIN_ROOT}pages/create', 'Add Page', 1, 0, 1, 35),
+(37, 'admin_menu', '{ADMIN_ROOT}pages/listPages', 'List Pages', 2, 0, 1, 35);
 
 -- --------------------------------------------------------
 
@@ -458,12 +454,12 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
 --
 
 INSERT INTO `cscms_sessions` (`uid`, `sid`, `hostname`, `timestamp`, `useragent`, `mode`, `admin`, `login_time`, `login_attempts`, `store`) VALUES
-(1, '2603ab25ecdc05f9e42caf6965a7cc5b', '86.8.3.164', 1363979039, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a333a7b733a31333a2273657373696f6e5f7374617274223b693a313336333937393033383b733a343a2275736572223b613a34363a7b733a373a22757365726b6579223b733a33323a223236303361623235656364633035663965343263616636393635613763633562223b733a393a2274696d657374616d70223b693a313336333937393831353b733a323a226964223b733a313a2231223b733a383a22757365726e616d65223b733a353a22784c696e6b223b733a383a2270617373776f7264223b733a33343a222a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a223b733a333a2270696e223b733a303a22223b733a31333a2272656769737465725f64617465223b733a31303a2231333339363736373935223b733a31313a226c6173745f616374697665223b693a313336333937313936323b733a383a2275736572636f6465223b733a363a22673664747774223b733a353a22656d61696c223b733a32303a22784c696e6b40637962657273686164652e6f7267223b733a31303a2273686f775f656d61696c223b733a313a2230223b733a363a22617661746172223b4e3b733a353a227469746c65223b4e3b733a383a226c616e6775616765223b733a323a22656e223b733a383a2274696d657a6f6e65223b733a333a22302e30223b733a353a227468656d65223b733a373a2264656661756c74223b733a363a2268696464656e223b733a313a2230223b733a363a22616374697665223b733a313a2231223b733a393a22757365726c6576656c223b733a313a2233223b733a363a2262616e6e6564223b733a313a2230223b733a31333a227072696d6172795f67726f7570223b733a313a2231223b733a31343a226c6f67696e5f617474656d707473223b733a313a2233223b733a31323a2270696e5f617474656d707473223b733a313a2230223b733a393a226175746f6c6f67696e223b733a313a2230223b733a31313a2272656666657265645f6279223b733a313a2230223b733a31353a2270617373776f72645f757064617465223b733a313a2230223b733a393a2277686974656c697374223b733a313a2230223b733a31353a2277686974656c69737465645f697073223b4e3b733a383a227761726e696e6773223b733a313a2230223b733a333a22756964223b733a313a2231223b733a383a226269727468646179223b733a31303a2232312f31322f31393930223b733a333a22736578223b733a313a2231223b733a31323a22636f6e746163745f696e666f223b4e3b733a353a2261626f7574223b4e3b733a393a22696e74657265737473223b4e3b733a393a227369676e6174757265223b4e3b733a393a22757365726e6f746573223b733a303a22223b733a31333a22616a61785f73657474696e6773223b4e3b733a32313a226e6f74696669636174696f6e5f73657474696e6773223b4e3b733a31353a22666f72756d5f73686f775f73696773223b733a313a2230223b733a31353a22666f72756d5f6175746f7761746368223b733a313a2230223b733a31363a22666f72756d5f717569636b7265706c79223b733a313a2230223b733a31353a22666f72756d5f6361745f6f72646572223b4e3b733a31333a22666f72756d5f747261636b6572223b733a3130363a22613a313a7b693a313b613a343a7b733a323a226964223b733a313a2231223b733a363a226361745f6964223b733a313a2232223b733a31313a226c6173745f706f73746572223b733a31303a2231333339363736373935223b733a343a2272656164223b623a303b7d7d223b733a31363a22706167696e6174696f6e5f7374796c65223b733a313a2231223b733a31383a2270617373776f72645f706c61696e74657874223b733a343a2274657374223b7d733a353a22746f6b656e223b733a33323a226333636466643737336235353736636263666335356531396162343335306639223b7d),
-(1, '41a07a2663223e8e0ec13965d7d4f20f', '86.9.255.55', 1363998694, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:19.0) Gecko/20100101 Firefox/19.0', 'active', 0, 0, 0, 0x613a333a7b733a31333a2273657373696f6e5f7374617274223b693a313336333939383639343b733a343a2275736572223b613a34363a7b733a373a22757365726b6579223b733a33323a223431613037613236363332323365386530656331333936356437643466323066223b733a393a2274696d657374616d70223b693a313336343030323138373b733a323a226964223b733a313a2231223b733a383a22757365726e616d65223b733a353a22784c696e6b223b733a383a2270617373776f7264223b733a33343a222a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a223b733a333a2270696e223b733a303a22223b733a31333a2272656769737465725f64617465223b733a31303a2231333339363736373935223b733a31313a226c6173745f616374697665223b693a313336333931373731313b733a383a2275736572636f6465223b733a363a22673664747774223b733a353a22656d61696c223b733a32303a22784c696e6b40637962657273686164652e6f7267223b733a31303a2273686f775f656d61696c223b733a313a2230223b733a363a22617661746172223b4e3b733a353a227469746c65223b4e3b733a383a226c616e6775616765223b733a323a22656e223b733a383a2274696d657a6f6e65223b733a333a22302e30223b733a353a227468656d65223b733a373a2264656661756c74223b733a363a2268696464656e223b733a313a2230223b733a363a22616374697665223b733a313a2231223b733a393a22757365726c6576656c223b733a313a2233223b733a363a2262616e6e6564223b733a313a2230223b733a31333a227072696d6172795f67726f7570223b733a313a2231223b733a31343a226c6f67696e5f617474656d707473223b733a313a2233223b733a31323a2270696e5f617474656d707473223b733a313a2230223b733a393a226175746f6c6f67696e223b733a313a2230223b733a31313a2272656666657265645f6279223b733a313a2230223b733a31353a2270617373776f72645f757064617465223b733a313a2230223b733a393a2277686974656c697374223b733a313a2230223b733a31353a2277686974656c69737465645f697073223b4e3b733a383a227761726e696e6773223b733a313a2230223b733a333a22756964223b733a313a2231223b733a383a226269727468646179223b733a31303a2232312f31322f31393930223b733a333a22736578223b733a313a2231223b733a31323a22636f6e746163745f696e666f223b4e3b733a353a2261626f7574223b4e3b733a393a22696e74657265737473223b4e3b733a393a227369676e6174757265223b4e3b733a393a22757365726e6f746573223b733a303a22223b733a31333a22616a61785f73657474696e6773223b4e3b733a32313a226e6f74696669636174696f6e5f73657474696e6773223b4e3b733a31353a22666f72756d5f73686f775f73696773223b733a313a2230223b733a31353a22666f72756d5f6175746f7761746368223b733a313a2230223b733a31363a22666f72756d5f717569636b7265706c79223b733a313a2230223b733a31353a22666f72756d5f6361745f6f72646572223b4e3b733a31333a22666f72756d5f747261636b6572223b733a3130363a22613a313a7b693a313b613a343a7b733a323a226964223b733a313a2231223b733a363a226361745f6964223b733a313a2232223b733a31313a226c6173745f706f73746572223b733a31303a2231333339363736373935223b733a343a2272656164223b623a303b7d7d223b733a31363a22706167696e6174696f6e5f7374796c65223b733a313a2231223b733a31383a2270617373776f72645f706c61696e74657874223b733a343a2274657374223b7d733a353a22746f6b656e223b733a33323a226366623439643135666231336539383233303066323938386637666531613539223b7d),
-(0, '49798e9a43fb786292120cbf2846eae7', '86.9.255.55', 1363988751, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.172 Safari/537.22', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333938383734323b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a223439373938653961343366623738363239323132306362663238343665616537223b7d7d),
-(0, '509aee2ea44cae767a643d5856056a77', '86.9.255.55', 1363974440, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:19.0) Gecko/20100101 Firefox/19.0', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333937343434303b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a223530396165653265613434636165373637613634336435383536303536613737223b7d7d),
-(0, '96b3d70a8205eacf5310ada460a14126', '86.9.255.55', 1363988751, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Brackets/0.21.0.0 Safari/537.1', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333938383735313b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a223936623364373061383230356561636635333130616461343630613134313236223b7d7d),
-(0, 'd3d6f2b030546990e33d853413861d83', '86.9.255.55', 1363963461, 'Mozilla/5.0 (Linux; U; Android 4.1.2; en-gb; HTC One X Build/JZO54K; CyanogenMod-10.0.0) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30', 'active', 0, 0, 0, 0x613a323a7b733a31333a2273657373696f6e5f7374617274223b693a313336333736333836363b733a343a2275736572223b613a313a7b733a373a22757365726b6579223b733a33323a226433643666326230333035343639393065333364383533343133383631643833223b7d7d);
+(0, '0fb687e7770cb9d023e969af315ceb60', '86.31.187.221', 1365308398, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, '35a22c9ae949ae0038f0c2dc61577bca', '86.31.187.221', 1365310908, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, '3bebfe51122b17101b98ba693dc08f98', '86.31.187.221', 1365308552, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, '6152799960f5ef3afccd7e9cf8049945', '86.31.187.221', 1365310865, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, 'a6398b2cd6685a56a58b9024d2eb78ec', '86.31.187.221', 1365310897, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, 'b2fc1bd4af0a7f175105dc3d28fb2551', '86.31.187.221', 1365303101, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a333a7b733a31333a2273657373696f6e5f7374617274223b693a313336353237313032393b733a343a2275736572223b613a323a7b733a373a22757365726b6579223b733a33323a226232666331626434616630613766313735313035646333643238666232353531223b733a393a2274696d657374616d70223b693a313336353237343632393b7d733a353a22746f6b656e223b733a33323a223764306365313961653430663962373639316538343632616232616233633839223b7d);
 
 -- --------------------------------------------------------
 
@@ -558,7 +554,7 @@ CREATE TABLE IF NOT EXISTS `cscms_users` (
 INSERT INTO `cscms_users` (`id`, `username`, `password`, `pin`, `register_date`, `last_active`, `usercode`, `email`, `show_email`, `avatar`, `title`, `language`, `timezone`, `theme`, `hidden`, `active`, `userlevel`, `banned`, `primary_group`, `login_attempts`, `pin_attempts`, `autologin`, `reffered_by`, `password_update`, `whitelist`, `whitelisted_ips`, `warnings`) VALUES
 (1, 'xLink', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwt', 'xLink@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 1, 3, 0, 0, 0, 0, 0, NULL, 0),
 (2, 'NoelDavies', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtws', 'Noeldavies@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 1, 0, 0, 1, 0, 0, 0, NULL, 0),
-(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 1, 0, 0, 1, 0, 0, 0, NULL, 0);
+(3, 'DarkMantis', '$J$BEEgzRTdNwdrKAkHPv0/GeAMGuJCv//', NULL, 1339676795, 1339676795, 'g6dtwq', 'DarkMantis@cybershade.org', 0, NULL, NULL, 'en', '0.0', 'default', 0, 1, 3, 0, 1, 0, 0, 0, 0, 0, 0, NULL, 0);
 
 -- --------------------------------------------------------
 

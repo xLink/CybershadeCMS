@@ -10,9 +10,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
     public $errors = array();
 
     public function __construct(){
-        $objSession = Core_Classes_coreObj::getSession();
-
-        $this->onlineData = $objSession->getData();
+        $this->onlineData = Core_Classes_coreObj::getSession()->getData();
     }
 
     /**
@@ -31,7 +29,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
             return false;
         }
 
-        $objUser = Core_Classes_coreObj::getUser();
+        $objUser    = Core_Classes_coreObj::getUser();
         $objPlugins = Core_Classes_coreObj::getPlugins();
         $objSession = Core_Classes_coreObj::getSession();
 
@@ -97,7 +95,9 @@ class Core_Classes_Login extends Core_Classes_coreObj {
         $uniqueKey = substr(md5($this->userData['id'].time()), 0, 5);
 
         // Add Hooks for Login Data
-        $this->userData['password_plaintext'] = $this->postData['password'];
+        
+        // wtf ?
+        //$this->userData['password_plaintext'] = $this->postData['password'];
 
         $objPlugins->hook( 'CMS_LOGIN_SUCCESS', $this->userData );
 
@@ -122,7 +122,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
         $_SESSION['user'] = (is_array($_SESSION['user']) && !is_empty($_SESSION['user']) ? array_merge($_SESSION['user'], $user) : $user);
 
         //make sure we want em to be able to auto login first
-        if( $this->config('login', 'remember_me') ){
+        if( $this->config('login', 'remember_me', 'false') ){
             if( doArgs('remember', false, $_POST) === '1' ){
                 $objUser->update( $this->userData['id'], array('autologin' => '1') );
 
@@ -136,9 +136,9 @@ class Core_Classes_Login extends Core_Classes_coreObj {
                 $cookieArray['uData'] .= ':'.$this->userData['id']; //add the uid into the db
 
                 $query = $objSQL->queryBuilder()
-                                ->insertInto('#__userkeys')
-                                ->set( $cookieArray )
-                                ->build();
+                    ->insertInto('#__userkeys')
+                    ->set( $cookieArray )
+                    ->build();
 
                 $results = $objSQL->query( $query );
 
@@ -150,6 +150,115 @@ class Core_Classes_Login extends Core_Classes_coreObj {
     }
 
     /**
+     * Tests the remember me cookie for valid details
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @todo Test this func, new port from old sys :P
+     */
+    public function rememberMe() {
+
+        // site setting needs to be enabled for one
+        if( $this->config('login', 'remember_me', 'false') ){
+            return false;
+        }
+
+        // make sure we have the cookie to begin with
+        if( is_empty(doArgs('login', null, $_COOKIE)) ){
+            return false;
+        }
+
+        // should be non-empty
+        $cookie = unserialize($_COOKIE['login']);
+            if( is_empty($cookie) ){
+                return false;
+            }
+
+        // check for the expected keys in the array
+        $values = array('uData', 'uIP', 'uAgent');
+        foreach($values as $v){
+            if( !isset($cookie[$v]) && !is_empty($cookie[$v]) ){
+                return false;
+            }
+        }
+
+        // uData should be 5 chars in length
+        if( strlen($cookie['uData']) != 5 ){
+            return false;
+        }
+
+        // IP lock active, does the IP match what we have on file? 
+        if( $this->config('login', 'ip_lock', false) && $cookie['uIP'] !== Core_Classes_User::getIP() ){
+            return false;
+        }
+
+        // make sure the useragent matches too
+        if( $cookie['uAgent'] != md5($_SERVER['HTTP_USER_AGENT'].$this->config('db', 'ckeauth')) ){
+            return false;
+        }
+
+        // query for the userkey
+        $objSQL = Core_Classes_coreObj::getDBO();
+
+        $query = $objSQL->queryBuilder()
+            ->select('uData')
+            ->from('#__userkeys')
+            ->where(sprintf( 'uData LIKE "%s"', '%'.secureMe($cookie['uData'], 'sql').'%' ))
+                ->andWhere('uAgent', '=', $objSQL->quote(secureMe($cookie['uAgent'], 'sql')) );
+
+        if( $this->config('login', 'ip_lock', false) ){
+            $query = $query->andWhere('uIP', '=', $objSQL->quote(secureMe($cookie['uIP'], 'sql')) );
+        }
+
+        $query = $query->limit(1);
+
+        // check to see if we have anything
+        $query = $objSQL->fetchRow( $query->build() );
+            if( $query === fales ){
+                return false;
+            }
+
+        // untangle the ID & check for it
+        $query['uData'] = explode(':', $query['uData']);
+            if( !isset($query['uData'][1]) || is_empty($query['uData'][1]) ){
+                return false;
+            }
+
+        // grab the user data if we can
+        $this->userData = $objUser->get( '*', $query['uData'][1] );
+            if( !is_array($this->userData) || is_empty($query['uData'][1]) ){
+                return false;
+            }
+
+        // now run some checks make sure they are able to login etc
+        if( !doArgs('autologin', false, $this->userData) ){
+            return false;
+        }
+
+        if( !$this->activeCheck() ){
+            return false;
+        }
+
+        if( !$this->banCheck() ){
+            return false;
+        }
+
+        if( !$this->whitelistCheck() ){
+            return false;
+        }
+
+        // everything seems fine, gogogo!
+        $objSessions = Core_Classes_coreObj::getSession();
+        $objSessions->setSessions( $this->userData['uid'], true );
+        $objSessions->newSession();
+
+        return true;
+    }
+
+
+    /**
      * Logs the user out
      *
      * @version 1.0
@@ -159,7 +268,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
      * @param   string $check    The user code to verify
      */
     public function logout($check){
-        $objSQL = Core_Classes_coreObj::getDBO();
+        $objSQL  = Core_Classes_coreObj::getDBO();
         $objUser = Core_Classes_coreObj::getUser();
         $objTime = Core_Classes_coreObj::getTime();
         $objPage = Core_Classes_coreObj::getPage();

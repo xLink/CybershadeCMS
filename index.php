@@ -22,7 +22,6 @@ $objPage->addBreadcrumbs(array(
 $objPage->tplGlobals();
 $objModule = $objRoute->processURL($_SERVER['QUERY_STRING']);
 
-$objPage->buildPage();
 $objPage->showHeader();
 
 if ( $objModule !== false ) {

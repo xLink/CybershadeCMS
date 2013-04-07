@@ -388,6 +388,7 @@ class Core_Classes_coreObj {
             if( class_exists($className) && !in_array($className, self::$coreMethods) ){
 
                 if( !isset(Core_Classes_coreObj::$_classes[$className]) ){
+                    //$className::getInstance($className, (is_array($args) && isset($args[1]) ? $args[1] : array()));
                     $className::getInstance($className, $args[1]);
                 }
 

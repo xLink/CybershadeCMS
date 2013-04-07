@@ -18,7 +18,9 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
     define('cmsROOT', (isset($cmsROOT) && !empty($cmsROOT) ? $cmsROOT : '')); unset($cmsROOT);
 
     //so we can turn errors off if we are not running locally
-    define('LOCALHOST', ( isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], array('localhost', '127.0.0.1', '::1')) ? true : false ));
+    $localhosts = array('localhost', '127.0.0.1', '::1', 'xlink.cybershade.org');
+    define('LOCALHOST', ( isset($_SERVER['HTTP_HOST']) && in_array( strtolower($_SERVER['HTTP_HOST']), $localhosts) ? true : false ));
+    unset($localhosts);
 
     if(!defined('cmsDEBUG')){
         if( LOCALHOST === true ) {

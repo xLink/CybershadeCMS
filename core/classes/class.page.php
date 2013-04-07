@@ -757,6 +757,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
                 'url'           => $this->config('global', 'url', 'false'),
                 'rootUrl'       => $this->config('global', 'rootUrl', 'false'),
                 'fullPath'      => $this->config('global', 'fullPath', 'false'),
+                'localhost'     => (LOCALHOST ? 'true' : 'false'),
 
                 'ROBOTS'        => 'INDEX, FOLLOW',
                 'GOOGLEBOT'     => 'INDEX, FOLLOW',
@@ -896,7 +897,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
     public function showHeader() {
         if ($this->getOptions('completed')) { return; }
 
-        $objTPL = self::getTPL();
+        $this->buildPage();
 
         // run a check on simple
         $simple = ($this->getOptions('mode') ? true : false);
@@ -904,6 +905,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
         // see if we are gonna get the simple one or the full blown one
         $header = ($simple ? 'simple_header.tpl' : 'site_header.tpl');
 
+        $objTPL = self::getTPL();
         $objTPL->set_filenames(array( 'siteHeader' => self::$THEME_ROOT . $header ));
 
         $this->buildBlocks();
