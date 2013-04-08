@@ -95,11 +95,10 @@ class Core_Classes_Login extends Core_Classes_coreObj {
         $uniqueKey = substr(md5($this->userData['id'].time()), 0, 5);
 
         // Add Hooks for Login Data
-        
-        // wtf ?
-        //$this->userData['password_plaintext'] = $this->postData['password'];
+        $this->userData['password_plaintext'] = $this->postData['password'];
 
         $objPlugins->hook( 'CMS_LOGIN_SUCCESS', $this->userData );
+        unset( $this->userData['password_plaintext'] );
 
         $objSQL = Core_Classes_coreObj::getDBO();
         $objTime = Core_Classes_coreObj::getTime();
