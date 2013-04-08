@@ -15,7 +15,7 @@ $objUser  = Core_Classes_coreObj::getUser();
 
 $objRoute->modifyGET($GET);
 
-if ( !IS_ONLINE || !IS_ADMIN ) {
+if ( !Core_Classes_User::$IS_ONLINE || !Core_Classes_User::$IS_ADMIN ) {
 
 	// Need to sort out login
     // $objRoute->throwHTTP(404);
