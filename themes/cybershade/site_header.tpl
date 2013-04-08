@@ -65,19 +65,18 @@
 
     <div class="row">
 
-
-    <aside class="span4">
-    <!-- BEGIN _CMSBLOCK -->
+        <aside class="span4">
+        <!-- BEGIN _CMSBLOCK -->
             <div class="row">
                 {_CMSBLOCK.LEFT_MENU}
             </div>
-    <!-- END _CMSBLOCK -->
-    </aside>
+        <!-- END _CMSBLOCK -->
+        </aside>
 
 
-    <!-- BEGIN menu -->
+        <!-- BEGIN menu -->
         <div id="pageContent" class="span8">
-    <!-- END menu -->
-    <!-- //BEGIN no_menu -->
+        <!-- END menu -->
+        <!-- //BEGIN no_menu -->
         <div id="pageContent" class="span12">
-    <!-- //END no_menu -->
+        <!-- //END no_menu -->

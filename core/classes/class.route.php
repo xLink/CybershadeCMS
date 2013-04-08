@@ -291,7 +291,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         $method = $route['arguments']['method'];
 
         // Check the class and subsequent method are callable, else trigger an error
-        if ( !is_callable( array( $module, $method ) ) ) {
+        if ( class_exists( $module ) === false || is_callable( array( $module, $method ) ) === false ) {
             trigger_error( 'The module or method you are trying to call, dosen\'t exist.' );
             $a = array('module' => $module, 'method' => $method);
             echo dump($a, 'You are trying to call..');
@@ -302,7 +302,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         $_module = str_replace('Modules_', '', $module);
         $path = cmsROOT.'themes/%1$s/override/modules/%2$s/%3$s/class.%3$s.php';
 
-        if( is_readable( sprintf($path, $objUser->grab('theme'), $_module, $method) ) ){
+        if( is_readable( sprintf($path, $objUser->grab('theme'), $_module, $method) ) === true ){
 
             $overrideClass = 'Override_Modules_'.$_module.'_'.$method;
             $getMethod = new ReflectionMethod( $overrideClass, $method );
@@ -481,7 +481,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         $objCache = Core_Classes_coreObj::getCache();
         $query    = $objSQL->queryBuilder();
 
-        if( is_bool( $status ) !== true ) {
+        if( is_bool( $status ) !== null ) {
             $update['status'] = 'IF(status=1, 0, 1)';
         } else {
             $update['status'] = ( $status === true ? '1' : '0' );

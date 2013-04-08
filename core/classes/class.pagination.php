@@ -149,7 +149,6 @@ class Core_Classes_Pagination extends Core_Classes_coreObj {
         $pages = $this->{'paginationStyle'.$switch}( $options['controls'] );
         $pages = ( isset($pages) ? $pages : array() );
 
-
         // setup the output
         $objTPL->assign_block_vars('pagination', array( 'TYPE' => $options['type'] ));
         foreach($pages as $page){
