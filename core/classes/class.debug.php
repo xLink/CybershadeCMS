@@ -187,7 +187,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         }
 
         $output = null;
-        $debug = memoryUsage('OUTPUT!');
+        $debug = memoryUsage('System: OUTPUT!');
 
         $output .= '<table class="table table-bordered"><thead>';
             $output .= sprintf('<th>%s</th>', 'Execution <br />Time');
