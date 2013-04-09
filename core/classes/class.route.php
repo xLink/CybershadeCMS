@@ -168,11 +168,16 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         // Collect all the replacement 'variables' from the route structure into an array
         $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
 
+        // replacements == orig array 
+        $this->replacements = $matches[1];
+
+        // but actually replace the bigger keys first
         usort($matches[1], function($a, $b) {
             return strlen($b) - strlen($a);
         });
 
-        $this->replacements = $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
+
+        $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
         // Loop through our replacements (if there are any),
         //  In the matching, if there is a requirement set, use that,
@@ -228,7 +233,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
         // If the route matches the URL, we've got a winner!
         if( preg_match( '#^' . $pattern . '$#', $url, $matches ) ) {
-            // Remove the URL from the paramaters
+            // Remove the URL from the parameters
             unset( $matches[0] );
             $matches = array_values( $matches );
             $params  = array();
