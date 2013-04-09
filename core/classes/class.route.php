@@ -169,13 +169,12 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
 
         // replacements == orig array 
-        $this->replacements = $matches[1];
+        $this->replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
         // but actually replace the bigger keys first
         usort($matches[1], function($a, $b) {
             return strlen($b) - strlen($a);
         });
-
 
         $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
@@ -241,6 +240,14 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             // Make sure our key/index array is sorted properly
             foreach( $matches as $index => $value ) {
                 $params[ $this->replacements[$index] ] = $value;
+            }
+
+            // make sure we got all our required values
+            foreach( $route['requirements'] as $key => $value){
+                if( !isset($params[$key]) ){
+                    trigger_error(sprintf('The Requirement on the route `%s` wasn\'t matched for param `%s`', $route['label'], $key));
+                    return false;
+                }
             }
 
             // replace get params with what we have here & whats in the URL...
