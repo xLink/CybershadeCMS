@@ -970,12 +970,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $objPage = Core_Classes_coreObj::getPage();
 
         //if(!is_object($objTPL) || !is_object($objPage)){ echo $message; exit; }
-        $header = $objPage->getOptions('completed');
-        if(!$header){
-            $objPage->buildPage();
-
-            $objPage->showHeader();
-        }
 
         $objTPL->set_filenames(array(
             '__msgBody' => cmsROOT.'modules/core/views/module/message/default.tpl'
@@ -1027,7 +1021,10 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         //     $doSimple = true;
         // }
 
-        $objPage->showHeader();
+        $header = $objPage->getOptions('completed');
+        if(!$header){
+            $objPage->showHeader();
+        }
         msgDie($type, $msg, '', '', '');
     }
 
