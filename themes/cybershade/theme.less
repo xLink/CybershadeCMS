@@ -288,6 +288,57 @@ body{
         background-color: #1e1e1e;
         background-image: url('assets/images/pattern.png');
         background-repeat: repeat;
+
+        margin: 0 auto;
+        padding-bottom: 10px;
+
+        .widget {
+            margin-top: 20px;
+            text-align: left;
+
+            h4{
+                margin-top: 20px;
+                font-size: 14px;
+                color: #fff;
+                text-transform: uppercase;
+                text-shadow: 0 1px 0 rgba(255,255,255,.7);
+            }
+
+            p{
+                line-height: 24px;
+                color: #808080;
+            }
+
+            i{
+                padding-right: 7px;
+            }
+
+        }
+        div{
+            &.footer-border{
+                margin-top: 30px;
+                border-top: 1px dashed #ddd;
+            }
+            &.copyright{
+                margin-top: 15px;
+                text-align: left;
+            }
+            &.social{
+                margin-top: 10px;
+                text-align: right;
+
+                a{
+                    display: inline-block; 
+                    width: 24px; 
+                    height: 24px; 
+                    margin: 0 0 0 8px; 
+                    vertical-align: middle;
+
+                    &:hover { background-position: left top; }
+                }
+            }
+            
+        }
     }
 
 }
