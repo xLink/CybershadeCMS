@@ -40,11 +40,9 @@
             </div>
             <!-- END _field -->
         <!-- END _form_row -->
-        <div class="control-group">
             <div class="form-actions">
                 {FORM_SUBMIT} {FORM_RESET}
             </div>
-        </div>
     </fieldset>
 {FORM_END}
 </section>

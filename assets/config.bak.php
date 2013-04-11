@@ -6,11 +6,10 @@ if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
 
 //some db settings and the like etc
     $config['db']['driver']        = 'mysqli';
-    #$config['db']['driver']        = 'mysql';
     $config['db']['host']          = 'localhost';
-    $config['db']['username']      = 'root';
+    $config['db']['username']      = '';
     $config['db']['password']      = '';
-    $config['db']['database']      = 'cscms';
+    $config['db']['database']      = '';
     $config['db']['port']          = '3306';
     $config['db']['prefix']        = 'cscms_';
 //the cookie prefix
@@ -26,7 +25,7 @@ if(!defined('INDEX_CHECK')){die('Error: Cannot access directly.');}
     $config['cms']['name']         = 'Cybershade CMS';
     $config['cms']['version']      = 'N/A';
     $config['site']['title']       = 'Cybershade CMS';
-    $config['site']['theme']       = 'cybershade';
+    $config['site']['theme']       = 'default';
     $config['site']['language']    = 'en';
 
 ?>

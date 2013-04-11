@@ -932,7 +932,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
 
         (cmsDEBUG ? memoryUsage('System: Finished Loading.') : '');
 
-        if ( defined('cmsDEBUG') && cmsDEBUG === true ) {
+        if ( defined('cmsDEBUG') && cmsDEBUG === true && (LOCALHOST || Core_Classes_User::$IS_ADMIN) ) {
 
             $objDebug = Core_Classes_coreObj::getDebug();
             $objTPL->assign_block_vars('debug', array(

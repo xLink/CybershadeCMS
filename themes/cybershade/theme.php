@@ -34,6 +34,10 @@ if(false){
     ));
 }
 
+$objPage->addJSFile(array(
+    'src' => '/'.root().self::$THEME_ROOT.'extras.js',
+    'priority' => HIGH
+), 'footer');
 
 
 ?>

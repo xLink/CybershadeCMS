@@ -1,4 +1,4 @@
-<div class="modal" style="position: absolute;">
+<div class="modal inline">
     <div class="modal-header">
         <h3>{L_MSG_TYPE}</h3>
     </div>

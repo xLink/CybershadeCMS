@@ -72,7 +72,6 @@ ul, ul ul {
     div#debug-tabs > ul{
         border: none;
         margin: 0 0 0 3px;
-        display: inline-block;
     }
     div#debug-tabs > li{
         margin-bottom: 0;

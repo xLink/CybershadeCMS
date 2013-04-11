@@ -51,13 +51,11 @@ class Core_Classes_Session extends Core_Classes_coreObj{
     }
 
     /**
-     * 
+     * Determines the users state & updates / init's new sessions as needed
      *
      * @version 1.0
      * @since   1.0
      * @author  Dan Aldridge
-     *
-     * @param   string  $var       Parameter Description
      *
      */
     public function trackerInit(){
@@ -124,7 +122,7 @@ class Core_Classes_Session extends Core_Classes_coreObj{
                     case 'active':
                         $action = 'update user location';
 
-                        if( IS_ONLINE && $online['username'] == 'Guest' ){
+                        if( Core_Classes_User::$IS_ONLINE && $online['username'] == 'Guest' ){
                             $query = $objSQL->queryBuilder->deleteFrom('#__sessions')->where('userkey', '=', $objUser->grab('userkey'));
                             $objSQL->query( $query->build() );
 

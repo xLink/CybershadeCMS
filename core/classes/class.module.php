@@ -149,6 +149,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
             'Method Args'   => $args,
         );
         trigger_error('Error: Module dosen\'t exist.'.dump($debug));
+        return false;
     }
 
 

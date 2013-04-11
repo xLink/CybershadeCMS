@@ -187,7 +187,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         }
 
         $output = null;
-        $debug = memoryUsage('OUTPUT!');
+        $debug = memoryUsage('System: OUTPUT!');
 
         $output .= '<table class="table table-bordered"><thead>';
             $output .= sprintf('<th>%s</th>', 'Execution <br />Time');
@@ -497,24 +497,20 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
      * @return      array
      */
     public function getOtherTab(){
-
-        $count = 0;
         $content = null;
 
         $cache = $this->getInitdCaches(true);
         if( is_array($cache) && !is_empty($cache) ){
-            $count += $cache['count'];
-            $content .= dump($cache['content'], 'Cache\'s in use');
+            $content .= $cache['content'];
         }
 
         $cache = $this->getAvailableHooks(true);
         if( is_array($cache) && !is_empty($cache) ){
-            $count += $cache['count'];
-            $content .= dump($cache['content'], 'Hooks avaliable on this page');
+            $content .= $cache['content'];
         }
 
 
-        return array('count' => $count, 'content' => $content );
+        return array('count' => 0, 'content' => $content );
     }
 
         /**
@@ -529,9 +525,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
          * @return      array
          */
         public function getInitdCaches( $output = false ) {
-            if( $output !== true ) {
-                return '';
-            }
+            if( $output !== true ) { return ''; }
 
             $output   = '';
             $objCache = Core_Classes_coreObj::getCache();
@@ -542,7 +536,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
             );
 
 
-            return array('count' => count($output), 'content' => $output );
+            return array('count' => 0, 'content' => dump($output, 'Cache File\'s in use') );
         }
 
         /**
@@ -557,14 +551,12 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
          * @return      array
          */
         public function getAvailableHooks( $output = false ) {
-            if( $output !== true ) {
-                return '';
-            }
+            if( $output !== true ) { return ''; }
 
             $objPlugin = Core_Classes_coreObj::getPlugins();
             $hooks = $objPlugin->getAvailableHooks();
 
-            return array('count' => count($hooks), 'content' => $hooks );
+            return array('count' => 0, 'content' => dump($hooks, 'Hooks available on this page') );
         }
 
 /**
@@ -646,7 +638,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
 
         $tab = $this->getOtherTab(true);
         $debugTabs['other']     = array(
-            'title'     => sprintf('Others <div class="label label-info">%s</div>', $tab['count']),
+            'title'     => sprintf('Others', $tab['count']),
             'content'   => $tab['content'],
         );
 

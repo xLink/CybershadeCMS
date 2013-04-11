@@ -168,11 +168,15 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         // Collect all the replacement 'variables' from the route structure into an array
         $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
 
+        // replacements == orig array 
+        $this->replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
+
+        // but actually replace the bigger keys first
         usort($matches[1], function($a, $b) {
             return strlen($b) - strlen($a);
         });
 
-        $this->replacements = $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
+        $replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
         // Loop through our replacements (if there are any),
         //  In the matching, if there is a requirement set, use that,
@@ -228,7 +232,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
         // If the route matches the URL, we've got a winner!
         if( preg_match( '#^' . $pattern . '$#', $url, $matches ) ) {
-            // Remove the URL from the paramaters
+            // Remove the URL from the parameters
             unset( $matches[0] );
             $matches = array_values( $matches );
             $params  = array();
@@ -236,6 +240,14 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             // Make sure our key/index array is sorted properly
             foreach( $matches as $index => $value ) {
                 $params[ $this->replacements[$index] ] = $value;
+            }
+
+            // make sure we got all our required values
+            foreach( $route['requirements'] as $key => $value){
+                if( !isset($params[$key]) ){
+                    trigger_error(sprintf('The Requirement on the route `%s` wasn\'t matched for param `%s`', $route['label'], $key));
+                    return false;
+                }
             }
 
             // replace get params with what we have here & whats in the URL...
@@ -291,7 +303,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         $method = $route['arguments']['method'];
 
         // Check the class and subsequent method are callable, else trigger an error
-        if ( !is_callable( array( $module, $method ) ) ) {
+        if ( class_exists( $module ) === false || is_callable( array( $module, $method ) ) === false ) {
             trigger_error( 'The module or method you are trying to call, dosen\'t exist.' );
             $a = array('module' => $module, 'method' => $method);
             echo dump($a, 'You are trying to call..');
@@ -302,7 +314,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         $_module = str_replace('Modules_', '', $module);
         $path = cmsROOT.'themes/%1$s/override/modules/%2$s/%3$s/class.%3$s.php';
 
-        if( is_readable( sprintf($path, $objUser->grab('theme'), $_module, $method) ) ){
+        if( is_readable( sprintf($path, $objUser->grab('theme'), $_module, $method) ) === true ){
 
             $overrideClass = 'Override_Modules_'.$_module.'_'.$method;
             $getMethod = new ReflectionMethod( $overrideClass, $method );
@@ -352,7 +364,11 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         ));
         $refMethod->invokeArgs( $objModule , $args );
 
-        Core_Classes_coreObj::getPage()->setVar('contents', ob_get_clean() );
+        $objPage = Core_Classes_coreObj::getPage();
+
+        $objPage->addMeta(array( 'name' => 'module', 'content' => $module ));
+        $objPage->addMeta(array( 'name' => 'method', 'content' => $method ));
+        $objPage->setVar('contents', ob_get_clean() );
 
         return $objModule;
     }
@@ -477,7 +493,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         $objCache = Core_Classes_coreObj::getCache();
         $query    = $objSQL->queryBuilder();
 
-        if( is_bool( $status ) !== true ) {
+        if( is_bool( $status ) !== null ) {
             $update['status'] = 'IF(status=1, 0, 1)';
         } else {
             $update['status'] = ( $status === true ? '1' : '0' );
