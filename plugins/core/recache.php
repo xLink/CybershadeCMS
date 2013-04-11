@@ -12,4 +12,5 @@ function recache(){
 }
 
 $this->addHook('CMS_PRE_SETUP_COMPLETE', 'recache');
+
 ?>
