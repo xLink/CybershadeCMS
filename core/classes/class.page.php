@@ -891,7 +891,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
             );
         }
 
-        Core_Classes_coreObj::getPlugins()->hook('CMS_PAGE_TPL_GLOBALS', $tplGlobals);
+        Core_Classes_coreObj::getPlugins()->hook('CMS_PAGE_TPL_GLOBALS', &$tplGlobals);
 
         Core_Classes_coreObj::getTPL()->assign_vars($tplGlobals);
     }
