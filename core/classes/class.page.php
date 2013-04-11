@@ -176,10 +176,12 @@ class Core_Classes_Page extends Core_Classes_coreObj {
         $objUser = Core_Classes_coreObj::getUser();
 
         // if nothing was passed in, grab the current site theme
-        if (is_empty($theme)) {
+        if ( is_empty($theme) ) {
             $theme = $this->config('site', 'theme');
         }
-        $override = ($this->config('site', 'theme_override', 'false') === 'true' || $override !== true);
+        if( $override === false ){
+            $override = $this->config('site', 'theme_override', 'false');
+        }
 
         // if the user is online, then check if the theme they selected is valid & gogo use that
         if( $override === true
@@ -191,7 +193,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
         }
 
         // test for the theme override switch, if this is true, everyone see's the same theme
-        if ( is_empty($theme) || $override ) {
+        if ( is_empty($theme) || $override === true ) {
             $theme = $this->config('site', 'theme');
             if (!is_dir(cmsROOT.'themes/'.$theme.'/') || !is_readable(cmsROOT.'themes/'.$theme.'/details.php')) {
                 $theme = 'default';
