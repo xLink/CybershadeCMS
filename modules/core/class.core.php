@@ -13,11 +13,7 @@ class Modules_core extends Core_Classes_Module{
     }
 
     public function viewIndex(){
-        $this->setView('module/viewIndex/default.tpl');
-
-        $objUser = Core_Classes_User::$IS_ONLINE;
-        echo dump($objUser, 'Logged in?');
-
+        $this->setView('bootstrap_kitchensink.tpl');
 
 
     }
