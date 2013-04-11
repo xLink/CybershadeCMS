@@ -819,7 +819,7 @@ Modal = new Class({
             var href = this.selector.get('href');
 
             // If href does not start with a selector for ID or class, assume remote.
-            if (href[0] != '#' || '.') {
+            if (href[0] != '#' && '.') {
                 this.options.remote = href;
                 this.selector.set('href', null);
             } else {
@@ -861,7 +861,7 @@ Modal = new Class({
         e = new Event.Mock(this.element, 'show');
         this.element.fireEvent('show', e);
 
-        if (this.isShown || e.isDefaultPrevented()) {
+        if (this.isShown || e.defaultPrevented) {
             return;
         }
 
@@ -927,7 +927,7 @@ Modal = new Class({
         e = new Event.Mock(this.element, 'hide');
         this.element.fireEvent('hide', e);
 
-        if (!this.isShown || e.isDefaultPrevented()) {
+        if (!this.isShown || e.defaultPrevented) {
             return;
         }
 
