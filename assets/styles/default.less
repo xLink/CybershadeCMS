@@ -81,13 +81,6 @@ div.bbcode_code {
     }
 }
 
-/** Message Boxes **/
-div.modal.inline{
-    position: inherit;
-    left: 0;
-    top: 0;
-    margin: 0 auto;
-}
 
 /** Comments **/
 section#comments{}
@@ -109,6 +102,19 @@ section#comments{}
 div#spinner_ { display:none; }
 
 
+/** BootStrap Overrides **/
+form{ margin: 0; }
+ 
+.form-actions{
+    margin-bottom: 0;
+}
+
+div.modal.inline{
+    position: inherit;
+    left: 0;
+    top: 0;
+    margin: 0 auto;
+}
 
 /** Fix the bootstrap border thing on mobile devices **/
 @media (max-width: 767px) {
