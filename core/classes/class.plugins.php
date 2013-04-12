@@ -14,6 +14,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Core_Classes_Plugins extends Core_Classes_coreObj{
     private $dontExec       = false,
             $hooks          = array(),
+            $result         = array(),
             $availableHooks = array();
 
     /**
@@ -101,7 +102,6 @@ class Core_Classes_Plugins extends Core_Classes_coreObj{
         switch( $option ){
             case 'run':
                 $hooks = $this->hooks;
-                $result = array();
                 $func = '';
 
                 // make sure we have something to run with
@@ -134,30 +134,35 @@ class Core_Classes_Plugins extends Core_Classes_coreObj{
                         // make sure we can call it still
                         if( is_callable( $function ) ){ 
 
-                            // if class, then reflect method, else just reflect function
-                            if( is_array($function) && count($function) > 1 ){
-                                $ref = new ReflectionMethod( $function[0], $function[1] );
-                            }else{
-                                $ref = new ReflectionFunction( $function );
-                            }
-
-                            // grab a list of arguments
-                            $vars = array();
-                            $params = $ref->getParameters();
-                            foreach( $params as $k => $name ) {
-                                // and then check if we have to throw the var at them as a reference
-                                if( $name->isPassedByReference() ){
-                                    $vars[$k] = &$args[$k];
+                            if( !is_object($function) ){
+                                // if class, then reflect method, else just reflect function
+                                if( is_array($function) && count($function) > 1 ){
+                                    $ref = new ReflectionMethod( $function[0], $function[1] );
                                 }else{
-                                    $vars[$k] = $args[$k];
+                                    $ref = new ReflectionFunction( $function );
                                 }
-                            }
 
-                            // invoke the args and continue
-                            if( is_array($function) && count($function) > 1 ){
-                                $return = $ref->invokeArgs( new $function[0], $vars );
+                                // grab a list of arguments
+                                $vars = array();
+                                $params = $ref->getParameters();
+                                foreach( $params as $k => $name ) {
+                                    // and then check if we have to throw the var at them as a reference
+                                    if( $name->isPassedByReference() ){
+                                        $vars[$k] = &$args[$k];
+                                    }else{
+                                        $vars[$k] = $args[$k];
+                                    }
+                                }
+
+                                // invoke the args and continue
+                                if( is_array($function) && count($function) > 1 ){
+                                    $return = $ref->invokeArgs( new $function[0], $vars );
+                                }else{
+                                    $return = $ref->invokeArgs( $vars );
+                                }
+                                
                             }else{
-                                $return = $ref->invokeArgs( $vars );
+
                             }
    
                         }
@@ -168,12 +173,12 @@ class Core_Classes_Plugins extends Core_Classes_coreObj{
                         }
 
                         // assign it to the array and continue
-                        $result[$hook][$prio][$func] = $return;
+                        $this->result[$hook][] = $return;
                         next($hooks[$hook][$prio]);
                      }
                 }
-                if( isset($func) && isset( $result[$hook][$priority][$func] ) ) {
-                    return $result[$hook][$priority][$func];
+                if( isset($func) && isset( $this->result[$hook] ) ) {
+                    return $this->result[$hook];
                 }
             break;
 

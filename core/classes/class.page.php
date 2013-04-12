@@ -891,7 +891,12 @@ class Core_Classes_Page extends Core_Classes_coreObj {
             );
         }
 
-        Core_Classes_coreObj::getPlugins()->hook('CMS_PAGE_TPL_GLOBALS', &$tplGlobals);
+        $moreTPL = Core_Classes_coreObj::getPlugins()->hook('CMS_PAGE_TPL_GLOBALS');
+        if( is_array($moreTPL) && count($moreTPL) > 1 ){
+            foreach($moreTPL as $vars){
+                $tplGlobals = array_merge($tplGlobals, $vars);
+            }
+        }
 
         Core_Classes_coreObj::getTPL()->assign_vars($tplGlobals);
     }
