@@ -16,7 +16,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
     /**
      * Starts a new form off
      *
-     * @version     1.0
+     * @version     1.1
      * @since       1.0.0
      * @author      Dan Aldridge
      *
@@ -39,6 +39,10 @@ class Core_Classes_Form extends Core_Classes_coreObj {
         if( $this->config('global', 'browser') == 'Chrome' ){
             $args['autocomplete'] = false;
         }
+
+        // setup a hook for the args
+        $params = array( &$args );
+        Core_Classes_coreObj::getPlugins()->hook('CMS_FORM_START_ARGS', $params);
 
         return sprintf('<form name="%1$s" id="%1$s"%2$s>',
             $name,
@@ -72,7 +76,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
     /**
      * Mould for the input tag, this supports a fair amount of tags
      *
-     * @version     1.2
+     * @version     1.3
      * @since       1.0.0
      * @author      Dan Aldridge
      *
@@ -149,7 +153,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
     /**
      * Output a textarea input box
      *
-     * @version     1.2
+     * @version     1.3
      * @since       1.0.0
      * @author      Dan Aldridge
      *
@@ -204,7 +208,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
     /**
      * Output a submit or reset button
      *
-     * @version     1.2
+     * @version     1.3
      * @since       1.0.0
      * @author      Dan Aldridge
      *
@@ -250,6 +254,10 @@ class Core_Classes_Form extends Core_Classes_coreObj {
         $args['showLabels'] = doArgs('showLabels',    true,   $args);
         $args['showValue']  = doArgs('showValue',     true,   $args);
 
+        // setup a hook for the args
+        $params = array( &$args );
+        Core_Classes_coreObj::getPlugins()->hook('CMS_FORM_RADIO_ARGS', $params);
+
         $return   = null;
         $inputVal = '<input type="radio" name="%1$s" id="%2$s"%3$s/>'."\n";
         $count    = 0;
@@ -291,6 +299,10 @@ class Core_Classes_Form extends Core_Classes_coreObj {
     public function checkbox($name='check', $value='', $checked=false, $args=array()){
         $args['checked'] = filter_var($checked, FILTER_VALIDATE_BOOLEAN);
 
+        // setup a hook for the args
+        $params = array( &$args );
+        Core_Classes_coreObj::getPlugins()->hook('CMS_FORM_CHECKBOX_ARGS', $params);
+
         return self::inputbox($name, 'checkbox', $value, $args);
     }
 
@@ -328,14 +340,9 @@ class Core_Classes_Form extends Core_Classes_coreObj {
             $args['extra'] .= ' multiple="multiple"';
         }
 
-        if(defined('CSCMS')){
-            //add support for Chosen
-            $args['extra'] .= ' data-search="'.($args['search']===true ? 'true' : 'false').'"';
-
-            if($args['fancy']){
-                $args['class'] .= 'chzn-select';
-            }
-        }
+        // setup a hook for the args
+        $params = array( &$args );
+        Core_Classes_coreObj::getPlugins()->hook('CMS_FORM_SELECT_ARGS', $params);
 
         $extra    = $args['extra'];
         $selected = $args['selected'];
