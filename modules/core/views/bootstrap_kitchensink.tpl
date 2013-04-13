@@ -29,7 +29,7 @@
 ================================================== -->
 <section id="typography">
   <div class="page-header">
-    <h1>Typography</h1>
+    <h3>Typography</h3>
   </div>
 
   <!-- Headings & Paragraph Copy -->
@@ -90,7 +90,7 @@
 ================================================== -->
 <section id="navbar">
   <div class="page-header">
-    <h1>Navbars</h1>
+    <h3>Navbars</h3>
   </div>
   <div class="navbar">
     <div class="navbar-inner">
@@ -100,21 +100,21 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </a>
-        <a class="brand" href="#">Project name</a>
+        <a class="brand">Project name</a>
         <div class="nav-collapse">
           <ul class="nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
+            <li class="active"><a>Home</a></li>
+            <li><a>Link</a></li>
+            <li><a>Link</a></li>
+            <li><a>Link</a></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+              <a class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
+                <li><a>Action</a></li>
+                <li><a>Another action</a></li>
+                <li><a>Something else here</a></li>
                 <li class="divider"></li>
-                <li><a href="#">Separated link</a></li>
+                <li><a>Separated link</a></li>
               </ul>
             </li>
           </ul>
@@ -122,16 +122,16 @@
             <input type="text" class="search-query span2" placeholder="Search">
           </form>
           <ul class="nav pull-right">
-            <li><a href="#">Link</a></li>
+            <li><a>Link</a></li>
             <li class="divider-vertical"></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+              <a class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
+                <li><a>Action</a></li>
+                <li><a>Another action</a></li>
+                <li><a>Something else here</a></li>
                 <li class="divider"></li>
-                <li><a href="#">Separated link</a></li>
+                <li><a>Separated link</a></li>
               </ul>
             </li>
           </ul>
@@ -148,21 +148,21 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </a>
-        <a class="brand" href="#">Project name</a>
+        <a class="brand">Project name</a>
         <div class="nav-collapse">
           <ul class="nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
+            <li class="active"><a>Home</a></li>
+            <li><a>Link</a></li>
+            <li><a>Link</a></li>
+            <li><a>Link</a></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+              <a class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
+                <li><a>Action</a></li>
+                <li><a>Another action</a></li>
+                <li><a>Something else here</a></li>
                 <li class="divider"></li>
-                <li><a href="#">Separated link</a></li>
+                <li><a>Separated link</a></li>
               </ul>
             </li>
           </ul>
@@ -170,16 +170,16 @@
             <input type="text" class="search-query span2" placeholder="Search">
           </form>
           <ul class="nav pull-right">
-            <li><a href="#">Link</a></li>
+            <li><a>Link</a></li>
             <li class="divider-vertical"></li>
             <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+              <a class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="#">Action</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
+                <li><a>Action</a></li>
+                <li><a>Another action</a></li>
+                <li><a>Something else here</a></li>
                 <li class="divider"></li>
-                <li><a href="#">Separated link</a></li>
+                <li><a>Separated link</a></li>
               </ul>
             </li>
           </ul>
@@ -196,7 +196,7 @@
 ================================================== -->
 <section id="buttons">
   <div class="page-header">
-    <h1>Buttons</h1>
+    <h3>Buttons</h3>
   </div>
   <table class="table table-bordered table-striped">
     <thead>
@@ -211,141 +211,141 @@
     </thead>
     <tbody>
       <tr>
-        <td><a class="btn" href="#">Default</a></td>
-        <td><a class="btn btn-large" href="#">Default</a></td>
-        <td><a class="btn btn-small" href="#">Default</a></td>
-        <td><a class="btn disabled" href="#">Default</a></td>
-        <td><a class="btn" href="#"><i class="icon-cog"></i> Default</a></td>
+        <td><a class="btn">Default</a></td>
+        <td><a class="btn btn-large">Default</a></td>
+        <td><a class="btn btn-small">Default</a></td>
+        <td><a class="btn disabled">Default</a></td>
+        <td><a class="btn"><i class="icon-cog"></i> Default</a></td>
     <td>
           <div class="btn-group">
-            <a class="btn" href="#">Default</a>
-            <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+            <a class="btn">Default</a>
+            <a class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="#">Action</a></li>
-              <li><a href="#">Another action</a></li>
-              <li><a href="#">Something else here</a></li>
+              <li><a>Action</a></li>
+              <li><a>Another action</a></li>
+              <li><a>Something else here</a></li>
               <li class="divider"></li>
-              <li><a href="#">Separated link</a></li>
+              <li><a>Separated link</a></li>
             </ul>
           </div><!-- /btn-group -->
     </td>
       </tr>
       <tr>
-        <td><a class="btn btn-primary" href="#">Primary</a></td>
-        <td><a class="btn btn-primary btn-large" href="#">Primary</a></td>
-        <td><a class="btn btn-primary btn-small" href="#">Primary</a></td>
-        <td><a class="btn btn-primary disabled" href="#">Primary</a></td>
-        <td><a class="btn btn-primary" href="#"><i class="icon-shopping-cart icon-white"></i> Primary</a></td>
+        <td><a class="btn btn-primary">Primary</a></td>
+        <td><a class="btn btn-primary btn-large">Primary</a></td>
+        <td><a class="btn btn-primary btn-small">Primary</a></td>
+        <td><a class="btn btn-primary disabled">Primary</a></td>
+        <td><a class="btn btn-primary"><i class="icon-shopping-cart icon-white"></i> Primary</a></td>
     <td>
           <div class="btn-group">
-            <a class="btn btn-primary" href="#">Primary</a>
-            <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+            <a class="btn btn-primary">Primary</a>
+            <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="#">Action</a></li>
-              <li><a href="#">Another action</a></li>
-              <li><a href="#">Something else here</a></li>
+              <li><a>Action</a></li>
+              <li><a>Another action</a></li>
+              <li><a>Something else here</a></li>
               <li class="divider"></li>
-              <li><a href="#">Separated link</a></li>
+              <li><a>Separated link</a></li>
             </ul>
           </div><!-- /btn-group -->
     </td>
       </tr>
       <tr>
-        <td><a class="btn btn-info" href="#">Info</a></td>
-        <td><a class="btn btn-info btn-large" href="#">Info</a></td>
-        <td><a class="btn btn-info btn-small" href="#">Info</a></td>
-        <td><a class="btn btn-info disabled" href="#">Info</a></td>
-        <td><a class="btn btn-info" href="#"><i class="icon-exclamation-sign icon-white"></i> Info</a></td>
+        <td><a class="btn btn-info">Info</a></td>
+        <td><a class="btn btn-info btn-large">Info</a></td>
+        <td><a class="btn btn-info btn-small">Info</a></td>
+        <td><a class="btn btn-info disabled">Info</a></td>
+        <td><a class="btn btn-info"><i class="icon-exclamation-sign icon-white"></i> Info</a></td>
     <td>
           <div class="btn-group">
-            <a class="btn btn-info" href="#">Info</a>
-            <a class="btn btn-info dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+            <a class="btn btn-info">Info</a>
+            <a class="btn btn-info dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="#">Action</a></li>
-              <li><a href="#">Another action</a></li>
-              <li><a href="#">Something else here</a></li>
+              <li><a>Action</a></li>
+              <li><a>Another action</a></li>
+              <li><a>Something else here</a></li>
               <li class="divider"></li>
-              <li><a href="#">Separated link</a></li>
+              <li><a>Separated link</a></li>
             </ul>
           </div><!-- /btn-group -->
     </td>
       </tr>
       <tr>
-        <td><a class="btn btn-success" href="#">Success</a></td>
-        <td><a class="btn btn-success btn-large" href="#">Success</a></td>
-        <td><a class="btn btn-success btn-small" href="#">Success</a></td>
-        <td><a class="btn btn-success disabled" href="#">Success</a></td>
-        <td><a class="btn btn-success" href="#"><i class="icon-ok icon-white"></i> Success</a></td>
+        <td><a class="btn btn-success">Success</a></td>
+        <td><a class="btn btn-success btn-large">Success</a></td>
+        <td><a class="btn btn-success btn-small">Success</a></td>
+        <td><a class="btn btn-success disabled">Success</a></td>
+        <td><a class="btn btn-success"><i class="icon-ok icon-white"></i> Success</a></td>
     <td>
           <div class="btn-group">
-            <a class="btn btn-success" href="#">Success</a>
-            <a class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+            <a class="btn btn-success">Success</a>
+            <a class="btn btn-success dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="#">Action</a></li>
-              <li><a href="#">Another action</a></li>
-              <li><a href="#">Something else here</a></li>
+              <li><a>Action</a></li>
+              <li><a>Another action</a></li>
+              <li><a>Something else here</a></li>
               <li class="divider"></li>
-              <li><a href="#">Separated link</a></li>
+              <li><a>Separated link</a></li>
             </ul>
           </div><!-- /btn-group -->
     </td>
       </tr>
       <tr>
-        <td><a class="btn btn-warning" href="#">Warning</a></td>
-        <td><a class="btn btn-warning btn-large" href="#">Warning</a></td>
-        <td><a class="btn btn-warning btn-small" href="#">Warning</a></td>
-        <td><a class="btn btn-warning disabled" href="#">Warning</a></td>
-        <td><a class="btn btn-warning" href="#"><i class="icon-warning-sign icon-white"></i> Warning</a></td>
+        <td><a class="btn btn-warning">Warning</a></td>
+        <td><a class="btn btn-warning btn-large">Warning</a></td>
+        <td><a class="btn btn-warning btn-small">Warning</a></td>
+        <td><a class="btn btn-warning disabled">Warning</a></td>
+        <td><a class="btn btn-warning"><i class="icon-warning-sign icon-white"></i> Warning</a></td>
     <td>
           <div class="btn-group">
-            <a class="btn btn-warning" href="#">Warning</a>
-            <a class="btn btn-warning dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+            <a class="btn btn-warning">Warning</a>
+            <a class="btn btn-warning dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="#">Action</a></li>
-              <li><a href="#">Another action</a></li>
-              <li><a href="#">Something else here</a></li>
+              <li><a>Action</a></li>
+              <li><a>Another action</a></li>
+              <li><a>Something else here</a></li>
               <li class="divider"></li>
-              <li><a href="#">Separated link</a></li>
+              <li><a>Separated link</a></li>
             </ul>
           </div><!-- /btn-group -->
     </td>
       </tr>
       <tr>
-        <td><a class="btn btn-danger" href="#">Danger</a></td>
-        <td><a class="btn btn-danger btn-large" href="#">Danger</a></td>
-        <td><a class="btn btn-danger btn-small" href="#">Danger</a></td>
-        <td><a class="btn btn-danger disabled" href="#">Danger</a></td>
-        <td><a class="btn btn-danger" href="#"><i class="icon-remove icon-white"></i> Danger</a></td>
+        <td><a class="btn btn-danger">Danger</a></td>
+        <td><a class="btn btn-danger btn-large">Danger</a></td>
+        <td><a class="btn btn-danger btn-small">Danger</a></td>
+        <td><a class="btn btn-danger disabled">Danger</a></td>
+        <td><a class="btn btn-danger"><i class="icon-remove icon-white"></i> Danger</a></td>
     <td>
           <div class="btn-group">
-            <a class="btn btn-danger" href="#">Danger</a>
-            <a class="btn btn-danger dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+            <a class="btn btn-danger">Danger</a>
+            <a class="btn btn-danger dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="#">Action</a></li>
-              <li><a href="#">Another action</a></li>
-              <li><a href="#">Something else here</a></li>
+              <li><a>Action</a></li>
+              <li><a>Another action</a></li>
+              <li><a>Something else here</a></li>
               <li class="divider"></li>
-              <li><a href="#">Separated link</a></li>
+              <li><a>Separated link</a></li>
             </ul>
           </div><!-- /btn-group -->
     </td>
       </tr>
       <tr>
-        <td><a class="btn btn-inverse" href="#">Inverse</a></td>
-        <td><a class="btn btn-inverse btn-large" href="#">Inverse</a></td>
-        <td><a class="btn btn-inverse btn-small" href="#">Inverse</a></td>
-        <td><a class="btn btn-inverse disabled" href="#">Inverse</a></td>
-        <td><a class="btn btn-inverse" href="#"><i class="icon-random icon-white"></i> Inverse</a></td>
+        <td><a class="btn btn-inverse">Inverse</a></td>
+        <td><a class="btn btn-inverse btn-large">Inverse</a></td>
+        <td><a class="btn btn-inverse btn-small">Inverse</a></td>
+        <td><a class="btn btn-inverse disabled">Inverse</a></td>
+        <td><a class="btn btn-inverse"><i class="icon-random icon-white"></i> Inverse</a></td>
     <td>
           <div class="btn-group">
-            <a class="btn btn-inverse" href="#">Inverse</a>
-            <a class="btn btn-inverse dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+            <a class="btn btn-inverse">Inverse</a>
+            <a class="btn btn-inverse dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="#">Action</a></li>
-              <li><a href="#">Another action</a></li>
-              <li><a href="#">Something else here</a></li>
+              <li><a>Action</a></li>
+              <li><a>Another action</a></li>
+              <li><a>Something else here</a></li>
               <li class="divider"></li>
-              <li><a href="#">Separated link</a></li>
+              <li><a>Separated link</a></li>
             </ul>
           </div><!-- /btn-group -->
     </td>
@@ -360,7 +360,7 @@
 ================================================== -->
 <section id="forms">
   <div class="page-header">
-    <h1>Forms</h1>
+    <h3>Forms</h3>
   </div>
 
   <div class="row">
@@ -509,7 +509,7 @@
 ================================================== -->
 <section id="tables">
   <div class="page-header">
-    <h1>Tables</h1>
+    <h3>Tables</h3>
   </div>
   
   <table class="table table-bordered table-striped table-hover">
@@ -549,7 +549,7 @@
 ================================================== -->
 <section id="miscellaneous">
   <div class="page-header">
-    <h1>Miscellaneous</h1>
+    <h3>Miscellaneous</h3>
   </div>
 
   <div class="row">
@@ -560,8 +560,8 @@
         <li class="active">Home</li>
       </ul>
       <ul class="breadcrumb">
-        <li><a href="#">Home</a> <span class="divider">/</span></li>
-        <li><a href="#">Library</a> <span class="divider">/</span></li>
+        <li><a>Home</a> <span class="divider">/</span></li>
+        <li><a>Library</a> <span class="divider">/</span></li>
         <li class="active">Data</li>
       </ul>
     </div>
@@ -569,20 +569,20 @@
       <h3 id="pagination">Pagination</h3>
       <div class="pagination">
         <ul>
-          <li><a href="#">&larr;</a></li>
-          <li class="active"><a href="#">10</a></li>
-          <li class="disabled"><a href="#">...</a></li>
-          <li><a href="#">20</a></li>
-          <li><a href="#">&rarr;</a></li>
+          <li><a>&larr;</a></li>
+          <li class="active"><a>10</a></li>
+          <li class="disabled"><a>...</a></li>
+          <li><a>20</a></li>
+          <li><a>&rarr;</a></li>
         </ul>
       </div>
       <div class="pagination pagination-centered">
         <ul>
-          <li class="active"><a href="#">1</a></li>
-          <li><a href="#">2</a></li>
-          <li><a href="#">3</a></li>
-          <li><a href="#">4</a></li>
-          <li><a href="#">5</a></li>
+          <li class="active"><a>1</a></li>
+          <li><a>2</a></li>
+          <li><a>3</a></li>
+          <li><a>4</a></li>
+          <li><a>5</a></li>
         </ul>
       </div>
     </div>
@@ -591,13 +591,13 @@
       <h3 id="pager">Pagers</h3>
         
         <ul class="pager">
-          <li><a href="#">Previous</a></li>
-          <li><a href="#">Next</a></li>
+          <li><a>Previous</a></li>
+          <li><a>Next</a></li>
         </ul>
         
         <ul class="pager">
-          <li class="previous disabled"><a href="#">&larr; Older</a></li>
-          <li class="next"><a href="#">Newer &rarr;</a></li>
+          <li class="previous disabled"><a>&larr; Older</a></li>
+          <li class="next"><a>Newer &rarr;</a></li>
         </ul>
     </div>
   </div>
@@ -633,19 +633,19 @@
     <div class="span4">
       <h3 id="pills">Pills</h3>
       <ul class="nav nav-pills">
-        <li class="active"><a href="#">Home</a></li>
-        <li><a href="#">Profile</a></li>
+        <li class="active"><a>Home</a></li>
+        <li><a>Profile</a></li>
         <li class="dropdown">
-          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Dropdown <b class="caret"></b></a>
+          <a class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
           <ul class="dropdown-menu">
-            <li><a href="#">Action</a></li>
-            <li><a href="#">Another action</a></li>
-            <li><a href="#">Something else here</a></li>
+            <li><a>Action</a></li>
+            <li><a>Another action</a></li>
+            <li><a>Something else here</a></li>
             <li class="divider"></li>
-            <li><a href="#">Separated link</a></li>
+            <li><a>Separated link</a></li>
           </ul>
         </li>
-        <li class="disabled"><a href="#">Disabled link</a></li>
+        <li class="disabled"><a>Disabled link</a></li>
       </ul>
     </div>
     
@@ -656,14 +656,14 @@
       <div class="well" style="padding: 8px 0;">
         <ul class="nav nav-list">
           <li class="nav-header">List header</li>
-          <li class="active"><a href="#">Home</a></li>
-          <li><a href="#">Library</a></li>
-          <li><a href="#">Applications</a></li>
+          <li class="active"><a>Home</a></li>
+          <li><a>Library</a></li>
+          <li><a>Applications</a></li>
           <li class="nav-header">Another list header</li>
-          <li><a href="#">Profile</a></li>
-          <li><a href="#">Settings</a></li>
+          <li><a>Profile</a></li>
+          <li><a>Settings</a></li>
           <li class="divider"></li>
-          <li><a href="#">Help</a></li>
+          <li><a>Help</a></li>
         </ul>
       </div>
     </div>

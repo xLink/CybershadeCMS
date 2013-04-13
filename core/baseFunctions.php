@@ -445,6 +445,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         if(!isset($LANG_LOAD)){
             $LANG_LOAD = true;
         }
+        $file = strtolower($file);
 
         $return = false;
         if( is_file($file) && is_readable($file) ){
