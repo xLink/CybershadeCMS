@@ -11,7 +11,7 @@
 ## Dependencies (included in this project)
 
 ### CSS
-- [Twitter Bootstrap 2.3.0](http://twitter.github.com/bootstrap/)
+- [Twitter Bootstrap 2.3.1](http://twitter.github.com/bootstrap/)
 - [Font Awesome 3.0](http://fortawesome.github.com/Font-Awesome/)
 
 ### Javascript
