@@ -283,11 +283,12 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
                 'ICON'    => 'icon-th-list',
             ),
             'custom' => array(
-                'ICON' => 'icon-save',
-                'URL'   => '#',
-                'TITLE' => 'Save the menu structure',
-                'LINK'  => '',
-                'CLASS' => '',
+                'ICON'   => 'icon-save',
+                'URL'    => '#',
+                'TITLE'  => 'Save',
+                'LINK'   => '',
+                'CLASS'  => '',
+                'EXTRA'  => 'data-toggle="tooltip" data-placement="top"',
             ),
         ));
 
