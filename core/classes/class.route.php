@@ -258,7 +258,12 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             $params['_all'] = $params;
 
             // Add a hook for the params
-            $objPlugin->hook('CMS_ROUTE_PARAMS', &$params);
+            $pluginExtras = $objPlugin->hook('CMS_ROUTE_PARAMS', $params);
+                if( is_array($pluginExtras) && count($pluginExtras) > 1 ){
+                    foreach($pluginExtras as $extra){
+                        $params = array_merge($params, $extra);
+                    }
+                }
 
             // merge the arguments & the params and then invoke the route
             $route['arguments'] = array_merge( (array) $route['arguments'], $params);

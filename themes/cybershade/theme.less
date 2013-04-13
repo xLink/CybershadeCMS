@@ -171,7 +171,7 @@ body{
         min-height: 700px;
         margin-bottom: 20px;
 
-        > div{
+         > div{
             header{
                 .box-shadow(0 4px 2px rgba(0, 0, 0, 0.2));
                 .border-radius(5px);
@@ -203,79 +203,18 @@ body{
             }
 
             section{
-                .clearfix();
-                background: white;
-                min-height: 50px;
-                padding: 5px;
-                border: 1px solid #b7b7b7;
-                .border-radius(5px);
-                .box-shadow(0 4px 2px rgba(0, 0, 0, 0.2));
-
-                &.no-padding{
-                    padding: 5px 0;
-                }
-            }
-
-            > aside{
-                float: left !important;
-
-                div.menu{
-                    padding: 0;
-                    margin-top: 10px;
-
-                    header{
+                div{
+                    &.page-header{
 
                     }
 
-                    section{
-
-                        header{
-                            margin: 0;
-                            padding: 8px;
-                            .box-shadow(none);
-                            .border-radius(5px);
-
-                        }
-                    }
-
-                }
-            }
-
-            > div#pageContent{
-                float: right;
-
-
-                > section{
-                    padding: 0;
-
-                    > header{
-                        color: black;
-
-                        .box-shadow(none);
-                        .border-radius(0);
-                        .border-top-radius(5px);
-                        margin: 0;
-                        padding: 10px;
-
-                        top: 1px;
-                        border-top: 1px solid #ffffff;
-                        border-bottom: 1px solid #b7b7b7;
-
-                        #gradient > .horizontal(#d4d6d9, #d3d5d8);
-                        background-color: #1E1E1E;
-
-                        ul.nav{
-                            margin: 0;
-                            padding: 0;
-
-                            li{
-
-                            }
-                        }
-                    }
-
-                    > article{
-                        padding: 2px;
+                    &.row{
+                        .clearfix();
+                        background: white;
+                        min-height: 50px;
+                        .border-radius(5px);
+                        .box-shadow(0 4px 2px rgba(0, 0, 0, 0.2));
+                        margin: 20px 0 0 -30px;
                     }
                 }
             }

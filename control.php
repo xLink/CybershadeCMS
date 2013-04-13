@@ -30,7 +30,7 @@ $objPage->addBreadcrumbs(array(
 
 $objPage->setTitle('Cybershade CMS Administration Panel');
 
-// grab the nav and throw the baic tpl setups together
+// grab the nav and throw the baSic tpl setups together
 $objAdmin->getNav();
 $objPage->tplGlobals();
 
