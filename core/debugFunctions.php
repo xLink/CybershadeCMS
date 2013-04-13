@@ -188,9 +188,11 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      */
     function getExecInfo($info = null, $nl = '<br />') {
         $a = debug_backtrace();
+        $a = array_slice($a, 2);
 
         $msg = array();
         $x = 0;
+
         foreach($a as $key => $file) {
             $msg[] = outputDebug($file, ($x==0 ? $info : null), $nl);
             $x++;
@@ -219,23 +221,22 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
         }
 
         $title         = ( $info !== null                                          ? '<strong>['.$info.']</strong> <br />'          : null );
-        $args          = ( isset( $file['args'] ) && !is_empty( $file['args'] )    ? '<pre>'.print_r($file['args'], true).'</pre>'   : null );
+        //$args          = ( isset( $file['args'] ) && !is_empty( $file['args'] )    ? '<pre>'.print_r($file['args'], true).'</pre>'  : null );
+        $args          = null;
         $line          = ( isset( $file['line'] )                                  ? $file['line']                                  : '<i>Line Number Unknown</i>' );
         $function      = ( isset( $file['function'] )                              ? $file['function']                              : '<i>Function Name Unknown</i>' );
         $filename      = ( isset($filename) && isset( $filenameIndex, $filename )  ? $filename[$filenameIndex]                      : '<i>Filename Unknown</i>' );
 
-        $msg = '%s Called on line <strong>%s</strong> of file <strong>%s</strong> via function <strong>%s</strong> with arguments (\'%s\')%s';
+        $msg = '%s Called on line <strong>%s</strong> of file <strong>%s</strong> via function <strong>%s</strong>';
 
         $msg = sprintf( $msg,
             $title,
             $line,
             $filename,
-            $function,
-            $args,
-            $nl
+            $function
         );
 
-        return $msg;
+        return dump($file['args'], $msg);
     }
 
 

@@ -242,6 +242,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
             }
         }
 
+        $language = strtolower( $language );
         if ( is_dir($langDir . $language . '/') || is_readable($langDir . $language . '/main.php') ) {
             translateFile($langDir . $language . '/main.php');
         } else {
