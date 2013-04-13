@@ -243,17 +243,14 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      * @return      string
      */
     public function radio($name='radio', $values=array(), $defaultSetting=null, $args=array()){
-        $args = array(
-            'id'         => doArgs('id',            $name,  $args),
-            'class'      => doArgs('class',         null,   $args),
-            'style'      => doArgs('style',         null,   $args),
-            'disabled'   => doArgs('disabled',      false,  $args),
-            'br'         => doArgs('br',            false,  $args),
-            'xssFilter'  => doArgs('xssFilter',     true,   $args),
-            'showLabels' => doArgs('showLabels',    true,   $args),
-
-            'showValue'  => doArgs('showValue',     true,   $args),
-        );
+        $args['id']         = doArgs('id',            $name,  $args);
+        $args['class']      = doArgs('class',         null,   $args);
+        $args['style']      = doArgs('style',         null,   $args);
+        $args['disabled']   = doArgs('disabled',      false,  $args);
+        $args['br']         = doArgs('br',            false,  $args);
+        $args['xssFilter']  = doArgs('xssFilter',     true,   $args);
+        $args['showLabels'] = doArgs('showLabels',    true,   $args);
+        $args['showValue']  = doArgs('showValue',     true,   $args);
 
         $return   = null;
         $inputVal = '<input type="radio" name="%1$s" id="%2$s"%3$s/>'."\n";
@@ -313,21 +310,19 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      * @return      string
      */
     public function select($name, $options, $args=array()){
-        $args = array(
-            'id'        => doArgs('id',         $name,  $args),
-            'selected'  => doArgs('selected',   null,   $args),
-            'noKeys'    => doArgs('noKeys',     false,  $args),
-            'multi'     => doArgs('multi',      false,  $args),
-            'search'    => doArgs('search',     false,  $args),
+        $args['id']        = doArgs('id',         $name,  $args);
+        $args['selected']  = doArgs('selected',   null,   $args);
+        $args['noKeys']    = doArgs('noKeys',     false,  $args);
+        $args['multi']     = doArgs('multi',      false,  $args);
+        $args['search']    = doArgs('search',     false,  $args);
 
-            'class'     => doArgs('class',      null,   $args),
-            'disabled'  => doArgs('disabled',   false,  $args),
-            'style'     => doArgs('style',      null,   $args),
-            'extra'     => doArgs('extra',      null,   $args),
-            'opt_extra' => doArgs('opt_extra',  null,   $args),
-            'xssFilter' => doArgs('xssFilter',  true,   $args),
-            'fancy'     => doArgs('fancy',      true,   $args),
-        );
+        $args['class']     = doArgs('class',      null,   $args);
+        $args['disabled']  = doArgs('disabled',   false,  $args);
+        $args['style']     = doArgs('style',      null,   $args);
+        $args['extra']     = doArgs('extra',      null,   $args);
+        $args['opt_extra'] = doArgs('opt_extra',  null,   $args);
+        $args['xssFilter'] = doArgs('xssFilter',  true,   $args);
+        $args['fancy']     = doArgs('fancy',      true,   $args);
 
         //added support for multiple selections
         if($args['multi'] === true){
