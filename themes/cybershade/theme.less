@@ -203,18 +203,25 @@ body{
             }
 
             section{
+                .clearfix();
+                background: #E0E0E0;
+                min-height: 50px;
+                .box-shadow(0 4px 2px rgba(0, 0, 0, 0.2));
+                margin: 20px -1px;
+                border: 1px solid #33AFFF;
+
                 div{
                     &.page-header{
-
+                        border-bottom: 1px solid #A0A0A0;
+                        margin: 0 0 30px;
+                        //background-color: #EBEAEA;
+                        .navGradient();
+                        color: #FFFFFF;
+                        text-shadow: 0 1px 3px #2C2C2C;
+                        padding: 5px 5px 5px 30px;
                     }
 
-                    &.row{
-                        .clearfix();
-                        background: white;
-                        min-height: 50px;
-                        .border-radius(5px);
-                        .box-shadow(0 4px 2px rgba(0, 0, 0, 0.2));
-                        margin: 20px 0 0 -30px;
+                    &[class*="span"]{
                     }
                 }
             }
@@ -298,6 +305,10 @@ body{
 
 .breadcrumb{
     margin: 10px 0 20px;
+}
+
+.well{
+    background-color: #EBEAEA;
 }
 
 .navGradient(){
