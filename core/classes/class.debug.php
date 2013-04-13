@@ -643,7 +643,12 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         );
 
         // Allow developers to hook into the debug bar
-        $objPlugin->hook('CMS_DEBUGBAR_TABS', &$debugTabs);
+        $extraTabs = $objPlugin->hook('CMS_DEBUGBAR_TABS');
+            if( is_array($extraTabs) && count($extraTabs) > 1 ){
+                foreach($extraTabs as $tab){
+                    $debugTabs = array_merge($debugTabs, $tab);
+                }
+            }
 
         $counter = 0;
         foreach( $debugTabs as $k => $tab ) {
