@@ -190,21 +190,38 @@
 
 </section>
 
-
-
 <!-- ToolTips
 ================================================== -->
 <section id="buttons">
   <div class="page-header">
-    <h3>ToolTips</h3>
+    <h3>ToolTips & PopOvers</h3>
   </div>
 
-  <ul class="nav nav-pills">
+  <ul class="nav nav-tabs">
     <li><a title="" data-placement="top" data-toggle="tooltip" href="#" data-original-title="Tooltip on top">Tooltip on top</a></li>
     <li><a title="" data-placement="right" data-toggle="tooltip" href="#" data-original-title="Tooltip on right">Tooltip on right</a></li>
     <li><a title="" data-placement="bottom" data-toggle="tooltip" href="#" data-original-title="Tooltip on bottom">Tooltip on bottom</a></li>
     <li><a title="" data-placement="left" data-toggle="tooltip" href="#" data-original-title="Tooltip on left">Tooltip on left</a></li>
   </ul>
+
+  <ul class="nav nav-tabs">
+    <li><a title="" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus." data-placement="top" data-toggle="popover" class="btn" data-original-title="Popover on top">Popover on top</a></li>
+    <li><a title="" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus." data-placement="right" data-toggle="popover" class="btn" data-original-title="Popover on right">Popover on right</a></li>
+    <li><a title="" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus." data-placement="bottom" data-toggle="popover" class="btn" data-original-title="Popover on bottom">Popover on bottom</a></li>
+    <li><a title="" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus." data-placement="left" data-toggle="popover" class="btn" data-original-title="Popover on left">Popover on left</a></li>
+  </ul>
+</section>
+
+<!-- Typeahead
+================================================== -->
+<section id="buttons">
+  <div class="page-header">
+    <h3>Typeahead</h3>
+  </div>
+
+  <div class="span6">
+    Type Ahead: <input type="text" class="span3" style="margin: 0 auto;" data-provide="typeahead" data-items="4" data-source='["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Dakota","North Carolina","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"]'>
+  </div>
 </section>
 
 <!-- Buttons
