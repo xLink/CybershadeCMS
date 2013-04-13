@@ -119,7 +119,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
      */
     public function buildBlocks() {
         $objBlocks = Core_Classes_coreObj::getBlocks();
-        $objBlocks->insertBlocks();
+        // $objBlocks->insertBlocks();
     }
 
     /**

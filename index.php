@@ -10,6 +10,7 @@ require_once 'core/core.php';
 $objRoute = Core_Classes_coreObj::getRoute();
 $objPage  = Core_Classes_coreObj::getPage();
 $objTPL   = Core_Classes_coreObj::getTPL();
+$objDebug = Core_Classes_coreObj::getDebug();
 
 $objPage->setTheme();
 
@@ -27,6 +28,10 @@ $objPage->showHeader();
 if ( $objModule !== false ) {
     $objModule->output();
 }
+
+$objDebug->log( 'aaaa', 'title' );
+$objDebug->log( 'bbb', 'title', 'error' );
+$objDebug->log( 'cccc', 'title', 'success' );
 
 $objPage->showFooter();
 ?>

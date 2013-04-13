@@ -162,37 +162,45 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      * @return      string
      */
     public function textarea($name='textarea', $value=null, $args=array()){
-        $args = array(
-             'cols'        => doArgs('cols',              45,     $args),
-             'rows'        => doArgs('rows',              5,      $args),
+        $objPlugins = Core_Classes_coreObj::getPlugins();
+        
+        $args['cols']        = doArgs('cols',              45,     $args);
+        $args['rows']        = doArgs('rows',              5,      $args);
 
-             'id'          => doArgs('id',                $name,  $args),
-             'class'       => doArgs('class',             null,   $args),
-             'disabled'    => doArgs('disabled',          false,  $args),
-             'br'          => doArgs('br',                false,  $args),
-             'style'       => doArgs('style',             null,   $args),
-             'extra'       => doArgs('extra',             null,   $args),
-             'xssFilter'   => doArgs('xssFilter',         true,   $args),
-             'placeholder' => doArgs('placeholder',       null,   $args),
+        $args['id']          = doArgs('id',                $name,  $args);
+        $args['class']       = doArgs('class',             null,   $args);
+        $args['disabled']    = doArgs('disabled',          false,  $args);
+        $args['br']          = doArgs('br',                false,  $args);
+        $args['style']       = doArgs('style',             null,   $args);
+        $args['extra']       = doArgs('extra',             null,   $args);
+        $args['xssFilter']   = doArgs('xssFilter',         true,   $args);
+        $args['placeholder'] = doArgs('placeholder',       null,   $args);
 
-             'resize'      => doArgs('resize',            true,   $args),
-             'allowTab'    => doArgs('allowTab',          true,   $args),
+        $args['resize']      = doArgs('resize',            true,   $args);
+        $args['allowTab']    = doArgs('allowTab',          true,   $args);
+
+        $params = array( &$args );
+        $objPlugins->hook('CMS_FORM_TEXTAREA_ARGS', $params);
+        echo dump($params);
+
+        $extra = (
+            (!is_empty($args['class'])          ? ' class="'.$args['class'].'"'             : null) .
+            (is_number($args['cols'])           ? ' cols="'.$args['cols'].'"'               : null) .
+            (is_number($args['rows'])           ? ' rows="'.$args['rows'].'"'               : null) .
+            (!is_empty($args['placeholder'])    ? ' placeholder="'.$args['placeholder'].'"' : null) .
+            (!is_empty($args['style'])          ? ' style="'.$args['style'].'"'             : null) .
+            (!is_empty($args['extra'])          ? ' '.$args['extra']                        : null) .
+            ($args['disabled']===true           ? ' disabled="disabled"'                    : null)
         );
+
+        $pluginExtras = $objPlugins->hook('CMS_FORM_TEXTAREA_EXTRAS');
 
         return sprintf('<textarea name="%2$s" id="%3$s" %4$s>%1$s</textarea>',
             ($args['xssFilter']===true ? htmlspecialchars($value) : $value),
             $name,
             $args['id'],
-                (
-                    (!is_empty($args['class'])          ? ' class="'.$args['class'].'"'             : null).
-                    (is_number($args['cols'])           ? ' cols="'.$args['cols'].'"'               : null).
-                    (is_number($args['rows'])           ? ' rows="'.$args['rows'].'"'               : null).
-                    (!is_empty($args['placeholder'])    ? ' placeholder="'.$args['placeholder'].'"' : null).
-                    (!is_empty($args['style'])          ? ' style="'.$args['style'].'"'             : null).
-                    (!is_empty($args['extra'])          ? ' '.$args['extra']                        : null).
-                    ($args['disabled']===true           ? ' disabled="disabled"'                    : null)
-                )
-        ). ($args['br']===true ? '<br />'."\n" : '');
+            $extra . $pluginExtras
+        ) . ( $args['br'] === true ? '<br />' . "\n" : '');
     }
 
     /**
