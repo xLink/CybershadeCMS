@@ -650,6 +650,9 @@ name: MooTools Bootstrap plugins
 
       if ($this.match('.disabled, :disabled')) return
 
+      e.preventDefault()
+      e.stopPropagation()
+
       $parent = getParent($this)
 
       isActive = $parent.hasClass('open')
