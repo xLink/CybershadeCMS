@@ -198,6 +198,25 @@
   <div class="page-header">
     <h3>Buttons</h3>
   </div>
+
+  <ul class="nav nav-pills">
+    <li><a title="" data-placement="top" data-toggle="tooltip" href="#" data-original-title="Tooltip on top">Tooltip on top</a></li>
+    <li><a title="" data-placement="right" data-toggle="tooltip" href="#" data-original-title="Tooltip on right">Tooltip on right</a></li>
+    <li><a title="" data-placement="bottom" data-toggle="tooltip" href="#" data-original-title="Tooltip on bottom">Tooltip on bottom</a></li>
+    <li><a title="" data-placement="left" data-toggle="tooltip" href="#" data-original-title="Tooltip on left">Tooltip on left</a></li>
+  </ul>
+
+
+</section>
+
+
+
+<!-- Buttons
+================================================== -->
+<section id="buttons">
+  <div class="page-header">
+    <h3>Buttons</h3>
+  </div>
   <table class="table table-bordered table-striped">
     <thead>
       <tr>

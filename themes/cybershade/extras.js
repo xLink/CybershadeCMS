@@ -1,6 +1,10 @@
 window.addEvent('domready', function() {
 
-    $$('[data-toggle="tooltip"]').tooltip();
-
+    if( $$('[data-toggle="tooltip"]').length ){
+        (function($) {
+            console.log($('[data-toggle="tooltip"]'));
+            $('[data-toggle="tooltip"]').tooltip();
+        })(jQuery);
+    }
 
 });

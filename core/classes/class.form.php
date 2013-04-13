@@ -86,30 +86,26 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      * @return      string
      */
     public function inputBox($name, $type='text', $value='', $args=array()){
-        $args = array(
-            'id'           => doArgs('id',               $name,  $args),
-            'name'         => doArgs('name',             $name,  $args),
-            'class'        => doArgs('class',            null,   $args),
-            'checked'      => doArgs('checked',          false,  $args),
-            'disabled'     => doArgs('disabled',         false,  $args),
-            'br'           => doArgs('br',               false,  $args),
-            'style'        => doArgs('style',            null,   $args),
-            'extra'        => doArgs('extra',            null,   $args),
-            'xssFilter'    => doArgs('xssFilter',        true,   $args),
-            'prepend'      => doArgs('prepend',          false,  $args),
-            'append'       => doArgs('append',           false,  $args),
-
-            //HTML5 tag additions
-            'required'     => doArgs('required',         false,  $args),
-            'placeholder'  => doArgs('placeholder',      null,   $args),
-            'autofocus'    => doArgs('autofocus',        false,  $args),
-            'min'          => doArgs('min',              0,      $args, 'is_number'),
-            'max'          => doArgs('max',              0,      $args, 'is_number'),
-            'step'         => doArgs('step',             0,      $args, 'is_number'),
-
-            //CMS addition - will set the field to auto complete usernames
-            'autocomplete' => doArgs('autocomplete',     true,  $args),
-        );
+        $args['id']             = doArgs('id',               $name,  $args);
+        $args['name']           = doArgs('name',             $name,  $args);
+        $args['class']          = doArgs('class',            null,   $args);
+        $args['checked']        = doArgs('checked',          false,  $args);
+        $args['disabled']       = doArgs('disabled',         false,  $args);
+        $args['br']             = doArgs('br',               false,  $args);
+        $args['style']          = doArgs('style',            null,   $args);
+        $args['extra']          = doArgs('extra',            null,   $args);
+        $args['xssFilter']      = doArgs('xssFilter',        true,   $args);
+        $args['prepend']        = doArgs('prepend',          false,  $args);
+        $args['append']         = doArgs('append',           false,  $args);
+    
+        $args['required']       = doArgs('required',         false,  $args);
+        $args['placeholder']    = doArgs('placeholder',      null,   $args);
+        $args['autofocus']      = doArgs('autofocus',        false,  $args);
+        $args['min']            = doArgs('min',              0,      $args, 'is_number');
+        $args['max']            = doArgs('max',              0,      $args, 'is_number');
+        $args['step']           = doArgs('step',             0,      $args, 'is_number');
+    
+        $args['autocomplete']   = doArgs('autocomplete',     true,   $args);
 
         $typeVali = array( 'button', 'checkbox', 'file', 'hidden', 'image', 'password', 'radio', 'reset', 'submit', 'text',
                             //html5 specials
@@ -118,6 +114,10 @@ class Core_Classes_Form extends Core_Classes_coreObj {
 
         $return = null;
         $inputVal = '<input type="%1$s" name="%2$s" id="%3$s"%4$s/>'."\n";
+
+        // setup a hook for the args
+        $params = array( &$args );
+        Core_Classes_coreObj::getPlugins()->hook('CMS_FORM_INPUTBOX_ARGS', $params);
 
         return  sprintf($inputVal,
                     (in_array($type, $typeVali) ? $type : 'text'),
@@ -161,9 +161,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      *
      * @return      string
      */
-    public function textarea($name='textarea', $value=null, $args=array()){
-        $objPlugins = Core_Classes_coreObj::getPlugins();
-        
+    public function textarea($name='textarea', $value=null, $args=array()){       
         $args['cols']        = doArgs('cols',              45,     $args);
         $args['rows']        = doArgs('rows',              5,      $args);
 
@@ -176,12 +174,9 @@ class Core_Classes_Form extends Core_Classes_coreObj {
         $args['xssFilter']   = doArgs('xssFilter',         true,   $args);
         $args['placeholder'] = doArgs('placeholder',       null,   $args);
 
-        $args['resize']      = doArgs('resize',            true,   $args);
-        $args['allowTab']    = doArgs('allowTab',          true,   $args);
-
+        // setup a hook for the args
         $params = array( &$args );
-        $objPlugins->hook('CMS_FORM_TEXTAREA_ARGS', $params);
-        echo dump($params);
+        Core_Classes_coreObj::getPlugins()->hook('CMS_FORM_TEXTAREA_ARGS', $params);
 
         $extra = (
             (!is_empty($args['class'])          ? ' class="'.$args['class'].'"'             : null) .
@@ -193,13 +188,18 @@ class Core_Classes_Form extends Core_Classes_coreObj {
             ($args['disabled']===true           ? ' disabled="disabled"'                    : null)
         );
 
-        $pluginExtras = $objPlugins->hook('CMS_FORM_TEXTAREA_EXTRAS');
+        $pluginExtras = Core_Classes_coreObj::getPlugins()->hook('CMS_FORM_TEXTAREA_EXTRAS');
+            if( is_array($pluginExtras) && !is_empty($pluginExtras) ){
+                foreach($pluginExtras as $e){
+                    $extra .= ' '.$e;
+                }
+            }
 
         return sprintf('<textarea name="%2$s" id="%3$s" %4$s>%1$s</textarea>',
             ($args['xssFilter']===true ? htmlspecialchars($value) : $value),
             $name,
             $args['id'],
-            $extra . $pluginExtras
+            $extra
         ) . ( $args['br'] === true ? '<br />' . "\n" : '');
     }
 

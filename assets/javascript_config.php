@@ -3,6 +3,7 @@ $scripts = array();
 $scripts['framework'] = array(
     'prefixfree.min.js',
     'jquery.js',
+    'jquery.noConflict.js',
     'mootools-core.js',
     'mootools-more.js',
     'mootools-powertools-1.2.0.js',
@@ -16,8 +17,8 @@ $scripts['extras'] = array(
 
     //'growl.js',
 
-    'core.js',
-    'cscms.js',
+    //'core.js',
+    //'cscms.js',
 );
 
 ?>
