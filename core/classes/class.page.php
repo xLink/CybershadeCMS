@@ -357,6 +357,32 @@ class Core_Classes_Page extends Core_Classes_coreObj {
         return true;
     }
 
+    /**
+     * Adds a CSS Code to be loaded.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $code
+     *
+     * @return  bool
+     */
+    public function addCSSCode($code) {
+        if (empty($code)) { return false; }
+
+        $id = md5($code);
+
+            if ( isset($this->cssCode) && array_key_exists($id, $this->cssCode) ) {
+                return false;
+            }
+
+        $this->cssCode[$id] = $code;
+
+        return true;
+    }
+
+
         /**
          * Builds the CSS Files & SubStyles.
          *
@@ -368,11 +394,11 @@ class Core_Classes_Page extends Core_Classes_coreObj {
          */
         private function buildCSS() {
             $_tag = "\n".'<link%s />';
+            $_stag = "\n".'<style>%s</style>';
             $_arg = ' %s="%s"';
 
             $return = null;
             if ( count($this->cssFiles) ) {
-
                 foreach (range(HIGH, LOW) as $priority) {
                     if ( !isset( $this->cssFiles[$priority] ) || !count( $this->cssFiles[$priority] ) ) { continue; }
 
@@ -386,7 +412,12 @@ class Core_Classes_Page extends Core_Classes_coreObj {
                         $return .= sprintf($_tag, $tag);
                     }
                 }
+            }
 
+            if( count($this->cssCode) ){
+                foreach($this->cssCode as $code){
+                    $return .= sprintf($_stag, $code);
+                }
             }
 
             return $return;
