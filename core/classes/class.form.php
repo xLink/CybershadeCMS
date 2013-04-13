@@ -26,17 +26,15 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      * @return      string
      */
     public function start($name, $args = array()){
-        $args = array(
-            'method'        => strtolower(doArgs('method','get',    $args)),
-            'action'        => doArgs('action',         null,       $args),
-            'onsubmit'      => doArgs('onsubmit',       false,      $args),
-            'extra'         => doArgs('extra',          null,       $args),
-            'validate'      => doArgs('validate',       true,       $args),
-            'style'         => doArgs('style',          null,       $args),
-            'class'         => doArgs('class',          null,       $args),
-            'autocomplete'  => doArgs('autocomplete',   true,       $args),
-            'upload'        => doArgs('upload',         null,       $args),
-        );
+        $args['method']        = strtolower(doArgs('method','get',    $args));
+        $args['action']        = doArgs('action',         null,       $args);
+        $args['onsubmit']      = doArgs('onsubmit',       false,      $args);
+        $args['extra']         = doArgs('extra',          null,       $args);
+        $args['validate']      = doArgs('validate',       true,       $args);
+        $args['style']         = doArgs('style',          null,       $args);
+        $args['class']         = doArgs('class',          null,       $args);
+        $args['autocomplete']  = doArgs('autocomplete',   true,       $args);
+        $args['upload']        = doArgs('upload',         null,       $args);
 
         if( $this->config('global', 'browser') == 'Chrome' ){
             $args['autocomplete'] = false;

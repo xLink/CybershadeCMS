@@ -192,11 +192,11 @@
 
 
 
-<!-- Buttons
+<!-- ToolTips
 ================================================== -->
 <section id="buttons">
   <div class="page-header">
-    <h3>Buttons</h3>
+    <h3>ToolTips</h3>
   </div>
 
   <ul class="nav nav-pills">
@@ -205,11 +205,7 @@
     <li><a title="" data-placement="bottom" data-toggle="tooltip" href="#" data-original-title="Tooltip on bottom">Tooltip on bottom</a></li>
     <li><a title="" data-placement="left" data-toggle="tooltip" href="#" data-original-title="Tooltip on left">Tooltip on left</a></li>
   </ul>
-
-
 </section>
-
-
 
 <!-- Buttons
 ================================================== -->
