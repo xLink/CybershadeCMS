@@ -181,7 +181,6 @@ class Core_Classes_Form extends Core_Classes_coreObj {
 
         $params = array( &$args );
         $objPlugins->hook('CMS_FORM_TEXTAREA_ARGS', $params);
-        echo dump($params);
 
         $extra = (
             (!is_empty($args['class'])          ? ' class="'.$args['class'].'"'             : null) .
