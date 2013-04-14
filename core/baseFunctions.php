@@ -1083,74 +1083,75 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     function grabLangInfo($ext, $return='ALL'){
         $lang = (isset($ext) && $ext !== NULL) ? strtolower($ext) : 'text';
         switch ($lang) {
-            case 'htaccess':            $geshi = 'apache';              $ext = 'htaccess';              $lang = 'Apache CFG File';          break;
-            case 'action script':       $geshi = 'actionscript';        $ext = 'as';                    $lang = 'Action Script';            break;
+            case 'htaccess':            $geshi = 'apache';          $mime = 'text/x-properties';        $ext = 'htaccess';  $lang = 'Apache CFG File';          break;
+            case 'action script':       $geshi = 'actionscript';    $mime = '';                         $ext = 'as';        $lang = 'Action Script';            break;
 
-            case 'php':                 $geshi = 'php';                 $ext = 'php';                   $lang = 'PHP';                      break;
+            case 'php':                 $geshi = 'php';             $mime = 'application/x-httpd-php';  $ext = 'php';       $lang = 'PHP';                      break;
 
-            case 'js':                  $geshi = 'javascript';          $ext = 'js';                    $lang = 'Javascript';               break;
-            case 'jscript':             $geshi = 'javascript';          $ext = 'js';                    $lang = 'Javascript';               break;
-            case 'javascript':          $geshi = 'javascript';          $ext = 'js';                    $lang = 'Javascript';               break;
+            case 'js':                  $geshi = 'javascript';      $mime = 'text/javascript';          $ext = 'js';        $lang = 'Javascript';               break;
+            case 'jscript':             $geshi = 'javascript';      $mime = 'text/javascript';          $ext = 'js';        $lang = 'Javascript';               break;
+            case 'javascript':          $geshi = 'javascript';      $mime = 'text/javascript';          $ext = 'js';        $lang = 'Javascript';               break;
 
-            case 'coldfusion':          $geshi = 'cfm';                 $ext = 'cfm';                   $lang = 'ColdFusion';               break;
-            case 'cfm':                 $geshi = 'cfm';                 $ext = 'cfm';                   $lang = 'ColdFusion';               break;
+            case 'coldfusion':          $geshi = 'cfm';            $mime = 'text/plain';               $ext = 'cfm';       $lang = 'ColdFusion';               break;
+            case 'cfm':                 $geshi = 'cfm';            $mime = 'text/plain';               $ext = 'cfm';       $lang = 'ColdFusion';               break;
 
-            case 'asp':                 $geshi = 'asp';                 $ext = 'asp';                   $lang = 'Active Server Page(ASP)';  break;
+            case 'asp':                 $geshi = 'asp';             $mime = 'application/x-aspx';       $ext = 'asp';       $lang = 'Active Server Page(ASP)';  break;
+            case 'aspx':                $geshi = 'asp';             $mime = 'application/x-aspx';       $ext = 'aspx';      $lang = 'Active Server Page(ASP)';  break;
 
-            case 'c':                   $geshi = 'c';                   $ext = 'c';                     $lang = 'C';                        break;
+            case 'c':                   $geshi = 'c';               $mime = 'text/x-c';                 $ext = 'c';         $lang = 'C';                        break;
 
-            case 'css':                 $geshi = 'css';                 $ext = 'css';                   $lang = 'CSS';                      break;
+            case 'css':                 $geshi = 'css';             $mime = 'text/css';                 $ext = 'css';       $lang = 'CSS';                      break;
+            case 'less':                $geshi = 'less';            $mime = 'text/x-less';              $ext = 'less';      $lang = 'LESS';                     break;
+            case 'sass':                $geshi = 'sass';            $mime = 'text/x-sass';              $ext = 'sass';      $lang = 'SASS';                     break;
 
-            case 'cpp':                 $geshi = 'cpp';                 $ext = 'cpp';                   $lang = 'C++';                      break;
-            case 'c++':                 $geshi = 'cpp';                 $ext = 'cpp';                   $lang = 'C++';                      break;
+            case 'cpp':                 $geshi = 'cpp';             $mime = 'text/x-c++src';            $ext = 'cpp';       $lang = 'C++';                      break;
+            case 'c++':                 $geshi = 'cpp';             $mime = 'text/x-c++src';            $ext = 'cpp';       $lang = 'C++';                      break;
+            case 'h':                   $geshi = 'cpp';             $mime = 'text/x-c++hdr';            $ext = 'h';         $lang = 'C++';                      break;
 
-            case 'c#':                  $geshi = 'csharp';              $ext = 'cs';                    $lang = 'C#';                       break;
-            case 'csharp':              $geshi = 'csharp';              $ext = 'cs';                    $lang = 'C#';                       break;
-            case 'cs':                  $geshi = 'csharp';              $ext = 'cs';                    $lang = 'C#';                       break;
+            case 'c#':                  $geshi = 'csharp';          $mime = 'text/x-csharp';            $ext = 'cs';        $lang = 'C#';                       break;
+            case 'csharp':              $geshi = 'csharp';          $mime = 'text/x-csharp';            $ext = 'cs';        $lang = 'C#';                       break;
+            case 'cs':                  $geshi = 'csharp';          $mime = 'text/x-csharp';            $ext = 'cs';        $lang = 'C#';                       break;
 
-            case 'html':                $geshi = 'html';                $ext = 'html';                  $lang = 'HTML';                     break;
+            case 'html':                $geshi = 'html';            $mime = 'text/html';                $ext = 'html';      $lang = 'HTML';                     break;
 
-            case 'pl':                  $geshi = 'perl';                $ext = 'pl';                    $lang = 'Perl';                     break;
-            case 'perl':                $geshi = 'perl';                $ext = 'pl';                    $lang = 'Perl';                     break;
+            case 'pl':                  $geshi = 'perl';            $mime = 'text/x-perl';              $ext = 'pl';        $lang = 'Perl';                     break;
+            case 'perl':                $geshi = 'perl';            $mime = 'text/x-perl';              $ext = 'pl';        $lang = 'Perl';                     break;
 
-            case 'vb':                  $geshi = 'vb';                  $ext = 'vb';                    $lang = 'Visual Basic';             break;
-            case 'vbs':                 $geshi = 'vbs';                 $ext = 'vbs';                   $lang = 'Visual Basic Script';      break;
-            case 'vbnet':               $geshi = 'vbnet';               $ext = 'vb';                    $lang = 'Visual Basic.net';         break;
-            case 'vb.net':              $geshi = 'vbnet';               $ext = 'vb';                    $lang = 'Visual Basic.net';         break;
+            case 'vb':                  $geshi = 'vb';              $mime = 'text/x-vb';                $ext = 'vb';        $lang = 'Visual Basic';             break;
+            case 'vbs':                 $geshi = 'vbs';             $mime = 'text/x-vb';                $ext = 'vbs';       $lang = 'Visual Basic Script';      break;
+            case 'vbnet':               $geshi = 'vbnet';           $mime = 'text/x-vb';                $ext = 'vb';        $lang = 'Visual Basic.net';         break;
+            case 'vb.net':              $geshi = 'vbnet';           $mime = 'text/x-vb';                $ext = 'vb';        $lang = 'Visual Basic.net';         break;
 
-            case 'asm':                 $geshi = 'asm';                 $ext = 'asm';                   $lang = 'ASM';                      break;
+            case 'asm':                 $geshi = 'asm';            $mime = 'text/plain';               $ext = 'asm';       $lang = 'ASM';                      break;
 
-            case 'rb':                  $geshi = 'ruby';                $ext = 'rb';                    $lang = 'Ruby';                     break;
+            case 'rb':                  $geshi = 'ruby';            $mime = 'text/x-ruby';              $ext = 'rb';        $lang = 'Ruby';                     break;
+            case 'ruby':                $geshi = 'ruby';            $mime = 'text/x-ruby';              $ext = 'rb';        $lang = 'Ruby';                     break;
 
-            case 'py':                  $geshi = 'python';              $ext = 'py';                    $lang = 'Python';                   break;
-            case 'python':              $geshi = 'python';              $ext = 'py';                    $lang = 'Python';                   break;
+            case 'py':                  $geshi = 'python';          $mime = 'text/x-python';            $ext = 'py';        $lang = 'Python';                   break;
+            case 'python':              $geshi = 'python';          $mime = 'text/x-python';            $ext = 'py';        $lang = 'Python';                   break;
 
-            case 'pas':                 $geshi = 'pascal';              $ext = 'p';                     $lang = 'Pascal';                   break;
+            case 'pas':                 $geshi = 'pascal';          $mime = 'text/x-pascal';            $ext = 'p';         $lang = 'Pascal';                   break;
 
-            case 'sh':                  $geshi = 'bash';                $ext = 'sh';                    $lang = 'Bash';                     break;
+            case 'sh':                  $geshi = 'bash';            $mime = 'text/x-scheme';            $ext = 'sh';        $lang = 'Bash';                     break;
 
-            case 'dos':                 $geshi = 'dos';                 $ext = 'bat';                   $lang = 'Batch';                    break;
-            case 'batch':               $geshi = 'dos';                 $ext = 'bat';                   $lang = 'Batch';                    break;
+            case 'dos':                 $geshi = 'dos';            $mime = 'text/plain';               $ext = 'bat';       $lang = 'Batch';                    break;
+            case 'batch':               $geshi = 'dos';            $mime = 'text/plain';               $ext = 'bat';       $lang = 'Batch';                    break;
 
-            case 'java':                $geshi = 'java';                $ext = 'java';                  $lang = 'Java';                     break;
-            case 'jsp':                 $geshi = 'java';                $ext = 'java';                  $lang = 'Java';                     break;
+            case 'java':                $geshi = 'java';            $mime = 'text/x-java';              $ext = 'java';      $lang = 'Java';                     break;
+            case 'jsp':                 $geshi = 'java';            $mime = 'application/x-jsp';        $ext = 'java';      $lang = 'Java';                     break;
 
-            case 'mysql':               $geshi = 'mysql';               $ext = 'sql';                   $lang = 'mySQL';                    break;
+            case 'mysql':               $geshi = 'mysql';           $mime = 'text/x-mysql';             $ext = 'sql';       $lang = 'mySQL';                    break;
 
-            case 'xml':                 $geshi = 'xml';                 $ext = 'xml';                   $lang = 'XML';                      break;
+            case 'xml':                 $geshi = 'xml';             $mime = 'text/xml';                 $ext = 'xml';       $lang = 'XML';                      break;
 
-            case 'mirc':                $geshi = 'mirc';                $ext = 'mirc';                  $lang = 'mIRC Scripting';           break;
+            case 'mirc':                $geshi = 'mirc';            $mime = 'text/mirc';                $ext = 'mirc';      $lang = 'mIRC Scripting';           break;
 
-            case 'tpl':                 $geshi = 'smarty';              $ext = 'tpl';                   $lang = 'SMARTY';                   break;
+            case 'tpl':                 $geshi = 'smarty';          $mime = 'text/x-smarty';            $ext = 'tpl';       $lang = 'SMARTY';                   break;
+            case 'smarty':              $geshi = 'smarty';          $mime = 'text/x-smarty';            $ext = 'tpl';       $lang = 'SMARTY';                   break;
 
-            case 'whitespace':          $geshi = 'ws';                  $ext = 'ws';                    $lang = 'Whitespace';               break;
-
-            case 'lol':                 $geshi = 'lolcode';             $ext = 'lol';                   $lang = 'LOLcode';                  break;
-            case 'lolcode':             $geshi = 'lolcode';             $ext = 'lol';                   $lang = 'LOLcode';                  break;
-
-            default:                    $geshi = 'text';                $ext = 'txt';                   $lang = 'Text';                     break;
+            default:                    $geshi = 'text';            $mime = 'text/plain';               $ext = 'txt';       $lang = 'Text';                     break;
         }
-        $_return = array('ext' => $ext, 'lang'    => $lang, 'geshi' => $geshi);
+        $_return = array('ext' => $ext, 'lang'    => $lang, 'geshi' => $geshi, 'mime' => $mime);
         if($return != 'ALL' && isset($_return[$return])){
             return $_return[$return];
         }
