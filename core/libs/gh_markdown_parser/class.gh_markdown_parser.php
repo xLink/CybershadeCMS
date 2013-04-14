@@ -38,7 +38,7 @@ class gh_markdown_parser extends MarkdownExtra_Parser {
         $pre_attr_str  = $this->code_attr_on_pre ? $attr_str : '';
         $code_attr_str = $this->code_attr_on_pre ? '' : $attr_str;
         //$codeblock  = "<pre$pre_attr_str><code$code_attr_str>$codeblock</code></pre>";
-        $codeblock = $this->_codemirrorHighlight($codeblock, $classname);
+        $codeblock = $this->_geshiHighlight($codeblock, $classname);
 
         return "\n\n".$this->hashBlock($codeblock)."\n\n";
     }
@@ -64,9 +64,7 @@ class gh_markdown_parser extends MarkdownExtra_Parser {
         $geshi->enable_line_numbers(GESHI_FANCY_LINE_NUMBERS, 5);
         $content = $geshi->parse_code();
 
-        return "\n<div class=\"markdown_code\">\n<div class=\"markdown_code_head\">".$language." Code: </div>\n<div class=\"markdown_code_body\">".
-                $content.
-            "</div>\n</div>\n";
+        return "\n<div class=\"markdown_code\">\n<div class=\"markdown_code_body\">". $content. "</div>\n</div>\n";
     }
 
     function _codemirrorHighlight($content, $language=''){
@@ -96,9 +94,12 @@ class gh_markdown_parser extends MarkdownExtra_Parser {
 
         $language = grabLangInfo($language, 'mime');
         $content = trim($content);
-        $content = htmlspecialchars_decode($content, ENT_NOQUOTES);
+        $content = html_entity_decode($content, ENT_NOQUOTES);
+        $content = str_replace('<?php', '&lt;?php', $content);
 
-        return "\n<div data-lang=\"".$language."\" data-codemirror=\"true\"><pre>".$content."</pre></div>\n";
+
+        //return $content;
+        return dump($content)."\n<pre><span data-lang=\"".$language."\" data-codemir3ror=\"true\">".$content."</span></pre>\n";
     }
 
 
