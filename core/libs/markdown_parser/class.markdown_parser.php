@@ -1134,8 +1134,6 @@ class Markdown_Parser {
 	}
 	function _doCodeBlocks_callback($matches) {
 		$codeblock = $matches[1];
-		echo dump($matches, 'code block');
-
 		$codeblock = $this->outdent($codeblock);
 		$codeblock = htmlspecialchars($codeblock, ENT_NOQUOTES);
 

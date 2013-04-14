@@ -11,7 +11,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  * @since        1.0.0
  * @author       Dan Aldridge
  */
-class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj{
+class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Core_Classes_baseQueryBuilder{
 
     private $queryType = '';
     private $_fields   = array();
@@ -190,7 +190,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj{
         return $this;
     }
 
-    public function set($field) {
+    public function set() {
         $args = func_get_args();
         if (count($args) == 2) {
             $args = array($args[0] => $args[1]);
@@ -229,14 +229,14 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj{
         return $this;
     }
 
-    public function orderBy($orderBy){
+    public function orderBy(){
         $args = $this->_getArgs(func_get_args());
         $this->_orderBy = $args;
 
         return $this;
     }
 
-    public function groupBy($groupBy){
+    public function groupBy(){
         $args = $this->_getArgs(func_get_args());
         $this->_groupBy = $args;
 

@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-interface queryBuilder {
+interface Core_Classes_baseQueryBuilder {
 
 	// Begin Query Type initiators
 

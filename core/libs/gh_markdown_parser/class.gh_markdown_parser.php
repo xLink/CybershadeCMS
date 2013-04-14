@@ -1,6 +1,6 @@
 <?php
 
-if( !class_exists('MarkdownExtra_Parser') ){
+if( !class_exists('MarkdownExtra_Parser', false) ){
     Core_Classes_coreObj::getLib('markdown_parser');
 }
 
@@ -27,17 +27,32 @@ class gh_markdown_parser extends MarkdownExtra_Parser {
         $text = preg_replace_callback(
             '#' .
             '^```' . // Fenced code block
-            '[^\n]*$' . // No language-specific support yet
+            '([^\n])*$' . // No language-specific support yet
             '\n' . // Newline
             '(.+?)' . // Actual code here
             '\n' . // Last newline
             '^```$' . // End of block
             '#ms', // Multiline mode + dot matches newlines
-            array( $this, '_doCodeBlocks_callback' ),
+            array( $this, '_doCodeBlocks_callback_new' ),
             $text
         );
 
         return parent::doCodeBlocks( $text );
+    }
+
+    function _doCodeBlocks_callback_new($matches) {
+        $codeblock = $matches[1];
+        echo dump($codeblock);
+
+        $codeblock = $this->outdent($codeblock);
+        $codeblock = htmlspecialchars($codeblock, ENT_NOQUOTES);
+
+        # trim leading newlines and trailing newlines
+        $codeblock = preg_replace('/\A\n+|\n+\z/', '', $codeblock);
+
+        //$codeblock = "<pre><code>$codeblock\n</code></pre>";
+        $codeblock = doCode($codeblock);
+        return "\n\n".$this->hashBlock($codeblock)."\n\n";
     }
 
 }
