@@ -550,41 +550,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
     }
 
     /**
-     * Parses content for viewing in browser.
-     *
-     * @version 1.0
-     * @since   1.0.0
-     *
-     * @param   string  $content
-     * @param   bool    $echoContent
-     * @param   bool    $showSmilies
-     *
-     * @return  string
-     */
-    function contentParse($content, $echoContent=false, $showSmilies=true){
-        //load a new instance up
-        $objBBCode = Core_Classes_coreObj::getLib('BBCode');
-
-        //load in the smilies
-        $objBBCode->SetSmileyDir('/'.root().'assets/images/smilies');
-
-        //load in the bbcode_tags
-        $file = cmsROOT.'core/bbcodeTags.php';
-            if(is_readable($file)){
-                include_once($file);
-            }
-
-        //set smilies on or off
-        $objBBCode->SetEnableSmileys($showSmilies);
-
-        //output the $content
-        if( $echoContent === false ){
-            return $objBBCode->parse(htmlspecialchars_decode($content));
-        }
-        echo $objBBCode->parse(htmlspecialchars_decode($content));
-    }
-
-    /**
      * Handles securing input/output
      *
      * @version 1.0
@@ -815,6 +780,75 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
         return false;
     }
+
+/**
+  //
+  //--Content Functions
+  //
+**/
+    /**
+     * Wrapper for deciding what to do with the content
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     *
+     */
+    function contentParse( $content, $args = array() ) {
+        $args['type']   = doArgs('type', 'html', $args);
+        $args['return'] = doArgs('return', true, $args);
+
+
+
+        $content = htmlspecialchars_decode($content);
+        switch( $args['type'] ){
+            default:
+            case 'html':
+                if( $args['return'] === true ){
+                    return $content;
+                }
+                echo $content;
+            break;
+
+            case 'markdown':
+            case 'gh_markdown':
+                $objMarkdown = Core_Classes_coreObj::getLib( $args['type'].'_parser' );
+
+                if( $args['return'] === true ){
+                    return $objMarkdown->transform( $content );
+                }
+                echo $objMarkdown->transform( $content );
+            break;
+
+            case 'bbcode':
+                //load a new instance up
+                $objBBCode = Core_Classes_coreObj::getLib('BBCode');
+
+                //load in the smilies
+                $objBBCode->SetSmileyDir('/'.root().'assets/images/smilies');
+
+                //load in the bbcode_tags
+                $file = cmsROOT.'core/bbcodeTags.php';
+                    if(is_readable($file)){
+                        include_once($file);
+                    }
+
+                //set smilies on or off
+                $objBBCode->SetEnableSmileys(true);
+
+                //output the $content
+                if( $args['return'] === true ){
+                    return $objBBCode->parse(htmlspecialchars_decode($content));
+                }
+                echo $objBBCode->parse(htmlspecialchars_decode($content));
+            break;
+
+        }
+
+        
+    }   
+
 
 /**
   //

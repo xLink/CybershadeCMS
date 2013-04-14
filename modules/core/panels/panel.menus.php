@@ -103,34 +103,36 @@ class Admin_Modules_core_menus extends Admin_Modules_core{
         $options[ '*add*' ] = 'Add to new menu..';
 
 
-        $form = $objForm->outputForm(array(
-            'FORM_START'     => $objForm->start('new_link', array('method'=>'POST', 'action'=>'/'.root().'admin/core/menus/newlinkSave/', 'class'=>'form-horizontal')),
-            'FORM_END'       => $objForm->finish(),
+        $form = $objForm->outputForm(
+            array(
+                'FORM_START'     => $objForm->start('new_link', array('method'=>'POST', 'action'=>'/'.root().'admin/core/menus/newlinkSave/', 'class'=>'form-horizontal')),
+                'FORM_END'       => $objForm->finish(),
 
-            'FORM_TITLE'     => 'Add a link',
-            'FORM_SUBMIT'    => $objForm->button('submit', 'Submit', array('class' => 'btn btn-info')),
-            'FORM_RESET'     => $objForm->button('reset', 'Reset'),
-        ),
-        array(
-            'field' => array(
-                'Link Name'       => $objForm->inputbox('name', 'text'),
-                'URL'             => $objForm->inputbox('url', 'text'),
-
-                'Menu Identifier' => $objForm->select('ident1', $options).
-                    $objForm->inputbox('ident2', 'input', '', array(
-                        'class' => 'hide'
-                    )),
-
-                'External Link?'  => $objForm->radio('external', array(
-                    '0' => langVar('L_YES'),
-                    '1' => langVar('L_NO'),
-                ), 0),
-
+                'FORM_TITLE'     => 'Add a link',
+                'FORM_SUBMIT'    => $objForm->button('submit', 'Submit', array('class' => 'btn btn-info')),
+                'FORM_RESET'     => $objForm->button('reset', 'Reset'),
             ),
-            'desc' => array(
-            ),
-            'errors' => $_SESSION['errors']['menus'],
-        ));
+            array(
+                'field' => array(
+                    'Link Name'       => $objForm->inputbox('name', 'text'),
+                    'URL'             => $objForm->inputbox('url', 'text'),
+
+                    'Menu Identifier' => $objForm->select('ident1', $options).
+                        $objForm->inputbox('ident2', 'input', '', array(
+                            'class' => 'hide'
+                        )),
+
+                    'External Link?'  => $objForm->radio('external', array(
+                        '0' => langVar('L_YES'),
+                        '1' => langVar('L_NO'),
+                    ), 0),
+
+                ),
+                'desc' => array(
+                ),
+                'errors' => $_SESSION['errors']['menus'],
+            )
+        );
 
         $objTPL->parse('panel', false);
         Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
