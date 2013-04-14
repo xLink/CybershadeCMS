@@ -850,7 +850,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
 
         if ( defined('cmsDEBUG') && cmsDEBUG === true ) {
             $this->addJSFile(array(
-                'src' => $cssDir.'/debug.js',
+                'src' => $cssDir.'/cscms/debug.js',
                 'priority' => HIGH,
             ), 'footer');
         }

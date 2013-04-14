@@ -5,13 +5,21 @@ window.addEvent('domready', function() {
         console.log($code);
 
         $code.each(function(ele){
-            //editor = CodeMirror.runMode(ele.get('html'), ele.get('data-language'), ele);
+            editor = CodeMirror.runMode(ele.getChildren('pre')[0].get('html'), ele.get('data-lang'), ele.getChildren('pre')[0]);
 
-            CodeMirror.fromTextArea(ele.get('html'), {
-                lineNumbers:    true,
-                mode:           ele.get('data-language'),
-                theme:          'monakai'
-            });
+            // var editor = CodeMirror(
+            //     function(node){
+            //         ele.parentNode.replaceChild(node, ele);
+            //     }, {
+            //       value:            ele.innerHTML,
+            //       lineNumbers:      true,
+            //       mode:             ele.get('data-lang') || 'text/plain',
+            //       readOnly:         'nocursor',
+            //       theme:            'monokai',
+            //       styleActiveLine:  true,
+            //       lineWrapping:     true
+            //     }
+            // );
         });
 
     }
