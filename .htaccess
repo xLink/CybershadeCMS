@@ -3,10 +3,6 @@ Options -Indexes -MultiViews
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    <IfModule mod_env.c>
-        setEnv REWRITE 1
-    </IfModule>
-
 ##Kill recursive redirects
 RewriteCond %{ENV:REDIRECT_STATUS} 200
 RewriteRule .* - [L]

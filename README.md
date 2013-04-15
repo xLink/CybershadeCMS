@@ -49,7 +49,7 @@ Documentation when available will show up on the Cybershade website.
 
 ## Extensions, Themes, and Plugins
 
-The CMS is fully customizable from themes and modules to language packs, documentation on how to create these will be posted on the Cybershade website in due course.
+The CMS is fully customizable from themes and modules to language packs, documentation on how to create these will be posted on the cybershade.org website in due course.
 
 ## Support
 
@@ -71,7 +71,7 @@ Thanks to the people that have contributed and helped test/find bugs in the proj
 
 ## License
 
-Copyright (c) 2012 Cybershade
+Copyright (c) 2013 Cysha
 
 CSCMS is licensed under the [GPLv3 license](http://www.gnu.org/licenses/gpl-3.0.html).
 
