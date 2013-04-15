@@ -34,14 +34,45 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
             return;
         }
 
-        $output = '';
+        $objPage = Core_Classes_coreObj::getPage();
+        $output = ''; $count = 0;
 
-        $this->includedFiles = get_included_files();
-        foreach( $this->includedFiles as $file ) {
-            $output .= sprintf('<li>%s</li>', $file);
+        if( isset($objPage->cssFiles) && count($objPage->cssFiles) > 0 ){
+            $includedFiles = $objPage->cssFiles; 
+            $output .= '<h3>Stylesheet Includes</h3><ul>';
+            foreach( array(3, 2, 1) as $prio ){
+                if( !count($includedFiles[$prio]) ){ continue; }
+
+                $count += count($includedFiles[$prio]);
+                foreach( $includedFiles[$prio] as $file ) {
+                    $output .= sprintf('<li>%s</li>', $file['href']);
+                } $output .= '</ul>';
+            }
+
         }
 
-        return array('count' => count($this->includedFiles), 'content' => sprintf( '<ul>%s</ul>', $output ));
+        if( isset($objPage->jsFiles) && count($objPage->jsFiles) > 0 ){
+            $includedFiles = $objPage->jsFiles['footer']; 
+            $output .= '<h3>Javascript Includes</h3><ul>';
+            foreach( array(3, 2, 1) as $prio ){
+                if( !count($includedFiles[$prio]) ){ continue; }
+
+                $count += count($includedFiles[$prio]);
+                foreach( $includedFiles[$prio] as $file ) {
+                    $output .= sprintf('<li>%s</li>', $file['src']);
+                } 
+            } $output .= '</ul>';
+
+        }
+
+
+        $includedFiles = get_included_files(); $count += count($includedFiles);
+        $output .= '<h3>PHP Includes</h3><ul>';
+        foreach( $includedFiles as $file ) {
+            $output .= sprintf('<li>%s</li>', $file);
+        } $output .= '</ul>';
+
+        return array('count' => $count, 'content' => $output);
     }
 
 /**
@@ -73,9 +104,9 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         if( !empty( $debug ) ) {
 
             foreach( $debug as $query ) {
-            $output .= '<table class="table"><tbody>';
+            $output .= '<table class="table">';
 
-                $output .= '</tr>';
+                //$output .= '</tr>';
                     $output .= sprintf('<tr class="%s"><td colspan="11" style="height: 5px; padding: 0;"></td></tr>', ($query['affected_rows']=='-1' ? 'error' : 'success'));
 
                 $replace = array('FROM', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'ON', 'OR', 'AND', 'SET', 'WHERE', 'LIMIT', 'GROUP BY', 'ORDER BY', 'VALUES', );
@@ -108,7 +139,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
                 }
 
                 $output .= '</tr>';
-            $output .= '</tbody></table>';
+            $output .= '</table>';
             }
 
         }
@@ -145,15 +176,15 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         if( count( $objTPL->files ) ) {
 
             $output .= '<h4>Template Files</h4>';
-            $output .= '<table class="table table-bordered"><tbody>';
-                $output .= sprintf('<thead><th>%s</th>', 'TPL Handle');
-                $output .= sprintf('<th>%s</th></thead>', 'Path');
+            $output .= '<table class="table table-bordered">';
+                $output .= sprintf('<tr><th>%s</th>', 'TPL Handle');
+                $output .= sprintf('<th>%s</th></tr>', 'Path');
 
             foreach( $files as $handle => $file ) {
                 $output .= sprintf('<tr><td>%s</td>', $handle);
                 $output .= sprintf('<td>%s</td></tr>', $file);
             }
-            $output .= '</tbody></table>';
+            $output .= '</table>';
 
             $output .= '<h4>Template Variables</h4>';
             $output .= dump($objTPL->_tpldata);
@@ -189,12 +220,12 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         $output = null;
         $debug = memoryUsage('System: OUTPUT!');
 
-        $output .= '<table class="table table-bordered"><thead>';
+        $output .= '<table class="table table-bordered"><tr>';
             $output .= sprintf('<th>%s</th>', 'Execution <br />Time');
             $output .= sprintf('<th>%s</th>', 'File <br />Lines');
             $output .= sprintf('<th>%s</th>', 'Messages <br />'.count($debug));
             $output .= sprintf('<th>%s</th>', 'Memory <br />'.formatBytes(memory_get_usage()));
-        $output .= '</thead><tbody><tr>';
+        $output .= '</tr><tr>';
 
         $header = null; $memory = 0; $oldTime = 0;
         foreach($debug as $row){
@@ -219,7 +250,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
             $oldTime = $row['time_exec'];
         }
 
-        $output .= '</tr></tbody></table>';
+        $output .= '</tr></table>';
 
         return array('count' => formatBytes(memory_get_usage()), 'content' => $output);
     }
@@ -407,7 +438,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
 
             $content .= sprintf(
                 '<table class="table">
-                    <thead>
+                    <tr>
                         <tr class="%s">
                             <td colspan="3" style="height:5px; padding:0;"></td>
                         </tr>
@@ -416,8 +447,8 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
                             <td>Title</td>
                             <td>Content</td>
                         </tr>
-                    </thead>
-                    <tbody>
+                    </tr>
+                    
                         <tr>
                             <td>
                                 %s<br>
@@ -426,7 +457,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
                             <td>%s</td>
                             <td>%s</td>
                         </tr>
-                    </tbody>
+                    
                 </table>',
 
                     $type,
