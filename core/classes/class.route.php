@@ -583,9 +583,15 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
         // check if we need to add the cms path in too
         if( substr($url, 0, 1) == '/' ){
-            $url = '/'.root().substr($url, 1);
+
+            $newURL = null;
+            if( doArgs('REDIRECT_REWRITE', false, $_SERVER) === false ){
+                $newURL .= $_SERVER['PHP_SELF'].'?';
+            }
+
+            $url = $newURL.substr($url, 1);
         }
-        
+
         return $url;
     }
 
