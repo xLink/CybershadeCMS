@@ -15,12 +15,12 @@ RewriteCond %{REQUEST_FILENAME} -f [NC]
 RewriteRule .* - [L]
 
 ##minifing techniques
-RewriteRule ^assets/styles/([^.]*)-min.css              core/libs/min/index.php?g=$1&t=css [QSA,L]
-RewriteRule ^assets/javascript/([^.]*)-min.js           core/libs/min/index.php?g=$1&t=js [QSA,L]
-RewriteRule ^themes/([^/]*)/(.*)-min.css                core/libs/min/index.php?b=themes/$1&f=$2 [QSA,L]
-RewriteRule ^themes/([^/]*)/(.*)-min.js                 core/libs/min/index.php?b=themes/$1&f=$2 [QSA,L]
-RewriteRule ^modules/([^/]*)/styles/([^.]*)-min.css     core/libs/min/index.php?b=modules/$1/styles&f=$2.css [QSA,L]
-RewriteRule ^modules/([^/]*)/scripts/([^.]*)-min.js     core/libs/min/index.php?b=modules/$1/scripts&f=$2.js [QSA,L]
+RewriteRule ^assets/styles/([^.]*)-min.css              libaries/minify/index.php?g=$1&t=css [QSA,L]
+RewriteRule ^assets/javascript/([^.]*)-min.js           libaries/minify/index.php?g=$1&t=js [QSA,L]
+RewriteRule ^themes/([^/]*)/(.*)-min.css                libaries/minify/index.php?b=themes/$1&f=$2 [QSA,L]
+RewriteRule ^themes/([^/]*)/(.*)-min.js                 libaries/minify/index.php?b=themes/$1&f=$2 [QSA,L]
+RewriteRule ^modules/([^/]*)/styles/([^.]*)-min.css     libaries/minify/index.php?b=modules/$1/styles&f=$2.css [QSA,L]
+RewriteRule ^modules/([^/]*)/scripts/([^.]*)-min.js     libaries/minify/index.php?b=modules/$1/scripts&f=$2.js [QSA,L]
 
 ##control panels
 RewriteRule ^(admin|mod|user)/([^/]*)/([^.]*)(.*)       control.php?__mode=$1&__module=$2&__action=$3&__extra=$4 [QSA,L]

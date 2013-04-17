@@ -71,8 +71,7 @@ $min_cachePath = $cmsROOT.'cache/media/';
  * second line. The third line might work on some Apache servers.
  */
 //$min_documentRoot = cmsROOT;
-$min_documentRoot = substr(__FILE__, 0, strlen(__FILE__) - 24);
-//$min_documentRoot = $_SERVER['SUBDOMAIN_DOCUMENT_ROOT'];
+$min_documentRoot = substr(__FILE__, 0, strlen(__FILE__) - 17);
 
 
 /**

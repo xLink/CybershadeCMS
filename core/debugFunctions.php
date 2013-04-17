@@ -89,7 +89,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      *
      * @return      string
      */
-    function doDump(&$var, $var_name = null, $indent = null, $reference = null, $counter = 0) {
+    function doDump($var, $var_name = null, $indent = null, $reference = null, $counter = 0) {
         $do_dump_indent = '&nbsp;&nbsp; ';
         $reference = $reference.$var_name;
         $keyvar = 'the_do_dump_recursion_protection_scheme';

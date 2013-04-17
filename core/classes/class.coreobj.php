@@ -409,7 +409,7 @@ class Core_Classes_coreObj {
     }
 
     public static function getLib( $name, $args = array() ){
-        $dir = 'core/libs/';
+        $dir = cmsROOT.'libaries/';
 
         // if the class dosent exist, then we'll load it
         if( !class_exists($name, false) ){

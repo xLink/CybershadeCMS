@@ -10,7 +10,7 @@ define('INDEX_CHECK', 1);
 define('MINIFY_MIN_DIR', dirname(__FILE__));
 
 // load config
-$cmsROOT = '../../../';
+$cmsROOT = '../../';
 require MINIFY_MIN_DIR . '/config.php';
 
 
@@ -56,7 +56,7 @@ if (preg_match('/&\\d/', $_SERVER['QUERY_STRING'])) {
 }
 if (isset($_GET['g'])) {
     // well need groups config
-    $min_serveOptions['minApp']['groups'] = (require $cmsROOT . 'core/minifierConfig.php');
+    $min_serveOptions['minApp']['groups'] = (require 'minifierConfig.php');
 }
 //CSCMS Edit
 $min_serveOptions['rewriteCssUris'] = false;
