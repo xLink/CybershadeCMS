@@ -29,9 +29,9 @@ if ( $objModule !== false ) {
     $objModule->output();
 }
 
-$objDebug->log( 'aaaa', 'title' );
-$objDebug->log( 'bbb', 'title', 'error' );
-$objDebug->log( 'cccc', 'title', 'success' );
+debugLog( 'aaaa', 'title' );
+debugLog( 'bbb', 'title', 'error' );
+debugLog( 'cccc', 'title', 'success' );
 
 $objPage->showFooter();
 ?>

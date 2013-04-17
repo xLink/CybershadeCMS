@@ -10,6 +10,9 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
            $includedFiles   = array(),
            $templateFiles   = array();
 
+    protected   $line, 
+                $file;
+
     public function __construct( ) { }
 
 /**
@@ -406,10 +409,14 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
      *
      */
     public function log( $var, $title = '', $type = 'info' ) {
+        $debug = debug_backtrace();
+
         $this->dumpOutput[] = array(
             'title'   => $title,
             'type'    => $type,
-            'content' => $var
+            'content' => $var,
+            'line'    => $debug[1]['line'],
+            'file'    => $debug[1]['file'],
         );
 
         return end( $this->dumpOutput );
@@ -435,6 +442,8 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         foreach( $this->dumpOutput as $log ) {
             $type  = $log['type'] ?: 'info';
             $title = htmlentities( $log['title'] ) ?: 'Debug' ;
+            $file  = doArgs( 'file', 'Unknown', $log );
+            $file  = str_replace( array('\\', $_SERVER['DOCUMENT_ROOT']) , array('/', ''), $file);
 
             $content .= sprintf(
                 '<table class="table">
@@ -443,16 +452,16 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
                             <td colspan="3" style="height:5px; padding:0;"></td>
                         </tr>
                         <tr>
-                            <td>File Number</td>
-                            <td>Title</td>
-                            <td>Content</td>
+                            <td style="width: 10%%;">File Number</td>
+                            <td style="width: 5%%;">Title</td>
+                            <td style="width: 85%%;">Content</td>
                         </tr>
                     </tr>
                     
                         <tr>
                             <td>
-                                %s<br>
-                                %s - %s
+                                %s<br />
+                                on line: %s
                             </td>
                             <td>%s</td>
                             <td>%s</td>
@@ -461,9 +470,8 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
                 </table>',
 
                     $type,
-                    'file.php',
-                    '0',
-                    '1',
+                    $file,
+                    doArgs( 'line', 0, $log),
                     $title,
                     dump( $log['content'], $title )
                 );
