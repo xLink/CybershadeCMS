@@ -239,11 +239,42 @@ class Core_Classes_Unit extends Core_Classes_coreObj{
      *
      * @param   string  $test
      * @param   mixed   $var
+     * @param   bool    $keys  Checks if the keys are numeric or stringed
      *
      * @return  bool
      */
-    public function assertContainsOnly( $test, $var ){
+    public function assertContainsOnly( $test, $var, $keys = false ){
+        $type = gettype( $var );
 
+        // Check if the test is an array or object
+        if( !is_array( $var ) || !is_object( $var ) ){
+            if( $type != $test ){
+                return false;
+            }
+        }
+
+        if( is_empty( $var ) ){
+            return false;
+        }
+
+        if( is_array( $var ) ){
+            foreach( $var as $k => $v ){
+                if( is_array( $v ) ){
+                    return $this->assertContainsOnly( $test, $v, $keys );
+                }
+                $vType = gettype( $v );
+                if( $keys ){
+                    $kType = gettype( $k );
+                    if( $kType != $test ){
+                        return false;
+                    }
+                }
+                if( $vType != $test ){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -259,10 +290,6 @@ class Core_Classes_Unit extends Core_Classes_coreObj{
      * @return  bool
      */
    public function assertEquals( $expected, $actual ){
-        // If they two variables are of different types
-        if( gettype( $expected ) !== gettype( $actual ) ){
-            return false;
-        }
         return ( $expected === $actual );
     }
 
