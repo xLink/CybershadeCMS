@@ -28,10 +28,5 @@ $objPage->showHeader();
 if ( $objModule !== false ) {
     $objModule->output();
 }
-
-debugLog( 'aaaa', 'title' );
-debugLog( 'bbb', 'title', 'error' );
-debugLog( 'cccc', 'title', 'success' );
-
 $objPage->showFooter();
 ?>
