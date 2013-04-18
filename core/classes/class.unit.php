@@ -238,37 +238,43 @@ class Core_Classes_Unit extends Core_Classes_coreObj{
      * @author  Richard Clifford
      *
      * @param   string  $test
-     * @param   mixed   $var
-     * @param   bool    $keys  Checks if the keys are numeric or stringed
+     * @param   mixed   $var    Must be an array or object
+     * @param   bool    $keys   Checks if the keys are numeric or stringed
      *
      * @return  bool
      */
     public function assertContainsOnly( $test, $var, $keys = false ){
-        $type = gettype( $var );
+        $type = strtolower(gettype( $var ));
+        $test = strtolower($test);
 
         // Check if the test is an array or object
-        if( !is_array( $var ) || !is_object( $var ) ){
-            if( $type != $test ){
-                return false;
-            }
+        if( !is_array( $var ) && !is_object( $var ) ){
+            trigger_error( 'The test variable needs to be an array or object, '. $type . ' given.', E_USER_ERROR );
+            return false;
         }
 
+        // Checks if the var is empty
         if( is_empty( $var ) ){
             return false;
         }
 
-        if( is_array( $var ) ){
+        // Checks if the variable is an array or object
+        if( is_array( $var ) || is_object( $var ) ){
             foreach( $var as $k => $v ){
                 if( is_array( $v ) ){
                     return $this->assertContainsOnly( $test, $v, $keys );
                 }
                 $vType = gettype( $v );
+
                 if( $keys ){
+                    // Checks the key types
                     $kType = gettype( $k );
                     if( $kType != $test ){
                         return false;
                     }
                 }
+
+                // Check if the type is equal to the test type
                 if( $vType != $test ){
                     return false;
                 }
