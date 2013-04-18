@@ -259,43 +259,11 @@ class Core_Classes_Unit extends Core_Classes_coreObj{
      * @return  bool
      */
    public function assertEquals( $expected, $actual ){
-
         // If they two variables are of different types
         if( gettype( $expected ) !== gettype( $actual ) ){
             return false;
         }
-
-        switch( strtolower( gettype( $expected ) ) ){
-
-            case 'array':
-            case 'object':
-                if( !count($actual) || (count( $actual ) !== count( $expected )) ){
-                    return false;
-                }
-                foreach( $expected as $expectedKey => $expectedValue ){
-                    if(!array_key_exists($expectedKey, $actual)) {
-                        return false;
-                    }
-                    if($actual[$expectedKey] != $expectedValue) {
-                        return false;
-                    }
-                }
-                return true;
-
-
-            case 'null':
-                return ( is_null($expected) && is_null($actual) );
-
-            default:
-            case 'string':
-            case 'int':
-            case 'float':
-            case 'double':
-            case 'boolean':
-                return ( $expected === $actual );
-        }
-
-        return false;
+        return ( $expected === $actual );
     }
 
     /**
