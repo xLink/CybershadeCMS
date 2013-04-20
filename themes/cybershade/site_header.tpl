@@ -62,21 +62,3 @@
         <!-- END item -->
     </ul>
     <!-- END breadcrumbs -->
-
-    <div class="row">
-
-        <aside class="span4">
-        <!-- BEGIN _CMSBLOCK -->
-            <div class="row">
-                {_CMSBLOCK.LEFT_MENU}
-            </div>
-        <!-- END _CMSBLOCK -->
-        </aside>
-
-
-        <!-- BEGIN menu -->
-        <div id="pageContent" class="span8">
-        <!-- END menu -->
-        <!-- //BEGIN no_menu -->
-        <div id="pageContent" class="span12">
-        <!-- //END no_menu -->

@@ -19,6 +19,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
 
     public function __construct() {
         $this->options['simpleTPL'] = false;
+        $this->options['columns']   = 1;
     }
 
 /**
