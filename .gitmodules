@@ -8,3 +8,6 @@
 [submodule "modules/editor"]
 	path = modules/editor
 	url = git@github.com:cybershade/CS-Editor.git
+[submodule "modules/dynapage"]
+	path = modules/dynapage
+	url = git@github.com:cybershade/CS-DynaPage.git
