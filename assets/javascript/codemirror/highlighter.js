@@ -9,7 +9,7 @@ window.addEvent('domready', function() {
                 function(node){
                     ele.parentNode.replaceChild(node, ele);
                 }, {
-                  value:            jQuery(ele).text(),
+                  value:            ele.textContent,
                   lineNumbers:      true,
                   mode:             ele.get('data-lang') || 'text/plain',
                   readOnly:         'nocursor',
