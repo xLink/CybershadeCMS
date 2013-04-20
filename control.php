@@ -7,39 +7,56 @@ define('cmsDEBUG', true);
 $GET = $_GET;
 require_once 'core/core.php';
 
-$objRoute = Core_Classes_coreObj::getRoute();
-$objPage  = Core_Classes_coreObj::getPage();
-$objTPL   = Core_Classes_coreObj::getTPL();
-$objAdmin = Core_Classes_coreObj::getAdminCP('', $GET);
-$objUser  = Core_Classes_coreObj::getUser();
+$objRoute  = Core_Classes_coreObj::getRoute();
+$objPage   = Core_Classes_coreObj::getPage();
+$objTPL    = Core_Classes_coreObj::getTPL();
+$objUser   = Core_Classes_coreObj::getUser();
 
 $objRoute->modifyGET($GET);
+$mode = doArgs('__mode', false, $GET);
 
-if ( !Core_Classes_User::$IS_ONLINE || !Core_Classes_User::$IS_ADMIN ) {
+// regardless of control panel the user needs to be online.
+if ( !Core_Classes_User::$IS_ONLINE || !in_array($mode, array('admin', 'user')) ) {
 
-	// Need to sort out login
-    // $objRoute->throwHTTP(404);
+    // Need to sort out login
+    $objRoute->throwHTTP(404);
     $objPage->redirect('/'.root().'login');
-	exit;
+    exit;
 }
 
-$objPage->setTheme('perfectum-mootools');
+
 $objPage->addBreadcrumbs(array(
-    array('url' => '/'. root() . $objAdmin->mode .'/', 'name' => ucwords($objAdmin->mode).' Control Panel' )
+    array('url' => '/'. root() . $mode .'/', 'name' => ucwords($mode).' Control Panel' )
 ));
+if( $mode == 'admin' ){
+    $objCPanel = Core_Classes_coreObj::getAdminCP('', $GET);
+    if ( !Core_Classes_User::$IS_ADMIN ) {
 
-$objPage->setTitle('Cybershade CMS Administration Panel');
+        // Need to sort out login
+        $objRoute->throwHTTP(404);
+        $objPage->redirect('/'.root().'login');
+        exit;
+    }
 
-// grab the nav and throw the baSic tpl setups together
-$objAdmin->getNav();
+    $objPage->setTheme('perfectum-mootools');
+}else{
+    $objCPanel = Core_Classes_coreObj::getUserCP('', $GET);
+
+    $objPage->setOptions('columns', 2);
+    $objPage->setTheme();
+}
+
+$objPage->setTitle('Control Panel');
+
+// grab the nav and throw the basic tpl setups together
 $objPage->tplGlobals();
 
 // sort the route out, see what we need to do
-$objAdmin->invokeRoute();
+$objCPanel->invokeRoute();
 
 // and then output..something
 $objPage->showHeader();
-$objAdmin->output();
+echo $objCPanel->output();
 $objPage->showFooter();
 
 ?>

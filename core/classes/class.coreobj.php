@@ -76,6 +76,7 @@ class Core_Classes_coreObj {
                 break;
 
                 case 'admin':
+                case 'user':
                     $acp = array();
                     if( $fp[1] == 'modules' ){
                         $acp[] = 'modules';
