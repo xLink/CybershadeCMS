@@ -6,6 +6,10 @@
         <div class="alert alert-error">{form_error.ERROR_MSG}</div>
         <div class="clear">&nbsp;</div>
         <!-- END form_error -->
+        <!-- BEGIN form_info -->
+        <div class="alert alert-info">{form_info.INFO_MSG}</div>
+        <div class="clear">&nbsp;</div>
+        <!-- END form_info -->
 
         <!-- BEGIN _form_row -->
             <!-- BEGIN _field -->

@@ -479,9 +479,15 @@ class Core_Classes_Form extends Core_Classes_coreObj {
         $objTPL->assign_vars($vars);
 
         $objTPL->reset_block_vars('form_error');
-        if(isset($elements['errors']) && !is_empty($elements['errors'])){
+        if( isset($elements['errors']) && !is_empty($elements['errors']) ){
             $objTPL->assign_block_vars('form_error', array(
                 'ERROR_MSG' => implode('<br />', $elements['errors']),
+            ));
+        }
+
+        if( isset($vars['FORM_INFO']) && !empty($vars['FORM_INFO']) ){
+            $objTPL->assign_block_vars('form_info', array(
+                'INFO_MSG' => $vars['FORM_INFO'],
             ));
         }
 
@@ -489,8 +495,8 @@ class Core_Classes_Form extends Core_Classes_coreObj {
         $objTPL->reset_block_vars('field');
 
         //loop thru each element
-        foreach($elements['field'] as $label => $field){
-            if(is_empty($field)){ continue; }
+        foreach( $elements['field'] as $label => $field ){
+            if( is_empty($field) ){ continue; }
 
             $formVars = array();
 
@@ -501,11 +507,11 @@ class Core_Classes_Form extends Core_Classes_coreObj {
             $label = ucwords($label);
 
             //if its a header, set it as one with a hr under
-            if(strtolower($field) == '_header_'){
-                $label = sprintf(doArgs('header', '%s', $options), $label);
+            if( strtolower($field) == '_header_' ){
+                $label = sprintf( doArgs('header', '%s', $options), $label );
             }
 
-            $header = (strtolower($field) == '_header_' ? true : false);
+            $header = ( strtolower($field) == '_header_' ? true : false );
             $objTPL->assign_block_vars('_form_row', array());
             if($dediHeader && $header){
                 $objTPL->assign_block_vars('_form_row._header', array(
@@ -522,12 +528,12 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                 ));
 
                 // if this isnt a 'header' then output the label
-                if(!$header){
+                if( $header === false ){
                     $objTPL->assign_block_vars('_form_row._field._label', array());
                 }
 
                 // if we have a description, lets output it with the label
-                if(!is_empty($desc)){
+                if( is_empty($desc) === false ){
                     $objTPL->assign_block_vars('_form_row._field._desc', array());
                 }
 
