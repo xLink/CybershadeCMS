@@ -32,7 +32,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
         $objTPL  = Core_Classes_coreObj::getTPL();
         $objUser = Core_Classes_coreObj::getUser();
 
-        $classPrefixes = array('Modules_', 'Admin_');
+        $classPrefixes = array('Modules_', 'Admin_', 'User_');
         $module = $this->getVar('_module');
         $method = $this->getVar('_method');
         $view   = str_replace('.tpl', '', $view);
@@ -112,24 +112,36 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      * @author  Dan Aldridge
      */
     public function output(){
-        $objTPL = Core_Classes_coreObj::getTPL();
+        $objTPL  = Core_Classes_coreObj::getTPL();
+        $objPage = Core_Classes_coreObj::getPage();
 
-        $page = Core_Classes_coreObj::getPage()->getVar('contents');
+        $page    = $objPage->getVar('contents');
+        $columns = $objPage->getOptions('columns');
+        $content = null;
 
-        if( !$objTPL->isHandle('body') ){
+        $objTPL->set_filenames(array(
+            'siteBody' =>  cmsROOT . Core_Classes_Page::$THEME_ROOT . $columns.'columns.tpl',
+        ));
 
-            if( $page === null ){
-                msgDie('FAIL', 'No output received from module.');
-            } else {
-                echo $page;
+            if( !$objTPL->isHandle('body') ){
+
+                if( $page === null ){
+                    msgDie('FAIL', 'No output received from module.');
+                } else{
+                    $content = $page;
+                }
+
+            }else{
+                if( is_empty($page) ){
+                    $content = $objTPL->get_html('body');
+                }
             }
 
-        }else{
-            if( !is_empty($page) ){
-                echo $page;
-            }
-            echo $objTPL->get_html('body');
-        }
+            $objTPL->assign_vars(array(
+                'CONTENT_BODY' => $content,
+            ));
+        $objTPL->parse('siteBody', false);
+        return $objTPL->get_html('siteBody');
     }
 
     /**

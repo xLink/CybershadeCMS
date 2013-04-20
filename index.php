@@ -26,7 +26,7 @@ $objModule = $objRoute->processURL($_SERVER['QUERY_STRING']);
 $objPage->showHeader();
 
 if ( $objModule !== false ) {
-    $objModule->output();
+    echo $objModule->output();
 }
 $objPage->showFooter();
 ?>
