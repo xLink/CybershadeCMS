@@ -4,19 +4,18 @@ window.addEvent('domready', function() {
     if( $code.length ){
 
         $code.each(function(ele){
-        console.log(ele.get('html'));
             var editor = CodeMirror(
                 function(node){
                     ele.parentNode.replaceChild(node, ele);
                 }, {
                   value:            ele.textContent,
-                  lineNumbers:      true,
                   mode:             ele.get('data-lang') || 'text/plain',
                   readOnly:         'nocursor',
                   theme:            'monokai',
+                  lineNumbers:      true,
                   styleActiveLine:  true,
                   lineWrapping:     true,
-                  viewportMargin: Infinity
+                  viewportMargin:   Infinity
                 }
             );
         });
