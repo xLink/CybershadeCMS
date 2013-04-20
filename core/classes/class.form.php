@@ -501,11 +501,11 @@ class Core_Classes_Form extends Core_Classes_coreObj {
             $label = ucwords($label);
 
             //if its a header, set it as one with a hr under
-            if($field == '_header_'){
+            if(strtolower($field) == '_header_'){
                 $label = sprintf(doArgs('header', '%s', $options), $label);
             }
 
-            $header = ($field == '_header_' ? true : false);
+            $header = (strtolower($field) == '_header_' ? true : false);
             $objTPL->assign_block_vars('_form_row', array());
             if($dediHeader && $header){
                 $objTPL->assign_block_vars('_form_row._header', array(
@@ -545,6 +545,8 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                 }
             }
         }
+
+        unset($_SESSION['errors']);
 
         //return the html all nicely parsed etc
         return $objTPL->get_html('form_body_'.$randID);

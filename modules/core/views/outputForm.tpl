@@ -40,6 +40,7 @@
             </div>
             <!-- END _field -->
         <!-- END _form_row -->
+            {FORM_TOKEN}
             <div class="form-actions">
                 {FORM_SUBMIT} {FORM_RESET}
             </div>
