@@ -550,6 +550,9 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
             foreach( $options as $key => $value ) {
 
+                // Make sure the value is properly ready for use in the URL
+                $value = seo( $value );
+
                 // If there's a requirement on the param..
                 if ( isset( $route['requirements'][$key] ) ) {
 
