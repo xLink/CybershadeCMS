@@ -637,7 +637,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
             $text = strtr(strtolower($text), array(' ' => '-'));
             $text = preg_replace('/[\-]{2,}/', '-', $text);
             $text = rtrim($text, '-');
-            if(is_number($text)) { $text = 'number-'.$text; } // numeric names would confuse everything
+
          return $text;
     }
 

@@ -27,18 +27,25 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
     public function output(){
         $objTPL = Core_Classes_coreObj::getTPL();
 
+        $content = null;
         if( !$objTPL->isHandle('body') ){
             $page = Core_Classes_coreObj::getPage()->getVar('contents');
 
             if( $page === null ){
                 msgDie('FAIL', 'No output received from module.');
             } else {
-                return $page;
+                $content .= $page;
             }
 
         } else {
-            return $objTPL->get_html('body');
+            if( !is_empty($page) ){
+                $content .= $page;
+            }
+
+            $content .= $objTPL->get_html('body');
         }
+
+        return $content;
     }
 
     /**

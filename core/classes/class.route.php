@@ -550,17 +550,14 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
             foreach( $options as $key => $value ) {
 
-                // Make sure the value is properly ready for use in the URL
-                $value = seo( $value );
-
                 // If there's a requirement on the param..
                 if ( isset( $route['requirements'][$key] ) ) {
 
                     // Check the param we were given matches the requirement
                     if( preg_match( '/^' . $route['requirements'][$key] . '$/', $value ) ) {
                     
-                        // It does, woo.
-                        $url = str_replace( ':' . $key, $value, $url );
+                        // It does, woo, we'll be nice & seo the value for em too
+                        $url = str_replace( ':' . $key, seo( $value ), $url );
                         unset( $remainingVars[$key] );
 
                     } else {
@@ -578,7 +575,8 @@ class Core_Classes_Route extends Core_Classes_coreObj{
                 } else {
 
                     // No requirement, so just fill it in.. [UNSECURE]
-                    $url = str_replace( ':' . $key, $options[$key], $url );
+                    // make the value seo friendly too
+                    $url = str_replace( ':' . $key, seo( $options[$key] ), $url );
                     unset( $remainingVars[$key] );
                 }
             }
