@@ -40,18 +40,34 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
      *
      * @return  bool
      */
-    public function can( $permission ){
+    public function can( $permission, $content_id=0 ){
 
         $permission = strtolower($permission);
 
         if( isset($this->permissions[$permission]) ){
 
-            if( $this->permissions[$permission]['value'] ){
-                return true;
+            if( isset($this->permissions[$permission][ $content_id ]['value']) ){
+                return ($this->permissions[$permission][ $content_id ]['value']==1 ? true : false);
+            }
+
+            if( isset($this->permissions[$permission][ '0' ]['value']) ){
+                return ($this->permissions[$permission][ '0' ]['value']==1 ? true : false);
             }
         }
 
         return false;
+    }
+
+    /**
+     * Check if the User specified has the permission requested
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function canUser( $uid, $permission ) {
+
     }
 
     /**
@@ -105,7 +121,6 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
                 return array();
             }
 
-        echo dump($permissions, 'group perms');
         return $this->figurePerms($permissions);
     }
 
@@ -156,11 +171,12 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
             $permKey = strtolower( $p['permission_key'] );
                 if( is_empty($permKey) ){ continue; }
 
-            $return[ $permKey ] = array(
+            $return[ $permKey ][ $p['content_id'] ] = array(
                 'permission' => $permKey,
                 'inherited'  => (isset($p['group_id']) ? true : false),
                 'value'      => ($p['permission_value'] == '1' ? true : false),
                 'setWhere'   => (isset($p['group_id']) ? 'group' : 'user'),
+                'content_id' => $p['content_id'],
             );
         }
 
