@@ -19,7 +19,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
     public function __construct(){
 
         $guest['user'] = array(
-            'id'        => 0,
+            'id'        => 1,
             'username'  => 'Guest',
             'theme'     => $this->config('site', 'theme'),
             'timezone'  => isset($_SESSION['user']) ? doArgs('timezone', $this->config('time', 'timezone'), $_SESSION['user']) : $this->config('time', 'timezone'),
@@ -49,7 +49,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
 
         $user = $this->config('global', 'user');
 
-        $this->setIsOnline(!($user['id'] == 0 ? true : false));
+        $this->setIsOnline(!($user['id'] == 1 ? true : false));
         $this->initPerms();
     }
 
@@ -302,7 +302,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
                     ->select(array( 'u.id', 'u.username', 'u.banned', 'g.name', 'g.description', 'g.color' ))
                     ->from(array( 'u' => '#__users' ))
                     ->where( $where )
-                    
+
                     ->leftJoin(array( 'g' => '#__groups'))
                         ->on('g.id', '=', 'u.primary_group')
 
@@ -390,7 +390,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
                     }
                 }
             }
-        
+
 
             // setup the output for this method
             $user = $this->cacheUsers[$ident]['username'];
@@ -920,41 +920,30 @@ class Core_Classes_User extends Core_Classes_coreObj {
         //see which group we are checking for
         switch($group){
             case GUEST:
-                if(!self::$IS_ONLINE){
+                if( !self::$IS_ONLINE ){
                     return true;
                 }
             break;
 
             case USER:
-                if(self::$IS_ONLINE){
-                    return true;
-                }
-            break;
-
-            case MOD:
-                if($userlevel == MOD){
+                if( self::$IS_ONLINE ){
                     return true;
                 }
             break;
 
             case ADMIN:
-                if($userlevel == ADMIN){
+                if( $userlevel == ADMIN ){
                     //if(LOCALHOST || doArgs('adminAuth', false, $_SESSION['acp'])){
                         return true;
                     //}
                 }
             break;
 
-            //no idea what they tried to check for, so we'll return something unexpected too
+            // no idea what they tried to check for, so we'll return something unexpected too
             default: return -1; break;
         }
 
-        //if we are an admin then give them mod powers regardless
-        if(($group == MOD || $group == USER) && $userlevel == ADMIN){
-            return true;
-        }
-
-        //apparently the checks didnt return true, so we'll go for false
+        // apparently the checks didn't return true, so we'll go for false
         return false;
     }
 
