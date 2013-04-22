@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 22, 2013 at 12:26 PM
+-- Generation Time: Apr 22, 2013 at 08:25 PM
 -- Server version: 5.5.28a-MariaDB-a1~squeeze-log
 -- PHP Version: 5.3.19-1~dotdeb.0
 
@@ -66,7 +66,8 @@ CREATE TABLE IF NOT EXISTS `cscms_article_content` (
   `approved` int(1) NOT NULL DEFAULT '0',
   `approved_by` int(11) NOT NULL,
   `views` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `cat_id` (`cat_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=13 ;
 
 --
@@ -183,7 +184,8 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_cats` (
   `auth_move` int(1) NOT NULL DEFAULT '0',
   `auth_special` int(1) NOT NULL DEFAULT '0',
   `auth_mod` int(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `parent_id` (`parent_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -203,7 +205,9 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_posts` (
   `edited` int(5) NOT NULL DEFAULT '0',
   `edited_by` int(15) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `thread_id` (`thread_id`)
+  KEY `thread_id` (`thread_id`),
+  KEY `thread_id_2` (`thread_id`),
+  KEY `thread_id_3` (`thread_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -225,7 +229,8 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_threads` (
   `mode` int(1) NOT NULL DEFAULT '0',
   `views` int(1) NOT NULL DEFAULT '0',
   `old_cat_id` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `cat_id` (`cat_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -237,10 +242,12 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_threads` (
 DROP TABLE IF EXISTS `cscms_forum_watch`;
 CREATE TABLE IF NOT EXISTS `cscms_forum_watch` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) NOT NULL DEFAULT '0',
+  `uid` int(11) unsigned NOT NULL DEFAULT '0',
   `thread_id` int(11) NOT NULL DEFAULT '0',
   `seen` int(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `uid` (`uid`),
+  KEY `thread_id` (`thread_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -279,24 +286,24 @@ INSERT INTO `cscms_groups` (`id`, `status`, `name`, `description`, `moderator`, 
 DROP TABLE IF EXISTS `cscms_groups_perms`;
 CREATE TABLE IF NOT EXISTS `cscms_groups_perms` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `permission_key` varchar(30) DEFAULT NULL,
+  `permission_key` varchar(50) DEFAULT NULL,
   `permission_value` tinyint(1) NOT NULL DEFAULT '0',
-  `module` varchar(30) DEFAULT NULL,
   `content_id` int(11) DEFAULT '0',
-  `group_id` int(11) DEFAULT '0',
+  `group_id` int(11) unsigned DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `permission_key` (`permission_key`)
+  KEY `permission_key` (`permission_key`),
+  KEY `group_id` (`group_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
 
 --
 -- Dumping data for table `cscms_groups_perms`
 --
 
-INSERT INTO `cscms_groups_perms` (`id`, `permission_key`, `permission_value`, `module`, `content_id`, `group_id`) VALUES
-(1, 'ARTICLES.CREATE', 1, 'articles', 1, 1),
-(2, 'ARTICLES.CREATE', 0, 'articles', 0, 3),
-(3, 'ARTICLES.READ', 1, NULL, 0, 3),
-(4, 'ARTICLES.READ', 0, NULL, 1, 3);
+INSERT INTO `cscms_groups_perms` (`id`, `permission_key`, `permission_value`, `content_id`, `group_id`) VALUES
+(1, 'CS.ARTICLES.CREATE', 1, 1, 1),
+(2, 'CS.ARTICLES.CREATE', 0, 0, 3),
+(3, 'CS.ARTICLES.READ', 1, 0, 3),
+(4, 'CS.ARTICLES.READ', 0, 1, 3);
 
 -- --------------------------------------------------------
 
@@ -306,11 +313,13 @@ INSERT INTO `cscms_groups_perms` (`id`, `permission_key`, `permission_value`, `m
 
 DROP TABLE IF EXISTS `cscms_groups_subs`;
 CREATE TABLE IF NOT EXISTS `cscms_groups_subs` (
-  `user_id` int(11) NOT NULL,
-  `group_id` int(11) NOT NULL,
+  `user_id` int(11) unsigned NOT NULL,
+  `group_id` int(11) unsigned NOT NULL,
   `pending` tinyint(1) NOT NULL DEFAULT '1',
   KEY `gid` (`group_id`),
-  KEY `uid` (`user_id`)
+  KEY `uid` (`user_id`),
+  KEY `group_id` (`group_id`),
+  KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -406,8 +415,9 @@ CREATE TABLE IF NOT EXISTS `cscms_modules` (
 
 DROP TABLE IF EXISTS `cscms_permissions`;
 CREATE TABLE IF NOT EXISTS `cscms_permissions` (
-  `key` varchar(30) DEFAULT NULL,
+  `key` varchar(50) DEFAULT NULL,
   `description` text,
+  UNIQUE KEY `key_2` (`key`),
   KEY `key` (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -416,11 +426,15 @@ CREATE TABLE IF NOT EXISTS `cscms_permissions` (
 --
 
 INSERT INTO `cscms_permissions` (`key`, `description`) VALUES
-('ADMIN.VIEW', 'View ACP'),
-('ADMIN.LOGIN', 'Can login to ACP'),
-('ARTICLES.READ', 'Read Articles'),
-('ARTICLES.CREATE', 'Can post new Articles'),
-('ARTICLES.EDIT', 'Can edit Articles');
+('CS.ACP.VIEW', 'View ACP'),
+('CS.ACP.LOGIN', 'Can login to ACP'),
+('CS.ARTICLES.READ', 'Can read articles in a category'),
+('CS.ARTICLES.CREATE', 'Can post new articles to a category'),
+('CS.ARTICLES.EDIT', 'Can edit articles in a category'),
+('CS.ARTICLES.DELETE', 'Can delete articles from a category'),
+('CS.ARTICLES.COMMENT', 'Can comment on articles in a category'),
+('CS.ARTICLES.VIEW', 'Can view contents of a category'),
+('CS.ARTICLES.CATEGORY.CREATE', 'Can create categories');
 
 -- --------------------------------------------------------
 
@@ -669,9 +683,8 @@ INSERT INTO `cscms_users_extras` (`uid`, `birthday`, `sex`, `contact_info`, `abo
 DROP TABLE IF EXISTS `cscms_users_perms`;
 CREATE TABLE IF NOT EXISTS `cscms_users_perms` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `permission_key` varchar(30) DEFAULT NULL,
+  `permission_key` varchar(50) DEFAULT NULL,
   `permission_value` tinyint(1) NOT NULL DEFAULT '0',
-  `module` varchar(30) DEFAULT NULL,
   `content_id` int(11) DEFAULT '0',
   `user_id` int(11) DEFAULT '0',
   PRIMARY KEY (`id`),
@@ -682,19 +695,58 @@ CREATE TABLE IF NOT EXISTS `cscms_users_perms` (
 -- Dumping data for table `cscms_users_perms`
 --
 
-INSERT INTO `cscms_users_perms` (`id`, `permission_key`, `permission_value`, `module`, `content_id`, `user_id`) VALUES
-(1, 'ADMIN.LOGIN', 1, NULL, 0, 1),
-(2, 'ADMIN.LOGIN', 1, NULL, 0, 2);
+INSERT INTO `cscms_users_perms` (`id`, `permission_key`, `permission_value`, `content_id`, `user_id`) VALUES
+(1, 'CS.ACP.LOGIN', 1, 0, 1),
+(2, 'CS.ACP.LOGIN', 1, 0, 2);
 
 --
 -- Constraints for dumped tables
 --
 
 --
+-- Constraints for table `cscms_article_content`
+--
+ALTER TABLE `cscms_article_content`
+  ADD CONSTRAINT `cscms_article_content_ibfk_1` FOREIGN KEY (`cat_id`) REFERENCES `cscms_article_cats` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `cscms_forum_cats`
+--
+ALTER TABLE `cscms_forum_cats`
+  ADD CONSTRAINT `cscms_forum_cats_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `cscms_forum_cats` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `cscms_forum_posts`
+--
+ALTER TABLE `cscms_forum_posts`
+  ADD CONSTRAINT `cscms_forum_posts_ibfk_1` FOREIGN KEY (`thread_id`) REFERENCES `cscms_forum_threads` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `cscms_forum_threads`
+--
+ALTER TABLE `cscms_forum_threads`
+  ADD CONSTRAINT `cscms_forum_threads_ibfk_1` FOREIGN KEY (`cat_id`) REFERENCES `cscms_forum_cats` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `cscms_forum_watch`
+--
+ALTER TABLE `cscms_forum_watch`
+  ADD CONSTRAINT `cscms_forum_watch_ibfk_2` FOREIGN KEY (`uid`) REFERENCES `cscms_users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `cscms_forum_watch_ibfk_1` FOREIGN KEY (`thread_id`) REFERENCES `cscms_forum_threads` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `cscms_groups_perms`
 --
 ALTER TABLE `cscms_groups_perms`
-  ADD CONSTRAINT `cscms_groups_perms_ibfk_1` FOREIGN KEY (`permission_key`) REFERENCES `cscms_permissions` (`key`);
+  ADD CONSTRAINT `cscms_groups_perms_ibfk_1` FOREIGN KEY (`permission_key`) REFERENCES `cscms_permissions` (`key`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `cscms_groups_perms_ibfk_2` FOREIGN KEY (`group_id`) REFERENCES `cscms_groups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `cscms_groups_subs`
+--
+ALTER TABLE `cscms_groups_subs`
+  ADD CONSTRAINT `cscms_groups_subs_ibfk_2` FOREIGN KEY (`group_id`) REFERENCES `cscms_groups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `cscms_groups_subs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `cscms_users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `cscms_users_extras`
@@ -706,7 +758,7 @@ ALTER TABLE `cscms_users_extras`
 -- Constraints for table `cscms_users_perms`
 --
 ALTER TABLE `cscms_users_perms`
-  ADD CONSTRAINT `cscms_users_perms_ibfk_1` FOREIGN KEY (`permission_key`) REFERENCES `cscms_permissions` (`key`);
+  ADD CONSTRAINT `cscms_users_perms_ibfk_1` FOREIGN KEY (`permission_key`) REFERENCES `cscms_permissions` (`key`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

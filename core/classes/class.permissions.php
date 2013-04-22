@@ -30,7 +30,6 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
         $this->buildACL();
     }
 
-
     /**
      * Check if we have the permission on the user.
      *
@@ -56,18 +55,6 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
         }
 
         return false;
-    }
-
-    /**
-     * Check if the User specified has the permission requested
-     *
-     * @version 1.0
-     * @since   1.0
-     * @author  Dan Aldridge
-     *
-     */
-    public function canUser( $uid, $permission ) {
-
     }
 
     /**
