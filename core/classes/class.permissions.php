@@ -33,7 +33,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
     /**
      * Check if we have the permission on the user.
      *
-     * @version 1.0
+     * @version 1.2
      * @since   1.0
      * @author  Dan Aldridge
      *
@@ -43,18 +43,22 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
 
         $permission = strtolower($permission);
 
+        // make sure the permission is valid
         if( isset($this->permissions[$permission]) ){
 
+            // if we have the content id they want, return based on its value
             if( isset($this->permissions[$permission][ $content_id ]['value']) ){
                 return ($this->permissions[$permission][ $content_id ]['value']==1 ? true : false);
             }
 
+            // if not, try for content id = 0, this is a global version
             if( isset($this->permissions[$permission][ '0' ]['value']) ){
                 return ($this->permissions[$permission][ '0' ]['value']==1 ? true : false);
             }
         }
 
-        return false;
+        // if we got this far, permission doesn't exist so..
+        return true;
     }
 
     /**
@@ -96,7 +100,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
 
         // do the query to grab the permissions
         $query = $objSQL->queryBuilder()
-            ->select('gp.id', 'gp.permission_key', 'gp.permission_value', 'gp.module', 'gp.content_id', 'gp.group_id', 'g.order')
+            ->select('gp.id', 'gp.permission_key', 'gp.permission_value', 'gp.content_id', 'gp.group_id', 'g.order')
             ->from(array( 'gp' => '#__groups_perms' ))
                 ->leftJoin(array( 'g' => '#__groups' ))
                     ->on('gp.group_id', '=', 'g.id')
@@ -125,7 +129,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
 
         // do the query to grab the permissions
         $query = $objSQL->queryBuilder()
-            ->select('id', 'permission_key', 'permission_value', 'module', 'content_id', 'user_id')
+            ->select('id', 'permission_key', 'permission_value', 'content_id', 'user_id')
             ->from('#__users_perms')
             ->where(sprintf( 'user_id = %s', $this->uid ));
 
