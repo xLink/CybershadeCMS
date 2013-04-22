@@ -81,6 +81,7 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
+     * @todo    Needs testing under new system
      *
      * @param   int $uid         User's ID
      * @param   int $gid         Group ID
@@ -143,6 +144,7 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
+     * @todo    Needs testing under new system
      *
      * @param   int $uid     User's ID
      * @param   int $gid     Group ID
@@ -189,6 +191,7 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
+     * @todo    Needs testing under new system
      *
      * @param   int $uid     User's ID
      * @param   int $gid     Group ID
@@ -221,10 +224,9 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
             ->build();
 
         $oldModerator = $objSQL->fetchLine($oldModQuery);
-
-        if( !is_empty($oldModerator) ){
-            $this->joinGroup($group['moderator'], $gid, 0);
-        }
+            if( is_empty($oldModerator) ){
+                $this->joinGroup($group['moderator'], $gid, 0);
+            }
 
         // make $uid new moderator
         if( $group['moderator'] != $uid ){
@@ -239,7 +241,7 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
 
             $objSQL->query( $update );
 
-            $log = 'User Groups: '.$objUser->profile($uid, RAW).' has been made group Moderator of '.$group['name'];
+            $log = 'User Groups: '.$objUser->makeUsername($uid, RAW).' has been made group Moderator of '.$group['name'];
 
             $args = array($uid, $gid);
             Core_Classes_coreObj::getPlugins()->hook('CMS_GROUPS_CHANGE_MODERATOR', $args);
@@ -278,26 +280,14 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
 
         // get group
         $group = $this->getGroup($gid);
-
-        // grab the necesary row
-        $subRowQuery = $objSQL->queryBuilder()
-            ->select('user_id', 'group_id', 'pending')
-            ->from('#__groups_subs')
-            ->where('user_id', '=', $uid)
-                ->andWhere('group_id', '=', $gid)
-            ->limit(1)
-            ->build();
-
-        $subRow = $objSQL->fetchLine( $subRowQuery );
-
-        if( is_empty($subRow) ){
-            trigger_error('User is not in group');
-            return false;
-        }
+            if( $group === false ){
+                trigger_error('Could not obtain group information');
+                return false;
+            }
 
         // update the pending status
         unset($update);
-        $update['pending'] = !$subRow['pending'];
+        $update['pending'] = 'IF(pending=1, 0, 1)';
 
         $updateQuery = $objSQL->queryBuilder()
             ->update('#__groups_subs')
@@ -324,11 +314,10 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
      *
      * @param   int $uid         User's ID
      * @param   int $gid         Group ID
-     * @param   array $query     Group Query
      *
      * @return  bool
      */
-    public function isInGroup($uid, $gid, $query=null){
+    public function isInGroup($uid, $gid){
         if( !is_number($uid) ){
             trigger_error('$uid is not valid');
             return false;
@@ -339,32 +328,24 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
             return false;
         }
 
-        if( !is_array($query) && !is_empty($query) ){
-            trigger_error('$query is not valid');
-            return false;
-        }
-
         $objSQL = Core_Classes_coreObj::getDBO();
 
         // get group
-        if(is_empty($query)){
-            $query = $objSQL->queryBuilder()
-                ->select('ug.user_id', 'g.type', 'g.moderator')
-                ->from( array('g' => '#__groups') )
-                    ->leftJoin( array('ug' => '#__groups_subs') )
-                        ->on('ug.group_id', '=', 'g.id')
-                ->where( sprintf('g.id = %d', $gid) )
-                    ->andWhere( sprintf('g.type = %d', GROUP_HIDDEN) )
-                ->build();
+        $query = $objSQL->queryBuilder()
+            ->select('ug.user_id', 'g.status', 'g.moderator')
+            ->from( array('g' => '#__groups') )
+                ->leftJoin( array('ug' => '#__groups_subs') )
+                    ->on('ug.group_id', '=', 'g.id')
+            ->where( sprintf('g.id = %d', $gid) )
+                ->andWhere( sprintf('g.status != %d', GROUP_HIDDEN) )
+            ->build();
 
 
-            $result = $objSQL->fetchAll($query);
-
+        $result = $objSQL->fetchAll($query);
             if( is_empty($result) ){
                 trigger_error('No group for ID: '.$gid);
                 return false;
             }
-        }
 
         // test to see if user is in group and return accordingly
         foreach($result as $row){
@@ -400,14 +381,16 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
         }
 
         $objSQL = Core_Classes_coreObj::getDBO();
+        $objUser = Core_Classes_coreObj::getUser();
 
         // Get Group
         $query = $objSQL->queryBuilder()
-            ->select('ug.user_id', 'ug.pending', 'g.type', 'g.moderator')
+            ->select('ug.user_id', 'ug.pending')
             ->from( array('g' => '#__groups') )
                 ->leftJoin( array('ug' => '#__groups_subs') )
                     ->on('ug.group_id', '=', 'g.id')
             ->where( sprintf('g.id = %d', $gid) )
+                ->andWhere('ug.pending', '=', $pending)
             ->build();
 
         $result = $objSQL->fetchAll( $query );
@@ -420,12 +403,51 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
         // create an array of uid's in group according to $pending
         $users = array();
         foreach($result as $row){
-            if( $row['pending'] == $pending  ){
-                $users[] = $row['user_id'];
-            }
+            $users[ $row['user_id'] ] = $objUser->makeUsername($row['user_id'], RAW);
         }
 
         return $users;
+    }
+
+    /**
+     * 
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function userInGroups( $uid ){
+        if( !is_number($uid) ){
+            trigger_error('$uid is not valid');
+            return false;
+        }
+
+        $objSQL = Core_Classes_coreObj::getDBO();
+
+        // Get Group
+        $query = $objSQL->queryBuilder()
+            ->select(array('group_id' => 'g.id', 'g.name'))
+            ->from( array('g' => '#__groups') )
+                ->leftJoin( array('ug' => '#__groups_subs') )
+                    ->on('ug.group_id', '=', 'g.id')
+            ->where( sprintf('ug.user_id = %d', $uid) )
+                ->andWhere( 'ug.pending', '=', '0' )
+            ->build();
+
+        $result = $objSQL->fetchAll( $query );
+            if( is_empty($result) ){
+                trigger_error('User is in no groups.');
+                return false;
+            }
+
+        // create an array of uid's in group according to $pending
+        $groups = array();
+        foreach($result as $row){
+            $groups[ $row['group_id'] ] = $row['name'];
+        }
+
+        return $groups;
     }
 }
 
