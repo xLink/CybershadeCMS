@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 20, 2013 at 01:14 AM
+-- Generation Time: Apr 22, 2013 at 12:26 PM
 -- Server version: 5.5.28a-MariaDB-a1~squeeze-log
 -- PHP Version: 5.3.19-1~dotdeb.0
 
@@ -26,6 +26,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `cscms_article_cats`
 --
 
+DROP TABLE IF EXISTS `cscms_article_cats`;
 CREATE TABLE IF NOT EXISTS `cscms_article_cats` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` text,
@@ -53,6 +54,7 @@ INSERT INTO `cscms_article_cats` (`id`, `name`, `order`, `perms`, `count`, `lock
 -- Table structure for table `cscms_article_content`
 --
 
+DROP TABLE IF EXISTS `cscms_article_content`;
 CREATE TABLE IF NOT EXISTS `cscms_article_content` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uid` int(11) NOT NULL DEFAULT '0',
@@ -65,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `cscms_article_content` (
   `approved_by` int(11) NOT NULL,
   `views` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=12 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=13 ;
 
 --
 -- Dumping data for table `cscms_article_content`
@@ -73,8 +75,9 @@ CREATE TABLE IF NOT EXISTS `cscms_article_content` (
 
 INSERT INTO `cscms_article_content` (`id`, `uid`, `cat_id`, `title`, `description`, `post`, `posted`, `approved`, `approved_by`, `views`) VALUES
 (1, 1, 1, 'Testing category index', NULL, '[h3]Page1[/h3]\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Age sane, inquam. Verum tamen cum de rebus grandioribus dicas, ipsae res verba rapiunt; Quod ea non occurrentia fingunt, vincunt Aristonem; Duo Reges: constructio interrete. Memini me adesse P. Est autem etiam actio quaedam corporis, quae motus et status naturae congruentis tenet;\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page2[/h3]\r\n\r\nDempta enim aeternitate nihilo beatior Iuppiter quam Epicurus; Erat enim res aperta. Non quam nostram quidem, inquit Pomponius iocans; Si enim ita est, vide ne facinus facias, cum mori suadeas. Sed tu istuc dixti bene Latine, parum plane. Illa argumenta propria videamus, cur omnia sint paria peccata. Quam ob rem tandem, inquit, non satisfacit? Esse enim quam vellet iniquus iustus poterat inpune. Cui Tubuli nomen odio non est?\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page3[/h3]\r\n\r\nEarum etiam rerum, quas terra gignit, educatio quaedam et perfectio est non dissimilis animantium. Amicitiam autem adhibendam esse censent, quia sit ex eo genere, quae prosunt. Ut scias me intellegere, primum idem esse dico voluptatem, quod ille don. Neque solum ea communia, verum etiam paria esse dixerunt.\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page4[/h3]\r\n\r\nInde sermone vario sex illa a Dipylo stadia confecimus. Est enim effectrix multarum et magnarum voluptatum. Tria genera bonorum; Quo modo autem philosophus loquitur? At certe gravius. Non igitur potestis voluptate omnia dirigentes aut tueri aut retinere virtutem.\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page5[/h3]\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Summum ením bonum exposuit vacuitatem doloris; Est enim effectrix multarum et magnarum voluptatum. Apud ceteros autem philosophos, qui quaesivit aliquid, tacet; Duo Reges: constructio interrete. Cur deinde Metrodori liberos commendas? Qui autem esse poteris, nisi te amor ipse ceperit? Cui Tubuli nomen odio non est? Portenta haec esse dicit, neque ea ratione ullo modo posse vivi; Quis suae urbis conservatorem Codrum, quis Erechthei filias non maxime laudat? Quid est igitur, cur ita semper deum appellet Epicurus beatum et aeternum? \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page6[/h3]\r\n\r\nPhilosophi autem in suis lectulis plerumque moriuntur. Mihi, inquam, qui te id ipsum rogavi? Polemoni et iam ante Aristoteli ea prima visa sunt, quae paulo ante dixi. Summus dolor plures dies manere non potest? Si longus, levis. Quae autem natura suae primae institutionis oblita est? Easdemne res? Si quicquam extra virtutem habeatur in bonis. Ergo in gubernando nihil, in officio plurimum interest, quo in genere peccetur. Est enim tanti philosophi tamque nobilis audacter sua decreta defendere. \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page7[/h3]\r\n\r\nQuantum Aristoxeni ingenium consumptum videmus in musicis? Sed utrum hortandus es nobis, Luci, inquit, an etiam tua sponte propensus es? At, si voluptas esset bonum, desideraret. Quorum altera prosunt, nocent altera. Fatebuntur Stoici haec omnia dicta esse praeclare, neque eam causam Zenoni desciscendi fuisse. Quae si potest singula consolando levare, universa quo modo sustinebit? Apparet statim, quae sint officia, quae actiones. Tubulum fuisse, qua illum, cuius is condemnatus est rogatione, P. \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page8[/h3]\r\n\r\nEquidem e Cn. Hoc ipsum elegantius poni meliusque potuit. Aperiendum est igitur, quid sit voluptas; Quis non odit sordidos, vanos, leves, futtiles? \r\n[h3]Page1[/h3]\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Age sane, inquam. Verum tamen cum de rebus grandioribus dicas, ipsae res verba rapiunt; Quod ea non occurrentia fingunt, vincunt Aristonem; Duo Reges: constructio interrete. Memini me adesse P. Est autem etiam actio quaedam corporis, quae motus et status naturae congruentis tenet;\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page2[/h3]\r\n\r\nDempta enim aeternitate nihilo beatior Iuppiter quam Epicurus; Erat enim res aperta. Non quam nostram quidem, inquit Pomponius iocans; Si enim ita est, vide ne facinus facias, cum mori suadeas. Sed tu istuc dixti bene Latine, parum plane. Illa argumenta propria videamus, cur omnia sint paria peccata. Quam ob rem tandem, inquit, non satisfacit? Esse enim quam vellet iniquus iustus poterat inpune. Cui Tubuli nomen odio non est?\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page3[/h3]\r\n\r\nEarum etiam rerum, quas terra gignit, educatio quaedam et perfectio est non dissimilis animantium. Amicitiam autem adhibendam esse censent, quia sit ex eo genere, quae prosunt. Ut scias me intellegere, primum idem esse dico voluptatem, quod ille don. Neque solum ea communia, verum etiam paria esse dixerunt.\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page4[/h3]\r\n\r\nInde sermone vario sex illa a Dipylo stadia confecimus. Est enim effectrix multarum et magnarum voluptatum. Tria genera bonorum; Quo modo autem philosophus loquitur? At certe gravius. Non igitur potestis voluptate omnia dirigentes aut tueri aut retinere virtutem.\r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page5[/h3]\r\n\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Summum ením bonum exposuit vacuitatem doloris; Est enim effectrix multarum et magnarum voluptatum. Apud ceteros autem philosophos, qui quaesivit aliquid, tacet; Duo Reges: constructio interrete. Cur deinde Metrodori liberos commendas? Qui autem esse poteris, nisi te amor ipse ceperit? Cui Tubuli nomen odio non est? Portenta haec esse dicit, neque ea ratione ullo modo posse vivi; Quis suae urbis conservatorem Codrum, quis Erechthei filias non maxime laudat? Quid est igitur, cur ita semper deum appellet Epicurus beatum et aeternum? \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page6[/h3]\r\n\r\nPhilosophi autem in suis lectulis plerumque moriuntur. Mihi, inquam, qui te id ipsum rogavi? Polemoni et iam ante Aristoteli ea prima visa sunt, quae paulo ante dixi. Summus dolor plures dies manere non potest? Si longus, levis. Quae autem natura suae primae institutionis oblita est? Easdemne res? Si quicquam extra virtutem habeatur in bonis. Ergo in gubernando nihil, in officio plurimum interest, quo in genere peccetur. Est enim tanti philosophi tamque nobilis audacter sua decreta defendere. \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page7[/h3]\r\n\r\nQuantum Aristoxeni ingenium consumptum videmus in musicis? Sed utrum hortandus es nobis, Luci, inquit, an etiam tua sponte propensus es? At, si voluptas esset bonum, desideraret. Quorum altera prosunt, nocent altera. Fatebuntur Stoici haec omnia dicta esse praeclare, neque eam causam Zenoni desciscendi fuisse. Quae si potest singula consolando levare, universa quo modo sustinebit? Apparet statim, quae sint officia, quae actiones. Tubulum fuisse, qua illum, cuius is condemnatus est rogatione, P. \r\n\r\n[PAGE_SPLITTER]\r\n[h3]Page8[/h3]\r\n\r\nEquidem e Cn. Hoc ipsum elegantius poni meliusque potuit. Aperiendum est igitur, quid sit voluptas; Quis non odit sordidos, vanos, leves, futtiles? \r\n', 1363490365, 1, 1, 29),
-(10, 1, 2, 'Plugins', 'something about plugins here', '# Writing Hooks into your code\nThe CSCMS Plugin system works on a very basic principle:\n> As a Developer, I want to give other developers access to specific parts of my code to alter it\n\n## Building a Hook\nNow, We do that by giving developers a method of providing access to specific points using hooks.\nA hook is initiated using the following:\n\n`$objPlugin->hook(''CMS_HOOK_NAME'', $params);`\n\n### Reference Passing\nThis gives us the ability to pass arguments to the functions hooking here. \n\nYou can give direct access to variables you pass in like so:\n\n~~~php\n<?php\n    $params = array( &$var1, &$var2, &$var3 );\n    $objPlugin->hook(''CMS_HOOK_NAME'', $params);\n?>\n~~~\n\n### Values by return\nHooks will also return anything that has been returned in the functions that have hooked there.\n\n~~~php\n<?php\n    $moreTPL = Core_Classes_coreObj::getPlugins()->hook(''CMS_PAGE_TPL_GLOBALS'');\n    if( is_array($moreTPL) && count($moreTPL) > 1 ){\n        foreach($moreTPL as $vars){\n            $tplGlobals = array_merge($tplGlobals, $vars);\n        }\n    }\n?>\n~~~\n\nIn the above instance, we are getting any return values of any plugin that ran and merging them with our `$tplGlobals` variable to processing.\n\n## Accessing existing hooks\nTo access a hook that resides in a module / elsewhere in the CMS, You create a folder in `./plugins/{AUTHOR_NAME}/{PLUGIN_NAME}.php`.\n\nWithin this file, I write a simple function to be executed by the plugin system.\n\n~~~php\n<?php\n    function recache(){\n        if(isset($_GET[''_recache''])){\n            $objCache = coreObj::getCache();\n\n            $objCache->remove(''stores'');\n        }\n    }\n\n    $this->addHook(''CMS_START'', ''recache'');\n?>\n~~~\n\nAbove is an example of a hook that, when ''_recache'' appears in the url, the cache''s are cleared from the system.', 1365896585, 1, 1, 13),
-(11, 1, 2, 'test article', 'desc for richie', '# Header 1\r\n\r\n> Hai richie! ;)\r\n\r\n\r\n[PAGE_SPLITTER]\r\n\r\nlallala ', 1366231040, 1, 1, 1);
+(10, 1, 2, 'Plugins', 'something about plugins here', '# Writing Hooks into your code\nThe CSCMS Plugin system works on a very basic principle:\n> As a Developer, I want to give other developers access to specific parts of my code to alter it\n\n## Building a Hook\nNow, We do that by giving developers a method of providing access to specific points using hooks.\nA hook is initiated using the following:\n\n`$objPlugin->hook(''CMS_HOOK_NAME'', $params);`\n\n### Reference Passing\nThis gives us the ability to pass arguments to the functions hooking here. \n\nYou can give direct access to variables you pass in like so:\n\n~~~php\n<?php\n    $params = array( &$var1, &$var2, &$var3 );\n    $objPlugin->hook(''CMS_HOOK_NAME'', $params);\n?>\n~~~\n\n### Values by return\nHooks will also return anything that has been returned in the functions that have hooked there.\n\n~~~php\n<?php\n    $moreTPL = Core_Classes_coreObj::getPlugins()->hook(''CMS_PAGE_TPL_GLOBALS'');\n    if( is_array($moreTPL) && count($moreTPL) > 1 ){\n        foreach($moreTPL as $vars){\n            $tplGlobals = array_merge($tplGlobals, $vars);\n        }\n    }\n?>\n~~~\n\nIn the above instance, we are getting any return values of any plugin that ran and merging them with our `$tplGlobals` variable to processing.\n\n## Accessing existing hooks\nTo access a hook that resides in a module / elsewhere in the CMS, You create a folder in `./plugins/{AUTHOR_NAME}/{PLUGIN_NAME}.php`.\n\nWithin this file, I write a simple function to be executed by the plugin system.\n\n~~~php\n<?php\n    function recache(){\n        if(isset($_GET[''_recache''])){\n            $objCache = coreObj::getCache();\n\n            $objCache->remove(''stores'');\n        }\n    }\n\n    $this->addHook(''CMS_START'', ''recache'');\n?>\n~~~\n\nAbove is an example of a hook that, when ''_recache'' appears in the url, the cache''s are cleared from the system.', 1365896585, 1, 1, 16),
+(11, 1, 2, 'test article', 'desc for richie', '# Header 1\r\n\r\n> Hai richie! ;)\r\n\r\n\r\n[PAGE_SPLITTER]\r\n\r\nlallala ', 1366231040, 1, 1, 1),
+(12, 1, 3, 'test', 'test', '<?php\r\n\r\n\r\n/**\r\n  //\r\n  // cscms_groups\r\n  //\r\n**/\r\n\r\n|----------------|-------------|\r\n|      Name      |   Datatype  |\r\n|----------------|-------------|\r\n| id             | int(11)     |\r\n| type           | tinyint(1)  |\r\n| name           | varchar(30) |\r\n| description    | text        |\r\n| moderator      | int(11)     |\r\n| personal_group | tinyint(1)  |\r\n| color          | varchar(20) |\r\n| order          | tinyint(3)  |\r\n|----------------|-------------|\r\n\r\n/**\r\n  //\r\n  // cscms_groups_subs\r\n  //\r\n**/\r\n\r\n|---------|------------|\r\n|   Name  |  Datatype  |\r\n|---------|------------|\r\n| uid     | int(11)    |\r\n| gid     | int(11)    |\r\n| pending | tinyint(1) |\r\n|---------|------------|\r\n\r\n/**\r\n  //\r\n  // cscms_permissions\r\n  //\r\n**/\r\n\r\n|---------|------------|\r\n|   Name  |  Datatype  |\r\n|---------|------------|\r\n|     |\r\n|---------|------------|\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n', 1366565211, 1, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -82,6 +85,7 @@ INSERT INTO `cscms_article_content` (`id`, `uid`, `cat_id`, `title`, `descriptio
 -- Table structure for table `cscms_blocks`
 --
 
+DROP TABLE IF EXISTS `cscms_blocks`;
 CREATE TABLE IF NOT EXISTS `cscms_blocks` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `uniqueid` varchar(10) NOT NULL,
@@ -108,6 +112,7 @@ INSERT INTO `cscms_blocks` (`id`, `uniqueid`, `title`, `name`, `location`, `orde
 -- Table structure for table `cscms_blocks_routes`
 --
 
+DROP TABLE IF EXISTS `cscms_blocks_routes`;
 CREATE TABLE IF NOT EXISTS `cscms_blocks_routes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `blockID` int(11) NOT NULL,
@@ -121,6 +126,7 @@ CREATE TABLE IF NOT EXISTS `cscms_blocks_routes` (
 -- Table structure for table `cscms_config`
 --
 
+DROP TABLE IF EXISTS `cscms_config`;
 CREATE TABLE IF NOT EXISTS `cscms_config` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `key` varchar(50) NOT NULL,
@@ -156,30 +162,10 @@ INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `cscms_forum_auth`
---
-
-CREATE TABLE IF NOT EXISTS `cscms_forum_auth` (
-  `group_id` int(11) NOT NULL,
-  `cat_id` int(11) NOT NULL,
-  `auth_view` int(1) NOT NULL DEFAULT '0',
-  `auth_read` int(1) NOT NULL DEFAULT '0',
-  `auth_post` int(1) NOT NULL DEFAULT '0',
-  `auth_reply` int(1) NOT NULL DEFAULT '0',
-  `auth_edit` int(1) NOT NULL DEFAULT '0',
-  `auth_del` int(1) NOT NULL DEFAULT '0',
-  `auth_move` int(1) NOT NULL DEFAULT '0',
-  `auth_special` int(1) NOT NULL DEFAULT '0',
-  `auth_mod` int(1) NOT NULL DEFAULT '0',
-  KEY `cat_id` (`cat_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `cscms_forum_cats`
 --
 
+DROP TABLE IF EXISTS `cscms_forum_cats`;
 CREATE TABLE IF NOT EXISTS `cscms_forum_cats` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `parent_id` int(11) NOT NULL DEFAULT '0',
@@ -206,6 +192,7 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_cats` (
 -- Table structure for table `cscms_forum_posts`
 --
 
+DROP TABLE IF EXISTS `cscms_forum_posts`;
 CREATE TABLE IF NOT EXISTS `cscms_forum_posts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `thread_id` int(2) NOT NULL DEFAULT '0',
@@ -225,6 +212,7 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_posts` (
 -- Table structure for table `cscms_forum_threads`
 --
 
+DROP TABLE IF EXISTS `cscms_forum_threads`;
 CREATE TABLE IF NOT EXISTS `cscms_forum_threads` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `cat_id` int(11) NOT NULL DEFAULT '0',
@@ -246,6 +234,7 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_threads` (
 -- Table structure for table `cscms_forum_watch`
 --
 
+DROP TABLE IF EXISTS `cscms_forum_watch`;
 CREATE TABLE IF NOT EXISTS `cscms_forum_watch` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uid` int(11) NOT NULL DEFAULT '0',
@@ -260,13 +249,13 @@ CREATE TABLE IF NOT EXISTS `cscms_forum_watch` (
 -- Table structure for table `cscms_groups`
 --
 
+DROP TABLE IF EXISTS `cscms_groups`;
 CREATE TABLE IF NOT EXISTS `cscms_groups` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `type` tinyint(1) NOT NULL DEFAULT '1',
+  `status` tinyint(1) NOT NULL DEFAULT '1',
   `name` varchar(30) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `description` text COLLATE utf8_unicode_ci,
   `moderator` int(11) unsigned NOT NULL DEFAULT '0',
-  `single_user_group` tinyint(1) NOT NULL DEFAULT '1',
   `color` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
   `order` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
@@ -276,33 +265,64 @@ CREATE TABLE IF NOT EXISTS `cscms_groups` (
 -- Dumping data for table `cscms_groups`
 --
 
-INSERT INTO `cscms_groups` (`id`, `type`, `name`, `description`, `moderator`, `single_user_group`, `color`, `order`) VALUES
-(1, 1, 'Admin', 'Site Administrator', 1, 1, '#ff0000', 1),
-(2, 1, 'Mods', 'Site Moderator', 1, 0, '#146eca', 3),
-(3, 0, 'Users', 'Registered User', 1, 0, '#b7b7b7', 10);
+INSERT INTO `cscms_groups` (`id`, `status`, `name`, `description`, `moderator`, `color`, `order`) VALUES
+(1, 1, 'Admin', 'Site Administrator', 1, '#ff0000', 1),
+(2, 1, 'Mods', 'Site Moderator', 1, '#146eca', 3),
+(3, 0, 'Users', 'Registered User', 1, '#b7b7b7', 10);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `cscms_group_subs`
+-- Table structure for table `cscms_groups_perms`
 --
 
-CREATE TABLE IF NOT EXISTS `cscms_group_subs` (
-  `uid` int(11) NOT NULL,
-  `gid` int(11) NOT NULL,
+DROP TABLE IF EXISTS `cscms_groups_perms`;
+CREATE TABLE IF NOT EXISTS `cscms_groups_perms` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `permission_key` varchar(30) DEFAULT NULL,
+  `permission_value` tinyint(1) NOT NULL DEFAULT '0',
+  `module` varchar(30) DEFAULT NULL,
+  `content_id` int(11) DEFAULT '0',
+  `group_id` int(11) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `permission_key` (`permission_key`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
+
+--
+-- Dumping data for table `cscms_groups_perms`
+--
+
+INSERT INTO `cscms_groups_perms` (`id`, `permission_key`, `permission_value`, `module`, `content_id`, `group_id`) VALUES
+(1, 'ARTICLES.CREATE', 1, 'articles', 1, 1),
+(2, 'ARTICLES.CREATE', 0, 'articles', 0, 3),
+(3, 'ARTICLES.READ', 1, NULL, 0, 3),
+(4, 'ARTICLES.READ', 0, NULL, 1, 3);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_groups_subs`
+--
+
+DROP TABLE IF EXISTS `cscms_groups_subs`;
+CREATE TABLE IF NOT EXISTS `cscms_groups_subs` (
+  `user_id` int(11) NOT NULL,
+  `group_id` int(11) NOT NULL,
   `pending` tinyint(1) NOT NULL DEFAULT '1',
-  KEY `gid` (`gid`),
-  KEY `uid` (`uid`)
+  KEY `gid` (`group_id`),
+  KEY `uid` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
--- Dumping data for table `cscms_group_subs`
+-- Dumping data for table `cscms_groups_subs`
 --
 
-INSERT INTO `cscms_group_subs` (`uid`, `gid`, `pending`) VALUES
+INSERT INTO `cscms_groups_subs` (`user_id`, `group_id`, `pending`) VALUES
 (1, 1, 0),
 (1, 2, 0),
-(1, 3, 0);
+(1, 3, 0),
+(2, 3, 0),
+(2, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -310,6 +330,7 @@ INSERT INTO `cscms_group_subs` (`uid`, `gid`, `pending`) VALUES
 -- Table structure for table `cscms_menus`
 --
 
+DROP TABLE IF EXISTS `cscms_menus`;
 CREATE TABLE IF NOT EXISTS `cscms_menus` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `menu_name` varchar(50) DEFAULT NULL,
@@ -365,6 +386,7 @@ INSERT INTO `cscms_menus` (`id`, `menu_name`, `link_url`, `link_title`, `order`,
 -- Table structure for table `cscms_modules`
 --
 
+DROP TABLE IF EXISTS `cscms_modules`;
 CREATE TABLE IF NOT EXISTS `cscms_modules` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
@@ -379,9 +401,34 @@ CREATE TABLE IF NOT EXISTS `cscms_modules` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `cscms_permissions`
+--
+
+DROP TABLE IF EXISTS `cscms_permissions`;
+CREATE TABLE IF NOT EXISTS `cscms_permissions` (
+  `key` varchar(30) DEFAULT NULL,
+  `description` text,
+  KEY `key` (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `cscms_permissions`
+--
+
+INSERT INTO `cscms_permissions` (`key`, `description`) VALUES
+('ADMIN.VIEW', 'View ACP'),
+('ADMIN.LOGIN', 'Can login to ACP'),
+('ARTICLES.READ', 'Read Articles'),
+('ARTICLES.CREATE', 'Can post new Articles'),
+('ARTICLES.EDIT', 'Can edit Articles');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `cscms_plugins`
 --
 
+DROP TABLE IF EXISTS `cscms_plugins`;
 CREATE TABLE IF NOT EXISTS `cscms_plugins` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
@@ -406,6 +453,7 @@ INSERT INTO `cscms_plugins` (`id`, `name`, `path`, `priority`, `enabled`) VALUES
 -- Table structure for table `cscms_routes`
 --
 
+DROP TABLE IF EXISTS `cscms_routes`;
 CREATE TABLE IF NOT EXISTS `cscms_routes` (
   `id` tinyint(11) unsigned NOT NULL AUTO_INCREMENT,
   `module` varchar(50) DEFAULT NULL,
@@ -445,6 +493,7 @@ INSERT INTO `cscms_routes` (`id`, `module`, `label`, `method`, `pattern`, `argum
 -- Table structure for table `cscms_sessions`
 --
 
+DROP TABLE IF EXISTS `cscms_sessions`;
 CREATE TABLE IF NOT EXISTS `cscms_sessions` (
   `uid` int(11) NOT NULL,
   `sid` varchar(32) NOT NULL DEFAULT '',
@@ -465,12 +514,16 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
 --
 
 INSERT INTO `cscms_sessions` (`uid`, `sid`, `hostname`, `timestamp`, `useragent`, `mode`, `admin`, `login_time`, `login_attempts`, `store`) VALUES
-(0, '5a34939092e19dbde5610d4910be9ff7', '178.79.143.66', 1366377575, 'Mozilla/5.0 (Windows; U; Windows NT 6.1; he; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3', 'active', 0, 0, 0, 0x613a303a7b7d),
-(0, '77c3341f0da2d5bc11a8d2062e930295', '94.228.45.50', 1366359850, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31', 'active', 0, 0, 0, 0x613a303a7b7d),
-(0, '7f807067face5700759005f124b6ef71', '178.79.143.66', 1366377575, 'Mozilla/5.0 (Windows; U; Windows NT 6.1; he; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3', 'active', 0, 0, 0, 0x613a303a7b7d),
-(0, '9ffff21a8cfd76cefb2e7d01dd5e1807', '80.194.73.98', 1366377207, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
-(0, 'c33edf9a2570a64b904c80e1ef02f850', '127.0.0.1', 1366411710, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
-(0, 'f523cafff807bb88c1bdedb0995123a3', '178.79.143.66', 1366377574, 'Mozilla/5.0 (Windows; U; Windows NT 6.1; he; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3', 'active', 0, 0, 0, 0x613a303a7b7d);
+(0, '18e23b9fc97e8c00a7de7fc4cdb1bac0', '178.79.143.66', 1366623562, 'Mozilla/5.0 (Windows; U; Windows NT 6.1; he; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, '283f1cef482a3f4f3fb0eae19d92688e', '212.91.167.53', 1366619552, 'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, '7f807067face5700759005f124b6ef71', '178.79.143.66', 1366623562, 'Mozilla/5.0 (Windows; U; Windows NT 6.1; he; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, '914332ce260acbe1132fdc86cdf6457d', '178.79.143.66', 1366618563, 'Mozilla/5.0 (Windows; U; Windows NT 6.1; he; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, 'e60fdc5176d37f03572b4d69d6708e69', '77.98.122.22', 1366623582, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, 'ea572180bf0eff34a205321ea3ea4441', '94.228.45.50', 1366623615, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, 'eb46ed7a9998205ca1cef18198ae2fc2', '86.31.2.114', 1366590978, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, 'ed478b0f29201ebf2d73e712ec92b0e4', '80.194.73.98', 1366619811, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, 'ee49a60b51d01bdf8ab1ddfb16e02a0f', '86.31.2.114', 1366562792, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31', 'active', 0, 0, 0, 0x613a303a7b7d),
+(0, 'f4d6c8f1a01b552ab3792396f5a53948', '77.98.122.22', 1366617089, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d);
 
 -- --------------------------------------------------------
 
@@ -478,6 +531,7 @@ INSERT INTO `cscms_sessions` (`uid`, `sid`, `hostname`, `timestamp`, `useragent`
 -- Table structure for table `cscms_uploads`
 --
 
+DROP TABLE IF EXISTS `cscms_uploads`;
 CREATE TABLE IF NOT EXISTS `cscms_uploads` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `uid` int(11) NOT NULL,
@@ -497,6 +551,7 @@ CREATE TABLE IF NOT EXISTS `cscms_uploads` (
 -- Table structure for table `cscms_userkeys`
 --
 
+DROP TABLE IF EXISTS `cscms_userkeys`;
 CREATE TABLE IF NOT EXISTS `cscms_userkeys` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `uData` varchar(11) NOT NULL DEFAULT '0',
@@ -524,6 +579,7 @@ INSERT INTO `cscms_userkeys` (`id`, `uData`, `uAgent`, `uIP`) VALUES
 -- Table structure for table `cscms_users`
 --
 
+DROP TABLE IF EXISTS `cscms_users`;
 CREATE TABLE IF NOT EXISTS `cscms_users` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(50) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
@@ -573,6 +629,7 @@ INSERT INTO `cscms_users` (`id`, `username`, `password`, `pin`, `register_date`,
 -- Table structure for table `cscms_users_extras`
 --
 
+DROP TABLE IF EXISTS `cscms_users_extras`;
 CREATE TABLE IF NOT EXISTS `cscms_users_extras` (
   `uid` int(11) unsigned NOT NULL,
   `birthday` varchar(11) COLLATE utf8_unicode_ci NOT NULL DEFAULT '00/00/0000',
@@ -602,6 +659,54 @@ INSERT INTO `cscms_users_extras` (`uid`, `birthday`, `sex`, `contact_info`, `abo
 (1, '21/12/1990', 1, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1),
 (2, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1),
 (3, '00/00/0000', 0, NULL, NULL, NULL, NULL, '', NULL, NULL, 0, 0, 0, NULL, 'a:1:{i:1;a:4:{s:2:"id";s:1:"1";s:6:"cat_id";s:1:"2";s:11:"last_poster";s:10:"1339676795";s:4:"read";b:0;}}', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cscms_users_perms`
+--
+
+DROP TABLE IF EXISTS `cscms_users_perms`;
+CREATE TABLE IF NOT EXISTS `cscms_users_perms` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `permission_key` varchar(30) DEFAULT NULL,
+  `permission_value` tinyint(1) NOT NULL DEFAULT '0',
+  `module` varchar(30) DEFAULT NULL,
+  `content_id` int(11) DEFAULT '0',
+  `user_id` int(11) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `permission_key` (`permission_key`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 ROW_FORMAT=COMPACT AUTO_INCREMENT=3 ;
+
+--
+-- Dumping data for table `cscms_users_perms`
+--
+
+INSERT INTO `cscms_users_perms` (`id`, `permission_key`, `permission_value`, `module`, `content_id`, `user_id`) VALUES
+(1, 'ADMIN.LOGIN', 1, NULL, 0, 1),
+(2, 'ADMIN.LOGIN', 1, NULL, 0, 2);
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `cscms_groups_perms`
+--
+ALTER TABLE `cscms_groups_perms`
+  ADD CONSTRAINT `cscms_groups_perms_ibfk_1` FOREIGN KEY (`permission_key`) REFERENCES `cscms_permissions` (`key`);
+
+--
+-- Constraints for table `cscms_users_extras`
+--
+ALTER TABLE `cscms_users_extras`
+  ADD CONSTRAINT `cscms_users_extras_ibfk_1` FOREIGN KEY (`uid`) REFERENCES `cscms_users` (`id`);
+
+--
+-- Constraints for table `cscms_users_perms`
+--
+ALTER TABLE `cscms_users_perms`
+  ADD CONSTRAINT `cscms_users_perms_ibfk_1` FOREIGN KEY (`permission_key`) REFERENCES `cscms_permissions` (`key`);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

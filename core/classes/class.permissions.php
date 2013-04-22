@@ -80,7 +80,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
      */
     private function buildACL(){
 
-        // if we have gorups, do their permissions first
+        // if we have groups, do their permissions first
         if( count($this->groups) > 0 ){
             $this->permissions = array_merge( $this->permissions, $this->getGroupPerms($this->groups) );
         }
