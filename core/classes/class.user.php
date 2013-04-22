@@ -77,7 +77,6 @@ class Core_Classes_User extends Core_Classes_coreObj {
      */
     public function initPerms(){
         self::$IS_USER      = $this->checkPermissions($this->grab('id'), USER);
-        self::$IS_MOD       = $this->checkPermissions($this->grab('id'), MOD);
         self::$IS_ADMIN     = $this->checkPermissions($this->grab('id'), ADMIN);
     }
 
