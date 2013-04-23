@@ -91,7 +91,6 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $fileName  = preg_replace('/[^a-zA-Z0-9-_.]/', '', $file['name'][$i]);
         $fileParts = explode( '.', $fileName );
         $extension = end($fileParts);
-        $fileSize  = $file['size'][$i];
         $finalPath = $destination . '/' . $fileName;
 
         $absolutePath = $this->config('global', 'realPath');
@@ -102,11 +101,16 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $extensions = array_map( 'strtolower', $extensions );
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
-        if( in_array( strtolower( $extension ), $extensions ) && ( $fileSize <= $allowedSize ) ){
+        if( in_array( strtolower( $extension ), $extensions ) ){
 
             $imageCount = count( $file['name'][$i] );
 
             for( $i = 0; $i < $imageCount; $i++ ){
+                $fileSize  = $file['size'][$i];
+                if( $fileSize > $allowedSize ){
+                    trigger_error('File ' . $file['name'][$i] . ' Was too large to upload');
+                    continue;
+                }
                 $error = $file['error'][$i];
                 if( $error > 0 ){
                     debugLog( 'Upload: Error uploading file, error code ' . $error );
