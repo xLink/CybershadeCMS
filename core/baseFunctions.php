@@ -74,9 +74,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         //test value here so we have atleast a value to work with
         $value = (isset($args[$key])
                     ? $args[$key]
-                    : (!empty($default)
-                        ? $default
-                        : false));
+                    : $default );
+                        
 
         //if we have a callback then exec
         if(is_empty($callback)){
