@@ -36,6 +36,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
         $query = $objSQL->queryBuilder()
             ->select('*')
             ->from('#__users')
+            ->where('id != 1')
             ->orderby('id')
             ->build();
 
