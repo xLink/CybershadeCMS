@@ -88,38 +88,50 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         }
 
         // Get the current file extension
-        $fileName  = preg_replace('/[^a-zA-Z0-9-_.]/', '', $file['name'][$i]);
-        $fileParts = explode( '.', $fileName );
-        $extension = end($fileParts);
-        $finalPath = $destination . '/' . $fileName;
+        $i = 0;
+        $extensionList = array();
 
-        $absolutePath = $this->config('global', 'realPath');
-        if( strpos($destination, $absolutePath ) === false ){
-            $finalPath = $absolutePath . $destination . '/' . $fileName;
+        if( is_array( $file['name'] ) && !is_empty($file['name']) ){
+            foreach( $file['name'] as $name ){
+                $file['name'][$i] = preg_replace('/[^a-zA-Z0-9-_.]/', '', $name);
+                $fileParts        = explode( '.', $file['name'][$i] );
+                $extensionList[]  = strtolower(end($fileParts));
+                $i++;
+            }
         }
+        
+        $extensionCheck = array_intersect( $extensionList, $extensions );
 
         $extensions = array_map( 'strtolower', $extensions );
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
-        if( in_array( strtolower( $extension ), $extensions ) ){
-
-            $imageCount = count( $file['name'][$i] );
-
+        if( count($file['name']) === count( $extensionCheck ) ){
+            
+            $imageCount = count( $file['name'] );
+            
+            // Loop through the uploads
             for( $i = 0; $i < $imageCount; $i++ ){
-                $fileSize  = $file['size'][$i];
+            
+                // Setup some default Vars
+                $currentFileName = $file['name'][$i];
+                $fileSize        = $file['size'][$i];
+                $finalPath       = addslashes($this->config('global', 'realPath') . $destination . '/' . $currentFileName);
+
+                // Checks the filesize
                 if( $fileSize > $allowedSize ){
                     trigger_error('File ' . $file['name'][$i] . ' Was too large to upload');
                     continue;
                 }
+
                 // Set the error to a var
                 $error = $file['error'][$i];
 
                 // Check if there are any errors
                 if( $error > 0 ){
                     // Report the errors
-                    debugLog( 'Upload: Error uploading file, error code ' . $error );
                     $this->uploadErrors[] = sprintf( 'Upload Failed due to the following error: %s', $error );
                     trigger_error( $error );
+                    continue;
                 } else {
 
                     // Check if the file already exists
@@ -127,6 +139,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                         $error = sprintf( 'The uploaded file already exists: %s', $finalPath );
                         $this->uploadErrors[] = $error;
                         trigger_error( $error );
+                        continue;
                     } else {
 
                         // Move the uploaded file
@@ -137,10 +150,14 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                             $objSQL  = Core_Classes_coreObj::getDBO();
                             $objUser = Core_Classes_coreObj::getUser();
 
+                            // Grab the current extension
+                            $extension = explode( '.', $file['name'][$i] );
+                            $extension = end( $extension );
+
                             // Setup the data to be inserted into the db
                             $uploadData = array(
                                 'uid'        => $objUser->grab('id'),
-                                'filename'   => $fileName,
+                                'filename'   => $currentFileName,
                                 'file_type'  => $extension,
                                 'timestamp'  => time(),
                                 'public'     => 0,
@@ -171,13 +188,12 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
 
                                 // Add a hook to allow developers to add extra functionality
                                 $objPlugins->hook( 'CMS_UPLOADED_FILE', $uploadData );
-
-                                debugLog('Upload: Successfully uploaded the file');
                             }
                         } else {
                             $error = sprintf('Could not move uploaded file to %s.', $finalPath );
                             $this->uploadErrors[] = $error;
                             trigger_error( $error );
+                            continue;
                         }
                     }
                 }
@@ -185,13 +201,11 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         }
 
         // Finally check if there were any errors
-        if( isset( $this->uploadErrors ) && !is_empty( $this->uploadErrors ) ){
-            trigger_error('There was ' . count( $this->uploadErrors ) . ' errors from the uploads.');
-            debugLog( $this->uploadErrors, 'Uploaded Errors' );
-            return false;
+        if( !isset( $this->uploadErrors ) || is_empty( $this->uploadErrors ) ){
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -210,7 +224,6 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $objPlugins = Core_Classes_coreObj::getPlugins();
 
         if( trim($directory) === '' ){
-            debugLog('Upload: Using default folder');
             $this->setVar('directory', sprintf( '%sassets/uploads/all', cmsROOT ) );
         } else {
 
@@ -229,7 +242,6 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
 
                 return false;
             } else {
-                debugLog('Upload: Setting upload directory');
                 $this->setVar('directory', $directory);
                 return true;
             }
