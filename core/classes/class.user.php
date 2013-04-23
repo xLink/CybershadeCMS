@@ -343,14 +343,13 @@ class Core_Classes_User extends Core_Classes_coreObj {
                     ->select(array( 'g.*' ))
                     ->from(array( 'g' => '#__groups' ))
                     ->where( $where )
-                        ->andWhere('g.single_user_group', '=', '0')
                         ->andWhere('ug.pending', '=', '0')
 
-                    ->leftJoin(array( 'ug' => '#__group_subs' ))
-                        ->on('ug.gid', '=', 'g.id')
+                    ->leftJoin(array( 'ug' => '#__groups_subs' ))
+                        ->on('ug.group_id', '=', 'g.id')
 
                     ->leftJoin(array( 'u' => '#__users' ))
-                        ->on('ug.uid', '=', 'u.id')
+                        ->on('ug.user_id', '=', 'u.id')
 
                     ->orderBy('g.`order`', 'ASC');
 
@@ -374,8 +373,6 @@ class Core_Classes_User extends Core_Classes_coreObj {
 
                 if( !isset($this->cacheUsers[$ident]['group']) && count($this->groups) ){
                     foreach($this->groups as $group){
-                        if( $group['single_user_group'] == 1){ continue; }
-
                         if( (int)$group['id'] === (int)$this->config('site', 'user_group') ){
                             $userGroup = array(
                                 'name'        => $group['name'],
