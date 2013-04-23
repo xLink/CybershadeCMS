@@ -36,23 +36,23 @@ class User_Modules_core_dashboard extends Admin_Modules_core{
                 'FORM_END'    => $objForm->finish(),
                 'FORM_TOKEN'  => $formToken . $objForm->inputbox('id', 'hidden', $userID),
                 'FORM_INFO'   => 'heh we can throw some info about the form in here, that\'ll do',
-                
-                
+
+
                 'FORM_TITLE'  => 'User Panel',
                 'FORM_SUBMIT' => $objForm->button('submit', 'Submit', array('class' => 'btn btn-info')),
                 'FORM_RESET'  => $objForm->button('reset', 'Reset'),
             ),
             array(
                 'field' => array(
-                    //'Required Info'            => '_header_',
+                    'Required Info'            => '_header_',
                       langVar('L_USERNAME')      => $objForm->inputbox('username', 'text', $userData['username'], array('disabled' => !$editUsername)),
-                      //langVar('L_EMAIL')         => $objForm->inputbox('email', 'text', $userData['email']),
-                      
-                    //langVar('F_NEW_PASS_CONF') => '_header_',
-                      //langVar('L_CHANGE_PWDS')   => $objForm->checkbox('pass_conf', '1', false),
-                      //langVar('L_OLD_PASSWD')    => $objForm->inputbox('old_pass', 'password', ''),
-                      //langVar('L_NEW_PASSWD')    => $objForm->inputbox('new_pass', 'password', ''),
-                      //langVar('L_CONF_PASSWD')   => $objForm->inputbox('new_conf_pass', 'password', ''),
+                      langVar('L_EMAIL')         => $objForm->inputbox('email', 'text', $userData['email']),
+
+                    langVar('F_NEW_PASS_CONF') => '_header_',
+                      langVar('L_CHANGE_PWDS')   => $objForm->checkbox('pass_conf', '1', false),
+                      langVar('L_OLD_PASSWD')    => $objForm->inputbox('old_pass', 'password', ''),
+                      langVar('L_NEW_PASSWD')    => $objForm->inputbox('new_pass', 'password', ''),
+                      langVar('L_CONF_PASSWD')   => $objForm->inputbox('new_conf_pass', 'password', ''),
 
                 ),
                 'desc' => array(
@@ -62,7 +62,7 @@ class User_Modules_core_dashboard extends Admin_Modules_core{
         );
 
         echo $form;
-    }	
+    }
 
     public function save(){
         $objPage = Core_Classes_coreObj::getPage();

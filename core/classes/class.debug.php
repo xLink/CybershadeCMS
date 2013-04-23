@@ -10,7 +10,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
            $includedFiles   = array(),
            $templateFiles   = array();
 
-    protected   $line, 
+    protected   $line,
                 $file;
 
     public function __construct( ) { }
@@ -41,7 +41,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         $output = ''; $count = 0;
 
         if( isset($objPage->cssFiles) && count($objPage->cssFiles) > 0 ){
-            $includedFiles = $objPage->cssFiles; 
+            $includedFiles = $objPage->cssFiles;
             $output .= '<h3>Stylesheet Includes</h3><ul>';
             foreach( array(3, 2, 1) as $prio ){
                 if( !count($includedFiles[$prio]) ){ continue; }
@@ -55,7 +55,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         }
 
         if( isset($objPage->jsFiles) && count($objPage->jsFiles) > 0 ){
-            $includedFiles = $objPage->jsFiles['footer']; 
+            $includedFiles = $objPage->jsFiles['footer'];
             $output .= '<h3>Javascript Includes</h3><ul>';
             foreach( array(3, 2, 1) as $prio ){
                 if( !count($includedFiles[$prio]) ){ continue; }
@@ -63,7 +63,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
                 $count += count($includedFiles[$prio]);
                 foreach( $includedFiles[$prio] as $file ) {
                     $output .= sprintf('<li>%s</li>', $file['src']);
-                } 
+                }
             } $output .= '</ul>';
 
         }
@@ -457,7 +457,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
                             <td style="width: 85%%;">Content</td>
                         </tr>
                     </tr>
-                    
+
                         <tr>
                             <td>
                                 %s<br />
@@ -466,7 +466,7 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
                             <td>%s</td>
                             <td>%s</td>
                         </tr>
-                    
+
                 </table>',
 
                     $type,
@@ -502,7 +502,6 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
         $perms = array(
             'IS_ONLINE' => Core_Classes_User::$IS_ONLINE,
             'IS_USER'   => Core_Classes_User::$IS_USER,
-            'IS_MOD'    => Core_Classes_User::$IS_MOD,
             'IS_ADMIN'  => Core_Classes_User::$IS_ADMIN,
         );
         $objUser = Core_Classes_coreObj::getUser();

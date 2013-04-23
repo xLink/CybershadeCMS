@@ -11,7 +11,6 @@ class Core_Classes_User extends Core_Classes_coreObj {
     static  $IS_ONLINE  = false;
 
     static  $IS_ADMIN   = false,
-            $IS_MOD     = false,
             $IS_USER    = false,
             $IS_SPECIAL = false; // For various, custom permissions
 
