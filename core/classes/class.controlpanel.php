@@ -54,7 +54,7 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
-     * 
+     *
      * @return  void
      */
     public function invokeRoute(){
@@ -127,7 +127,7 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
-     * 
+     *
      * @return  void
      */
     public function getNav(){
@@ -153,11 +153,11 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
             $results[$id]['link_url'] = $result['link_url'] = str_replace( '{CP_ROOT}', $cpROOT, $result['link_url'] );
 
             if( $result['parent_id'] !== '0' ) {
-                
+
                 if( !isset( $results[$result['parent_id']]['subs'] ) ) {
                     $results[$result['parent_id']]['subs'] = array();
                 }
-                
+
                 $results[$result['parent_id']]['subs'][$id] = $result;
 
                 unset( $results[$id] );
@@ -173,7 +173,7 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
          * @version 1.0
          * @since   1.0.0
          * @author  Dan Aldridge
-         * 
+         *
          * @return  void
          */
         protected function generateNav( $links=array() ){
@@ -211,7 +211,7 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
 
                     }
 
-                    
+
                 // Looks like a normal link, sweet.
                 } else if( isset( $link['link_url'] ) ) {
 
@@ -232,7 +232,7 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
-     * 
+     *
      * @return  void
      */
     public static function setupBlock($handle, $options=array()){
