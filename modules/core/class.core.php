@@ -34,7 +34,7 @@ class Modules_core extends Core_Classes_Module{
         $objTPL     = $this->setView('module/login_form/default.tpl');
 
         if( Core_Classes_User::$IS_ONLINE ){
-            $objPage->redirect($objRoute->generateUrl('core_index'));
+            $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
         }
 
         if( !isset($_SESSION['site']['login']) ){
@@ -94,7 +94,7 @@ class Modules_core extends Core_Classes_Module{
         $objRoute   = Core_Classes_coreObj::getRoute();
 
         if( Core_Classes_User::$IS_ONLINE ){
-            $objPage->redirect($objRoute->generateUrl('core_index'));
+            $objPage->redirect($objRoute->generateUrl('core_viewIndex'));
         }
 
         $objTPL->set_filenames(array(
@@ -159,7 +159,7 @@ class Modules_core extends Core_Classes_Module{
             return;
         }
 
-        $objPage->redirect(doArgs('referer', $objRoute->generateUrl('core_index'), $_SESSION['login']), 0);
+        $objPage->redirect(doArgs('referer', $objRoute->generateUrl('core_viewIndex'), $_SESSION['login']), 0);
     }
 
     public function logout(){
