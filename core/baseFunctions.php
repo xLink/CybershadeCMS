@@ -75,7 +75,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $value = (isset($args[$key])
                     ? $args[$key]
                     : $default );
-                        
+
 
         //if we have a callback then exec
         if(is_empty($callback)){
@@ -1293,22 +1293,27 @@ function reflectMethod( $class, $method, $parameters = array()) {
     $params    = $refMethod->getParameters( );
     $args      = array();
 
-    // Loop through the parameters the method asks for,
-    //  and match them up with our arguments where possible
-    foreach( $params as $k => $name ) {
-        $var = $name->getName();
+    // if we have any arguments set, then try and match their vars, else give them all the things
+    if( !count($params) ){
+        $args = $parameters;
+    }else{
+        // Loop through the parameters the method asks for,
+        //  and match them up with our arguments where possible
+        foreach( $params as $k => $name ) {
+            $var = $name->getName();
 
-        // check if the var they asked for is in the params
-        if(!isset($parameters[$var])){
-            $args[$var] = null;
-            continue;
-        }
+            // check if the var they asked for is in the params
+            if(!isset($parameters[$var])){
+                $args[$var] = null;
+                continue;
+            }
 
-        // and then check if we have to throw the var at them as a reference
-        if($name->isPassedByReference()){
-            $args[$var] = &$parameters[$var];
-        }else{
-            $args[$var] = $parameters[$var];
+            // and then check if we have to throw the var at them as a reference
+            if($name->isPassedByReference()){
+                $args[$var] = &$parameters[$var];
+            }else{
+                $args[$var] = $parameters[$var];
+            }
         }
     }
 
