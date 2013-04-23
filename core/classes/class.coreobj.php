@@ -424,7 +424,7 @@ class Core_Classes_coreObj {
         // if it already exists, load it in and throw it the args array
         if( class_exists($name, false) ){
             $obj = new ReflectionClass($name);
-            
+
             if( count($args) ){
                 return $obj->newInstanceArgs($args);
             }else{
@@ -439,7 +439,7 @@ class Core_Classes_coreObj {
     public static function getDBO(){
         global $errorTPL;
 
-        if(!isset(Core_Classes_coreObj::$_classes['database'])){
+        if( !isset(Core_Classes_coreObj::$_classes['database']) ){
             $options = self::config('db');
                 if(!$options){ trigger_error('Error: Could not obtain values from the configuration file. Please ensure it is present.', E_USER_ERROR); }
 
@@ -450,7 +450,7 @@ class Core_Classes_coreObj {
             $options['logging']    = is_file(cmsROOT.'cache/ALLOW_LOGGING');
 
             $objSQL = new $name(null, $options);
-                if($objSQL === false){
+                if( $objSQL === false ){
                     if( !headers_sent() ){
                         header('HTTP/1.1 500 Internal Server Error');
                         exit;
@@ -458,7 +458,7 @@ class Core_Classes_coreObj {
                     hmsgDie('FAIL', 'Error: No DB Avaliable');
                 }
 
-            if(!$objSQL->connect()){
+            if( !$objSQL->connect() ){
                 msgDie('FAIL',
                     sprintf($errorTPL, 'Fatal Error',
                         'Connecting to SQL failed. '.
@@ -476,13 +476,13 @@ class Core_Classes_coreObj {
     public static function getTPL(){
         global $errorTPL;
 
-        if(!isset(Core_Classes_coreObj::$_classes['tpl'])){
+        if( !isset(Core_Classes_coreObj::$_classes['tpl']) ){
             $cachePath = cmsROOT.'cache/template/';
-            if(is_dir($cachePath) && !is_writable($cachePath)){
+            if( is_dir($cachePath) && !is_writable($cachePath) ){
                 @chmod($cachePath, 0755);
             }
 
-            if(!is_writable($cachePath)){
+            if( !is_writable($cachePath) ){
                 trigger_error('Could not set CHMOD permissions on "<i>'.$cachePath.'</i>" set to 775 to continue.', E_USER_ERROR);
             }
 
@@ -497,15 +497,15 @@ class Core_Classes_coreObj {
     }
 
     public static function getCache(){
-        if(!isset(Core_Classes_coreObj::$_classes['cache'])){
+        if( !isset(Core_Classes_coreObj::$_classes['cache']) ){
 
             //cache setup
             $cachePath = cmsROOT.'cache/';
-            if(is_dir($cachePath) && !is_writable($cachePath)){
+            if( is_dir($cachePath) && !is_writable($cachePath) ){
                 @chmod($cachePath, 0755);
             }
 
-            if(!is_writable($cachePath)){
+            if( !is_writable($cachePath) ){
                 trigger_error('Could not set CHMOD permissions on "<i>'.$cachePath.'</i>" set to 775 to continue.', E_USER_ERROR);
             }
 
@@ -519,6 +519,16 @@ class Core_Classes_coreObj {
         }
 
         return Core_Classes_coreObj::$_classes['cache'];
+    }
+
+    public static function getPermissions($uid){
+        if( !isset(Core_Classes_coreObj::$_classes['permissions'][$uid]) ){
+            Core_Classes_Permissions::getInstance('perms', array(
+                'uid' => $uid,
+            ));
+        }
+
+        return Core_Classes_coreObj::$_classes['permissions'][$uid];
     }
 
 }

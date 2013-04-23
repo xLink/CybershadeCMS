@@ -24,7 +24,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
         $objUser      = Core_Classes_coreObj::getUser();
         $objGroups    = Core_Classes_coreObj::getGroups();
 
-        $this->uid    = $objUser->grab('id');
+        $this->uid    = doArgs('uid', $objUser->grab('id'), $options);
         $this->groups = $objGroups->userInGroups($this->uid);
 
         $this->buildACL();
