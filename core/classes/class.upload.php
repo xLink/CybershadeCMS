@@ -111,18 +111,25 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                     trigger_error('File ' . $file['name'][$i] . ' Was too large to upload');
                     continue;
                 }
+                // Set the error to a var
                 $error = $file['error'][$i];
+
+                // Check if there are any errors
                 if( $error > 0 ){
+                    // Report the errors
                     debugLog( 'Upload: Error uploading file, error code ' . $error );
                     $this->uploadErrors[] = sprintf( 'Upload Failed due to the following error: %s', $error );
                     trigger_error( $error );
                 } else {
+
+                    // Check if the file already exists
                     if( file_exists( $finalPath ) ) {
                         $error = sprintf( 'The uploaded file already exists: %s', $finalPath );
                         $this->uploadErrors[] = $error;
                         trigger_error( $error );
                     } else {
 
+                        // Move the uploaded file
                         $moveFile = move_uploaded_file( $file['tmp_name'][$i], $finalPath );
 
                         // Check if the file was moved correctly
@@ -152,6 +159,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                                             ->set( $uploadData )
                                             ->build();
 
+                            // Insert the data into the database
                             $result = $objSQL->query( $query );
 
                             // If all went well, return true
@@ -175,6 +183,8 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                 }
             }
         }
+
+        // Finally check if there were any errors
         if( isset( $this->uploadErrors ) && !is_empty( $this->uploadErrors ) ){
             trigger_error('There was ' . count( $this->uploadErrors ) . ' errors from the uploads.');
             debugLog( $this->uploadErrors, 'Uploaded Errors' );
