@@ -218,7 +218,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $headers[] = 'Return-Path: NoReply <'.$from.'>';
         $headers[] = 'Date: '.date('r', time());
         $headers[] = 'MIME-Version: 1.0';
-        $headers[] = 'Message-ID: <'.md5(uniqid(time())).'@'.$server.'>';
+        // $headers[] = 'Message-ID: <'.md5(uniqid(time())).'@'.$server.'>';
         $headers[] = 'Content-Type: text/html; charset="iso-8859-1"';
         $headers[] = 'X-Mailer: PHP v'.phpversion();
         $headers[] = 'X-Priority: 3';
@@ -487,7 +487,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
         return false;
     }
-    
+
     /**
      * Verifies an IP against a IPv4 range.
      *         127.0.0.1 would verify against 127.0.0.* but not *.*.*.2
@@ -846,8 +846,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
         }
 
-        
-    }   
+
+    }
 
 
 /**
