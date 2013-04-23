@@ -522,13 +522,13 @@ class Core_Classes_coreObj {
     }
 
     public static function getPermissions($uid){
-        if( !isset(Core_Classes_coreObj::$_classes['permissions'][$uid]) ){
-            Core_Classes_Permissions::getInstance('perms', array(
+        if( !isset(Core_Classes_coreObj::$_classes['perms_'.$uid]) ){
+            Core_Classes_Permissions::getInstance('perms_'.$uid, array(
                 'uid' => $uid,
             ));
         }
 
-        return Core_Classes_coreObj::$_classes['permissions'][$uid];
+        return Core_Classes_coreObj::$_classes['perms_'.$uid];
     }
 
 }
