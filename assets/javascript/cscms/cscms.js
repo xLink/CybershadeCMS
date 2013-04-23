@@ -52,6 +52,10 @@ var JSCMS = new Class({
             return false;
         });
 
+        if( value.length === 0 ){
+            return false;
+        }
+
         if( value[0].get('content').length > 0 ){
             return value[0].get('content');
         }

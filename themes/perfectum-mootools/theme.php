@@ -12,15 +12,9 @@ $objPage->addCSSFile(array(
 ));
 
 $objPage->addCSSFile(array(
-    'href'     => '/'.root().'assets/styles/font-awesome.css',
+    'href'     => '/'.root().'assets/styles/extras-min.css',
     'priority' => HIGH
 ));
-if( in_array('ie', $browserCSSSelectors) && in_array('ie7', $browserCSSSelectors) ){
-    $objPage->addCSSFile(array(
-        'href'     => '/'.root().'assets/styles/font-awesome-ie7.min.css',
-        'priority' => HIGH
-    ));
-}
 
 // $objPage->addCSSFile(array(
 //     'href'     => '/'.root().'assets/styles/default.css',
@@ -57,6 +51,6 @@ $objPage->addJSFile(array(
 
 $objPage->addJSFile(array(
     'src' => '/' . root() . self::$THEME_ROOT . 'assets/javascript/custom.js',
-), 'footer' ); 
+), 'footer' );
 
 ?>
