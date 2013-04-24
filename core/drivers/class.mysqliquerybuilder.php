@@ -59,6 +59,13 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
         return $this;
     }
 
+    public function replaceInto($table){
+        $this->setQueryType('replace');
+        $this->_tables[] = $table;
+
+        return $this;
+    }
+
     public function deleteFrom($table){
         $this->setQueryType('delete');
         $args = $this->_getArgs(func_get_args());
@@ -247,7 +254,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
         }
 
     public function args(){
-        if (!in_array($this->queryType, array('INSERT', 'UPDATE'))) {
+        if (!in_array($this->queryType, array('INSERT', 'UPDATE', 'REPLACE'))) {
             trigger_error('Error: Only INSERT and Update operations.', E_USER_ERROR);
         }
 
@@ -260,7 +267,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
     }
 
     public function fields($fields) {
-        if (!in_array($this->queryType, array('INSERT', 'UPDATE'))) {
+        if (!in_array($this->queryType, array('INSERT', 'UPDATE', 'REPLACE'))) {
             trigger_error('Error: Only INSERT and Update operations.', E_USER_ERROR);
         }
 
@@ -271,7 +278,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
     }
 
     public function values($values) {
-        if (!in_array($this->queryType, array('INSERT', 'UPDATE'))) {
+        if (!in_array($this->queryType, array('INSERT', 'UPDATE', 'REPLACE'))) {
             trigger_error('Error: Only INSERT and Update operations.', E_USER_ERROR);
         }
 
@@ -280,7 +287,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
                 trigger_error('Error: Number of values has to be equal to the number of fields.', E_USER_ERROR);
             }
 
-        if ($this->queryType == 'INSERT') {
+        if ( in_array($this->queryType, array( 'INSERT', 'REPLACE' ) ) {
             $this->_values[] = $args;
         } elseif ($this->queryType == 'UPDATE') {
             $this->_values = $args;
@@ -420,6 +427,29 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
         }
 
         private function _buildINSERTValues(&$statement){
+            $values = array();
+            foreach($this->_values as $field => $val){
+                $val = $this->_sanitizeValue($val);
+
+                $values[] = sprintf('%s', ($val === NULL ? 'NULL' : $val));
+            }
+            $statement[] = sprintf('(%s)', implode(', ', $values));
+        }
+
+        private function _buildREPLACE(&$statement){
+            $statement[] = 'INTO';
+            $statement[] = sprintf('%s', $this->_buildTables($this->_tables));
+            $this->_buildREPLACEFields($statement);
+
+            $statement[] = 'VALUES';
+            $this->_buildREPLACEValues($statement);
+        }
+
+        private function _buildREPLACEFields(&$statement){
+            $statement[] = sprintf('(`%s`)', implode('`, `', $this->_fields));
+        }
+
+        private function _buildREPLACEValues(&$statement){
             $values = array();
             foreach($this->_values as $field => $val){
                 $val = $this->_sanitizeValue($val);
