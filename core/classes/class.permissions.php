@@ -7,9 +7,10 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class Core_Classes_Permissions extends Core_Classes_coreObj {
 
-    private $uid = 0;
-    private $groups = array();
-    public $permissions = array();
+    public  $uid            = 0;
+    public  $groups         = array();
+    public  $permissions    = array();
+    private $permissionList = array();
 
     /**
      * Start grabbing the information we need to test for permissions
@@ -30,6 +31,117 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
         $this->buildACL();
     }
 
+/**
+  //
+  //-- Utility Methods
+  //
+**/
+
+    /**
+     * Get a list of groups this user belongs to.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function getUserGroups() {
+        return $this->groups;
+    }
+
+    /**
+     * Get a flattened list of permissions this user has.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function getFlatPermissions() {
+
+        if( !count($this->permissions) ){
+            return array();
+        }
+
+        $return = array();
+        // loop through each permission in the set
+        foreach($this->permissions as $perm => $values){
+
+            // loop through each version of the permission the groups have
+            foreach($values as $k => $v){
+                $return[ $perm ][ $v['content_id'] ] = $v['value'];
+            }
+
+        }
+
+        return $return;
+    }
+
+    /**
+     * Get an array with the current set of permissions in.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function getKeys(){
+        return array_keys($this->permissions);
+    }
+
+    /**
+     * Get a permission node based on its $key and $content_id
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function getNode( $key, $content_id=0 ){
+        $key = strtolower($key);
+        return ( isset($this->permissions[ $key ][ $content_id ]) ? $this->permissions[ $key ][ $content_id ] : $this->permissions[ $key ][ 0 ] );
+    }
+
+    /**
+     * Returns a list of all the permissions in the system.
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function getAll(){
+
+        if( is_empty($this->permissionList) ){
+            $objSQL = Core_Classes_coreObj::getDBO();
+
+            $query = $objSQL->queryBuilder()
+                ->select('key', 'name', 'description')
+                ->from('#__permissions');
+
+            $permissions = $objSQL->fetchAll( $query->build() );
+                if( $permissions === false || is_empty($permissions) ){
+                    return array();
+                }
+
+            $perms = array();
+            foreach($permissions as $perm){
+                $perms[ $perm['key'] ] = $perm;
+            }
+
+            $this->permissionList = $perms;
+        }
+
+        return $this->permissionList;
+    }
+
+
+/**
+  //
+  //-- Core Class Methods
+  //
+**/
+
     /**
      * Check if we have the permission on the user.
      *
@@ -48,17 +160,17 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
 
             // if we have the content id they want, return based on its value
             if( isset($this->permissions[$permission][ $content_id ]['value']) ){
-                return ($this->permissions[$permission][ $content_id ]['value']==1 ? true : false);
+                return ($this->permissions[$permission][ $content_id ]['value']==1 ? 1 : 0);
             }
 
             // if not, try for content id = 0, this is a global version
             if( isset($this->permissions[$permission][ '0' ]['value']) ){
-                return ($this->permissions[$permission][ '0' ]['value']==1 ? true : false);
+                return ($this->permissions[$permission][ '0' ]['value']==1 ? 1 : 0);
             }
         }
 
         // if we got this far, permission doesn't exist so..
-        return true;
+        return -1;
     }
 
     /**
@@ -89,7 +201,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
      * @author  Dan Aldridge
      *
      */
-    public function getGroupPerms( $groups ){
+    private function getGroupPerms( $groups ){
 
         $objSQL = Core_Classes_coreObj::getDBO();
 
@@ -123,7 +235,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
      * @author  Dan Aldridge
      *
      */
-    public function getUserPerms(){
+    private function getUserPerms(){
 
         $objSQL = Core_Classes_coreObj::getDBO();
 
@@ -164,6 +276,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
 
             $return[ $permKey ][ $p['content_id'] ] = array(
                 'permission' => $permKey,
+                'name'       => $g['name'],
                 'inherited'  => (isset($p['group_id']) ? true : false),
                 'value'      => ($p['permission_value'] == '1' ? true : false),
                 'setWhere'   => (isset($p['group_id']) ? 'group' : 'user'),
