@@ -99,19 +99,18 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                 $i++;
             }
         }
-        
-        $extensionCheck = array_intersect( $extensionList, $extensions );
 
-        $extensions = array_map( 'strtolower', $extensions );
+        $extensions     = array_map( 'strtolower', $extensions );
+        $extensionCheck = array_intersect( array_filter( $extensionList ), array_filter( $extensions ) );
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
-        if( count($file['name']) === count( $extensionCheck ) ){
-            
+        if( count( array_filter( $file['name'] ) ) === count( $extensionCheck ) ){
+
             $imageCount = count( $file['name'] );
-            
+
             // Loop through the uploads
             for( $i = 0; $i < $imageCount; $i++ ){
-            
+
                 // Setup some default Vars
                 $currentFileName = $file['name'][$i];
                 $fileSize        = $file['size'][$i];
@@ -128,18 +127,23 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
 
                 // Check if there are any errors
                 if( $error > 0 ){
+                    debugLog('Error Code', $error );
+
                     // Report the errors
                     $this->uploadErrors[] = sprintf( 'Upload Failed due to the following error: %s', $error );
                     trigger_error( $error );
                     continue;
+
                 } else {
 
                     // Check if the file already exists
                     if( file_exists( $finalPath ) ) {
+                        debugLog('File Already exists', $finalPath);
                         $error = sprintf( 'The uploaded file already exists: %s', $finalPath );
                         $this->uploadErrors[] = $error;
                         trigger_error( $error );
                         continue;
+
                     } else {
 
                         // Move the uploaded file
@@ -179,15 +183,17 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                             // Insert the data into the database
                             $result = $objSQL->query( $query );
 
-                            // If all went well, return true
+                            // If all went well
                             if( $result ){
                                 $this->uploadData[$input_name] = $uploadData;
 
                                 // Add the insert id for reference to
                                 $this->uploadData[$input_name]['fileid'] = $objSQL->fetchInsertId();
 
+                                $params = array(&$uploadData);
+
                                 // Add a hook to allow developers to add extra functionality
-                                $objPlugins->hook( 'CMS_UPLOADED_FILE', $uploadData );
+                                $objPlugins->hook( 'CMS_UPLOADED_FILE', $params );
                             }
                         } else {
                             $error = sprintf('Could not move uploaded file to %s.', $finalPath );
