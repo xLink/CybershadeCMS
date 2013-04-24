@@ -8,6 +8,9 @@
 </head>
 
 <body class="{PAGE_CLASS}">
+<!-- BEGIN _CMSBLOCK -->
+{_CMSBLOCK.HEADER}
+<!-- END _CMSBLOCK -->
 
 <header>
     <div class="container">

@@ -120,7 +120,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
      */
     public function buildBlocks() {
         $objBlocks = Core_Classes_coreObj::getBlocks();
-        // $objBlocks->insertBlocks();
+        $objBlocks->insertBlocks();
     }
 
     /**
@@ -931,6 +931,8 @@ class Core_Classes_Page extends Core_Classes_coreObj {
                 }
             }
 
+        $this->buildBlocks();
+
         Core_Classes_coreObj::getTPL()->assign_vars($tplGlobals);
     } 
 
@@ -947,8 +949,6 @@ class Core_Classes_Page extends Core_Classes_coreObj {
 
         $objTPL = self::getTPL();
         $objTPL->set_filenames(array( 'siteHeader' => self::$THEME_ROOT . $header ));
-
-        $this->buildBlocks();
 
         $objTPL->parse('siteHeader');
 
@@ -967,8 +967,6 @@ class Core_Classes_Page extends Core_Classes_coreObj {
         $footer = ($simple ? 'simple_footer.tpl' : 'site_footer.tpl');
 
         $objTPL->set_filenames(array( 'siteFooter' => self::$THEME_ROOT . $footer ));
-
-        $this->buildBlocks();
 
         (cmsDEBUG ? memoryUsage('System: Finished Loading.') : '');
 

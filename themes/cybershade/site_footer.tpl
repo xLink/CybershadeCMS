@@ -41,6 +41,7 @@
     <!-- END debug -->
 </footer>
 
+{_CMSBLOCK.FOOTER_BLOCK}
 
 {_JS_FOOTER}
 </body>

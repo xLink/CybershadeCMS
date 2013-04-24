@@ -14,21 +14,27 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Core_Classes_baseQueryBuilder{
 
     private $queryType = '';
-    private $_fields   = array();
-    private $_values   = array();
-    private $_tables   = array();
+    private $_fields                 = array();
+    private $_values                 = array();
+    private $_tables                 = array();
 
-    private $_join     = array();
-    private $_using    = '';
-    private $_on       = array();
+    private $_join                   = array();
+    private $_using                  = '';
+    private $_on                     = array();
 
-    private $_where    = array();
-    private $_limit    = 0;
-    private $_offset   = 0;
+    private $_where                  = array();
+    private $_limit                  = 0;
+    private $_offset                 = 0;
 
-    private $_orderBy  = array();
-    private $_order    = 'ASC';
-    private $_groupBy  = array();
+    private $_orderBy                = array();
+    private $_order                  = 'ASC';
+    private $_groupBy                = array();
+
+    private $_charset                = '';
+    private $_engine                 = '';
+    private $_AI                     = 0;
+    private $_createConditional      = '';
+    private $_columns                = array();
 
 /**
   //
@@ -64,6 +70,99 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
     public function update($table){
         $this->setQueryType('update');
         $this->_tables = array($table);
+
+        return $this;
+    }
+
+    public function createTable( $table, $conditional = '' ) {
+        $this->createConditional = $conditional;
+        $this->setQueryType('create_table');
+        $this->_tables = array($table);
+
+        return $this;
+    }
+/**
+  //
+  //-- Helper Functions
+  //
+**/
+
+    /**
+     * Set the Charset for various daatabase actions
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   string  $charset       Character Set recognised by the system
+     *
+     */
+    public function setCharset( $charset ) {
+        if( !is_string( $charset ) ) {
+            trigger_error( 'Error: Wrong datatype', E_USER_ERROR );
+        }
+
+        $this->charset = $charset;
+
+        return $this;
+    }
+
+    /**
+     * Set Auto Increment when altering or creating tables
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   int  $AI       Auto Increment ID
+     *
+     */
+    public function setAI( $AI ) {
+        if( !is_number( $AI ) ) {
+            trigger_error( 'Error: Wrong datatype', E_USER_ERROR );
+        }
+
+        $this->AI = $AI;
+
+        return $this;
+    }
+
+    /**
+     * Setup the columns when altering or creating a table
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   array  $columns       Array of columns with properties in a child array on each item
+     *
+     */
+    public function setColumns( $columns ) {
+        if( !is_array( $columns ) ) {
+            trigger_error( 'Error: Wrong datatype', E_USER_ERROR );
+        }
+
+        $this->_columns = $columns;
+
+        return $this;
+    }
+
+    /**
+     * Setup the Engine type
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Daniel Noel-Davies
+     *
+     * @param   string  $type       Type of the MySQL Engine to use
+     *
+     */
+    public function setEngine( $type ) {
+        if( !is_string( $type ) ) {
+            trigger_error( 'Error: Wrong datatype', E_USER_ERROR );
+        }
+
+        $this->engineType = $type;
 
         return $this;
     }
@@ -261,15 +360,15 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
     public function build(){
         $statement = array();
 
-            $this->_buildOperator($statement);
-            $this->{'_build'.$this->queryType}($statement);
-            $this->_buildJoin($statement);
-            $this->_buildWhere($statement, 'where');
-            $this->_buildGroupBy($statement);
-            $this->_buildOrderBy($statement);
-            $this->_buildLimit($statement);
+        $this->_buildOperator($statement);
+        $this->{'_build'.$this->queryType}($statement);
+        $this->_buildJoin($statement);
+        $this->_buildWhere($statement, 'where');
+        $this->_buildGroupBy($statement);
+        $this->_buildOrderBy($statement);
+        $this->_buildLimit($statement);
 
-            $statement = implode(' ', $statement);
+        $statement = implode(' ', $statement);
 
         return $statement;
     }
@@ -330,6 +429,154 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
             $statement[] = sprintf('(%s)', implode(', ', $values));
         }
 
+        /**
+         * Build the Create Table query
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  Daniel Noel-Davies
+         *
+         * @param   array  &$statement       Array to put the statement into
+         *
+         */
+        private function _buildCREATE_TABLE( &$statement ) {
+            $statement = array('CREATE');
+
+            $this->_buildCreateTableTemporary($statement);
+
+            $statement[] = 'TABLE';
+
+            $this->_buildCreateTableNotExists($statement);
+
+            $statement[] = sprintf('`%s (`', $this->_buildTables($this->_tables));
+            $this->_buildCreateTableColumns( $statement );
+            $statement[] = ')' . $this->_buildCreateTableExtras($statement) . ';';
+        }
+
+        /**
+         * Build the temporary string if the table to be created is only temporary
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  Daniel Noel-Davies
+         *
+         * @param   string  $var       Parameter Description
+         *
+         */
+        private function _buildCreateTableTemporary( &$statement ) {
+            if( !empty( $this->isTemporaryTable ) ) {
+                $statement[] = ' TEMPORARY ';
+            }
+        }
+
+        /**
+         * Build the table columns when creating or altering table
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  Daniel Noel-Davies
+         *
+         * @param   array  $statement       Parameter Description
+         *
+         */
+        private function _buildCreateTableColumns( &$statement ) {
+
+            $primaryKey = null;
+
+            foreach( $this->_columns as $column => $attr ) {
+
+                $type       = doArgs( 'type',  null,  $attr );
+                $length     = doArgs( 'length',  null,  $attr );
+                $null       = doArgs( 'null',    null,  $attr );
+                $default    = doArgs( 'default', null,  $attr );
+                $ai         = doArgs( 'ai',      null,  $attr );
+                $primaryKey = doArgs( 'primary', $column, $attr );
+
+                $length     = ( $length != null     ? '(' . $length . ')' : NULL );
+                $null       = ( $null   === false   ? 'NOT NULL'          : NULL );
+                $ai         = ( $ai     !== null    ? 'AUTO_INCREMENT'    : NULL );
+
+                // Do sexy check for default
+                if( $default !== null ) {
+                    $default = 'DEFAULT \'' . $default . '\'';
+
+                } else if( $attr['null'] === true ) {
+                    $default = 'DEFAULT NULL';
+
+                }
+
+                $extra  = ''
+                    .       $type
+                    .       $length
+                    . ' ' . $null
+                    . ' ' . $default
+                    . ' ' . $ai;
+
+                // echo dump($extra);
+
+
+                $statement[] = sprintf('`%s` %s,',
+                    $column,
+                    trim( $extra )
+                );
+            }
+
+            // Check for primary key
+            if( $primaryKey !== null ) {
+                $statement[] = sprintf( 'PRIMARY KEY (`%s`),', $primaryKey );
+            }
+
+            end($statement);
+            $statement[key($statement)] = rtrim( $statement[key($statement)], ',' );
+        }
+ 
+        /**
+         * Build the table extras when creating a table
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  Daniel Noel-Davies
+         *
+         * @param   array  $statement       Parameter Description
+         *
+         */
+        private function _buildCreateTableExtras( &$statement ) {
+            $output = '';
+
+            // Engine
+            if( !empty( $this->engineType ) ) {
+                $output .= ' ENGINE=' . $this->engineType;
+            }
+
+            // Default Charset
+            if( !empty( $this->charset ) ) {
+                $output .= ' DEFAULT CHARSET=' . $this->charset;
+            }
+
+            // Auto Increment
+            if( !empty( $this->charset ) ) {
+                $output .= ' AUTO_INCREMENT=' . $this->AI;
+            }
+
+            return $output;
+        }
+
+        /**
+         * Build the Not Exists string for the create table function
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  Daniel Noel-Davies
+         *
+         * @param   string  $var       Parameter Description
+         *
+         */
+        private function _buildCreateTableNotExists( &$statement ) {
+            if( !empty( $this->_createConditional ) ) {
+                $statement[] = 'IF NOT EXISTS';
+            }
+        }
+
         private function _buildOperator(&$statement){
             $statement[] = $this->queryType;
         }
@@ -375,7 +622,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
                 }
             }
 
-            foreach($tables as $key => $table){
+            foreach( $tables as $key => $table ) {
                 $table = str_replace('`', '', $table);
 
                 //check if were querying another db
@@ -386,7 +633,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
                 }
 
 
-                if(isset($key) && !empty($key)){
+                if( isset( $key ) && !empty( $key ) ) {
                     $_tables[] = sprintf('%s as %s', $table, $key);
                 }else{
                     $_tables[] = sprintf('%s', $table);
@@ -507,6 +754,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
             }
         }
 
+
 /**
   //
   //-- Extra Functions
@@ -566,7 +814,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
         if($this->queryType){
             trigger_error('Can\'t modify the operator.', E_USER_ERROR);
 
-        }elseif(!in_array($queryType, array('select', 'insert', 'delete', 'update'))){
+        }elseif(!in_array($queryType, array('select', 'insert', 'delete', 'update', 'create_table'))){
             trigger_error('Unsupported operator:'.strtoupper($queryType), E_USER_ERROR);
 
         }else{
@@ -574,359 +822,4 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
         }
     }
 
-}
-
-interface Core_Classes_queryBuilder {
-
-	// Begin Query Type initiators
-
-	/**
-	 * Set query type to select, and gather fields that will be returned in the results set
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param 	string 	$field 	Field Name(s)
-	 */
-	public function select();
-
-	/**
-	 * Set query type to insert, and get the table name we're inserting data into
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   string  $table    Table Name
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function insertInto( $table );
-
-	/**
-	 * Set query type to delete, and get the table name we're delete data from
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   string  $table    Table Name
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function deleteFrom( $table );
-
-	/**
-	 * Set query type to update, and get the table name we're updating data from
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   string  $table    Table Name
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function update( $table );
-
-	/**
-	 * Set query type to create, and get the table name we're creating
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   string  $table    Table Name
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function createTable( $table );
-
-
-	// Begin Core functions
-
-	/**
-	 * Determine what tables we're selecting data from
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $tables    Table Name(s)
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function from( $tables );
-
-	/**
-	 * Add a field to the query in it's respective role
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $field     Field Name(s)
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function addField( $field );
-
-	/**
-	 * Add a where clause to the query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $where       Where clause
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function where( $where );
-
-	/**
-	 * Adds an 'AND' conditional to the where clause within the query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $where       Where Clause
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function andWhere( $where );
-
-	/**
-	 * Adds an 'OR' conditional to the where clause within the query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $where       Where Clause
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function orWhere( $where );
-
-	/**
-	 * Adds a Join to the query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   string  $table      Table Name(s)
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function join( $table );
-
-	/**
-	 * Adds a Left Join to the query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   string  $table      Table Name(s)
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function leftJoin( $table );
-
-	/**
-	 * Adds a Right Join to the query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   string  $table      Table Name(s)
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function rightJoin( $table );
-
-	/**
-	 * Force the Join Clause to join on various columns
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   string  $field      Field Name
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function using( $field );
-
-	/**
-	 * Add On clause to the Join clause
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $condition         Condition
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function on( $condition );
-
-	/**
-	 * Add an ADD On clause to the Join clause
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $condition         Condition
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function andOn( $condition );
-
-	/**
-	 * Add an OR On clause to the Join clause
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $condition         Condition
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function orOn( $condition );
-
-	/**
-	 * Add fields and values to an insert query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   array  $data       Column => Value data
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function args( $data );
-
-	/**
-	 * Add fields to be used in insert / update query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   array  $fields     Array of fields
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function fields( $fields );
-
-	/**
-	 * Add Values to be used in insert / update query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   array  $values     Array of values
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function values( $values );
-
-	/**
-	 * Sets the fields and values to be used in the query (Raw version of args)
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $data      Field => Value data
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function set();
-
-	/**
-	 * Add a limit clause to the query
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   int  $limit        Max Number of results to return
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function limit( $limit );
-
-	/**
-	 * Order the results set
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   string  $order     ASC / DESC
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function order( $order );
-
-	/**
-	 * Set what fields to order the results by
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $fields  Fields to order by
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function orderBy( $fields );
-
-	/**
-	 * Group the results by field(s)
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   mixed  $fields  Fields to group by
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function groupBy();
-
-	/**
-	 * Offset the result set
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @param   int  $offset    Number of results to offset against
-	 *
-	 * @return 	object 			Query builder object for chaining
-	 */
-	public function offset( $offset );
-
-	/**
-	 * Build the query and return the query as a string
-	 *
-	 * @version 1.0
-	 * @since   1.0
-	 * @author  Daniel Noel-Davies
-	 *
-	 * @return string
-	 */
-	public function build();
 }

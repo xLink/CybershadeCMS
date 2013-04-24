@@ -93,6 +93,10 @@ class Modules_core extends Core_Classes_Module{
         $objPage    = Core_Classes_coreObj::getPage();
         $objRoute   = Core_Classes_coreObj::getRoute();
 
+        return '<div class="progress progress-success progress-striped active" style="margin: 0;">
+        <div class="bar" style="width: 45%"></div>
+      </div>';
+
         if( Core_Classes_User::$IS_ONLINE ){
             $objPage->redirect($objRoute->generateUrl('core_viewIndex'));
         }
