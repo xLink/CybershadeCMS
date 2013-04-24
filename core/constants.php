@@ -58,9 +58,8 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 // User levels
     define('BANNED',           -1);
     define('GUEST',             0);
-    define('USER',              1); //DONT CHANGE THIS
-    define('MOD',               2); //OR THIS...i kill you DEAD!
-    define('ADMIN',             3);
+    define('USER',              1);
+    define('ADMIN',             2);
 
 // Group settings
     define('GROUP_OPEN',        0);

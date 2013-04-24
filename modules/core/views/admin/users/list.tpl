@@ -8,7 +8,7 @@
             <th>Status</th>
             <th>Actions</th>
         </tr>
-	</thead>   
+	</thead>
 	<tbody>
         <!-- BEGIN user -->
         <tr>
@@ -27,8 +27,8 @@
                     </button>
                     <ul class="dropdown-menu">
                         <li><a href="#" class="">Ban User</a></li>
-                        <li><a href="#"></a></li>
-                        <li><a href="#"></a></li>
+                        <li><a href="#">View Profile</a></li>
+                        <li><a href="#">Manage Permissions</a></li>
                     </ul>
                 </div>
             </td>

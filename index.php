@@ -28,5 +28,6 @@ $objPage->showHeader();
 if ( $objModule !== false ) {
     echo $objModule->output();
 }
+
 $objPage->showFooter();
 ?>

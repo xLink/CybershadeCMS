@@ -93,11 +93,18 @@ class gh_markdown_parser extends MarkdownExtra_Parser {
         ), 'footer');
 
 
-        $language = grabLangInfo($language, 'mime');
+        $language = grabLangInfo($language);
         $content = trim($content);
 
-        //return $content;
-        return "\n<pre><span data-lang=\"".$language."\" data-codemirror=\"true\">".$content."</span></pre>\n";
+        $codeID = $language['lang'].'_'.randCode(5);
+        return <<<html
+        <div id="{$codeID}" class="code">
+            <ul class="nav nav-tabs">
+                <li><a>{$language['lang']} Code</a></li>
+            </ul>
+            <span data-lang="{$language['mime']}" data-codemirror="true">{$content}</span>
+        </div>
+html;
     }
 
 

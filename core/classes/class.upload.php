@@ -40,10 +40,9 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
     /**
      * The class constructor
      */
-    public function __construct( $className, $input_name = '' ){
+    public function __construct( $className ){
         $this->setDirectory();
     }
-
 
     /**
      * Set the field name to be used for file upload
@@ -64,7 +63,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
     /**
      * Process uploads
      *
-     * @version     1.0
+     * @version     1.2.0
      * @since       1.0.0
      * @author      Richard Clifford
      *
@@ -74,105 +73,142 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
      * @return      boolean
      */
      public function doUpload( $extensions = array(), $allowedSize = 100000 ) {
-
         $objPlugins = Core_Classes_coreObj::getPlugins();
 
         $destination = $this->getVar('directory');
         $input_name  = $this->getVar('input_name');
 
+        // Make an alias to the files
+        $file = $_FILES[$input_name];
 
         // Checks if the destination was false (from the getVar())
         if( !$destination ){
-            (cmsDEBUG ? memoryUsage('Upload: Failed to upload as desitnation folder was not accessible' ) : '');
+            debugLog('Upload: Failed to upload as desitnation folder was not accessible');
             return false;
         }
 
         // Get the current file extension
-        $fileName  = preg_replace('/[^a-zA-Z0-9-_.]/', '', $_FILES[$input_name]['name']);
-        $fileParts = explode( '.', $fileName );
-        $extension = end($fileParts);
-        $fileSize  = $_FILES[$input_name]['size'];
-        $finalPath = $destination . '/' . $fileName;
+        $i = 0;
+        $extensionList = array();
 
-        $extensions = array_map( 'strtolower', $extensions );
+        if( is_array( $file['name'] ) && !is_empty($file['name']) ){
+            foreach( $file['name'] as $name ){
+                $file['name'][$i] = preg_replace('/[^a-zA-Z0-9-_.]/', '', $name);
+                $fileParts        = explode( '.', $file['name'][$i] );
+                $extensionList[]  = strtolower(end($fileParts));
+                $i++;
+            }
+        }
+
+        $extensions     = array_map( 'strtolower', $extensions );
+        $extensionCheck = array_intersect( array_filter( $extensionList ), array_filter( $extensions ) );
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
-        if( in_array( strtolower( $extension ), $extensions ) && ( $fileSize <= $allowedSize ) ){
-            if( $_FILES[$input_name]['error'] > 0 ){
+        if( count( array_filter( $file['name'] ) ) === count( $extensionCheck ) ){
 
-                (cmsDEBUG ? memoryUsage(sprintf(
-                    'Upload: Error uploading file, error code: %s',
-                    $_FILES[$input_name]['error']
-                )) : '');
+            $imageCount = count( $file['name'] );
 
-                $error = sprintf( 'Upload Failed due to the following error: %s', $_FILES[$input_name]['error'] );
+            // Loop through the uploads
+            for( $i = 0; $i < $imageCount; $i++ ){
 
-                $this->uploadErrors[] = $error;
-                trigger_error( $error );
+                // Setup some default Vars
+                $currentFileName = $file['name'][$i];
+                $fileSize        = $file['size'][$i];
+                $finalPath       = addslashes($this->config('global', 'realPath') . $destination . '/' . $currentFileName);
 
-                return false;
-            } else {
-                if( file_exists( $finalPath ) ) {
-                     $error = sprintf( 'The uploaded file already exists: %s', $finalPath );
+                // Checks the filesize
+                if( $fileSize > $allowedSize ){
+                    trigger_error('File ' . $file['name'][$i] . ' Was too large to upload');
+                    continue;
+                }
 
-                    $this->uploadErrors[] = $error;
+                // Set the error to a var
+                $error = $file['error'][$i];
+
+                // Check if there are any errors
+                if( $error > 0 ){
+                    debugLog('Error Code', $error );
+
+                    // Report the errors
+                    $this->uploadErrors[] = sprintf( 'Upload Failed due to the following error: %s', $error );
                     trigger_error( $error );
-                    return false;
+                    continue;
+
                 } else {
 
-                    $moveFile = move_uploaded_file( $_FILES[$input_name]['tmp_name'], $finalPath );
-
-                    // Check if the file was moved correctly
-                    if( $moveFile ){
-                        $objSQL  = Core_Classes_coreObj::getDBO();
-                        $objUser = Core_Classes_coreObj::getUser();
-
-                        // Setup the data to be inserted into the db
-                        $uploadData = array(
-                            'uid'        => $objUser->grab('id'),
-                            'filename'   => $fileName,
-                            'file_type'  => $extension,
-                            'timestamp'  => time(),
-                            'public'     => 0,
-                            'authorized' => 0,
-                            'file_size'  => $fileSize,
-                            'location'   => $finalPath,
-                        );
-
-                        // Automatically allow admins to have authorized content
-                        if( Core_Classes_User::$IS_ADMIN ){
-                            $uploadData['authorized'] = 1;
-                        }
-
-                        $query = $objSQL->queryBuilder()
-                                        ->insertInto('#__uploads')
-                                        ->set( $uploadData )
-                                        ->build();
-
-                        $result = $objSQL->query( $query );
-
-                        // If all went well, return true
-                        if( $result ){
-                            $this->uploadData[$input_name] = $uploadData;
-
-                            // Add the insert id for reference to
-                            $this->uploadData[$input_name]['fileid'] = $objSQL->fetchInsertId();
-
-                            // Add a hook to allow developers to add extra functionality
-                            $objPlugins->hook( 'CMS_UPLOADED_FILE', $uploadData );
-
-                            (cmsDEBUG ? memoryUsage('Upload: Successfully uploaded the file') : '');
-                            return true;
-                        }
-                    } else {
-                         $error = sprintf('Could not move uploaded file to %s.', $finalPath );
-
+                    // Check if the file already exists
+                    if( file_exists( $finalPath ) ) {
+                        debugLog('File Already exists', $finalPath);
+                        $error = sprintf( 'The uploaded file already exists: %s', $finalPath );
                         $this->uploadErrors[] = $error;
                         trigger_error( $error );
-                        return false;
+                        continue;
+
+                    } else {
+
+                        // Move the uploaded file
+                        $moveFile = move_uploaded_file( $file['tmp_name'][$i], $finalPath );
+
+                        // Check if the file was moved correctly
+                        if( $moveFile ){
+                            $objSQL  = Core_Classes_coreObj::getDBO();
+                            $objUser = Core_Classes_coreObj::getUser();
+
+                            // Grab the current extension
+                            $extension = explode( '.', $file['name'][$i] );
+                            $extension = end( $extension );
+
+                            // Setup the data to be inserted into the db
+                            $uploadData = array(
+                                'uid'        => $objUser->grab('id'),
+                                'filename'   => $currentFileName,
+                                'file_type'  => $extension,
+                                'timestamp'  => time(),
+                                'public'     => 0,
+                                'authorized' => 0,
+                                'file_size'  => $fileSize,
+                                'location'   => $finalPath,
+                            );
+
+                            // Automatically allow admins to have authorized content
+                            if( Core_Classes_User::$IS_ADMIN ){
+                                $uploadData['authorized'] = 1;
+                            }
+
+                            $query = $objSQL->queryBuilder()
+                                            ->insertInto('#__uploads')
+                                            ->set( $uploadData )
+                                            ->build();
+
+                            // Insert the data into the database
+                            $result = $objSQL->query( $query );
+
+                            // If all went well
+                            if( $result ){
+                                $this->uploadData[$input_name] = $uploadData;
+
+                                // Add the insert id for reference to
+                                $this->uploadData[$input_name]['fileid'] = $objSQL->fetchInsertId();
+
+                                $params = array(&$uploadData);
+
+                                // Add a hook to allow developers to add extra functionality
+                                $objPlugins->hook( 'CMS_UPLOADED_FILE', $params );
+                            }
+                        } else {
+                            $error = sprintf('Could not move uploaded file to %s.', $finalPath );
+                            $this->uploadErrors[] = $error;
+                            trigger_error( $error );
+                            continue;
+                        }
                     }
                 }
             }
+        }
+
+        // Finally check if there were any errors
+        if( !isset( $this->uploadErrors ) || is_empty( $this->uploadErrors ) ){
+            return true;
         }
 
         return false;
@@ -194,7 +230,6 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         $objPlugins = Core_Classes_coreObj::getPlugins();
 
         if( trim($directory) === '' ){
-            (cmsDEBUG ? memoryUsage('Upload: Using default folder') : '');
             $this->setVar('directory', sprintf( '%sassets/uploads/all', cmsROOT ) );
         } else {
 
@@ -206,14 +241,13 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
             // Checks if the given directory is writable
             if( !file_exists( $directory ) || ( file_exists( $directory ) && !is_writable( $directory ) ) ){
 
-                (cmsDEBUG ? memoryUsage('Upload: Destination folder was not writable') : '');
+                debugLog('Upload: Destination folder was not writable');
                 trigger_error( sprintf( 'The destination folder was not writable, please chmod it to 0775 : %s',
                     $directory
                 ));
 
                 return false;
             } else {
-                (cmsDEBUG ? memoryUsage('Upload: Setting upload directory') : '');
                 $this->setVar('directory', $directory);
                 return true;
             }
@@ -379,7 +413,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
      *
      */
     public function getInfo( $id, $onlyPublic = true ) {
-        
+
         // Check we've got what we need
         if( !is_int( $id ) && !is_numeric( $id ) && !is_array( $id ) ) {
             trigger_error('Invalid arguments supplied for ' . __FUNCTION__ );

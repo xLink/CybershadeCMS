@@ -26,22 +26,24 @@ class Modules_core extends Core_Classes_Module{
 **/
 
     public function login_form(){
-        $objTPL     = Core_Classes_coreObj::getTPL();
         $objForm    = Core_Classes_coreObj::getForm();
         $objSession = Core_Classes_coreObj::getSession();
         $objPage    = Core_Classes_coreObj::getPage();
         $objLogin   = Core_Classes_coreObj::getLogin();
+        $objRoute   = Core_Classes_coreObj::getRoute();
+        $objTPL     = $this->setView('module/login_form/default.tpl');
 
         if( Core_Classes_User::$IS_ONLINE ){
-            $objPage->redirect('/'.root());
+            $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
         }
 
-        $this->setView('module/login_form/default.tpl');
-
+        if( !isset($_SESSION['site']['login']) ){
+            $_SESSION['site']['login_referer'] = $this->config('global', 'referer');
+        }
         $form = array(
             'FORM_START'    => $objForm->start('login', array(
                                     'method' => 'POST',
-                                    'action' => '/'.root().'login?'
+                                    'action' => $objRoute->generateUrl('core_loginForm_process'),
                                 )),
             'FORM_END'      => $objForm->finish(),
             'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
@@ -89,9 +91,10 @@ class Modules_core extends Core_Classes_Module{
         $objForm    = Core_Classes_coreObj::getForm();
         $objSession = Core_Classes_coreObj::getSession();
         $objPage    = Core_Classes_coreObj::getPage();
+        $objRoute   = Core_Classes_coreObj::getRoute();
 
         if( Core_Classes_User::$IS_ONLINE ){
-            $objPage->redirect('/'.root());
+            $objPage->redirect($objRoute->generateUrl('core_viewIndex'));
         }
 
         $objTPL->set_filenames(array(
@@ -101,7 +104,7 @@ class Modules_core extends Core_Classes_Module{
         $form = array(
             'FORM_START'    => $objForm->start('login', array(
                                     'method' => 'POST',
-                                    'action' => '/'.root().'login?'
+                                    'action' => $objRoute->generateUrl('core_loginForm_process'),
                                 )),
             'FORM_END'      => $objForm->finish(),
             'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
@@ -149,13 +152,14 @@ class Modules_core extends Core_Classes_Module{
         $objUser  = Core_Classes_coreObj::getUser();
         $objLogin = Core_Classes_coreObj::getLogin();
         $objPage  = Core_Classes_coreObj::getPage();
+        $objRoute = Core_Classes_coreObj::getRoute();
 
         if( $objLogin->process() !== true ){
             $this->login_form();
             return;
         }
 
-        $objPage->redirect(doArgs('referer', '/'.root(), $_SESSION['login']), 0);
+        $objPage->redirect(doArgs('referer', $objRoute->generateUrl('core_viewIndex'), $_SESSION['login']), 0);
     }
 
     public function logout(){

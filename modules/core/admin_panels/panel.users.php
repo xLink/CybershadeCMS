@@ -19,7 +19,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
-     * 
+     *
      * @return  void
      */
     public function manage(){
@@ -36,6 +36,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
         $query = $objSQL->queryBuilder()
             ->select('*')
             ->from('#__users')
+            ->where('id != 1')
             ->orderby('id')
             ->build();
 
@@ -50,10 +51,6 @@ class Admin_Modules_core_users extends Admin_Modules_core{
             switch( $user['userlevel'] ){
                 case ADMIN:
                     $role = 'Administrator';
-                break;
-
-                case MOD:
-                    $role = 'Moderator';
                 break;
 
                 case USER:
@@ -99,7 +96,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
-     * 
+     *
      * @return  void
      */
     public function add() {

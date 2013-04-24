@@ -132,9 +132,11 @@ class Core_Classes_Module extends Core_Classes_coreObj{
                 }
 
             }else{
-                if( is_empty($page) ){
-                    $content = $objTPL->get_html('body');
+                if( !is_empty($page) ){
+                    $content .= $page;
                 }
+
+                $content .= $objTPL->get_html('body');
             }
 
             $objTPL->assign_vars(array(

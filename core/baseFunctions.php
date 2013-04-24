@@ -74,9 +74,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         //test value here so we have atleast a value to work with
         $value = (isset($args[$key])
                     ? $args[$key]
-                    : (!empty($default)
-                        ? $default
-                        : false));
+                    : $default );
+
 
         //if we have a callback then exec
         if(is_empty($callback)){
@@ -218,7 +217,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $headers[] = 'Return-Path: NoReply <'.$from.'>';
         $headers[] = 'Date: '.date('r', time());
         $headers[] = 'MIME-Version: 1.0';
-        $headers[] = 'Message-ID: <'.md5(uniqid(time())).'@'.$server.'>';
+        // $headers[] = 'Message-ID: <'.md5(uniqid(time())).'@'.$server.'>';
         $headers[] = 'Content-Type: text/html; charset="iso-8859-1"';
         $headers[] = 'X-Mailer: PHP v'.phpversion();
         $headers[] = 'X-Priority: 3';
@@ -487,7 +486,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         }
         return false;
     }
-    
+
     /**
      * Verifies an IP against a IPv4 range.
      *         127.0.0.1 would verify against 127.0.0.* but not *.*.*.2
@@ -637,7 +636,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
             $text = strtr(strtolower($text), array(' ' => '-'));
             $text = preg_replace('/[\-]{2,}/', '-', $text);
             $text = rtrim($text, '-');
-            if(is_number($text)) { $text = 'number-'.$text; } // numeric names would confuse everything
+
          return $text;
     }
 
@@ -846,8 +845,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
         }
 
-        
-    }   
+
+    }
 
 
 /**
@@ -1294,22 +1293,27 @@ function reflectMethod( $class, $method, $parameters = array()) {
     $params    = $refMethod->getParameters( );
     $args      = array();
 
-    // Loop through the parameters the method asks for,
-    //  and match them up with our arguments where possible
-    foreach( $params as $k => $name ) {
-        $var = $name->getName();
+    // if we have any arguments set, then try and match their vars, else give them all the things
+    if( !count($params) ){
+        $args = $parameters;
+    }else{
+        // Loop through the parameters the method asks for,
+        //  and match them up with our arguments where possible
+        foreach( $params as $k => $name ) {
+            $var = $name->getName();
 
-        // check if the var they asked for is in the params
-        if(!isset($parameters[$var])){
-            $args[$var] = null;
-            continue;
-        }
+            // check if the var they asked for is in the params
+            if(!isset($parameters[$var])){
+                $args[$var] = null;
+                continue;
+            }
 
-        // and then check if we have to throw the var at them as a reference
-        if($name->isPassedByReference()){
-            $args[$var] = &$parameters[$var];
-        }else{
-            $args[$var] = $parameters[$var];
+            // and then check if we have to throw the var at them as a reference
+            if($name->isPassedByReference()){
+                $args[$var] = &$parameters[$var];
+            }else{
+                $args[$var] = $parameters[$var];
+            }
         }
     }
 
