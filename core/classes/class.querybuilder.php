@@ -33,6 +33,19 @@ interface Core_Classes_baseQueryBuilder {
 	public function insertInto( $table );
 
 	/**
+	 * Set query type to replace, and get the table name we're replacing data into
+	 *
+	 * @version 1.0
+	 * @since   1.0
+	 * @author  Daniel Noel-Davies
+	 *
+	 * @param   string  $table    Table Name
+	 *
+	 * @return 	object 			Query builder object for chaining
+	 */
+	public function replaceInto( $table );
+
+	/**
 	 * Set query type to delete, and get the table name we're delete data from
 	 *
 	 * @version 1.0
