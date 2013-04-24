@@ -522,6 +522,11 @@ class Core_Classes_coreObj {
     }
 
     public static function getPermissions($uid){
+
+        if( !is_number($uid) ){
+            $uid = self::getUser()->grab('id');
+        }
+
         if( !isset(Core_Classes_coreObj::$_classes['perms_'.$uid]) ){
             Core_Classes_Permissions::getInstance('perms_'.$uid, array(
                 'uid' => $uid,
