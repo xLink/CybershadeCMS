@@ -38,11 +38,20 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
     public $uploadErrors = array();
 
     /**
+     * A list of the uploaded filenames
+     *
+     * @access public
+     */
+    public $uploadedFiles = array();
+
+
+    /**
      * The class constructor
      */
     public function __construct( $className ){
         $this->setDirectory();
     }
+
 
     /**
      * Set the field name to be used for file upload
@@ -190,6 +199,9 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
 
                                 // Add the insert id for reference to
                                 $this->uploadData[$input_name]['fileid'] = $objSQL->fetchInsertId();
+
+                                // Add the filenames to the uploadedFiles array
+                                $this->uploadedFiles[] = $currentFileName;
 
                                 $params = array(&$uploadData);
 
