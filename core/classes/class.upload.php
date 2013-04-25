@@ -193,7 +193,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                                 $params = array(&$uploadData);
 
                                 // Add a hook to allow developers to add extra functionality
-                                $objPlugins->hook( 'CMS_UPLOADED_FILE', $params );
+                                $objPlugins->hook( 'CMS_UPLOAD_UPLOAD_COMPLETE', $params );
                             }
                         } else {
                             $error = sprintf('Could not move uploaded file to %s.', $finalPath );
