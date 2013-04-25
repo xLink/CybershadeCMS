@@ -248,17 +248,13 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
             }
 
             // Checks if the given directory is writable
-            if( !file_exists( $directory ) || ( file_exists( $directory ) && !is_writable( $directory ) ) ){
-
+            if( file_exists( $directory ) && is_writable( $directory ) ){
+                return true;
+            } else {
                 debugLog('Upload: Destination folder was not writable');
-                trigger_error( sprintf( 'The destination folder was not writable, please chmod it to 0775 : %s',
+                trigger_error( sprintf( 'The destination folder was not writable, please chmod it to 0777 : %s',
                     $directory
                 ));
-
-                return false;
-            } else {
-                $this->setVar('directory', $directory);
-                return true;
             }
         }
 
