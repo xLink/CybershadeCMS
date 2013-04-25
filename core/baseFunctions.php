@@ -272,55 +272,55 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      */
     function getBrowser($useragent){
         // BE CAREFUL WHEN MODIFYING AS THE ORDER DOES MATTER!
-        if(strpos($useragent, 'Nintendo Wii') !== false){       return 'Nintendo Wii'; }
-        if(strpos($useragent, 'Nitro') !== false){              return 'Nintendo DS'; }
-        if(strpos($useragent, 'Opera') !== false){              return 'Opera'; }
-        if(strpos($useragent, 'iPhone') !== false){             return 'iPhone'; }
-        if(strpos($useragent, 'Android') !== false){            return 'Android'; }
-        if(strpos($useragent, 'Chrome') !== false){             return 'Chrome'; }
-        if(strpos($useragent, 'Netscape') !== false){           return 'Netscape'; }
-        if(strpos($useragent, 'OmniWeb') !== false){            return 'OmniWeb'; }
-        if(strpos($useragent, 'Safari') !== false){             return 'Safari'; }
-        if(strpos($useragent, 'Konqueror') !== false){          return 'Konqueror'; }
-        if(strpos($useragent, 'Minimo') !== false){             return 'Minimo'; }
-        if(strpos($useragent, 'Galeon') !== false){             return 'Galeon'; }
-        if(strpos($useragent, 'Phoenix') !== false){            return 'Phoenix'; }
-        if(strpos($useragent, 'Firefox') !== false){            return 'Firefox'; }
-        if(strpos($useragent, 'SeaMonkey') !== false){          return 'SeaMonkey'; }
-        if(strpos($useragent, 'NetPositive') !== false){        return 'NetPositive'; }
-        if(strpos($useragent, 'PalmOS') !== false){             return 'Novarra'; }
-        if(strpos($useragent, 'Avant Browser') !== false){      return 'Avant Browser'; }
-        if(strpos($useragent, 'PSP') !== false){                return 'PlayStation Portable'; }
-        if(strpos($useragent, 'PLAYSTATION') !== false){        return 'PlayStation'; }
-        if(strpos($useragent, 'Camino') !== false){             return 'Camino'; }
-        if(strpos($useragent, 'OffByOne') !== false){           return 'Off By One'; }
-        if(strpos($useragent, 'PIE') !== false){                return 'Pocket Internet Explorer'; }
-        if(strpos($useragent, 'WebTV') !== false){              return 'WebTV'; }
-        if(strpos($useragent, 'MSIE') !== false){               return 'Internet Explorer'; }
-        if(strpos($useragent, 'Jeeves') !== false){             return 'Ask Bot'; }
-        if(strpos($useragent, 'googlebot') !== false){          return 'Google Bot'; }
-        if(strpos($useragent, 'grub') !== false){               return 'Grub Crawler'; }
-        if(strpos($useragent, 'Yahoo!') !== false){             return 'Yahoo! Slurp'; }
-        if(strpos($useragent, 'Slurp') !== false){              return 'Inktomi Slurp'; }
-        if(strpos($useragent, 'w3m') !== false){                return 'w3m'; }
-        if(strpos($useragent, 'Lynx') !== false){               return 'Lynx'; }
-        if(strpos($useragent, 'ELinks') !== false){             return 'ELinks'; }
-        if(strpos($useragent, 'Links') !== false){              return 'Links'; }
-        if(strpos($useragent, 'Googlebot') !== false){          return 'Google Bot'; }
-        if(strpos($useragent, 'msnbot') !== false){             return 'MSN Bot'; }
-        if(strpos($useragent, 'ia_archiver') !== false){        return 'Alexa Bot'; }
-        if(strpos($useragent, 'Baiduspider') !== false){        return 'Baidu Spider'; }
-        if(strpos($useragent, 'curl') !== false){               return 'cURL Bot'; }
-        if(strpos($useragent, 'GameSpy') !== false){            return 'GameSpy HTTP'; }
-        if(strpos($useragent, 'Gigabot') !== false){            return 'Giga Bot'; }
-        if(strpos($useragent, 'Scooter') !== false){            return 'Scooter Bot'; }
-        if(strpos($useragent, 'Wget') !== false){               return 'wget'; }
-        if(strpos($useragent, 'Yahoo') !== false){              return 'Yahoo Crawler'; }
-        if(strpos($useragent, 'Android') !== false){            return 'Android'; }
-        if(strpos($useragent, 'iCab') !== false){               return 'iCab'; }
-        if(strpos($useragent, 'AvantGo') !== false){            return 'AvantGo'; }
-        if(strpos($useragent, 'amaya') !== false){              return 'Amaya'; }
-        if(strpos($useragent, 'Mozilla') !== false){            return 'Mozilla'; }
+        if(strpos($useragent, 'Nintendo Wii') !== false){           return 'Nintendo Wii'; }
+        if(strpos($useragent, 'Nitro') !== false){                  return 'Nintendo DS'; }
+        if(strpos($useragent, 'Opera') !== false){                  return 'Opera'; }
+        if(strpos($useragent, 'iPhone') !== false){                 return 'iPhone'; }
+        if(strpos($useragent, 'Android') !== false){                return 'Android'; }
+        if(strpos($useragent, 'Chrome') !== false){                 return 'Chrome'; }
+        if(strpos($useragent, 'Netscape') !== false){               return 'Netscape'; }
+        if(strpos($useragent, 'OmniWeb') !== false){                return 'OmniWeb'; }
+        if(strpos($useragent, 'Safari') !== false){                 return 'Safari'; }
+        if(strpos($useragent, 'Konqueror') !== false){              return 'Konqueror'; }
+        if(strpos($useragent, 'Minimo') !== false){                 return 'Minimo'; }
+        if(strpos($useragent, 'Galeon') !== false){                 return 'Galeon'; }
+        if(strpos($useragent, 'Phoenix') !== false){                return 'Phoenix'; }
+        if(strpos($useragent, 'Firefox') !== false){                return 'Firefox'; }
+        if(strpos($useragent, 'SeaMonkey') !== false){              return 'SeaMonkey'; }
+        if(strpos($useragent, 'NetPositive') !== false){            return 'NetPositive'; }
+        if(strpos($useragent, 'PalmOS') !== false){                 return 'Novarra'; }
+        if(strpos($useragent, 'Avant Browser') !== false){          return 'Avant Browser'; }
+        if(strpos($useragent, 'PSP') !== false){                    return 'PlayStation Portable'; }
+        if(strpos($useragent, 'PLAYSTATION') !== false){            return 'PlayStation'; }
+        if(strpos($useragent, 'Camino') !== false){                 return 'Camino'; }
+        if(strpos($useragent, 'OffByOne') !== false){               return 'Off By One'; }
+        if(strpos($useragent, 'PIE') !== false){                    return 'Pocket Internet Explorer'; }
+        if(strpos($useragent, 'WebTV') !== false){                  return 'WebTV'; }
+        if(strpos($useragent, 'MSIE') !== false){                   return 'Internet Explorer'; }
+        if(strpos($useragent, 'Jeeves') !== false){                 return 'Ask Bot'; }
+        if(strpos($useragent, 'googlebot') !== false){              return 'Google Bot'; }
+        if(strpos($useragent, 'grub') !== false){                   return 'Grub Crawler'; }
+        if(strpos($useragent, 'Yahoo!') !== false){                 return 'Yahoo! Slurp'; }
+        if(strpos($useragent, 'Slurp') !== false){                  return 'Inktomi Slurp'; }
+        if(strpos($useragent, 'w3m') !== false){                    return 'w3m'; }
+        if(strpos($useragent, 'Lynx') !== false){                   return 'Lynx'; }
+        if(strpos($useragent, 'ELinks') !== false){                 return 'ELinks'; }
+        if(strpos($useragent, 'Links') !== false){                  return 'Links'; }
+        if(strpos($useragent, 'Googlebot') !== false){              return 'Google Bot'; }
+        if(strpos($useragent, 'msnbot') !== false){                 return 'MSN Bot'; }
+        if(strpos($useragent, 'ia_archiver') !== false){            return 'Alexa Bot'; }
+        if(strpos($useragent, 'Baiduspider') !== false){            return 'Baidu Spider'; }
+        if(strpos($useragent, 'curl') !== false){                   return 'cURL Bot'; }
+        if(strpos($useragent, 'GameSpy') !== false){                return 'GameSpy HTTP'; }
+        if(strpos($useragent, 'Gigabot') !== false){                return 'Giga Bot'; }
+        if(strpos($useragent, 'Scooter') !== false){                return 'Scooter Bot'; }
+        if(strpos($useragent, 'Wget') !== false){                   return 'wget'; }
+        if(strpos($useragent, 'Yahoo') !== false){                  return 'Yahoo Crawler'; }
+        if(strpos($useragent, 'Android') !== false){                return 'Android'; }
+        if(strpos($useragent, 'iCab') !== false){                   return 'iCab'; }
+        if(strpos($useragent, 'AvantGo') !== false){                return 'AvantGo'; }
+        if(strpos($useragent, 'amaya') !== false){                  return 'Amaya'; }
+        if(strpos($useragent, 'Mozilla') !== false){                return 'Mozilla'; }
         if(strpos($useragent, 'America Online Browser') !== false){ return 'AOL Explorer'; }
 
         return $useragent;

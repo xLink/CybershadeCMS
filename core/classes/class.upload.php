@@ -102,9 +102,10 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
 
         $extensions     = array_map( 'strtolower', $extensions );
         $extensionCheck = array_intersect( array_filter( $extensionList ), array_filter( $extensions ) );
+        $fileNames      = is_array( $file['name'] ) ? array_filter( $file['name'] ) : array();
 
         // Check to see that the extension is an allowed extension and the filesize is <= the allowed filesize
-        if( count( array_filter( $file['name'] ) ) === count( $extensionCheck ) ){
+        if( count( $fileNames ) === count( $extensionCheck ) ){
 
             $imageCount = count( $file['name'] );
 
