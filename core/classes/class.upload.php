@@ -115,7 +115,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                 // Setup some default Vars
                 $currentFileName = $file['name'][$i];
                 $fileSize        = $file['size'][$i];
-                $finalPath       = addslashes($this->config('global', 'realPath') . $destination . '/' . $currentFileName);
+                $finalPath       = addslashes($destination . '/' . $currentFileName);
 
                 // Checks the filesize
                 if( $fileSize > $allowedSize ){
@@ -228,11 +228,19 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
      * @return      boolean
      */
     public function setDirectory( $directory = '', $create = false ){
-        $objPlugins = Core_Classes_coreObj::getPlugins();
 
-        if( trim($directory) === '' ){
-            $this->setVar('directory', sprintf( '%sassets/uploads/all', cmsROOT ) );
+        $objPlugins  = Core_Classes_coreObj::getPlugins();
+        $fileSysPath = $this->config('global', 'realPath');
+
+        if( is_empty( $directory ) ){
+            $this->setVar('directory', $fileSysPath . $directory .'assets/uploads/all' );
         } else {
+
+            if( !strstr( $directory, $fileSysPath ) ){
+                $directory = $fileSysPath . $directory;
+            }
+
+            $this->setVar( 'directory', $directory );
 
             // If create is set then create a new folder
             if( $create === true && !file_exists( $directory ) ){
