@@ -264,7 +264,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                 return true;
             } else {
                 debugLog('Upload: Destination folder was not writable');
-                trigger_error( sprintf( 'The destination folder was not writable, please chmod it to 0777 : %s',
+                trigger_error( sprintf( 'The destination folder was not writable, please chmod it to 0775 : %s',
                     $directory
                 ));
             }
@@ -285,7 +285,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
      *
      * @return      bool
      */
-    protected function _mkDir($path, $mode = 0777) {
+    protected function _mkDir($path, $mode = 0775) {
         if( file_exists($path) ){
             return false;
         }
@@ -331,7 +331,7 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
 
         $fileAuth = $objSQL->fetchLine( $checkAuth );
 
-        $objPlugins->hook( 'CMS_AUTHORIZE_UPLOAD' );
+        $objPlugins->hook( 'CMS_UPLOAD_AUTHORIZE_UPLOAD' );
 
         // return true if the file is already authorized
         if( isset( $fileAuth['authorized'] ) && $fileAuth['authorized'] == '1' ){
