@@ -45,6 +45,7 @@ if( $mode == 'admin' ){
     $objPage->setOptions('columns', 2);
     $objPage->setTheme();
 }
+$objTPL->assign_var('CP_ROOT', root().$mode.'/');
 
 $objPage->setTitle('Control Panel');
 
