@@ -17,14 +17,14 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Core_Classes_Session extends Core_Classes_coreObj{
 
     /**
-     * 
+     *
      *
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
      *
      */
-    public function __construct(){ 
+    public function __construct(){
 
         $this->session_gc();
     }
@@ -59,7 +59,7 @@ class Core_Classes_Session extends Core_Classes_coreObj{
      *
      */
     public function trackerInit(){
-        
+
         $update = false; $rmCookie = false; $logout = false; $action = null;
 
         $objLogin = Core_Classes_coreObj::getLogin();
@@ -84,7 +84,7 @@ class Core_Classes_Session extends Core_Classes_coreObj{
                     $action = 'remove remember me cookie';
                     $rmCookie = true;
 
-                // you should be logged in now, so redirect 
+                // you should be logged in now, so redirect
                 }else{
                     $action = 'remember me worked';
 
@@ -162,7 +162,7 @@ class Core_Classes_Session extends Core_Classes_coreObj{
                             $this->setSessions( $this->grab('id') );
                         }
                     break;
-                }   
+                }
             }
         }
 
@@ -180,12 +180,12 @@ class Core_Classes_Session extends Core_Classes_coreObj{
      * @author  Dan Aldridge
      *
      * @param   mixed  $uid         Username or ID
-     * @param   bool   $autoLogin   
+     * @param   bool   $autoLogin
      *
      * @return  bool
      */
     public function setSessions( $uid, $autoLogin=false ) {
-        
+
         // grab the user info
         $userInfo = $this->get( '*', $uid );
             if( !is_array($userInfo) || empty($userInfo) ){
@@ -261,11 +261,11 @@ class Core_Classes_Session extends Core_Classes_coreObj{
         $insert['mode']      = 'active';
 
         $query = $objSQL->queryBuilder()
-            ->insertInto('#__sessions')
+            ->replaceInto('#__sessions')
             ->set( $insert )
             ->build();
 
-        $results = $objSQL->query( str_replace('INSERT INTO', 'REPLACE INTO', $query) );
+        $results = $objSQL->query( $query );
 
         // Ensure the result is valid
         if( $results ){
