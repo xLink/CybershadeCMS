@@ -194,44 +194,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
   //
 **/
     /**
-     * Sends an email to the intended target
-     *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Dan Aldridge
-     * @access  private
-     *
-     * @param   string  $to
-     * @param   string  $from
-     * @param   string  $subject
-     * @param   string  $message
-     *
-     * @return  bool
-     */
-    function _mailer($to, $from, $subject, $message){
-        $server = $_SERVER['HTTP_HOST'];
-
-        //set headers for the email
-        $headers[] = 'From: NoReply <'.$from.'>';
-        $headers[] = 'Reply-To: NoReply <'.$from.'>';
-        $headers[] = 'Return-Path: NoReply <'.$from.'>';
-        $headers[] = 'Date: '.date('r', time());
-        $headers[] = 'MIME-Version: 1.0';
-        // $headers[] = 'Message-ID: <'.md5(uniqid(time())).'@'.$server.'>';
-        $headers[] = 'Content-Type: text/html; charset="iso-8859-1"';
-        $headers[] = 'X-Mailer: PHP v'.phpversion();
-        $headers[] = 'X-Priority: 3';
-        $headers[] = 'X-MSMail-Priority: Normal';
-        $headers[] = 'X-MimeOLE: Produced By CybershadeCMS '.cmsVERSION;
-
-        if(@mail($to, $subject, $message, implode(" \n", $headers))){
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Returns a list of all directories and files in an associative array.
      *
      * @version 1.0
