@@ -18,9 +18,25 @@ class Details_core extends Core_Classes_Module implements Core_Classes_baseDetai
         );
     }
 
-    public function getBlocks(){
+    public function registerBlocks(){
         return array(
             'login' => 'login_block'
+        );
+    }
+
+    public function registerRoutes(){
+        return array(
+            'core_viewIndex' => array(
+                'label' => 'core_viewIndex',
+                'pattern' => '/',
+
+            ),
+        );
+    }
+
+    public function registerPlugins(){
+        return array(
+            'plugins/core.php'
         );
     }
 
