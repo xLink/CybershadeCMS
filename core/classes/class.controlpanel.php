@@ -26,10 +26,10 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
      */
     public function output(){
         $objTPL = Core_Classes_coreObj::getTPL();
+        $page = Core_Classes_coreObj::getPage()->getVar('contents');
 
         $content = null;
         if( !$objTPL->isHandle('body') ){
-            $page = Core_Classes_coreObj::getPage()->getVar('contents');
 
             if( $page === null ){
                 msgDie('FAIL', 'No output received from module.');
