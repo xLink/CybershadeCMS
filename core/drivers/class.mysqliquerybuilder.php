@@ -287,7 +287,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
                 trigger_error('Error: Number of values has to be equal to the number of fields.', E_USER_ERROR);
             }
 
-        if ( in_array($this->queryType, array( 'INSERT', 'REPLACE' ) ) {
+        if ( in_array($this->queryType, array( 'INSERT', 'REPLACE' ) ) ){
             $this->_values[] = $args;
         } elseif ($this->queryType == 'UPDATE') {
             $this->_values = $args;
@@ -318,7 +318,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
         } else if( count( $args = explode(',', $limit) ) == 2 ) {
             $limit = $args[1];
             $this->offset( (int)$args[0] );
-        } 
+        }
 
         $limit =(int)abs($limit);
         $this->_limit = $limit;
@@ -559,7 +559,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
             end($statement);
             $statement[key($statement)] = rtrim( $statement[key($statement)], ',' );
         }
- 
+
         /**
          * Build the table extras when creating a table
          *
@@ -844,7 +844,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
         if($this->queryType){
             trigger_error('Can\'t modify the operator.', E_USER_ERROR);
 
-        }elseif(!in_array($queryType, array('select', 'insert', 'delete', 'update', 'create_table'))){
+        }elseif(!in_array($queryType, array('select', 'insert', 'replace', 'delete', 'update', 'create_table'))){
             trigger_error('Unsupported operator:'.strtoupper($queryType), E_USER_ERROR);
 
         }else{
