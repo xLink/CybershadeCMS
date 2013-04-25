@@ -62,7 +62,7 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
             ->from('#__groups')
             ->build();
 
-        $groups = $objSQL->fetchAll( $query );
+        $groups = $objSQL->fetchAll( $query, 'id' );
             if( $groups === false ){
                 trigger_error('Cannot query groups');
                 return false;
@@ -175,7 +175,7 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
             if( $delete === false ){
                 trigger_error('Failed to remove user from group: '.$objSQL->getError());
                 return false;
-            }else{        
+            }else{
                 $objUser = Core_Classes_coreObj::getUsers();
                 $log = 'User Groups: Removed '.$objUser->profile($uid, RAW).' from '.$gid;
             }
@@ -410,7 +410,7 @@ class Core_Classes_Groups extends Core_Classes_coreObj {
     }
 
     /**
-     * 
+     *
      *
      * @version 1.0
      * @since   1.0.0
