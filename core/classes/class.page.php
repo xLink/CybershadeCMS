@@ -619,21 +619,13 @@ class Core_Classes_Page extends Core_Classes_coreObj {
         $useragent = strtolower($useragent);
 
         $classes = array();
-        if ( !preg_match('/opera|webtv/i', $useragent) && preg_match('/msie\s(\d)/', $useragent, $matches) ) {
+        if ( !preg_match('/opera|webtv/i', $useragent) && preg_match('/msie\s(\d+)/', $useragent, $matches) ) {
             $classes[] = 'ie';
             $classes[] = 'ie' . $matches[1];
-
-        } elseif ( strstr($useragent, 'firefox/2') ) {
-            $classes[] = 'ff';
-            $classes[] = 'ff2';
 
         } elseif ( strstr($useragent, 'firefox/3.5') ) {
             $classes[] = 'ff';
             $classes[] = 'ff3_3';
-
-        } elseif ( strstr($useragent, 'firefox/3') ) {
-            $classes[] = 'ff';
-            $classes[] = 'ff3';
 
         } elseif ( preg_match('/firefox(\s|\/)(\d+)/', $useragent, $matches) ) {
             $classes[] = 'ff';
@@ -895,19 +887,19 @@ class Core_Classes_Page extends Core_Classes_coreObj {
 
     public function tplGlobals(){
         $objUser = Core_Classes_coreObj::getUser();
-        
+
         $tplGlobals = array(
             'ROOT'          => root(),
             'THEME_ROOT'    => root(). self::$THEME_ROOT,
-            
+
             'SITE_TITLE'    => $this->config('site', 'title'),
-            
+
             // 'ROW_COLOR1' => $vars['row_color1'],
             // 'ROW_COLOR2' => $vars['row_color2'],
-            
+
             'USERNAME'      => $objUser->grab('username'),
             //'TIME'        => $objTime->mk_time(time(), 'l H:i:s a'),
-            
+
             'U_UCP'         => '/'.root().'user/',
             'L_UCP'         => langVar('L_UCP'),
         );
@@ -934,7 +926,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
         $this->buildBlocks();
 
         Core_Classes_coreObj::getTPL()->assign_vars($tplGlobals);
-    } 
+    }
 
     public function showHeader() {
         if ($this->getOptions('completed')) { return; }
