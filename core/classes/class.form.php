@@ -99,14 +99,14 @@ class Core_Classes_Form extends Core_Classes_coreObj {
         $args['xssFilter']      = doArgs('xssFilter',        true,   $args);
         $args['prepend']        = doArgs('prepend',          false,  $args);
         $args['append']         = doArgs('append',           false,  $args);
-    
+
         $args['required']       = doArgs('required',         false,  $args);
         $args['placeholder']    = doArgs('placeholder',      null,   $args);
         $args['autofocus']      = doArgs('autofocus',        false,  $args);
         $args['min']            = doArgs('min',              0,      $args, 'is_number');
         $args['max']            = doArgs('max',              0,      $args, 'is_number');
         $args['step']           = doArgs('step',             0,      $args, 'is_number');
-    
+
         $args['autocomplete']   = doArgs('autocomplete',     true,   $args);
 
         $typeVali = array( 'button', 'checkbox', 'file', 'hidden', 'image', 'password', 'radio', 'reset', 'submit', 'text',
@@ -127,7 +127,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                     (
                         (!is_empty($args['style'])          ? ' style="'.$args['style'].'"'             : null).
                         (!is_empty($args['class'])          ? ' class="'.$args['class'].'"'             : null).
-                        
+
                         ($args['checked']===true            ? ' checked="checked"'                      : null).
                         ($args['disabled']===true           ? ' disabled="disabled"'                    : null).
                         ($args['autocomplete']===false      ? ' autocomplete="off"'                     : null).
@@ -163,7 +163,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
      *
      * @return      string
      */
-    public function textarea($name='textarea', $value=null, $args=array()){       
+    public function textarea($name='textarea', $value=null, $args=array()){
         $args['cols']        = doArgs('cols',              45,     $args);
         $args['rows']        = doArgs('rows',              5,      $args);
 
@@ -262,6 +262,10 @@ class Core_Classes_Form extends Core_Classes_coreObj {
         $inputVal = '<input type="radio" name="%1$s" id="%2$s"%3$s/>'."\n";
         $count    = 0;
 
+        if( !is_array($values) ){
+            $values = array( $values => '' );
+        }
+
         foreach($values as $key => $value){
             $value = ($args['xssFilter']===true ? htmlspecialchars($value) : $value);
 
@@ -274,7 +278,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                                     ($args['xssFilter']===true      ? ' value="'.htmlspecialchars($key).'"'    : ' value="'.$key.'"')
                                 )
                             ). $value.
-                        ($args['showLabels']===true ? '</label>' : null).
+                        ($args['showLabels']===true ? '</label>' : '').
                         ($args['br']===true ? '<br />'."\n" : '');
         }
 
@@ -517,7 +521,7 @@ class Core_Classes_Form extends Core_Classes_coreObj {
                 $objTPL->assign_block_vars('_form_row._header', array(
                     'L_LABEL' => $label,
                 ));
-            } else {               
+            } else {
                 // assign some vars to the template
                 $objTPL->assign_block_vars('_form_row._field', array(
                     'F_ELEMENT'  => $header ? null : $field,
