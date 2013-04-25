@@ -2,7 +2,7 @@
 .DS_Store
 themes/cybershade/
 thumbs.db
-test.php
+test*.php
 assets/config.php
 sublime.*
 cscms.sublime-*
