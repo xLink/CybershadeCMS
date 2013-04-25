@@ -201,7 +201,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
      * @author  Dan Aldridge
      *
      */
-    private function getGroupPerms( $groups ){
+    public function getGroupPerms( $groups ){
 
         $objSQL = Core_Classes_coreObj::getDBO();
 
@@ -212,7 +212,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
 
         // do the query to grab the permissions
         $query = $objSQL->queryBuilder()
-            ->select('gp.id', 'gp.permission_key', 'gp.permission_value', 'gp.content_id', 'gp.group_id', 'g.order')
+            ->select('gp.permission_key', 'gp.permission_value', 'gp.content_id', 'gp.group_id', 'g.order')
             ->from(array( 'gp' => '#__groups_perms' ))
                 ->leftJoin(array( 'g' => '#__groups' ))
                     ->on('gp.group_id', '=', 'g.id')
@@ -241,7 +241,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
 
         // do the query to grab the permissions
         $query = $objSQL->queryBuilder()
-            ->select('id', 'permission_key', 'permission_value', 'content_id', 'user_id')
+            ->select('permission_key', 'permission_value', 'content_id', 'user_id')
             ->from('#__users_perms')
             ->where(sprintf( 'user_id = %s', $this->uid ));
 
@@ -279,7 +279,6 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
                 'name'       => $g['name'],
                 'inherited'  => (isset($p['group_id']) ? true : false),
                 'value'      => ($p['permission_value'] == '1' ? true : false),
-                'setWhere'   => (isset($p['group_id']) ? 'group' : 'user'),
                 'content_id' => $p['content_id'],
             );
         }
