@@ -364,7 +364,14 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
                 $subject = sprintf('Your upload has been authorized - %s', $_SERVER['SERVER_NAME']);
                 $message = sprintf('Your upload has now been authorized at %s', $_SERVER['SERVER_NAME']);
 
-                _mailer( $to, $from, $subject, $message );
+                // Send mail via the phpmailer class
+                $objMailer = Core_Classes_coreObj::getLib('phpmailer');
+
+                $objMailer->AddAddress($to);
+                $objMailer->Subject = $subject;
+                $objMailer->Body    = $body;
+                $objMailer->From    = $from;
+                $objMailer->Send();
             }
 
             return true;
