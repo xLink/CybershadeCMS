@@ -171,5 +171,95 @@ class Modules_core extends Core_Classes_Module{
 
         $objLogin->logout($_GET['check']);
     }
+
+
+/**
+//
+//-- Registration Processes
+//
+*/
+    public function register_user(){
+        $objForm    = Core_Classes_coreObj::getForm();
+        $objSession = Core_Classes_coreObj::getSession();
+        $objPage    = Core_Classes_coreObj::getPage();
+        $objLogin   = Core_Classes_coreObj::getLogin();
+        $objRoute   = Core_Classes_coreObj::getRoute();
+        $objTPL     = $this->setView('module/register_form/default.tpl');
+
+        if( Core_Classes_User::$IS_ONLINE ){
+            // $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
+        }
+
+        $disclaimer = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+                        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+                        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+                        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+                        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+                        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
+
+        $form = array(
+            'FORM_START'    => $objForm->start('register', array(
+                                    'method' => 'POST',
+                                    'action' => $objRoute->generateUrl('core_registerForm'),
+                                )),
+            'FORM_END'      => $objForm->finish(),
+            'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
+
+            'L_USERNAME'    => langVar('L_USERNAME'),
+            'F_USERNAME'    => $objForm->inputbox('username', 'text', '', array(
+                                    'class'    => 'icon username',
+                                    'required' => true
+                                )),
+
+            'L_PASSWORD'    => langVar('L_PASSWORD'),
+            'F_PASSWORD'    => $objForm->inputbox('password', 'password', '', array(
+                                    'class'    => 'icon password',
+                                    'required' => true
+                                )),
+
+            'L_PASSWORD_CONFIRM'    => langVar('L_PASSWORD_CONFIRM'),
+            'F_PASSWORD_CONFIRM'    => $objForm->inputbox('password_confirm', 'password', '', array(
+                                        'class'    => 'icon password',
+                                        'required' => true
+                                    )),
+            'L_EMAIL_ADDRESS'    => langVar('L_EMAIL_ADDRESS'),
+            'F_EMAIL_ADDRESS'    => $objForm->inputbox('email', 'text', '', array(
+                                        'class'    => 'icon email',
+                                        'required' => true
+                                    )),
+            'L_EMAIL_ADDRESS_CONFIRM'    => langVar('L_EMAIL_ADDRESS_CONFIRM'),
+            'F_EMAIL_ADDRESS_CONFIRM'    => $objForm->inputbox('email_confirm', 'text', '', array(
+                                            'class'    => 'icon email',
+                                            'required' => true,
+                                        )),
+            'L_RECEIVE_EMAILS_ADMINS'    => langVar('L_RECEIVE_EMAILS_ADMINS'),
+            'F_RECEIVE_EMAILS_ADMINS'    => $objForm->inputbox('admin_emails', 'checkbox', '', array(
+                                            'class'    => 'icon tick',
+                                            'required' => true,
+                                        )),
+            'L_RECEIVE_EMAILS_USERS'    => langVar('L_RECEIVE_EMAILS_USERS'),
+            'F_RECEIVE_EMAILS_USERS'    => $objForm->inputbox('user_emails', 'checkbox', '', array(
+                                            'class'    => 'icon tick',
+                                            'required' => true,
+                                        )),
+            'L_RECEIVE_EMAILS_USERS'    => langVar('L_RECEIVE_EMAILS_USERS'),
+            'F_RECEIVE_EMAILS_USERS'    => $objForm->inputbox('user_emails', 'checkbox', '', array(
+                                            'class'    => 'icon tick',
+                                            'required' => true,
+                                        )),
+
+            'L_REMME'       => langVar('L_REMME'),
+            'F_REMME'       => $objForm->select('remember', array(
+                                    '0' => 'No Thanks',
+                                    '1' => 'Forever'
+                                ), array(
+                                    'selected' => 0
+                                )),
+
+            'SUBMIT'        => $objForm->button('submit', 'Register', array('class' => 'btn btn-success')),
+        );
+
+        $objTPL->assign_block_vars('register', $form);
+    }
 }
 ?>

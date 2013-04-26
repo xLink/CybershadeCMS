@@ -87,6 +87,15 @@ $_lang['TIMEAGO_MONTHS']        = '%d months';
 $_lang['TIMEAGO_YEAR']          = 'about a year';
 $_lang['TIMEAGO_YEARS']         = '%d years';
 
+// Registration Vars
+$_lang['L_PASSWORD_CONFIRM']      = 'Confirm Password';
+$_lang['L_EMAIL_ADDRESS']         = 'Email Address';
+$_lang['L_EMAIL_ADDRESS_CONFIRM'] = 'Confirm Email Address';
+$_lang['L_REFERER']               = 'Referer';
+$_lang['L_RECEIVE_EMAILS_ADMINS'] = 'Receive emails from Admins';
+$_lang['L_RECEIVE_EMAILS_USERS']  = 'Receive emails from Users';
+$_lang['L_DISCLAIMER']            = 'Disclaimer';
+
 
 // Control Panels
 include_once('panels.php');
