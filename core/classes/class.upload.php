@@ -90,6 +90,13 @@ class Core_Classes_Upload extends Core_Classes_coreObj {
         // Make an alias to the files
         $file = $_FILES[$input_name];
 
+        // Ensure they are multidimensional arrays
+        if( is_array( $file ) && is_string( $file['name'] ) ){
+            foreach( $file as $key => $value ){
+                $file[$key] = array( $value );
+            }
+        }
+
         // Checks if the destination was false (from the getVar())
         if( !$destination ){
             debugLog('Upload: Failed to upload as desitnation folder was not accessible');
