@@ -495,6 +495,8 @@ INSERT INTO `cscms_routes` (`id`, `module`, `label`, `method`, `pattern`, `argum
 (14, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewArticle', 'ANY', '/articles/:cat-:catid/:title-:id.html', '{"module":"Modules_articles","method":"viewArticle"}', '{"catid":"\\\\d+","id":"\\\\d+"}', 1, NULL),
 (15, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle', 'GET', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_form"}', '{"catid":"\\\\d+"}', 1, NULL),
 (16, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle_process', 'POST', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_process"}', '{"catid":"\\\\d+"}', 1, NULL);
+(18,'a74ad8dfacd4f985eb3977517615ce25','core_registerForm','GET','/register','{\"module\":\"Modules_core\",\"method\":\"register_user\"}','[]',1,NULL),
+(19,'a74ad8dfacd4f985eb3977517615ce25','core_registerForm_process','POST','/register','{\"module\":\"Modules_core\",\"method\":\"register_user\"}','[]',1,NULL);
 
 -- --------------------------------------------------------
 
