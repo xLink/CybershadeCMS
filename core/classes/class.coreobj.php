@@ -521,7 +521,7 @@ class Core_Classes_coreObj {
         return Core_Classes_coreObj::$_classes['cache'];
     }
 
-    public static function getPermissions($uid){
+    public static function getPermissions($uid=false){
 
         if( !is_number($uid) ){
             $uid = self::getUser()->grab('id');
