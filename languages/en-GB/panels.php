@@ -154,6 +154,9 @@ $_lang['L_MOD_MANAGE']          = 'Module Management';
 $_lang['L_MOD_INSTALL']         = 'Installed Modules';
 $_lang['L_MOD_CATALOGUE']       = 'Module Catalogue';
 
+//User Register Form
+
+
 
 
 
