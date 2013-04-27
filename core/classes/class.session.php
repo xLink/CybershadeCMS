@@ -116,7 +116,6 @@ class Core_Classes_Session extends Core_Classes_coreObj{
 
             // perform an action based on the database switch
             if( isset($online['mode']) ){
-                (LOCALHOST ? debugLog($online['mode'], 'mode') : '');
                 switch( strtolower($online['mode']) ){
                     default:
                     case 'active':
@@ -165,9 +164,6 @@ class Core_Classes_Session extends Core_Classes_coreObj{
                 }
             }
         }
-
-        (LOCALHOST ? debugLog($action, 'action') : '');
-        (LOCALHOST ? debugLog($update, 'update') : '');
 
         return $this;
     }
