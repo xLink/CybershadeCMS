@@ -185,7 +185,6 @@ class Modules_core extends Core_Classes_Module{
         $objLogin   = Core_Classes_coreObj::getLogin();
         $objRoute   = Core_Classes_coreObj::getRoute();
         $objTPL     = $this->setView('module/register_form/default.tpl');
-        echo dump( $objTPL );
         if( Core_Classes_User::$IS_ONLINE ){
             // $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
         }
@@ -227,6 +226,11 @@ class Modules_core extends Core_Classes_Module{
                                         'class'    => 'icon email',
                                         'required' => true
                                     )),
+            // 'L_REFERER'    => langVar('L_REFERER'),
+            // 'F_REFERER'    => $objForm->inputbox('referer', 'text', '', array(
+            //                             'class'    => 'icon email',
+            //                             'required' => true
+            //                 )),
             'L_EMAIL_ADDRESS_CONFIRM'    => langVar('L_EMAIL_ADDRESS_CONFIRM'),
             'F_EMAIL_ADDRESS_CONFIRM'    => $objForm->inputbox('email_confirm', 'text', '', array(
                                             'class'    => 'icon email',
@@ -234,11 +238,6 @@ class Modules_core extends Core_Classes_Module{
                                         )),
             'L_RECEIVE_EMAILS_ADMINS'    => langVar('L_RECEIVE_EMAILS_ADMINS'),
             'F_RECEIVE_EMAILS_ADMINS'    => $objForm->inputbox('admin_emails', 'checkbox', '', array(
-                                            'class'    => 'icon tick',
-                                            'required' => true,
-                                        )),
-            'L_RECEIVE_EMAILS_USERS'    => langVar('L_RECEIVE_EMAILS_USERS'),
-            'F_RECEIVE_EMAILS_USERS'    => $objForm->inputbox('user_emails', 'checkbox', '', array(
                                             'class'    => 'icon tick',
                                             'required' => true,
                                         )),
