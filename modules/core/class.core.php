@@ -185,7 +185,7 @@ class Modules_core extends Core_Classes_Module{
         $objLogin   = Core_Classes_coreObj::getLogin();
         $objRoute   = Core_Classes_coreObj::getRoute();
         $objTPL     = $this->setView('module/register_form/default.tpl');
-
+        echo dump( $objTPL );
         if( Core_Classes_User::$IS_ONLINE ){
             // $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
         }
