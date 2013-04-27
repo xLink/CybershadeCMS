@@ -68,6 +68,16 @@ class Core_Classes_Debug extends Core_Classes_coreObj{
 
         }
 
+        if( isset($objPage->langFiles) && count($objPage->langFiles) > 0 ){
+            $includedFiles = $objPage->langFiles;
+            $count += count($includedFiles);
+            $output .= '<h3>Language Includes</h3><ul>';
+            foreach( $includedFiles as $file ) {
+                $output .= sprintf('<li>%s</li>', $file);
+            } $output .= '</ul>';
+
+        }
+
 
         $includedFiles = get_included_files(); $count += count($includedFiles);
         $output .= '<h3>PHP Includes</h3><ul>';

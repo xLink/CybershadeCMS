@@ -35,7 +35,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
                 'useragent' => doArgs('HTTP_USER_AGENT', null, $_SERVER),
                 'browser'   => getBrowser($_SERVER['HTTP_USER_AGENT']),
                 'platform'  => $objPage->getCSSSelectors($_SERVER['HTTP_USER_AGENT']),
-                'language'  => 'en', //$language,
+                'language'  => $this->config('site', 'language'),
                 'secure'    => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? true : false ),
                 'referer'   => doArgs('HTTP_REFERER', null, $_SERVER),
                 'realPath'  => realpath('').'/',

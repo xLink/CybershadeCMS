@@ -410,6 +410,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
         $return = false;
         if( is_file($file) && is_readable($file) ){
+            $objPage = Core_Classes_coreObj::getPage();
+            $objPage->langFiles = array_merge($objPage->langFiles, array($file));
+
             $_lang = array();
             include_once($file);
 

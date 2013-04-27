@@ -10,6 +10,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
 
     public  $jsFiles     = array(),
             $cssFiles    = array(),
+            $langFiles   = array(),
             $jsCode      = array(),
             $cssCode     = array(),
             $metaTags    = array(),

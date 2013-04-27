@@ -168,7 +168,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         // Collect all the replacement 'variables' from the route structure into an array
         $replacements = preg_match_all( '/\:([A-Za-z0-9]+)/', $route['pattern'], $matches );
 
-        // replacements == orig array 
+        // replacements == orig array
         $this->replacements = ( !empty( $matches[1] ) ? $matches[1] : array() );
 
         // but actually replace the bigger keys first
@@ -197,7 +197,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
     }
 
     /**
-     * 
+     *
      *
      * @version     1.0
      * @since       1.0.0
@@ -359,6 +359,14 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
         // GO! $Module!, $Module used $Method($args)... It was super effective!
 
+
+        // check if there is a language file for this module & load it
+        $langFile = cmsROOT.sprintf('modules/'.$_module.'/languages/'.$this->config('global', 'language').'/module.php', $_module, $this->config('site', 'language'));
+            if ( is_file($langFile) && is_readable($langFile) ) {
+                translateFile($langFile);
+            }
+
+        // start output buffering just incase we need to echo it out
         ob_start();
 
         $objModule = new $module;
@@ -545,7 +553,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             trigger_error( 'The options you gave don\'t match the route\'s arguments' );
         }
 
-        // If there are parameters in the pattern, 
+        // If there are parameters in the pattern,
         if( sizeOf( $matches[1] ) > 0 ) {
 
             foreach( $options as $key => $value ) {
@@ -555,7 +563,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
 
                     // Check the param we were given matches the requirement
                     if( preg_match( '/^' . $route['requirements'][$key] . '$/', $value ) ) {
-                    
+
                         // It does, woo, we'll be nice & seo the value for em too
                         $url = str_replace( ':' . $key, seo( $value ), $url );
                         unset( $remainingVars[$key] );
@@ -566,7 +574,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
                         trigger_error( sprintf(
                             'The Requirement on the route `%s` wasn\'t matched for param `%s`',
                             $route['label'],
-                            $key   
+                            $key
                         ));
 
                         return;

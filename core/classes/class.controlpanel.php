@@ -116,6 +116,12 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
             Core_Classes_coreObj::getPage()->setVar('contents', ob_get_clean() );
         }
 
+        // check if there is a language file for this module & load it
+        $langFile = cmsROOT.'modules/'.$module.'/languages/'.$this->config('global', 'language').'/'.$this->mode.'.php';
+            if ( is_file($langFile) && is_readable($langFile) ) {
+                translateFile($langFile);
+            }
+
         if( $method === false ) {
             $objRoute->throwHTTP(404);
         }
