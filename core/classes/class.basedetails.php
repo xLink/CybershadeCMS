@@ -8,7 +8,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
  * Base Details Class
  *
  * @package Cybershade Core
- * @author 
+ * @author
  **/
 interface Core_Classes_baseDetails{
 
@@ -37,7 +37,6 @@ interface Core_Classes_baseDetails{
 	 *          )
 	 */
     public function details();
-    public function getBlocks();
 
 	/**
 	 * Include the various install steps in order to have this module fully installed

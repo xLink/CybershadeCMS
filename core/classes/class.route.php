@@ -311,7 +311,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
         if ( class_exists( $module ) === false || is_callable( array( $module, $method ) ) === false ) {
             trigger_error( 'The module or method you are trying to call, dosen\'t exist.' );
             $a = array('module' => $module, 'method' => $method);
-            echo dump($a, 'You are trying to call..');
+            debugLog($a, 'You are trying to call..');
             return false;
         }
 
@@ -328,7 +328,7 @@ class Core_Classes_Route extends Core_Classes_coreObj{
             if( is_callable( array( $overrideClass, $method ) )
                 && $getMethod->getDeclaringClass()->name === $overrideClass ){
 
-
+                debugLog($overrideClass, 'Method Override Init');
                 $module = $overrideClass;
             }
 
