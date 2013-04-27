@@ -38,18 +38,6 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
 **/
 
     /**
-     * Get a list of groups this user belongs to.
-     *
-     * @version 1.0
-     * @since   1.0
-     * @author  Dan Aldridge
-     *
-     */
-    public function getUserGroups() {
-        return $this->groups;
-    }
-
-    /**
      * Get a flattened list of permissions this user has.
      *
      * @version 1.0
