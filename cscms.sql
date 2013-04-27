@@ -142,20 +142,6 @@ CREATE TABLE IF NOT EXISTS `cscms_config` (
 --
 
 INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
-(1, 'session', 'cookie_domain', NULL, NULL),
-(2, 'session', 'cookie_path', NULL, NULL),
-(3, 'cms', 'name', 'Cybershade CMS', 'Cybershade CMS'),
-(4, 'site', 'title', 'CSDev', 'Cybershade CMS'),
-(5, 'site', 'slogan', 'dev', NULL),
-(6, 'site', 'theme', 'cybershade', NULL),
-(7, 'site', 'language', 'en-gb', 'en-gb'),
-(8, 'site', 'keywords', 'dev', NULL),
-(9, 'site', 'description', 'dev', NULL),
-(10, 'site', 'admin_email', 'xlink@cybershade.org', NULL),
-(11, 'site', 'google_analytics', NULL, NULL),
-(12, 'login', 'max_login_tries', '5', '5'),
-(13, 'login', 'remember_me', '1', '1'),
-(14, 'time', 'timezone', '0', '0'),
 (15, 'session', 'timeout', '1', '1'),
 (16, 'site', 'theme_override', 'false', 'false'),
 (17, 'site', 'change_username', 'false', 'false');
@@ -493,18 +479,18 @@ CREATE TABLE IF NOT EXISTS `cscms_routes` (
 -- Dumping data for table `cscms_routes`
 --
 
-INSERT INTO `cscms_routes` (`id`, `module`, `label`, `method`, `pattern`, `arguments`, `requirements`, `status`, `redirect`) VALUES
-(1, 'a74ad8dfacd4f985eb3977517615ce25', 'core_loginForm', 'GET', '/login', '{"module":"Modules_core","method":"loginForm"}', '[]', 1, NULL),
-(2, 'a74ad8dfacd4f985eb3977517615ce25', 'core_loginForm_process', 'POST', '/login', '{"module":"Modules_core","method":"loginForm_process"}', '[]', 1, NULL),
-(3, 'a74ad8dfacd4f985eb3977517615ce25', 'core_viewIndex', 'ANY', '/', '{"module":"Modules_core","mehod":"viewIndex"}', '[]', 1, NULL),
-(4, 'a74ad8dfacd4f985eb3977517615ce25', 'core_logout', 'GET', '/logout', '{"module":"Modules_core","method":"logout"}', '[]', 1, NULL),
-(5, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_listCategories', 'ANY', '/articles', '{"module":"Modules_articles","method":"listCategories"}', '[]', 1, NULL),
-(6, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewCategory', 'ANY', '/articles/:cat-:catid', '{"module":"Modules_articles","method":"viewCategory"}', '{"catid":"\\\\d+"}', 1, NULL),
-(7, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewArticle', 'ANY', '/articles/:cat-:catid/:title-:id.html', '{"module":"Modules_articles","method":"viewArticle"}', '{"catid":"\\\\d+","id":"\\\\d+"}', 1, NULL),
-(8, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle', 'GET', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_form"}', '{"catid":"\\\\d+"}', 1, NULL),
-(9, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle_process', 'POST', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_process"}', '{"catid":"\\\\d+"}', 1, NULL),
-(10, 'a74ad8dfacd4f985eb3977517615ce25', 'core_registerForm', 'GET', '/register', '{"module":"Modules_core", "method":"registerUser"}', '[]', 1, NULL),
-(11, 'a74ad8dfacd4f985eb3977517615ce25', 'core_registerForm_process', 'POST', '/register', '{"module":"Modules_core", "method":"registerUser"}', '[]', 1, NULL);
+INSERT INTO `cscms_routes` (`module`, `label`, `method`, `pattern`, `arguments`, `requirements`, `status`, `redirect`) VALUES
+('a74ad8dfacd4f985eb3977517615ce25', 'core_viewIndex', 'ANY', '/', '{"module":"Modules_core","method":"viewIndex"}', '[]', 1, NULL),
+('a74ad8dfacd4f985eb3977517615ce25', 'core_loginForm', 'GET', '/login', '{"module":"Modules_core","method":"loginForm"}', '[]', 1, NULL),
+('a74ad8dfacd4f985eb3977517615ce25', 'core_loginForm_process', 'POST', '/login', '{"module":"Modules_core","method":"loginForm_process"}', '[]', 1, NULL),
+('a74ad8dfacd4f985eb3977517615ce25', 'core_logout', 'GET', '/logout', '{"module":"Modules_core","method":"logout"}', '[]', 1, NULL),
+('a74ad8dfacd4f985eb3977517615ce25', 'core_registerForm', 'GET', '/register', '{"module":"Modules_core", "method":"registerUser"}', '[]', 1, NULL),
+('a74ad8dfacd4f985eb3977517615ce25', 'core_registerForm_process', 'POST', '/register', '{"module":"Modules_core", "method":"registerUser"}', '[]', 1, NULL),
+('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_listCategories', 'ANY', '/articles', '{"module":"Modules_articles","method":"listCategories"}', '[]', 1, NULL),
+('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewCategory', 'ANY', '/articles/:cat-:catid', '{"module":"Modules_articles","method":"viewCategory"}', '{"catid":"\\\\d+"}', 1, NULL),
+('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewArticle', 'ANY', '/articles/:cat-:catid/:title-:id.html', '{"module":"Modules_articles","method":"viewArticle"}', '{"catid":"\\\\d+","id":"\\\\d+"}', 1, NULL),
+('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle', 'GET', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_form"}', '{"catid":"\\\\d+"}', 1, NULL),
+('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle_process', 'POST', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_process"}', '{"catid":"\\\\d+"}', 1, NULL);
 
 -- --------------------------------------------------------
 

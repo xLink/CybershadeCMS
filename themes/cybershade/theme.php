@@ -10,10 +10,10 @@ $objPage->addCSSFile(array(
     'href'     => '/'.root().'assets/styles/bootstrap-min.css',
     'priority' => HIGH
 ));
-// $objPage->addCSSFile(array(
-//     'href'     => '/'.root().'assets/styles/extras-min.css',
-//     'priority' => HIGH
-// ));
+$objPage->addCSSFile(array(
+    'href'     => '/'.root().'assets/styles/extras-min.css',
+    'priority' => HIGH
+));
 
 
 if(false){
