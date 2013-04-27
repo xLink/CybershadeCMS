@@ -37,8 +37,8 @@ class Modules_core extends Core_Classes_Module{
             $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
         }
 
-        if( !isset($_SESSION['site']['login']) ){
-            $_SESSION['site']['login_referer'] = $this->config('global', 'referer');
+        if( $this->config('global', 'referer') != $this->config('site', 'siteUrl').$objRoute->generateUrl('core_loginForm') ){
+            $_SESSION['login']['referer'] = $this->config('global', 'referer');
         }
         $form = array(
             'FORM_START'    => $objForm->start('login', array(
@@ -140,14 +140,15 @@ class Modules_core extends Core_Classes_Module{
 
         $objTPL->assign_vars(array( 'TITLE' => $block['title'] ));
 
-        if( isset($_SESSION['login']['errors']) && count($_SESSION['login']['errors']) ){
-            foreach($_SESSION['login']['errors'] as $error){
+        if( isset($objLogin->errors) && count($objLogin->errors) ){
+            foreach($objLogin->errors as $error){
                 $objTPL->assign_block_vars('login.errors', array(
-                    'ERROR' => $error
+                    'ERROR' => $error['msg'],
+                    'CLASS' => $error['class'],
                 ));
             }
 
-            unset($_SESSION['login']);
+            unset($objLogin->errors);
         }
         return $objTPL->get_html('block_login');
     }
@@ -159,7 +160,7 @@ class Modules_core extends Core_Classes_Module{
         $objRoute = Core_Classes_coreObj::getRoute();
 
         if( $objLogin->process() !== true ){
-            $this->login_form();
+            $this->loginForm();
             return;
         }
 

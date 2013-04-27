@@ -20,7 +20,7 @@ if ( !Core_Classes_User::$IS_ONLINE || !in_array($mode, array('admin', 'user')) 
 
     // Need to sort out login
     $objRoute->throwHTTP(404);
-    $objPage->redirect( $objRoute->generateUrl('core_loginForm') );
+    $objPage->redirect( $objRoute->generateUrl('core_loginForm'), 1);
     exit;
 }
 
@@ -34,7 +34,7 @@ if( $mode == 'admin' ){
 
         // Need to sort out login
         $objRoute->throwHTTP(404);
-        $objPage->redirect( $objRoute->generateUrl('core_loginForm') );
+        $objPage->redirect( $objRoute->generateUrl('core_loginForm'), 1 );
         exit;
     }
 
