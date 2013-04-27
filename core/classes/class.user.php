@@ -40,7 +40,9 @@ class Core_Classes_User extends Core_Classes_coreObj {
                 'referer'   => doArgs('HTTP_REFERER', null, $_SERVER),
                 'realPath'  => realpath('').'/',
                 'rootPath'  => '/'.root(),
-                'fullPath'  => $_SERVER['REQUEST_URI'],
+                'fullPath'  => doArgs('REQUEST_URI', null, $_SERVER),
+                'siteDomain'=> doArgs('HTTP_HOST', null, $_SERVER),
+                'siteUrl'   => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'],
                 'rootUrl'   => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].'/'.root(),
                 'url'       => ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === true ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
             )
