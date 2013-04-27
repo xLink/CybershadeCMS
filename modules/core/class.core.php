@@ -25,7 +25,7 @@ class Modules_core extends Core_Classes_Module{
   //
 **/
 
-    public function login_form(){
+    public function loginForm(){
         $objForm    = Core_Classes_coreObj::getForm();
         $objSession = Core_Classes_coreObj::getSession();
         $objPage    = Core_Classes_coreObj::getPage();
@@ -86,7 +86,7 @@ class Modules_core extends Core_Classes_Module{
 
     }
 
-    public function block_login( $block ){
+    public function blockLogin( $block ){
         $objTPL     = Core_Classes_coreObj::getTPL();
         $objForm    = Core_Classes_coreObj::getForm();
         $objSession = Core_Classes_coreObj::getSession();
@@ -152,7 +152,7 @@ class Modules_core extends Core_Classes_Module{
         return $objTPL->get_html('block_login');
     }
 
-    public function login_process(){
+    public function loginForm_process(){
         $objUser  = Core_Classes_coreObj::getUser();
         $objLogin = Core_Classes_coreObj::getLogin();
         $objPage  = Core_Classes_coreObj::getPage();
@@ -178,7 +178,7 @@ class Modules_core extends Core_Classes_Module{
 //-- Registration Processes
 //
 */
-    public function register_user(){
+    public function registerUser(){
         $objForm    = Core_Classes_coreObj::getForm();
         $objSession = Core_Classes_coreObj::getSession();
         $objPage    = Core_Classes_coreObj::getPage();
