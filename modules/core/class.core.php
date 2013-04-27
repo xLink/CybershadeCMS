@@ -247,13 +247,13 @@ class Modules_core extends Core_Classes_Module{
                                             'required' => true,
                                         )),
 
-            'L_REMME'       => langVar('L_REMME'),
-            'F_REMME'       => $objForm->select('remember', array(
-                                    '0' => 'No Thanks',
-                                    '1' => 'Forever'
-                                ), array(
-                                    'selected' => 0
-                                )),
+            // 'L_REMME'       => langVar('L_REMME'),
+            // 'F_REMME'       => $objForm->select('remember', array(
+            //                         '0' => 'No Thanks',
+            //                         '1' => 'Forever'
+            //                     ), array(
+            //                         'selected' => 0
+            //                     )),
 
             'SUBMIT'        => $objForm->button('submit', 'Register', array('class' => 'btn btn-success')),
         );

@@ -74,14 +74,14 @@
                 {register.F_RECEIVE_EMAILS_USERS}
             </div>
         </div>
-        <div class="row">
+<!--         <div class="row">
             <div class="span2">
                 {register.L_REMME}
             </div>
             <div class="span2">
                 {register.F_REMME}
             </div>
-        </div>
+        </div> -->
         <div class="row" style="padding-top: 10px;">
             <div class="span2">
                 {register.SUBMIT}
