@@ -199,7 +199,6 @@ class Core_Classes_coreObj {
         return array();
     }
 
-
     /**
      * Returns the last error set.
      *
@@ -297,37 +296,6 @@ class Core_Classes_coreObj {
     }
 
     /**
-     * Returns or spawns a new instance of this class.
-     *
-     * @version 1.2
-     * @since   1.0
-     * @author  Dan Aldridge
-     *
-     * @param   string      $prefix  Prefix used to distinguish objects.
-     *
-     * @return  new object
-     */
-    public static function getInstance($name, $options=array()){
-
-        if (!isset(Core_Classes_coreObj::$_classes[$name]) || empty(Core_Classes_coreObj::$_classes[$name])){
-            $class = self::getStaticClassName();
-            $iClass = new $class($name, $options);
-
-            // default to returning the class as is, but test to see if we have setupInstance
-            // && if so, we'll return that :D
-            Core_Classes_coreObj::$_classes[$name] = $iClass;
-
-            // grab the methods for this clas & make if we have a setupInstance() then run it
-            $iClass::$coreMethods = get_class_methods($iClass);
-            if( in_array('setupInstance', $iClass::$coreMethods) && is_callable(array($iClass, 'setupInstance')) ){
-                Core_Classes_coreObj::$_classes[$name] = $iClass->setupInstance($name, $options);
-            }
-        }
-
-        return Core_Classes_coreObj::$_classes[$name];
-    }
-
-    /**
      * Returns the name of the class this var an instance of
      *
      * @version 1.0
@@ -353,13 +321,42 @@ class Core_Classes_coreObj {
         return get_called_class();
     }
 
-
-
 /**
   //
   //-- Get Class Instances
   //
 **/
+
+    /**
+     * Returns or spawns a new instance of this class.
+     *
+     * @version 1.2
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     * @param   string      $prefix  Prefix used to distinguish objects.
+     *
+     * @return  new object
+     */
+    public static function getInstance($name, $options=array()){
+
+        if (!isset(Core_Classes_coreObj::$_classes[$name]) || empty(Core_Classes_coreObj::$_classes[$name])){
+            $class = self::getStaticClassName();
+            $iClass = new $class($name, $options);
+
+            // default to returning the class as is, but test to see if we have setupInstance
+            // && if so, we'll return that :D
+            Core_Classes_coreObj::$_classes[$name] = $iClass;
+
+            // grab the methods for this class & make if we have a setupInstance() then run it
+            $iClass::$coreMethods = get_class_methods($iClass);
+            if( in_array('setupInstance', $iClass::$coreMethods) && is_callable(array($iClass, 'setupInstance')) ){
+                Core_Classes_coreObj::$_classes[$name] = $iClass->setupInstance($name, $options);
+            }
+        }
+
+        return Core_Classes_coreObj::$_classes[$name];
+    }
 
     /**
      * Determines whether we need to call a getInstance() Alias or just let it through
