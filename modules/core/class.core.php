@@ -290,7 +290,7 @@ class Modules_core extends Core_Classes_Module{
         if( !$checkUserStatus ){
             // Report error to user
             // Redirect back
-            return false
+            return false;
         }
 
         if( ( $password !== $password_confirm )  /* || ( Password does not meet requirements  )*/ ){
