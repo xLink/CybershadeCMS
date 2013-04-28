@@ -169,7 +169,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
      * @author  Dan Aldridge
      *
      */
-    private function buildACL(){
+    public function buildACL(){
 
         // if we have groups, do their permissions first
         if( count($this->groups) > 0 ){
@@ -223,7 +223,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
      * @author  Dan Aldridge
      *
      */
-    private function getUserPerms(){
+    public function getUserPerms(){
 
         $objSQL = Core_Classes_coreObj::getDBO();
 
@@ -249,7 +249,7 @@ class Core_Classes_Permissions extends Core_Classes_coreObj {
      * @author  Dan Aldridge
      *
      */
-    private function figurePerms( $permissions ){
+    public function figurePerms( $permissions ){
 
         if( !is_array($permissions) || is_empty($permissions) ){
             trigger_error('$permissions was empty');

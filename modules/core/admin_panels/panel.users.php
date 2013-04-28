@@ -61,6 +61,7 @@ class Admin_Modules_core_users extends Admin_Modules_core{
             $objTPL->assign_block_vars('user', array(
                 'ID'              => $id,
                 'NAME'            => $objUser->makeUsername($id),
+                'NAME_RAW'        => $objUser->makeUsername($id, RAW),
                 'EMAIL'           => $user['email'],
                 'DATE_REGISTERED' => $objTime->mk_time($user['register_date']),
 

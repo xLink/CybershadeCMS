@@ -27,8 +27,8 @@
                     </button>
                     <ul class="dropdown-menu">
                         <li><a href="#" class="">Ban User</a></li>
-                        <li><a href="#">View Profile</a></li>
-                        <li><a href="/{CP_ROOT}users/permissions/{user.ID}">Manage Permissions</a></li>
+                        <li><a href="/{ROOT}profile/view/{user.NAME_RAW}">View Profile</a></li>
+                        <li><a href="/{CP_ROOT}permissions/user/{user.ID}">Manage Permissions</a></li>
                     </ul>
                 </div>
             </td>
