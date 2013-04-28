@@ -479,7 +479,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
             return false;
         }
 
-        if( $exists === true && $this->get('username', $username) === false ){
+        if( $exists === true && $this->get('username', $username) !== false ){
             trigger_error('Username alerady exists. Please make sure your username is unique.');
             return false;
         }
@@ -778,8 +778,10 @@ class Core_Classes_User extends Core_Classes_coreObj {
         // If it isn't then update the table
         if( !is_empty( $userData ) ){
             
+            // Generate some extra vars
             $userData['password'] = $this->mkPassword( $userData['password'] );
-            
+            $userData['usercode'] = randCode();
+
             $insert = $objSQL->queryBuilder()
                 ->insertInto('#__users')
                 ->set( $userData )

@@ -275,7 +275,7 @@ class Modules_core extends Core_Classes_Module{
 
         foreach( $_POST as $key => $value ){
             if( !in_array( $key, $requiredFields ) ){
-                trigger_error($value . ' was an incorrect value, please try again');
+                trigger_error($key . ' was an incorrect value, please try again');
                 break;
             }
 
@@ -288,7 +288,7 @@ class Modules_core extends Core_Classes_Module{
         $checkUserStatus = $objUser->validateUsername( $username, true );
 
         if( !$checkUserStatus ){
-            // Report error to user
+            trigger_error('There seems to be something wrong with the username choice, it could possibly be taken');
             // Redirect back
             return false;
         }
@@ -313,7 +313,7 @@ class Modules_core extends Core_Classes_Module{
             // Redirect to referer
             return true;
         }
-        
+
         return false;
     }
 }

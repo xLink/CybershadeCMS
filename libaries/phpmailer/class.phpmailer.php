@@ -268,7 +268,7 @@ class phpmailer
 		$header[] = sprintf("Return-Path: %s\n", trim($this->From));
 		$header[] = sprintf("X-Priority: %d\n", $this->Priority);
 		$header[] = sprintf("X-Mailer: phpmailer [version .9]\n");
-		$header[] = sprintf("Content-Transfer-Encoding: %s\n", $this->$Encoding);
+		$header[] = sprintf("Content-Transfer-Encoding: %s\n", $this->Encoding);
 		// $header[] = sprintf("Content-Length: %d\n", (strlen($this->Body) * 7));
 		if(count($this->attachment) > 0)
 		{
