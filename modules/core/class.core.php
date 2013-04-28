@@ -306,19 +306,14 @@ class Modules_core extends Core_Classes_Module{
         }
 
         // All good, lets go
-        /**
-        //
-        // -- Finish registering the user. LET'S DO THIS !
-        //
-        */
-
-
         $userRegister = $objUser->register($_POST);
+
         if( $userRegister ){
             // Message thanks for registering
             // Redirect to referer
             return true;
         }
+        
         return false;
     }
 }

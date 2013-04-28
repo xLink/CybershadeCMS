@@ -748,8 +748,6 @@ class Core_Classes_User extends Core_Classes_coreObj {
             return false;
         }
 
-        echo dump( $userInfo, 'Userclass, $userinfo, register func' );
-        
         $objSQL = Core_Classes_coreObj::getDBO();
 
         $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
