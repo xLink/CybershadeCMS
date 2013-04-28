@@ -240,12 +240,12 @@ class Modules_core extends Core_Classes_Module{
             'L_RECEIVE_EMAILS_ADMINS'    => langVar('L_RECEIVE_EMAILS_ADMINS'),
             'F_RECEIVE_EMAILS_ADMINS'    => $objForm->inputbox('admin_emails', 'checkbox', '', array(
                                             'class'    => 'icon tick',
-                                            'required' => true,
+                                            'required' => false,
                                         )),
             'L_RECEIVE_EMAILS_USERS'    => langVar('L_RECEIVE_EMAILS_USERS'),
             'F_RECEIVE_EMAILS_USERS'    => $objForm->inputbox('user_emails', 'checkbox', '', array(
                                             'class'    => 'icon tick',
-                                            'required' => true,
+                                            'required' => false,
                                         )),
 
             // 'L_REMME'       => langVar('L_REMME'),
@@ -262,11 +262,8 @@ class Modules_core extends Core_Classes_Module{
         $objTPL->assign_block_vars('register', $form);
     }
 
-    public function register_user_process(){
+    public function registerUserProcess(){
         $objTPL = Core_Classes_coreobj::getTPL();
-
-        // Set the errors to be an empty array
-        $errors = $this->setVar('registrationErrors', array());
 
         $requiredFields = array(
             'username',
@@ -278,16 +275,11 @@ class Modules_core extends Core_Classes_Module{
 
         foreach( $_POST as $key => $value ){
             if( !in_array( $key, $requiredFields ) ){
-                $errors[$key] = $value . ' was an incorrect value, please try again';
-                continue;
+                trigger_error($value . ' was an incorrect value, please try again');
+                break;
             }
 
             ${$key} = $value;
-        }
-
-        if( !is_empty( $errors ) ){
-            // Report error to user
-            // Return to registration form
         }
 
         $objSQL  = Core_Classes_coreobj::getDBO();
@@ -298,16 +290,19 @@ class Modules_core extends Core_Classes_Module{
         if( !$checkUserStatus ){
             // Report error to user
             // Redirect back
+            return false
         }
 
-        if( ( $password !== $password_confirm ) || ( /* Password does not meet requirements */ ) ){
-            $errors['password_error'] = 'Passwords don\'t match or invalid complexity';
+        if( ( $password !== $password_confirm )  /* || ( Password does not meet requirements  )*/ ){
+            trigger_error('Passwords don\'t match or invalid complexity');
             // Report error to user
             // Redirect back
+            return false;
         }
 
-        if( ( $email !== $email_confirm ) || ( /* Email doesnt match Regex */ ) ){
-            $errors['email_error'] = 'Email addresses did not match or they were invalid';
+        if( ( $email !== $email_confirm ) /* || (  Email doesnt match Regex  ) */){
+            trigger_error('Email addresses did not match or they were invalid');
+            return false;
         }
 
         // All good, lets go
@@ -316,7 +311,15 @@ class Modules_core extends Core_Classes_Module{
         // -- Finish registering the user. LET'S DO THIS !
         //
         */
-        $userRegister = $objUser->register();
+
+
+        $userRegister = $objUser->register($_POST);
+        if( $userRegister ){
+            // Message thanks for registering
+            // Redirect to referer
+            return true;
+        }
+        return false;
     }
 }
 ?>
