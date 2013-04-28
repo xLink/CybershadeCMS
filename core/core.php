@@ -14,6 +14,10 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 $START_CMS_LOAD = microtime(true); $START_RAM_USE = memory_get_usage();
 $cmsROOT = (isset($cmsROOT) && !empty($cmsROOT) ? $cmsROOT : '');
 
+//Lets set a simple error template up till we have the template engine going
+$errorTPL = '<h3>%s</h3> <p>%s Killing Process...</p>';
+@set_magic_quotes_runtime(false);
+
     // we need constants.php
     $file = $cmsROOT.'core/constants.php';
         if(!is_readable($file)){
@@ -37,10 +41,6 @@ error_reporting(E_ALL & ~E_NOTICE | E_STRICT);
             'background_text'     => 'Cybershade CMS',
         ));
     }
-
-//Lets set a simple error template up till we have the template engine going
-$errorTPL = '<h3>%s</h3> <p>%s Killing Process...</p>';
-@set_magic_quotes_runtime(false);
 
     //Check whether config files are present
     $file = cmsROOT.'assets/config.php';
