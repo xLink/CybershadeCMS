@@ -8,8 +8,8 @@ class Details_core extends Core_Classes_Module implements Core_Classes_baseDetai
 
     public function details(){
         return array(
-            'version'              => '',
-            'since'                => '',
+            'version'              => '1.0',
+            'since'                => '1.0.0',
             'min_version_required' => '1.0.0',
 
             'name'                 => 'Core',

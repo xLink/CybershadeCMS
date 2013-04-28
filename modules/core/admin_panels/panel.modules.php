@@ -19,7 +19,7 @@ class Admin_Modules_core_modules extends Admin_Modules_core{
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
-     * 
+     *
      * @return  void
      */
     public function modules( ) {
@@ -34,7 +34,7 @@ class Admin_Modules_core_modules extends Admin_Modules_core{
 
         $files = glob( sprintf( '%smodules/*', cmsROOT ) );
 
-        foreach( $files as $file ) { 
+        foreach( $files as $file ) {
 
             $moduleName = str_replace( 'modules/', '', $file );
 
@@ -53,12 +53,13 @@ class Admin_Modules_core_modules extends Admin_Modules_core{
             $moduleInstalled = parent::moduleInstalled( $moduleName );
 
             if( empty( $row ) || $moduleInstalled === false ) {
-                
+
                 $details = $objModule->getModuleDetails( $moduleName );
 
                 if( !empty( $details ) ) {
-                    $version = $details['version'];
-                    $hash = $details['hash'];
+                    $moduleName = $details['name'];
+                    $version    = $details['version'];
+                    $hash       = md5($details['name']);
                 }
             }
 
@@ -67,7 +68,7 @@ class Admin_Modules_core_modules extends Admin_Modules_core{
                 'VERSION'     => $version,
                 'HASH'        => $hash,
                 'STATUS'      => ( $moduleInstalled === false ? 'Not Installed' : 'Installed' ),
-                'STATUS_ICON' => ( $moduleInstalled === false ? 'default'         : 'success' ),
+                'STATUS_ICON' => ( $moduleInstalled === false ? 'default'       : 'success' ),
             ));
         }
 
