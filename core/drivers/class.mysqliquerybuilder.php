@@ -33,7 +33,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
     private $_charset                = '';
     private $_engine                 = '';
     private $_AI                     = 0;
-    private $_createConditional      = '';
+    private $_tableConditional      = '';
     private $_columns                = array();
 
 /**
@@ -82,8 +82,16 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
     }
 
     public function createTable( $table, $conditional = '' ) {
-        $this->createConditional = $conditional;
+        $this->_tableConditional = $conditional;
         $this->setQueryType('create_table');
+        $this->_tables = array($table);
+
+        return $this;
+    }
+
+    public function dropTable( $table, $conditional = '' ) {
+        $this->_tableConditional = $conditional;
+        $this->setQueryType('drop_table');
         $this->_tables = array($table);
 
         return $this;
@@ -287,7 +295,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
                 trigger_error('Error: Number of values has to be equal to the number of fields.', E_USER_ERROR);
             }
 
-        if ( in_array($this->queryType, array( 'INSERT', 'REPLACE' ) ) ){
+        if ( in_array($this->queryType, array( 'INSERT', 'REPLACE' ) ) ) {
             $this->_values[] = $args;
         } elseif ($this->queryType == 'UPDATE') {
             $this->_values = $args;
@@ -476,11 +484,31 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
 
             $statement[] = 'TABLE';
 
-            $this->_buildCreateTableNotExists($statement);
+            $this->_buildTableExists($statement);
 
-            $statement[] = sprintf('`%s (`', $this->_buildTables($this->_tables));
+            $statement[] = sprintf('`%s` (', $this->_buildTables($this->_tables));
             $this->_buildCreateTableColumns( $statement );
             $statement[] = ')' . $this->_buildCreateTableExtras($statement) . ';';
+        }
+
+        /**
+         * Build the Drop Table query
+         *
+         * @version 1.0
+         * @since   1.0
+         * @author  Daniel Noel-Davies
+         *
+         * @param   array  &$statement       Array to put the statement into
+         *
+         */
+        private function _buildDROP_TABLE( &$statement ) {
+            $statement = array('DROP');
+
+            $statement[] = 'TABLE';
+
+            $this->_buildTableExists($statement);
+
+            $statement[] = $this->_buildTables($this->_tables);
         }
 
         /**
@@ -520,7 +548,6 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
                 $null       = doArgs( 'null',    null,  $attr );
                 $default    = doArgs( 'default', null,  $attr );
                 $ai         = doArgs( 'ai',      null,  $attr );
-                $primaryKey = doArgs( 'primary', $column, $attr );
 
                 $length     = ( $length != null     ? '(' . $length . ')' : NULL );
                 $null       = ( $null   === false   ? 'NOT NULL'          : NULL );
@@ -535,14 +562,16 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
 
                 }
 
+                if( isset( $attr['primary'] ) && $primaryKey === null ) {
+                    $primaryKey = $column;
+                }
+
                 $extra  = ''
                     .       $type
                     .       $length
                     . ' ' . $null
                     . ' ' . $default
                     . ' ' . $ai;
-
-                // echo dump($extra);
 
 
                 $statement[] = sprintf('`%s` %s,',
@@ -601,9 +630,9 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
          * @param   string  $var       Parameter Description
          *
          */
-        private function _buildCreateTableNotExists( &$statement ) {
-            if( !empty( $this->_createConditional ) ) {
-                $statement[] = 'IF NOT EXISTS';
+        private function _buildTableExists( &$statement ) {
+            if( !empty( $this->_tableConditional ) ) {
+                $statement[] = $this->_tableConditional;
             }
         }
 
@@ -844,7 +873,7 @@ class Core_Drivers_mysqliQueryBuilder extends Core_Classes_coreObj implements Co
         if($this->queryType){
             trigger_error('Can\'t modify the operator.', E_USER_ERROR);
 
-        }elseif(!in_array($queryType, array('select', 'insert', 'replace', 'delete', 'update', 'create_table'))){
+        }elseif(!in_array($queryType, array('select', 'insert', 'replace', 'delete', 'update', 'create_table', 'drop_table'))){
             trigger_error('Unsupported operator:'.strtoupper($queryType), E_USER_ERROR);
 
         }else{
