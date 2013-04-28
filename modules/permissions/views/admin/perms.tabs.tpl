@@ -6,7 +6,7 @@
     <div class="tabbable tabs-left">
         <ul class="nav nav-tabs">
             <!-- BEGIN tabs -->
-            <li><a href="#{tabs.ID}" data-toggle="tab">{tabs.NAME}</a></li>
+            <li class="{tabs.ACTIVE}"><a href="#{tabs.ID}" data-toggle="tab">{tabs.NAME}</a></li>
             <!-- END tabs -->
         </ul>
         <div class="tab-content">
