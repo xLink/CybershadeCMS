@@ -6,6 +6,14 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class Admin_Modules_Permissions extends Core_Classes_Module{
 
+    /**
+     *
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
     public function __construct(){
         $objPage = Core_Classes_coreObj::getPage();
 
@@ -19,6 +27,14 @@ class Admin_Modules_Permissions extends Core_Classes_Module{
         ));
     }
 
+    /**
+     *
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
     public function user( ){
         $args = func_get_args();
 
@@ -37,6 +53,14 @@ class Admin_Modules_Permissions extends Core_Classes_Module{
         }
     }
 
+    /**
+     *
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
     public function userPerms( $uid ){
         $objPerms  = Core_Classes_coreObj::getPermissions($uid);
         $objTPL    = Core_Classes_coreObj::getTPL();
@@ -273,7 +297,7 @@ class Admin_Modules_Permissions extends Core_Classes_Module{
      */
     public function groupPerms($gid){
         // init all the classes
-        $objPerms  = Core_Classes_coreObj::getPermissions(2);
+        $objPerms  = Core_Classes_coreObj::getPermissions();
         $objTPL    = Core_Classes_coreObj::getTPL();
         $objForm   = Core_Classes_coreObj::getForm();
         $objUser   = Core_Classes_coreObj::getUser();

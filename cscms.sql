@@ -142,6 +142,20 @@ CREATE TABLE IF NOT EXISTS `cscms_config` (
 --
 
 INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
+(1, 'session', 'cookie_domain', NULL, NULL),
+(2, 'session', 'cookie_path', NULL, NULL),
+(3, 'cms', 'name', 'Cybershade CMS', 'Cybershade CMS'),
+(4, 'site', 'title', 'CSDev', 'Cybershade CMS'),
+(5, 'site', 'slogan', 'dev', NULL),
+(6, 'site', 'theme', 'cybershade', NULL),
+(7, 'site', 'language', 'en-gb', 'en-gb'),
+(8, 'site', 'keywords', 'dev', NULL),
+(9, 'site', 'description', 'dev', NULL),
+(10, 'site', 'admin_email', 'xlink@cybershade.org', NULL),
+(11, 'site', 'google_analytics', NULL, NULL),
+(12, 'login', 'max_login_tries', '5', '5'),
+(13, 'login', 'remember_me', '1', '1'),
+(14, 'time', 'timezone', '0', '0'),
 (15, 'session', 'timeout', '1', '1'),
 (16, 'site', 'theme_override', 'false', 'false'),
 (17, 'site', 'change_username', 'false', 'false');
