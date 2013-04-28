@@ -13,6 +13,7 @@ class Details_cybershade extends Core_Classes_coreObj implements Core_Classes_ba
             'min_version_required' => '1.0',
 
             'name'                 => 'Cybershade',
+            'description'          => 'Cybershade Theme',
             'mode'                 => 'user',
             'author'               => 'xLink',
             'homepage_url'         => 'http://cybershade.org',

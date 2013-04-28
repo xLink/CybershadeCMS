@@ -12,7 +12,8 @@ class Details_default extends Core_Classes_coreObj implements Core_Classes_baseD
             'since'                => '1.0',
             'min_version_required' => '1.0',
 
-            'name'                 => 'default',
+            'name'                 => 'Default',
+            'description'          => 'Default Theme',
             'mode'                 => 'user',
             'author'               => 'xLink',
             'homepage_url'         => 'http://cybershade.org',
