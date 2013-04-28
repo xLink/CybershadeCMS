@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 27, 2013 at 02:34 PM
+-- Generation Time: Apr 28, 2013 at 03:10 PM
 -- Server version: 5.5.28a-MariaDB-a1~squeeze-log
 -- PHP Version: 5.3.19-1~dotdeb.0
 
@@ -129,36 +129,34 @@ CREATE TABLE IF NOT EXISTS `cscms_blocks_routes` (
 
 DROP TABLE IF EXISTS `cscms_config`;
 CREATE TABLE IF NOT EXISTS `cscms_config` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
   `key` varchar(50) NOT NULL,
   `var` varchar(50) NOT NULL,
   `value` text,
-  `default` text,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=18 ;
+  PRIMARY KEY (`key`,`var`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `cscms_config`
 --
 
-INSERT INTO `cscms_config` (`id`, `key`, `var`, `value`, `default`) VALUES
-(1, 'session', 'cookie_domain', NULL, NULL),
-(2, 'session', 'cookie_path', NULL, NULL),
-(3, 'cms', 'name', 'Cybershade CMS', 'Cybershade CMS'),
-(4, 'site', 'title', 'CSDev', 'Cybershade CMS'),
-(5, 'site', 'slogan', 'dev', NULL),
-(6, 'site', 'theme', 'cybershade', NULL),
-(7, 'site', 'language', 'en-gb', 'en-gb'),
-(8, 'site', 'keywords', 'dev', NULL),
-(9, 'site', 'description', 'dev', NULL),
-(10, 'site', 'admin_email', 'xlink@cybershade.org', NULL),
-(11, 'site', 'google_analytics', NULL, NULL),
-(12, 'login', 'max_login_tries', '5', '5'),
-(13, 'login', 'remember_me', '1', '1'),
-(14, 'time', 'timezone', '0', '0'),
-(15, 'session', 'timeout', '1', '1'),
-(16, 'site', 'theme_override', 'false', 'false'),
-(17, 'site', 'change_username', 'false', 'false');
+INSERT INTO `cscms_config` (`key`, `var`, `value`) VALUES
+('cms', 'name', 'Cybershade CMS'),
+('login', 'max_login_tries', '5'),
+('login', 'remember_me', '1'),
+('session', 'cookie_domain', NULL),
+('session', 'cookie_path', NULL),
+('session', 'timeout', '1'),
+('site', 'admin_email', 'xlink@cybershade.org'),
+('site', 'change_username', 'false'),
+('site', 'description', 'dev'),
+('site', 'google_analytics', NULL),
+('site', 'keywords', 'dev'),
+('site', 'language', 'en-gb'),
+('site', 'slogan', 'dev'),
+('site', 'theme', 'cybershade'),
+('site', 'theme_override', 'false'),
+('site', 'title', 'CSDev'),
+('time', 'timezone', '0');
 
 -- --------------------------------------------------------
 
@@ -300,17 +298,38 @@ CREATE TABLE IF NOT EXISTS `cscms_groups_perms` (
 --
 
 INSERT INTO `cscms_groups_perms` (`permission_key`, `permission_value`, `content_id`, `group_id`) VALUES
+('CS.ACP.LOGIN', 1, 0, 1),
+('CS.ACP.LOGIN', 0, 0, 2),
+('CS.ACP.LOGIN', 0, 0, 3),
 ('CS.ACP.LOGIN', 0, 0, 4),
+('CS.ACP.VIEW', 1, 0, 1),
+('CS.ACP.VIEW', 0, 0, 2),
+('CS.ACP.VIEW', 0, 0, 3),
 ('CS.ACP.VIEW', 0, 0, 4),
+('CS.ARTICLES.CATEGORY.CREATE', 1, 0, 1),
+('CS.ARTICLES.CATEGORY.CREATE', 0, 0, 3),
 ('CS.ARTICLES.CATEGORY.CREATE', 0, 0, 4),
+('CS.ARTICLES.COMMENT', 1, 0, 1),
+('CS.ARTICLES.COMMENT', 1, 0, 2),
 ('CS.ARTICLES.COMMENT', 1, 0, 3),
 ('CS.ARTICLES.COMMENT', 0, 0, 4),
+('CS.ARTICLES.CREATE', 1, 0, 1),
+('CS.ARTICLES.CREATE', 1, 0, 2),
 ('CS.ARTICLES.CREATE', 1, 0, 3),
 ('CS.ARTICLES.CREATE', 0, 0, 4),
+('CS.ARTICLES.DELETE', 1, 0, 1),
+('CS.ARTICLES.DELETE', 0, 0, 3),
 ('CS.ARTICLES.DELETE', 0, 0, 4),
+('CS.ARTICLES.EDIT', 1, 0, 1),
+('CS.ARTICLES.EDIT', 1, 0, 2),
+('CS.ARTICLES.EDIT', 0, 0, 3),
 ('CS.ARTICLES.EDIT', 0, 0, 4),
+('CS.ARTICLES.READ', 1, 0, 1),
+('CS.ARTICLES.READ', 1, 0, 2),
 ('CS.ARTICLES.READ', 1, 0, 3),
 ('CS.ARTICLES.READ', 1, 0, 4),
+('CS.ARTICLES.VIEW', 1, 0, 1),
+('CS.ARTICLES.VIEW', 1, 0, 2),
 ('CS.ARTICLES.VIEW', 1, 0, 3),
 ('CS.ARTICLES.VIEW', 1, 0, 4);
 
@@ -364,18 +383,17 @@ CREATE TABLE IF NOT EXISTS `cscms_menus` (
 --
 
 INSERT INTO `cscms_menus` (`id`, `menu_name`, `link_url`, `link_title`, `order`, `perms`, `external`, `parent_id`) VALUES
-(1, 'menu_mm', '/', 'Site Home', 1, 0, 0, 0),
-(2, 'menu_mm', '/admin/', 'Admin Panel', 6, 3, 0, 0),
-(3, 'menu_mm', '/forum/', 'Forum', 2, 0, 0, 0),
-(5, 'menu_mm', '/messages/', 'Private Messages', 3, 1, 0, 0),
-(6, 'menu_mm', '/user/', 'User Control Panel', 4, 1, 0, 0),
-(7, 'menu_mm', '/mod/', 'Moderator Panel', 5, 3, 0, 0),
-(8, 'main_nav', '/', 'Site Home', 1, 0, 0, 0),
-(9, 'main_nav', '/profile/', 'Profile', 2, 1, 0, 0),
-(10, 'main_nav', '/forum/', 'Forum', 3, 0, 0, 0),
-(11, 'main_nav', '/articles/', 'Articles', 4, 0, 0, 0),
-(12, 'main_nav', '/codebase/', 'Codebase', 5, 0, 0, 0),
-(13, 'main_nav', '/pastebin/', 'PasteBin', 6, 0, 0, 0),
+(1, 'menu_mm', '/{ROOT}', 'Site Home', 1, 0, 0, 0),
+(2, 'menu_mm', '/{ROOT}admin/', 'Admin Panel', 6, 3, 0, 0),
+(3, 'menu_mm', '/{ROOT}forum/', 'Forum', 2, 0, 0, 0),
+(5, 'menu_mm', '/{ROOT}messages/', 'Private Messages', 3, 1, 0, 0),
+(6, 'menu_mm', '/{ROOT}user/', 'User Control Panel', 4, 1, 0, 0),
+(8, 'main_nav', '/{ROOT}', 'Site Home', 1, 0, 0, 0),
+(9, 'main_nav', '/{ROOT}profile/', 'Profile', 2, 1, 0, 0),
+(10, 'main_nav', '/{ROOT}forum/', 'Forum', 3, 0, 0, 0),
+(11, 'main_nav', '/{ROOT}articles/', 'Articles', 4, 0, 0, 0),
+(12, 'main_nav', '/{ROOT}codebase/', 'Codebase', 5, 0, 0, 0),
+(13, 'main_nav', '/{ROOT}pastebin/', 'PasteBin', 6, 0, 0, 0),
 (15, 'admin_menu', '/{CP_ROOT}', 'Dashboard', 1, 1, 0, 0),
 (16, 'admin_menu', '#', 'System', 2, 0, 0, 0),
 (17, 'admin_menu', '/{CP_ROOT}core/siteconfig/', 'Site Configuration', 1, 0, 0, 16),
@@ -394,7 +412,7 @@ INSERT INTO `cscms_menus` (`id`, `menu_name`, `link_url`, `link_title`, `order`,
 (35, 'admin_menu', '#', 'Content', 4, 0, 0, 0),
 (36, 'admin_menu', '/{CP_ROOT}pages/create', 'Add Page', 1, 0, 0, 35),
 (37, 'admin_menu', '/{CP_ROOT}pages/listPages', 'List Pages', 2, 0, 0, 35),
-(38, 'user_menu', '/{CP_ROOT}dashboard', 'Dashboard', 1000, 0, 0, 0);
+(38, 'user_menu', '/{CP_ROOT}dashboard', 'Dashboard', 1, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -493,18 +511,18 @@ CREATE TABLE IF NOT EXISTS `cscms_routes` (
 -- Dumping data for table `cscms_routes`
 --
 
-INSERT INTO `cscms_routes` (`module`, `label`, `method`, `pattern`, `arguments`, `requirements`, `status`, `redirect`) VALUES
-('a74ad8dfacd4f985eb3977517615ce25', 'core_viewIndex', 'ANY', '/', '{"module":"Modules_core","method":"viewIndex"}', '[]', 1, NULL),
-('a74ad8dfacd4f985eb3977517615ce25', 'core_loginForm', 'GET', '/login', '{"module":"Modules_core","method":"loginForm"}', '[]', 1, NULL),
-('a74ad8dfacd4f985eb3977517615ce25', 'core_loginForm_process', 'POST', '/login', '{"module":"Modules_core","method":"loginForm_process"}', '[]', 1, NULL),
-('a74ad8dfacd4f985eb3977517615ce25', 'core_logout', 'GET', '/logout', '{"module":"Modules_core","method":"logout"}', '[]', 1, NULL),
-('a74ad8dfacd4f985eb3977517615ce25', 'core_registerForm', 'GET', '/register', '{"module":"Modules_core", "method":"registerUser"}', '[]', 1, NULL),
-('a74ad8dfacd4f985eb3977517615ce25', 'core_registerForm_process', 'POST', '/register', '{"module":"Modules_core", "method":"registerUser"}', '[]', 1, NULL),
-('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_listCategories', 'ANY', '/articles', '{"module":"Modules_articles","method":"listCategories"}', '[]', 1, NULL),
-('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewCategory', 'ANY', '/articles/:cat-:catid', '{"module":"Modules_articles","method":"viewCategory"}', '{"catid":"\\\\d+"}', 1, NULL),
-('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewArticle', 'ANY', '/articles/:cat-:catid/:title-:id.html', '{"module":"Modules_articles","method":"viewArticle"}', '{"catid":"\\\\d+","id":"\\\\d+"}', 1, NULL),
-('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle', 'GET', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_form"}', '{"catid":"\\\\d+"}', 1, NULL),
-('dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle_process', 'POST', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_process"}', '{"catid":"\\\\d+"}', 1, NULL);
+INSERT INTO `cscms_routes` (`id`, `module`, `label`, `method`, `pattern`, `arguments`, `requirements`, `status`, `redirect`) VALUES
+(1, 'a74ad8dfacd4f985eb3977517615ce25', 'core_loginForm', 'GET', '/login', '{"module":"Modules_core","method":"loginForm"}', '[]', 1, NULL),
+(2, 'a74ad8dfacd4f985eb3977517615ce25', 'core_loginForm_process', 'POST', '/login', '{"module":"Modules_core","method":"loginForm_process"}', '[]', 1, NULL),
+(3, 'a74ad8dfacd4f985eb3977517615ce25', 'core_viewIndex', 'ANY', '/', '{"module":"Modules_core","method":"viewIndex"}', '[]', 1, NULL),
+(4, 'a74ad8dfacd4f985eb3977517615ce25', 'core_logout', 'GET', '/logout', '{"module":"Modules_core","method":"logout"}', '[]', 1, NULL),
+(5, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_listCategories', 'ANY', '/articles', '{"module":"Modules_articles","method":"listCategories"}', '[]', 1, NULL),
+(6, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewCategory', 'ANY', '/articles/:cat-:catid', '{"module":"Modules_articles","method":"viewCategory"}', '{"catid":"\\\\d+"}', 1, NULL),
+(7, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_viewArticle', 'ANY', '/articles/:cat-:catid/:title-:id.html', '{"module":"Modules_articles","method":"viewArticle"}', '{"catid":"\\\\d+","id":"\\\\d+"}', 1, NULL),
+(8, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle', 'GET', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_form"}', '{"catid":"\\\\d+"}', 1, NULL),
+(9, 'dba5d91846ce1a5e63734dfcbcb481cb', 'articles_submitArticle_process', 'POST', '/articles/:cat-:catid/submit', '{"module":"Modules_articles","method":"submitArticle_process"}', '{"catid":"\\\\d+"}', 1, NULL),
+(10, 'a74ad8dfacd4f985eb3977517615ce25', 'core_registerForm', 'GET', '/register', '{"module":"Modules_core", "method":"registerUser"}', '[]', 1, NULL),
+(11, 'a74ad8dfacd4f985eb3977517615ce25', 'core_registerForm_process', 'POST', '/register', '{"module":"Modules_core", "method":"registerUser"}', '[]', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -533,17 +551,7 @@ CREATE TABLE IF NOT EXISTS `cscms_sessions` (
 --
 
 INSERT INTO `cscms_sessions` (`uid`, `sid`, `hostname`, `timestamp`, `useragent`, `mode`, `admin`, `login_time`, `login_attempts`, `store`) VALUES
-(0, '0dddaeda75b28d161bfbfc43282d251f', '178.79.143.66', 1366969955, 'Mozilla/5.0 (Windows; U; Windows NT 6.1; he; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3', 'active', 0, 0, 0, 0x613a303a7b7d),
-(1, '267eb8e2c1eb6ac17418346ff4dfa58d', '77.98.122.22', 1366974344, 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0; Touch; ASU2JS)', 'active', 0, 0, 0, 0x613a303a7b7d),
-(0, '6792c7a6675f615ea111675f1a341d2d', '77.98.122.22', 1366987013, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
-(0, '7f807067face5700759005f124b6ef71', '178.79.143.66', 1366969955, 'Mozilla/5.0 (Windows; U; Windows NT 6.1; he; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3', 'active', 0, 0, 0, 0x613a313a7b733a343a2275736572223b613a313a7b733a393a2274696d657374616d70223b693a313336363632323136333b7d7d),
-(1, '8ff4c5874aaf2400c66d3173053e53d1', '85.167.48.189', 1366970663, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31', 'active', 0, 0, 0, 0x613a303a7b7d),
-(0, '974f8c32e61da0ca22685f39dbddeeda', '178.79.143.66', 1366969955, 'Mozilla/5.0 (Windows; U; Windows NT 6.1; he; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3', 'active', 0, 0, 0, 0x613a303a7b7d),
-(1, 'b9eb982ee7881f8d845700cd77d4bda4', '77.98.122.22', 1366976849, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d),
-(1, 'da85dcab4fc918734493eebc38d5a1c0', '80.194.73.98', 1366970073, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a313a7b733a343a2275736572223b613a313a7b733a393a2274696d657374616d70223b693a313336363838363634333b7d7d),
-(1, 'e18fae12843cfb21c086d6ef377d4e5e', '10.54.129.222', 1366992682, 'Mozilla/5.0 (Linux; U; Android 4.1.2; en-gb; HTC One X Build/JZO54K; CyanogenMod-10.0.0) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30', 'active', 0, 0, 0, 0x613a303a7b7d),
-(1, 'ea572180bf0eff34a205321ea3ea4441', '94.228.45.50', 1366969982, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31', 'active', 0, 0, 0, 0x613a303a7b7d),
-(0, 'eb46ed7a9998205ca1cef18198ae2fc2', '86.29.111.233', 1367072728, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a333a7b733a343a2275736572223b613a313a7b733a393a2274696d657374616d70223b693a313336373032313436353b7d733a343a2273697465223b613a313a7b733a31333a226c6f67696e5f72656665726572223b733a33343a22687474703a2f2f786c696e6b2e637962657273686164652e6f72672f6373636d732f223b7d733a353a22746f6b656e223b733a33323a223661393930666562643236323836373536646235613063346261313337363561223b7d);
+(1, '87677740fe9e84d5eb8961a5713a01ae', '86.29.202.141', 1367151410, 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:20.0) Gecko/20100101 Firefox/20.0', 'active', 0, 0, 0, 0x613a303a7b7d);
 
 -- --------------------------------------------------------
 

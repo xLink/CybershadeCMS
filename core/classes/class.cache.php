@@ -358,7 +358,7 @@ PHP;
 **/
 
     /**
-     *  Generates the statistics cache
+     * Generates the statistics cache
      *
      * @version     2.0
      * @since       1.0.0
@@ -371,9 +371,9 @@ PHP;
     }
 
     /**
-     *  Generates the config cache
+     * Generates the config cache
      *
-     * @version     2.0
+     * @version     2.1
      * @since       1.0.0
      * @author      Dan Aldridge
      *
@@ -383,7 +383,7 @@ PHP;
         $objSQL = Core_Classes_coreObj::getDBO();
 
         $query = $objSQL->queryBuilder()
-            ->select('key', 'var', 'value', 'default')
+            ->select('key', 'var', 'value')
             ->from('#__config')
             ->orderBy('key', 'DESC')
             ->build();
@@ -396,10 +396,7 @@ PHP;
 
         $return = array();
         foreach($results as $row) {
-
-            $return[$row['key']][$row['var']] = (isset($row['value']) && !is_empty($row['value'])
-                ? $row['value']
-                : $row['default']);
+            $return[$row['key']][$row['var']] = $row['value'];
         }
 
         return $return;
