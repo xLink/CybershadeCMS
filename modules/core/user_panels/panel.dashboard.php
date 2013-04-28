@@ -48,7 +48,7 @@ class User_Modules_core_dashboard extends Admin_Modules_core{
                       langVar('L_USERNAME')      => $objForm->inputbox('username', 'text', $userData['username'], array('disabled' => !$editUsername)),
                       langVar('L_EMAIL')         => $objForm->inputbox('email', 'text', $userData['email']),
 
-                    langVar('F_NEW_PASS_CONF') => '_header_',
+                      langVar('F_NEW_PASS_CONF') => '_header_',
                       langVar('L_CHANGE_PWDS')   => $objForm->checkbox('pass_conf', '1', false),
                       langVar('L_OLD_PASSWD')    => $objForm->inputbox('old_pass', 'password', ''),
                       langVar('L_NEW_PASSWD')    => $objForm->inputbox('new_pass', 'password', ''),

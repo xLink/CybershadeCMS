@@ -197,57 +197,58 @@ class Modules_core extends Core_Classes_Module{
                         cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
                         proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 
-        $form = array(
-            'registration_form.FORM_START'    => $objForm->start('register', array(
-                                    'method' => 'POST',
-                                    'action' => $objRoute->generateUrl('core_registerForm_process'),
-                                )),
-            'registration_form.FORM_END'      => $objForm->finish(),
-            'registration_form.HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
-
-            'registration_form.L_USERNAME'    => langVar('L_USERNAME'),
-            'registration_form.F_USERNAME'    => $objForm->inputbox('username', 'text', '', array(
-                                    'class'    => 'icon username',
-                                    'required' => true
-                                )),
-
-            'registration_form.L_PASSWORD'    => langVar('L_PASSWORD'),
-            'registration_form.F_PASSWORD'    => $objForm->inputbox('password', 'password', '', array(
-                                    'class'    => 'icon password',
-                                    'required' => true
-                                )),
-
-            'registration_form.L_PASSWORD_CONFIRM'    => langVar('L_PASSWORD_CONFIRM'),
-            'registration_form.F_PASSWORD_CONFIRM'    => $objForm->inputbox('password_confirm', 'password', '', array(
-                                        'class'    => 'icon password',
-                                        'required' => true
-                                    )),
-            'registration_form.L_EMAIL_ADDRESS'    => langVar('L_EMAIL_ADDRESS'),
-            'registration_form.F_EMAIL_ADDRESS'    => $objForm->inputbox('email', 'text', '', array(
-                                        'class'    => 'icon email',
-                                        'required' => true
-                                    )),
-
-            'registration_form.L_EMAIL_ADDRESS_CONFIRM'    => langVar('L_EMAIL_ADDRESS_CONFIRM'),
-            'registration_form.F_EMAIL_ADDRESS_CONFIRM'    => $objForm->inputbox('email_confirm', 'text', '', array(
-                                            'class'    => 'icon email',
-                                            'required' => true,
-                                        )),
-            'registration_form.L_RECEIVE_EMAILS_ADMINS'    => langVar('L_RECEIVE_EMAILS_ADMINS'),
-            'registration_form.F_RECEIVE_EMAILS_ADMINS'    => $objForm->inputbox('admin_emails', 'checkbox', '', array(
-                                            'class'    => 'icon tick',
-                                            'required' => false,
-                                        )),
-            'registration_form.L_RECEIVE_EMAILS_USERS'    => langVar('L_RECEIVE_EMAILS_USERS'),
-            'registration_form.F_RECEIVE_EMAILS_USERS'    => $objForm->inputbox('user_emails', 'checkbox', '', array(
-                                            'class'    => 'icon tick',
-                                            'required' => false,
-                                        )),
-
-            'registration_form.SUBMIT'        => $objForm->button('submit', 'Register', array('class' => 'btn btn-success')),
+        $form = $objForm->outputForm(
+            array(
+                'FORM_START'    => $objForm->start('register', array(
+                    'method' => 'POST',
+                    'action' => $objRoute->generateUrl('core_registerForm_process'),
+                )),
+                'FORM_END'      => $objForm->finish(),
+                'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
+                'FORM_TITLE'    => 'User Registration',
+                'FORM_RESET'    => $objForm->button('reset', 'Reset'),
+                'FORM_SUBMIT'   => $objForm->button('submit', 'Register', array('class' => 'btn btn-success')), 
+            ),
+            array(
+                'field' => array(
+                    'User Information' => '_header_',
+                    langVar('L_USERNAME') => $objForm->inputbox('username', 'text', '', array(
+                        'class'    => 'icon username',
+                        'required' => true
+                    )),
+                    langVar('L_PASSWORD') => $objForm->inputbox('password', 'password', '', array(
+                        'class'    => 'icon password',
+                        'required' => true
+                    )),
+                    langVar('L_PASSWORD_CONFIRM') => $objForm->inputbox('password_confirm', 'password', '', array(
+                        'class'    => 'icon password',
+                        'required' => true
+                    )),
+                    'Personal Information'  => '_header_',
+                    langVar('L_EMAIL_ADDRESS') => $objForm->inputbox('email', 'text', '', array(
+                        'class'    => 'icon email',
+                        'required' => true
+                    )),
+                    langVar('L_EMAIL_ADDRESS_CONFIRM') => $objForm->inputbox('email_confirm', 'text', '', array(
+                        'class'    => 'icon email',
+                        'required' => true,
+                    )),
+                    'Settings' => '_header_',
+                    langVar('L_RECEIVE_EMAILS_ADMINS') => $objForm->inputbox('admin_emails', 'checkbox', '', array(
+                        'class'    => 'icon tick',
+                        'required' => false,
+                    )),
+                    langVar('L_RECEIVE_EMAILS_USERS') => $objForm->inputbox('user_emails', 'checkbox', '', array(
+                        'class'    => 'icon tick',
+                        'required' => false,
+                    )),
+                ),
+                'desc'      => array(),
+                'errors'    => $_SESSION['errors']['registration']
+            ),
         );
 
-        $objTPL->assign_block_vars('register', $form);
+        echo $form;
     }   
 
     public function registerUserProcess(){
