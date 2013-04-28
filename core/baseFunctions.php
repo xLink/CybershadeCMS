@@ -94,6 +94,16 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         return (isset($args[$key]) && $extra ? $args[$key] : $default);
     }
 
+    function _mailer($to, $from, $subject, $message,  $isHtml = false){
+        $objMailer = Core_Classes_coreObj::getLib( 'phpmailer' );
+        $objMailer->AddAddress($to);
+        $objMailer->IsHTML($isHtml);
+        $objMailer->From = $from;
+        $objMailer->Subject = $subject;
+        $objMailer->Body = $message;
+        return $objMailer->Send();
+    }
+
 
     /**
      * Run a function recursivly through an array

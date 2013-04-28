@@ -340,7 +340,6 @@ class Core_Classes_User extends Core_Classes_coreObj {
             }else{
                 $where = is_numeric($ident) ? 'u.id = '.$ident : 'u.username = "'.$ident.'" AND ug.uid = u.id';
 
-
                 $query = $objSQL->queryBuilder()
                     ->select(array( 'g.*' ))
                     ->from(array( 'g' => '#__groups' ))
@@ -466,7 +465,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
      * @param   string   $username
      * @param   bool     $exists
      *
-     * @return  int
+     * @return  bool
      */
     public function validateUsername( $username, $exists=false ){
 
@@ -749,11 +748,14 @@ class Core_Classes_User extends Core_Classes_coreObj {
             return false;
         }
 
+        echo dump( $userInfo, 'Userclass, $userinfo, register func' );
+        
         $objSQL = Core_Classes_coreObj::getDBO();
 
         $userColumnData      = $objSQL->fetchColumnData( '#__users', 'Field' );
         $userExtraColumnData = $objSQL->fetchColumnData( '#__users_extras', 'Field' );
-        $keys                = array_keys( $settings );
+        $keys                = array_keys( $userInfo );
+
 
         $userData = $userExtraData = array();
 
@@ -766,18 +768,20 @@ class Core_Classes_User extends Core_Classes_coreObj {
 
             // Check if the keys belong to users_extras table or users_extras table
             if( in_array( $key, $userColumnData ) ){
-                $userData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+                $userData[$key] = $userInfo[$key];
             }
 
             if( in_array( $key, $userExtraColumnData ) ){
-                $userExtraData[$key] = sprintf( getTokenType( $settings[$key] ), $settings[$key]);
+                $userExtraData[$key] = $userInfo[$key];
             }
         }
 
         // Check if the userData is empty
         // If it isn't then update the table
         if( !is_empty( $userData ) ){
-
+            
+            $userData['password'] = $this->mkPassword( $userData['password'] );
+            
             $insert = $objSQL->queryBuilder()
                 ->insertInto('#__users')
                 ->set( $userData )
