@@ -198,72 +198,60 @@ class Modules_core extends Core_Classes_Module{
                         proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 
         $form = array(
-            'FORM_START'    => $objForm->start('register', array(
+            'registration_form.FORM_START'    => $objForm->start('register', array(
                                     'method' => 'POST',
                                     'action' => $objRoute->generateUrl('core_registerForm_process'),
                                 )),
-            'FORM_END'      => $objForm->finish(),
-            'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
+            'registration_form.FORM_END'      => $objForm->finish(),
+            'registration_form.HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
 
-            'L_USERNAME'    => langVar('L_USERNAME'),
-            'F_USERNAME'    => $objForm->inputbox('username', 'text', '', array(
+            'registration_form.L_USERNAME'    => langVar('L_USERNAME'),
+            'registration_form.F_USERNAME'    => $objForm->inputbox('username', 'text', '', array(
                                     'class'    => 'icon username',
                                     'required' => true
                                 )),
 
-            'L_PASSWORD'    => langVar('L_PASSWORD'),
-            'F_PASSWORD'    => $objForm->inputbox('password', 'password', '', array(
+            'registration_form.L_PASSWORD'    => langVar('L_PASSWORD'),
+            'registration_form.F_PASSWORD'    => $objForm->inputbox('password', 'password', '', array(
                                     'class'    => 'icon password',
                                     'required' => true
                                 )),
 
-            'L_PASSWORD_CONFIRM'    => langVar('L_PASSWORD_CONFIRM'),
-            'F_PASSWORD_CONFIRM'    => $objForm->inputbox('password_confirm', 'password', '', array(
+            'registration_form.L_PASSWORD_CONFIRM'    => langVar('L_PASSWORD_CONFIRM'),
+            'registration_form.F_PASSWORD_CONFIRM'    => $objForm->inputbox('password_confirm', 'password', '', array(
                                         'class'    => 'icon password',
                                         'required' => true
                                     )),
-            'L_EMAIL_ADDRESS'    => langVar('L_EMAIL_ADDRESS'),
-            'F_EMAIL_ADDRESS'    => $objForm->inputbox('email', 'text', '', array(
+            'registration_form.L_EMAIL_ADDRESS'    => langVar('L_EMAIL_ADDRESS'),
+            'registration_form.F_EMAIL_ADDRESS'    => $objForm->inputbox('email', 'text', '', array(
                                         'class'    => 'icon email',
                                         'required' => true
                                     )),
-            // 'L_REFERER'    => langVar('L_REFERER'),
-            // 'F_REFERER'    => $objForm->inputbox('referer', 'text', '', array(
-            //                             'class'    => 'icon email',
-            //                             'required' => true
-            //                 )),
-            'L_EMAIL_ADDRESS_CONFIRM'    => langVar('L_EMAIL_ADDRESS_CONFIRM'),
-            'F_EMAIL_ADDRESS_CONFIRM'    => $objForm->inputbox('email_confirm', 'text', '', array(
+
+            'registration_form.L_EMAIL_ADDRESS_CONFIRM'    => langVar('L_EMAIL_ADDRESS_CONFIRM'),
+            'registration_form.F_EMAIL_ADDRESS_CONFIRM'    => $objForm->inputbox('email_confirm', 'text', '', array(
                                             'class'    => 'icon email',
                                             'required' => true,
                                         )),
-            'L_RECEIVE_EMAILS_ADMINS'    => langVar('L_RECEIVE_EMAILS_ADMINS'),
-            'F_RECEIVE_EMAILS_ADMINS'    => $objForm->inputbox('admin_emails', 'checkbox', '', array(
+            'registration_form.L_RECEIVE_EMAILS_ADMINS'    => langVar('L_RECEIVE_EMAILS_ADMINS'),
+            'registration_form.F_RECEIVE_EMAILS_ADMINS'    => $objForm->inputbox('admin_emails', 'checkbox', '', array(
                                             'class'    => 'icon tick',
                                             'required' => false,
                                         )),
-            'L_RECEIVE_EMAILS_USERS'    => langVar('L_RECEIVE_EMAILS_USERS'),
-            'F_RECEIVE_EMAILS_USERS'    => $objForm->inputbox('user_emails', 'checkbox', '', array(
+            'registration_form.L_RECEIVE_EMAILS_USERS'    => langVar('L_RECEIVE_EMAILS_USERS'),
+            'registration_form.F_RECEIVE_EMAILS_USERS'    => $objForm->inputbox('user_emails', 'checkbox', '', array(
                                             'class'    => 'icon tick',
                                             'required' => false,
                                         )),
 
-            // 'L_REMME'       => langVar('L_REMME'),
-            // 'F_REMME'       => $objForm->select('remember', array(
-            //                         '0' => 'No Thanks',
-            //                         '1' => 'Forever'
-            //                     ), array(
-            //                         'selected' => 0
-            //                     )),
-
-            'SUBMIT'        => $objForm->button('submit', 'Register', array('class' => 'btn btn-success')),
+            'registration_form.SUBMIT'        => $objForm->button('submit', 'Register', array('class' => 'btn btn-success')),
         );
 
         $objTPL->assign_block_vars('register', $form);
-    }
+    }   
 
     public function registerUserProcess(){
-        $objTPL = Core_Classes_coreobj::getTPL();
+        $objTPL     = $this->setView('module/register_form/default.tpl');
 
         $requiredFields = array(
             'username',
@@ -287,19 +275,30 @@ class Modules_core extends Core_Classes_Module{
         $checkUserStatus = $objUser->validateUsername( $username, true );
 
         if( !$checkUserStatus ){
+            $objTPL->assign_block_vars('register.errors', array(
+                'CLASS' => 'warning',
+                'ERROR' => 'There seems to be something wrong with the username choice, it could possibly be taken', 
+            ));
+
             trigger_error('There seems to be something wrong with the username choice, it could possibly be taken');
             // Redirect back
             return false;
         }
 
         if( ( $password !== $password_confirm )  /* || ( Password does not meet requirements  )*/ ){
+            $objTPL->assign_block_vars('register.errors', array(
+                'CLASS' => 'warning',
+                'ERROR' => 'Passwords don\'t match or invalid complexity', 
+            ));
             trigger_error('Passwords don\'t match or invalid complexity');
-            // Report error to user
-            // Redirect back
             return false;
         }
 
         if( ( $email !== $email_confirm ) /* || (  Email doesnt match Regex  ) */){
+            $objTPL->assign_block_vars('register.errors', array(
+                'CLASS' => 'warning',
+                'ERROR' => 'Email addresses did not match or they were invalid', 
+            ));
             trigger_error('Email addresses did not match or they were invalid');
             return false;
         }
@@ -308,6 +307,11 @@ class Modules_core extends Core_Classes_Module{
         $userRegister = $objUser->register($_POST);
 
         if( $userRegister ){
+            $objTPL->assign_block_vars('register.errors', array(
+                'CLASS' => 'success',
+                'ERROR' => 'Successfully registered, Redirecting you back now', 
+            ));
+            // $objPage->redirect();
             // Message thanks for registering
             // Redirect to referer
             return true;

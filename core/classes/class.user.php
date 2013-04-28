@@ -479,7 +479,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
             return false;
         }
 
-        if( $exists === true && $this->get('username', $username) !== false ){
+        if( $exists === true && $this->get('username', $username) === false ){
             trigger_error('Username alerady exists. Please make sure your username is unique.');
             return false;
         }
