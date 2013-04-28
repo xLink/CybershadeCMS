@@ -200,7 +200,7 @@ class Modules_core extends Core_Classes_Module{
         $form = array(
             'FORM_START'    => $objForm->start('register', array(
                                     'method' => 'POST',
-                                    'action' => $objRoute->generateUrl('core_registerForm'),
+                                    'action' => $objRoute->generateUrl('core_registerForm_process'),
                                 )),
             'FORM_END'      => $objForm->finish(),
             'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
@@ -260,6 +260,63 @@ class Modules_core extends Core_Classes_Module{
         );
 
         $objTPL->assign_block_vars('register', $form);
+    }
+
+    public function register_user_process(){
+        $objTPL = Core_Classes_coreobj::getTPL();
+
+        // Set the errors to be an empty array
+        $errors = $this->setVar('registrationErrors', array());
+
+        $requiredFields = array(
+            'username',
+            'password',
+            'password_confirm',
+            'email',
+            'email_confirm',
+        );
+
+        foreach( $_POST as $key => $value ){
+            if( !in_array( $key, $requiredFields ) ){
+                $errors[$key] = $value . ' was an incorrect value, please try again';
+                continue;
+            }
+
+            ${$key} = $value;
+        }
+
+        if( !is_empty( $errors ) ){
+            // Report error to user
+            // Return to registration form
+        }
+
+        $objSQL  = Core_Classes_coreobj::getDBO();
+        $objUser = Core_Classes_coreobj::getUser();
+
+        $checkUserStatus = $objUser->validateUsername( $username, true );
+
+        if( !$checkUserStatus ){
+            // Report error to user
+            // Redirect back
+        }
+
+        if( ( $password !== $password_confirm ) || ( /* Password does not meet requirements */ ) ){
+            $errors['password_error'] = 'Passwords don\'t match or invalid complexity';
+            // Report error to user
+            // Redirect back
+        }
+
+        if( ( $email !== $email_confirm ) || ( /* Email doesnt match Regex */ ) ){
+            $errors['email_error'] = 'Email addresses did not match or they were invalid';
+        }
+
+        // All good, lets go
+        /**
+        //
+        // -- Finish registering the user. LET'S DO THIS !
+        //
+        */
+        $userRegister = $objUser->register();
     }
 }
 ?>
