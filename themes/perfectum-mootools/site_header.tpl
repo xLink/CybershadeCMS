@@ -45,7 +45,7 @@
                         <!-- BEGIN normal -->
                         <li>
                             <a href="{menu.normal.URL}">
-                                <!-- BEGIN icons --> 
+                                <!-- BEGIN icons -->
                                 <i class="{menu.normal.icons.ICON} icon-white"></i>
                                 <!-- END icons -->
                                 <span class="hidden-tablet">{menu.normal.TITLE}</span>
@@ -56,7 +56,7 @@
                         <!-- BEGIN dropdown -->
                         <li>
                             <a class="dropmenu" href="#">
-                                <!-- BEGIN icons --> 
+                                <!-- BEGIN icons -->
                                 <i class="{menu.dropdown.icons.ICON} icon-white"></i>
                                 <!-- END icons -->
                                 <span class="hidden-tablet">{menu.dropdown.TITLE} <i class="icon-sort-down"></i></span>
@@ -65,7 +65,7 @@
                                 <!-- BEGIN subnav -->
                                 <li>
                                     <a class="submenu" href="{menu.dropdown.subnav.URL}">
-                                        <!-- BEGIN icons --> 
+                                        <!-- BEGIN icons -->
                                         <i class="{menu.dropdown.subnav.icons.ICON} icon-white"></i>
                                         <!-- END icons -->
                                         <span class="hidden-tablet"> {menu.dropdown.subnav.TITLE}</span>
@@ -75,8 +75,9 @@
                             </ul>
                         </li>
                         <!-- END dropdown -->
-                        
+
                     <!-- END menu -->
+                </ul>
             </div>
         </div>
 

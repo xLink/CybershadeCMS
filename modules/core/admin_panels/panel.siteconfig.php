@@ -14,15 +14,87 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 class Admin_Modules_core_siteconfig extends Admin_Modules_core{
 
     /**
+     *
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function siteConfig() {
+        $objForm    = Core_Classes_coreObj::getForm();
+        $objTPL     = Core_Classes_coreObj::getTPL();
+
+        // generate the values we need
+        $formToken = $objForm->inputbox('form_token', 'hidden', Core_Classes_coreObj::getSession()->getFormToken(true));
+
+        $yn = array(1 => langVar('L_YES'), 0 => langVar('L_NO'));
+
+        $this->tabbedConfig(
+            array(
+                'Site Config' => array(
+                    langVar('L_SITE_TITLE')         => $objForm->inputbox('title', 'text', $this->config('site', 'title')),
+                    langVar('L_SITE_SLOGAN')        => $objForm->inputbox('slogan', 'text', $this->config('site', 'slogan')),
+                    langVar('L_ADMIN_EMAIL')        => $objForm->inputbox('admin_email', 'text', $this->config('site', 'admin_email')),
+                    langVar('L_GANALYTICS')         => $objForm->inputbox('google_analytics', 'input', $this->config('site', 'google_analytics')),
+                ),
+                'Customize' => array(
+                    // langVar('L_DEF_LANG')           => $objForm->select('language', $lang,
+                    //                                     array('selected' => $this->config('site', 'language'))),
+                    // langVar('L_SITE_TZ')            => $timezone,
+                    langVar('L_DST')                => $objForm->radio('dst', $yn, $this->config('time', 'dst')),
+                    langVar('L_DEF_DATE_FORMAT')    => $objForm->inputbox('default_format', 'input', $this->config('time', 'default_format')),
+                ),
+            ),
+            array(
+                'FORM_START'  => $objForm->start('siteConfig', array('method'=>'POST', 'action'=>'/'.root().'admin/core/siteconfig/save', 'class'=>'form-horizontal')),
+                'FORM_END'    => $objForm->finish(),
+                'FORM_TOKEN'  => $formToken,
+
+                'FORM_SUBMIT' => $objForm->button('submit', 'Submit', array('class' => 'btn btn-info')),
+                'FORM_RESET'  => $objForm->button('reset', 'Reset'),
+                'FORM_CONTENT'=> $objTPL->get_html('tabs', false),
+
+                'MSG_INFO'    => 'Yeah, this form wont do anything, if you submit, it\'ll show you what you submitted, but thats about it :D',
+                'MSG_ERROR'   => '',
+            )
+        );
+
+    }
+
+
+    /**
+     *
+     *
+     * @version 1.0
+     * @since   1.0
+     * @author  Dan Aldridge
+     *
+     */
+    public function save( ) {
+        echo dump($_POST);
+
+        $this->siteConfig();
+
+
+    }
+
+/**
+  //
+  //-- Helper Functions
+  //
+**/
+
+    /**
      * Generates a form for the site configuration
      *
      * @version 1.0
      * @since   1.0.0
      * @author  Dan Aldridge
-     * 
+     *
      * @return  void
      */
-    public function siteConfig(){
+    public function tabbedConfig($tabs, $form){
         Core_Classes_coreObj::getPage()->addBreadcrumbs(array(
             array( 'url' => doArgs('REQUEST_URI', '', $_SERVER), 'name' => 'Site Config' )
         ));
@@ -30,71 +102,90 @@ class Admin_Modules_core_siteconfig extends Admin_Modules_core{
         $objForm    = Core_Classes_coreObj::getForm();
         $objTPL     = Core_Classes_coreObj::getTPL();
 
-        $yn = array(1 => langVar('L_YES'), 0 => langVar('L_NO'));
+        $objTPL->set_filenames(array(
+            'tabs'     => cmsROOT.'modules/core/views/tabs.tpl',
+            'form'     => cmsROOT.'modules/core/views/admin/config/formWrapper.tpl',
+            'settings' => cmsROOT.'modules/core/views/admin/config/settings.tpl',
+        ));
 
-            $fields = array(
-                langVar('L_SITE_CONFIG')            => '_header_',
-                    langVar('L_SITE_TITLE')         => $objForm->inputbox('title', 'text', $this->config('site', 'title')),
-                    langVar('L_SITE_SLOGAN')        => $objForm->inputbox('slogan', 'text', $this->config('site', 'slogan')),
-                    langVar('L_ADMIN_EMAIL')        => $objForm->inputbox('admin_email', 'text', $this->config('site', 'admin_email')),
-                    langVar('L_GANALYTICS')         => $objForm->inputbox('google_analytics', 'input', $this->config('site', 'google_analytics')),
+        // split the fields into tabs
+        $tabs = array_reverse($tabs);
 
-                langVar('L_CUSTOMIZE')              => '_header_',
-                    // langVar('L_INDEX_MODULE')       => $objForm->select('index_module', $defaultModule,
-                    //                                     array('disabled' => $tzDisable, 'selected' => $this->config('site', 'index_module'))),
-                    // langVar('L_DEF_LANG')           => $objForm->select('language', $languages,
-                    //                                     array('selected' => $this->config('site', 'language'))),
-                    // langVar('L_DEF_THEME')          => $objForm->select('theme', $tpl,
-                    //                                     array('selected' => $this->config('site', 'theme'))),
-                    langVar('L_THEME_OVERRIDE')     => $objForm->radio('theme_override', $yn, $this->config('site', 'theme_override')),
-                    langVar('L_SITE_TZ')            => $timezone,
-                    langVar('L_DST')                => $objForm->radio('dst', $yn, $this->config('time', 'dst')),
-                    langVar('L_DEF_DATE_FORMAT')    => $objForm->inputbox('default_format', 'input', $this->config('time', 'default_format')),
-            );
+        if( isset($form['MSG_ERROR']) && !is_empty($form['MSG_ERROR']) ){
+            $objTPL->assign_block_vars('form_error', array(
+                'ERROR_MSG' => implode('<br />', $form['MSG_ERROR']),
+            ));
+        }
 
-        $form = $objForm->outputForm(array(
-            'FORM_START'    => $objForm->start('panel', array('method' => 'POST', 'action' => $saveUrl, 'class' => 'form-horizontal')),
-            'FORM_END'      => $objForm->finish(),
+        if( isset($form['MSG_INFO']) && !is_empty($form['MSG_INFO']) ){
+            $objTPL->assign_block_vars('form_info', array(
+                'INFO_MSG' => $form['MSG_INFO'],
+            ));
+        }
 
-            'FORM_TITLE'    => $mod_name,
-            'FORM_SUBMIT'   => $objForm->button('submit', 'Submit', array( 'class' => 'btn-primary' )),
-            'FORM_RESET'    => $objForm->button('reset', 'Reset'),
+        // generate the tpl setup for the tab content
+        $tabCount = count($tabs); $i = 0;
+        foreach( $tabs as $tab => $content ){
 
-            'HIDDEN'        => $objForm->inputbox('sessid', 'hidden', $sessid).$objForm->inputbox('id', 'hidden', $uid),
-        ),
-        array(
-            'field' => $fields,
-            'desc' => array(
-                    langVar('L_INDEX_MODULE')       => langVar('L_DESC_IMODULE'),
-                    langVar('L_SITE_TZ')            => langVar('L_DESC_SITE_TZ'),
-                    langVar('L_DEF_DATE_FORMAT')    => langVar('L_DESC_DEF_DATE'),
-                    langVar('L_DEF_THEME')          => langVar('L_DESC_DEF_THEME'),
-                    langVar('L_THEME_OVERRIDE')     => langVar('L_DESC_THEME_OVERRIDE'),
-                    langVar('L_ALLOW_REGISTER')     => langVar('L_DESC_ALLOW_REGISTER'),
-                    langVar('L_EMAIL_ACTIVATE')     => langVar('L_DESC_EMAIL_ACTIVATE'),
-                    langVar('L_MAX_LOGIN_TRIES')    => langVar('L_DESC_MAX_LOGIN'),
-                    langVar('L_REMME')              => langVar('L_DESC_REMME'),
-                    langVar('L_GANALYTICS')         => langVar('L_DESC_GANALYTICS'),
-            ),
-            'errors' => $_SESSION['site']['panel']['error'],
-        ),
-        array(
-            'header'          => '<h4>%s</h4>',
-            'dedicatedHeader' => true,
-            'parseDesc'       => true,
-        ));           
+            $objTPL->reset_block_vars('_form_row');
 
+            //loop thru each element
+            foreach( $content as $label => $field ){
+                if( is_empty($field) ){ continue; }
+
+                $formVars = array();
+
+                $objTPL->assign_block_vars('_form_row', array());
+                // assign some vars to the template
+                $objTPL->assign_block_vars('_form_row._field', array(
+                    'F_ELEMENT'  => $header ? null : $field,
+                    'CLASS'      => $header ? ' title' : ($count++%2 ? ' row_color2' : ' row_color1'),
+                    'L_LABEL'    => $label,
+                    'L_LABELFOR' => inBetween('name="', '"', $field),
+                ));
+
+                // output the label
+                    $objTPL->assign_block_vars('_form_row._field._label', array());
+
+                // see if we need to prepend or append anything to the field
+                $pre = inBetween('data-prepend="', '"', $field);
+                $app = inBetween('data-append="', '"', $field);
+
+                if( !is_empty($pre) ){
+                    $objTPL->assign_block_vars('_form_row._field._prepend', array('ADDON' => $pre));
+                } else if( !is_empty($app) ){
+                    $objTPL->assign_block_vars('_form_row._field._append', array('ADDON' => $app));
+                }else{
+                    $objTPL->assign_block_vars('_form_row._field._normal', array());
+
+                }
+            }
+
+            $objTPL->parse('settings', false);
+            $objTPL->assign_block_vars('tabs', array(
+                'ID'      => seo($tab),
+                'NAME'    => $tab,
+                'CONTENT' => $objTPL->get_html('settings', false),
+                'ACTIVE'  => ( ++$i == $tabCount ? ' active' : '' )
+            ));
+        }
+
+        // the form needs infos
+        $objTPL->assign_vars(array_merge($form, array(
+            'FORM_CONTENT'=> $objTPL->get_html('tabs', false),
+        )));
+
+        $objTPL->parse('form', false);
         Core_Classes_coreObj::getAdminCP()->setupBlock('body', array(
             'cols'  => 3,
             'vars'  => array(
                 'TITLE'   =>  'Site Configuration',
-                'CONTENT' =>  $form,
-                'ICON'    =>  'fa-icon-user',
+                'CONTENT' =>  $objTPL->get_html('form', false),
+                'ICON'    =>  'fa-icon-wrench',
             ),
         ));
 
     }
-
 
 }
 
