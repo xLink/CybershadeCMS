@@ -273,13 +273,12 @@ class Modules_core extends Core_Classes_Module{
             'email_confirm',
         );
 
-        foreach( $_POST as $key => $value ){
-            if( !in_array( $key, $requiredFields ) ){
-                trigger_error($key . ' was an incorrect value, please try again');
-                break;
+        foreach( $requiredFields as $requiredKey ){
+            if( !array_key_exists($requiredKey, $_POST) || is_empty( $_POST[$requiredKey] ) ){
+                trigger_error('Missing required field, please go back and try again');
+                return false;
             }
-
-            ${$key} = $value;
+            ${$requiredKey} = $_POST[$requiredKey];
         }
 
         $objSQL  = Core_Classes_coreobj::getDBO();
