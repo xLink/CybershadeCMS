@@ -26,7 +26,7 @@
             </div>
             <!-- END _append -->
             <!-- BEGIN _desc -->
-            <p class="help-block">{_form_row._field.F_INFO}</p>
+            <a rel="popover" data-toggle="popover" data-placement="right" data-content="{_form_row._field.F_INFO}" data-trigger="hover" href="#"><i class="icon-question-sign"></i></a>
             <!-- END _desc -->
         </div>
     </div>

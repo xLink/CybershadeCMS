@@ -107,8 +107,8 @@ $_lang['L_GANALYTICS']          = 'Google Analytics Key';
 
 $_lang['L_DESC_IMODULE']        = 'This setting controls the active functionality you have running on the website index(home page). For more advanced configuration check the module Administration panel.';
 $_lang['L_DESC_SITE_TZ']        = 'This will change the time globally across the site, unless the user has overridden it.';
-$_lang['L_DESC_DEF_DATE']       = 'The default date format. You can use [url="?mode=dateFormats"]date formats[/url] for more information about configuring it.';
-$_lang['L_DESC_DEF_THEME']      = 'This will be the theme guests and users who havent configured their profiles will see.';
+$_lang['L_DESC_DEF_DATE']       = 'The default date format that your website will use.';
+$_lang['L_DESC_DEF_THEME']      = 'This will be the theme guests and users who haven\'t configured their profiles will see.';
 $_lang['L_DESC_THEME_OVERRIDE'] = 'If this is enabled [b]ALL users[/b] will see the default theme';
 $_lang['L_DESC_ALLOW_REGISTER'] = 'If disabled, users will not be allowed to register on the website.';
 $_lang['L_DESC_EMAIL_ACTIVATE'] = 'Make the users have to validate their accounts via email before being allowed to login.';
