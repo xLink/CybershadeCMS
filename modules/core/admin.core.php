@@ -4,7 +4,7 @@
 \*======================================================================*/
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Admin_Modules_core extends Core_Classes_Module{
+class Admin_Modules_core extends Core_Classes_AdminCP{
 
     public function __construct(){ }
 

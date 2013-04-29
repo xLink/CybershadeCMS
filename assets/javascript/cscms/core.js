@@ -13,4 +13,27 @@ window.addEvent('domready', function() {
         })(window.jQuery);
     }
 
+    if( $$('form[data-async]').length ){
+        (function($) {
+            /** https://gist.github.com/havvg/3226804 **/
+            $('form[data-async]').live('submit', function(event) {
+                var $form = $(this);
+                var $target = $($form.attr('data-target'));
+
+                $.ajax({
+                    type: $form.attr('method'),
+                    url: $form.attr('action'),
+                    data: $form.serialize(),
+
+                    success: function(data, status) {
+                        $target.html(data);
+                    }
+                });
+
+                event.preventDefault();
+            });
+
+        })(window.jQuery);
+    }
+
 });

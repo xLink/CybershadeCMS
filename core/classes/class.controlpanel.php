@@ -6,7 +6,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 class Core_Classes_ControlPanel extends Core_Classes_Module{
 
-    public function __construct($name, $options=array()){
+    public function __construct($name='', $options=array()){
         $this->mode   = doArgs('__mode',      null,         $options);
         $this->module = doArgs('__module',    'core',       $options);
         $this->action = doArgs('__action',    'index',      $options);

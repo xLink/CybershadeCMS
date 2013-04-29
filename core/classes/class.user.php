@@ -104,7 +104,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
 
 
     /**
-     * Retreives information about the $uid.
+     * Retrieves information about the $uid.
      *
      * @version 1.0
      * @since   1.0.0
@@ -221,13 +221,13 @@ class Core_Classes_User extends Core_Classes_coreObj {
 
         }
 
-        // if we get this far, may aswell return everything
+        // if we get this far, may as well return everything
         return $info;
     }
 
 
     /**
-     * Retreives a Username by the given ID.
+     * Retrieves a Username by the given ID.
      *
      * @version 1.0
      * @since   1.0.0
@@ -248,7 +248,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
 
 
     /**
-     * Retreives a ID by the given username.
+     * Retrieves a ID by the given username.
      *
      * @version 1.0
      * @since   1.0.0
@@ -290,7 +290,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
             return $this->ident[$mode][$ident];
         }
 
-        // chcek to see if the ident is guest-worthy
+        // check to see if the ident is guest-worthy
         if( $ident !== GUEST ){
 
             $where = is_numeric($ident) ? 'u.id = '.$ident : 'u.username = "'.$ident.'"';
@@ -310,7 +310,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
                 $uquery = $objSQL->fetchLine( $uquery->build() );
             }
 
-            // if we havent got the user loaded, then we will try and get the bare details
+            // if we haven't got the user loaded, then we will try and get the bare details
             if( !isset($uquery['username']) ){
                 $uquery = $objSQL->queryBuilder()
                     ->select(array( 'u.id', 'u.username', 'u.banned' ))
@@ -321,14 +321,14 @@ class Core_Classes_User extends Core_Classes_coreObj {
                 $uquery = $objSQL->fetchLine( $uquery->build() );
             }
 
-            // we didnt get anything we can use, so we will just stop here
+            // we didn't get anything we can use, so we will just stop here
             if( $uquery === false ){
                 $this->ident[$mode][$ident] = ( $mode == RETURN_USERNAME ? $ident : 'Guest' );
             }
 
             $this->cacheUsers[$ident]['username'] = $uquery['username'];
 
-            // if we already have the color sorted, we dont need to do much
+            // if we already have the color sorted, we don't need to do much
             if( isset($uquery['color'])){
                 $this->cacheUsers[$ident]['group'] = array(
                     'name'        => $uquery['name'],
@@ -455,7 +455,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
     }
 
     /**
-     * Validates a Username to ensure it's the correct charset and to ensure it doesn't already exist
+     * Validates a Username to ensure it's the correct char set and to ensure it doesn't already exist
      *
      * @version 1.0
      * @since   1.0.0
@@ -479,8 +479,8 @@ class Core_Classes_User extends Core_Classes_coreObj {
             return false;
         }
 
-        if( $exists === true && $this->get('username', $username) !== false ){
-            trigger_error('Username alerady exists. Please make sure your username is unique.');
+        if( $exists === true && $this->get('username', $username) === false ){
+            trigger_error('Username already exists. Please make sure your username is unique.');
             return false;
         }
 
@@ -489,7 +489,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
 
 
     /**
-     * Recieves specified ajax settings
+     * Receives specified ajax settings
      *
      * @version 1.0
      * @since   1.0.0
