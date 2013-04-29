@@ -14,8 +14,6 @@ class Modules_core extends Core_Classes_Module{
 
     public function viewIndex(){
         $this->setView('bootstrap_kitchensink.tpl');
-
-
     }
 
 
@@ -154,7 +152,6 @@ class Modules_core extends Core_Classes_Module{
     }
 
     public function loginForm_process(){
-        $objUser  = Core_Classes_coreObj::getUser();
         $objLogin = Core_Classes_coreObj::getLogin();
         $objPage  = Core_Classes_coreObj::getPage();
         $objRoute = Core_Classes_coreObj::getRoute();
@@ -169,7 +166,6 @@ class Modules_core extends Core_Classes_Module{
 
     public function logout(){
         $objLogin = Core_Classes_coreObj::getLogin();
-
         $objLogin->logout($_GET['check']);
     }
 
@@ -195,7 +191,6 @@ class Modules_core extends Core_Classes_Module{
         $objSession = Core_Classes_coreObj::getSession();
         $objPage    = Core_Classes_coreObj::getPage();
         $objRoute   = Core_Classes_coreObj::getRoute();
-        $objTPL     = Core_Classes_coreObj::getTPL();
 
         if( Core_Classes_User::$IS_ONLINE ){
             $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
@@ -276,6 +271,8 @@ class Modules_core extends Core_Classes_Module{
      */
     public function registerUserProcess(){
         $objTPL     = $this->setView('module/register_form/default.tpl');
+
+        echo dump( $_POST, 'POST' );
 
         $requiredFields = array(
             'username',
