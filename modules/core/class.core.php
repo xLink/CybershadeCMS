@@ -270,7 +270,8 @@ class Modules_core extends Core_Classes_Module{
      * @return bool
      */
     public function registerUserProcess(){
-        $objTPL     = $this->setView('module/register_form/default.tpl');
+        $objTPL = $this->setView('module/register_form/default.tpl');
+        $objTPL->assign_block_vars('register.errors', array());
 
         $requiredFields = array(
             'username',
@@ -282,6 +283,10 @@ class Modules_core extends Core_Classes_Module{
 
         foreach( $requiredFields as $requiredKey ){
             if( !array_key_exists($requiredKey, $_POST) || is_empty( $_POST[$requiredKey] ) ){
+                $objTPL->assign_block_vars('register.errors', array(
+                    'CLASS' => 'warning',
+                    'ERROR' => 'There seems to be something wrong with the form, one or more fields were not filled in',
+                ));
                 trigger_error('Missing required field, please go back and try again');
                 return false;
             }
@@ -294,10 +299,8 @@ class Modules_core extends Core_Classes_Module{
 
         $checkUserStatus = $objUser->validateUsername( $username, true );
 
-        $objTPL->assign_block_vars('register', array());
-
-        if( $checkUserStatus === true ){
-            $objTPL->assign_block_vars('errors', array(
+        if( !$checkUserStatus ){
+            $objTPL->assign_block_vars('register.errors', array(
                 'CLASS' => 'warning',
                 'ERROR' => 'There seems to be something wrong with the username choice, it could possibly be taken',
             ));
@@ -311,7 +314,7 @@ class Modules_core extends Core_Classes_Module{
 
         // Check passwords match
         if( ( $password !== $password_confirm ) ){
-            $objTPL->assign_block_vars('errors', array(
+            $objTPL->assign_block_vars('register.errors', array(
                 'CLASS' => 'warning',
                 'ERROR' => 'Passwords don\'t match or invalid complexity',
             ));
@@ -319,7 +322,7 @@ class Modules_core extends Core_Classes_Module{
             trigger_error('Passwords don\'t match or invalid complexity');
 
             // Redirect back
-            $objPage->redirect($_SERVER['HTTP_REFERER'], 3, 2);
+            $objPage->redirect($_SERVER['HTTP_REFERER'], 2, 3);
             return false;
         }
 
@@ -327,11 +330,14 @@ class Modules_core extends Core_Classes_Module{
         if( (preg_match( '/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/', $email ) === false)
             || ( $email !== $email_confirm ) ){
 
-            $objTPL->assign_block_vars('errors', array(
+            $objTPL->assign_block_vars('register.errors', array(
                 'CLASS' => 'warning',
                 'ERROR' => 'Email addresses did not match or they were invalid',
             ));
+
             trigger_error('Email addresses did not match or they were invalid');
+
+            $objPage->redirect($_SERVER['HTTP_REFERER'], 2, 3);
             return false;
         }
 
@@ -342,17 +348,22 @@ class Modules_core extends Core_Classes_Module{
         if( $userRegister ){
 
             // Message thanks for registering
-            $objTPL->assign_block_vars('errors', array(
+            $objTPL->assign_block_vars('register.errors', array(
                 'CLASS' => 'success',
-                'ERROR' => 'Successfully registered, Redirecting you back now',
+                'ERROR' => 'Successfully registered, Redirecting you back in 5 seconds...',
             ));
 
             $redirectSuccess = (isset($_SESSION['userRegister']['redirect']) && (!is_empty($_SESSION['userRegister']['redirect']))
                 ? $_SESSION['userRegister']['redirect']
                 : '/' . root());
 
-            $objPage->redirect($redirectSuccess, 1, 3);
+            /**
+             //
+             // -- Todo: Force Login?
+             //
+             */
 
+            $objPage->redirect($redirectSuccess, 5, 3);
             return true;
         }
         return false;

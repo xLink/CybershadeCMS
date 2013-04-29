@@ -468,17 +468,18 @@ class Core_Classes_User extends Core_Classes_coreObj {
      */
     public function validateUsername( $username, $exists=false ){
 
+
         if( strlen($username) > 25 || strlen($username) < 2 ){
             trigger_error('Username dosen\'t fall within usable length parameters. Between 2 and 25 characters long.');
             return false;
         }
 
-        if( preg_match('~[^a-z0-9_\-@^]~i', $username) ){
+        if( preg_match('~[^a-z0-9_\-@^]~i', $username, $matches) ){
             trigger_error('Username dosen\'t validate. Please ensure that you are using no special characters etc.');
             return false;
         }
 
-        if( $exists === true && $this->get('username', $username) === false ){
+        if( $exists === true && $this->get('username', $username) !== false ){
             trigger_error('Username alerady exists. Please make sure your username is unique.');
             return false;
         }
@@ -819,9 +820,9 @@ class Core_Classes_User extends Core_Classes_coreObj {
             $userData['username'],
             $siteName );
 
-        $mail = _mailer( $userData['email'], $siteEmail, sprintf('Registration Details From %s', $siteName ), $message  );
+        _mailer( $userData['email'], $siteEmail, sprintf('Registration Details From %s', $siteName ), $message  );
 
-        return $mail;
+        return true;
     }
 
 
