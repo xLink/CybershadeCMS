@@ -368,5 +368,101 @@ class Modules_core extends Core_Classes_Module{
         }
         return false;
     }
+
+    /**
+     * Forgot Password Form
+     *
+     * @author Richard Clifford
+     * @version 1.0.0
+     * @since 1.0.0
+     *
+     * @return void
+     */
+    public function forgotPasswordForm(){
+        $objForm    = Core_Classes_coreObj::getForm();
+        $objSession = Core_Classes_coreObj::getSession();
+        $objPage    = Core_Classes_coreObj::getPage();
+        $objRoute   = Core_Classes_coreObj::getRoute();
+
+        $form = $objForm->outputForm(
+            array(
+                'FORM_START'    => $objForm->start('forgot_password', array(
+                    'method' => 'POST',
+                    'action' => $objRoute->generateUrl('core_forgotPasswordForm_process'),
+                    'class'  => 'form-horizontal'
+                )),
+                'FORM_END'      => $objForm->finish(),
+                'HIDDEN'        => $objForm->inputbox('hash', 'hidden', $objSession->getFormToken(true)),
+
+                'FORM_TITLE'    => 'Forgot Password',
+                'FORM_RESET'    => $objForm->button('reset', 'Reset'),
+                'FORM_SUBMIT'   => $objForm->button('submit', 'Submit', array('class' => 'btn btn-success')),
+            ),
+            array(
+                'field' => array(
+                     langVar('L_USERNAME') => $objForm->inputbox('username', 'text', '', array(
+                        'class'    => 'icon username',
+                        'required' => true,
+                    )),
+                ),
+                'desc'      => array(),
+                'errors'    => $_SESSION['errors']['registration'],
+            ),
+            array(
+                'header' => '<h4>%s</h4>'
+            )
+        );
+
+        echo $form;
+    }
+
+    public function forgotPasswordFormProcess(){
+        // Grab the username from the post vars
+        $username = doArgs('username', null, $_POST);
+
+        if( is_null( $username ) ){
+            trigger_error('No username given');
+            return false;
+        }
+
+        $objSQL  = Core_Classes_coreObj::getDBO();
+        $isEmail = preg_match( '/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/', $username )
+        $uid     = null;
+
+        if( $isEmail ){
+            $uid = $objSQL->queryBuilder()
+                ->select('id')
+                ->from('#__users')
+                ->where('email', '=', $username)
+                ->limit(1);
+
+            $uid = $objSQL->fetchLine($uid->build());
+            $uid = (is_array( $uid ) && !is_empty( $uid ) : array_shift( $uid ));
+        } else {
+            Core_Classes_coreObj::getUser();
+            $uid = $objUser->getIDByUsername( $username );
+        }
+
+        $updatePasswordFlag = $objSQL->queryBuilder()
+            ->update('#__users')
+            ->set(array(
+                'password_update' => 1,
+            ))
+            ->where('id', '=', $uid)
+            ->limit(1);
+
+        $updatePasswordFlag = $objSQL->query( $updatePasswordFlag->build() );
+        if($updatePasswordFlag){
+            $email = '';
+            if( !$isEmail ){
+                $email = $objUser->get('email', $uid);
+                $email = (isset( $email['email'] ) ? $email['email'] : '');
+                // Grab email
+                // Send user email containing reset link
+                // Point to new forgot password form
+            }
+        }
+
+    }
 }
 ?>
