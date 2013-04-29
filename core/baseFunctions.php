@@ -94,6 +94,21 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         return (isset($args[$key]) && $extra ? $args[$key] : $default);
     }
 
+    /**
+     * Sends an email via the PHPMailer class
+     *
+     * @author Richard Clifford
+     * @version 1.0.0
+     * @since 1.0.0
+     *
+     * @param  string   $to
+     * @param  string   $from
+     * @param  string   $subject
+     * @param  string   $message
+     * @param  bool     $isHtml
+     *
+     * @return bool
+     */
     function _mailer($to, $from, $subject, $message,  $isHtml = false){
         $objMailer = Core_Classes_coreObj::getLib( 'phpmailer' );
         $objMailer->AddAddress($to);
@@ -101,7 +116,12 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $objMailer->From = $from;
         $objMailer->Subject = $subject;
         $objMailer->Body = $message;
-        return $objMailer->Send();
+        if(!$objMailer->Send()){
+            trigger_error('Could not send email, please check all settings are correct and try again');
+            return false;
+        }
+
+        return true;
     }
 
 

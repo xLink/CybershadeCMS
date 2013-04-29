@@ -272,8 +272,6 @@ class Modules_core extends Core_Classes_Module{
     public function registerUserProcess(){
         $objTPL     = $this->setView('module/register_form/default.tpl');
 
-        echo dump( $_POST, 'POST' );
-
         $requiredFields = array(
             'username',
             'password',
@@ -292,30 +290,43 @@ class Modules_core extends Core_Classes_Module{
 
         $objSQL  = Core_Classes_coreobj::getDBO();
         $objUser = Core_Classes_coreobj::getUser();
+        $objPage = Core_Classes_coreObj::getPage();
 
         $checkUserStatus = $objUser->validateUsername( $username, true );
 
-        if( !$checkUserStatus ){
+        $objTPL->assign_block_vars('register', array());
+
+        if( $checkUserStatus === true ){
             $objTPL->assign_block_vars('register.errors', array(
                 'CLASS' => 'warning',
                 'ERROR' => 'There seems to be something wrong with the username choice, it could possibly be taken',
             ));
 
             trigger_error('There seems to be something wrong with the username choice, it could possibly be taken');
+
             // Redirect back
+            $objPage->redirect($_SERVER['HTTP_REFERER'], 3, 2);
             return false;
         }
 
-        if( ( $password !== $password_confirm )  /* || ( Password does not meet requirements  )*/ ){
+        // Check passwords match
+        if( ( $password !== $password_confirm ) ){
             $objTPL->assign_block_vars('register.errors', array(
                 'CLASS' => 'warning',
                 'ERROR' => 'Passwords don\'t match or invalid complexity',
             ));
+
             trigger_error('Passwords don\'t match or invalid complexity');
+
+            // Redirect back
+            $objPage->redirect($_SERVER['HTTP_REFERER'], 3, 2);
             return false;
         }
 
-        if( ( $email !== $email_confirm ) /* || (  Email doesnt match Regex  ) */){
+        // Check emails match and is valid email
+        if( (preg_match( '/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/', $email ) === false)
+            || ( $email !== $email_confirm ) ){
+
             $objTPL->assign_block_vars('register.errors', array(
                 'CLASS' => 'warning',
                 'ERROR' => 'Email addresses did not match or they were invalid',
@@ -327,17 +338,23 @@ class Modules_core extends Core_Classes_Module{
         // All good, lets go
         $userRegister = $objUser->register($_POST);
 
+        // If we successfully registered the user
         if( $userRegister ){
+
+            // Message thanks for registering
             $objTPL->assign_block_vars('register.errors', array(
                 'CLASS' => 'success',
                 'ERROR' => 'Successfully registered, Redirecting you back now',
             ));
-            // $objPage->redirect();
-            // Message thanks for registering
-            // Redirect to referer
+
+            $redirectSuccess = (isset($_SESSION['userRegister']['redirect']) && (!is_empty($_SESSION['userRegister']['redirect']))
+                ? $_SESSION['userRegister']['redirect']
+                : '/' . root());
+
+            $objPage->redirect($redirectSuccess, 1, 3);
+
             return true;
         }
-
         return false;
     }
 }

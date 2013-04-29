@@ -24,8 +24,8 @@ class phpmailer
 	public $CharSet     = "iso-8859-1";
 	public $ContentType = "text/plain";
 	public $Encoding    = "8bit";
-	public $From        = "root@localhost";
-	public $FromName    = "root";
+	public $From        = "no-reply@cybershade.org";
+	public $FromName    = "no-reply";
 	public $to          = array();
 	public $cc          = array();
 	public $bcc         = array();
@@ -160,7 +160,8 @@ class phpmailer
 			$to .= sprintf(",%s", $this->bcc[$x][0]);
 
 		if(!mail($to, $this->Subject, $body, $header))
-			$this->error_handler("Could not instantiate mail()");
+			// $this->error_handler("Could not instantiate mail()");
+			trigger_error('Could not instantiate mail()');
 	}
 
 	// Send message via SMTP using PhpSMTP
