@@ -179,6 +179,17 @@ class Modules_core extends Core_Classes_Module{
 //-- Registration Processes
 //
 */
+    /**
+     * Registration Form for the user registration process
+     *
+     * @author Richard Clifford
+     * @version 1.0.0
+     * @since 1.0.0
+     *
+     * @todo Add disclaimer into the database and ensure it gets output here
+     *
+     * @return string
+     */
     public function registerUser(){
         $objForm    = Core_Classes_coreObj::getForm();
         $objSession = Core_Classes_coreObj::getSession();
@@ -187,15 +198,8 @@ class Modules_core extends Core_Classes_Module{
         $objTPL     = Core_Classes_coreObj::getTPL();
 
         if( Core_Classes_User::$IS_ONLINE ){
-            // $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
+            $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
         }
-
-        $disclaimer = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-                        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-                        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-                        consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-                        cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-                        proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
 
         $form = $objForm->outputForm(
             array(
@@ -258,9 +262,18 @@ class Modules_core extends Core_Classes_Module{
             )
         );
 
-        echo $form;
+        return $form;
     }
 
+    /**
+     * Registration Form processor for the User Registration Process
+     *
+     * @author Richard Clifford
+     * @version 1.0.0
+     * @since 1.0.0
+     *
+     * @return string
+     */
     public function registerUserProcess(){
         $objTPL     = $this->setView('module/register_form/default.tpl');
 
