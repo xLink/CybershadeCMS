@@ -188,7 +188,7 @@ class Modules_core extends Core_Classes_Module{
      *
      * @todo Add disclaimer into the database and ensure it gets output here
      *
-     * @return string
+     * @return void
      */
     public function registerUser(){
         $objForm    = Core_Classes_coreObj::getForm();
@@ -262,7 +262,7 @@ class Modules_core extends Core_Classes_Module{
             )
         );
 
-        return $form;
+        echo $form;
     }
 
     /**
@@ -272,7 +272,7 @@ class Modules_core extends Core_Classes_Module{
      * @version 1.0.0
      * @since 1.0.0
      *
-     * @return string
+     * @return bool
      */
     public function registerUserProcess(){
         $objTPL     = $this->setView('module/register_form/default.tpl');
