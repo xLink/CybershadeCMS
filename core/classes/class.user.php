@@ -155,7 +155,6 @@ class Core_Classes_User extends Core_Classes_coreObj {
             // any subsequent checks will be auto failed.
             if( $results === false || !count($results) ){
                 $this->userInfo[strtolower($uid)] = false;
-                trigger_error('Could not retreive information about the user - '.$uid);
                 return false;
             }
 
@@ -777,7 +776,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
         // Check if the userData is empty
         // If it isn't then update the table
         if( !is_empty( $userData ) ){
-            
+
             // Generate some extra vars
             $userData['password'] = $this->mkPassword( $userData['password'] );
             $userData['usercode'] = randCode();

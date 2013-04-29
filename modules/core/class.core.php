@@ -297,7 +297,7 @@ class Modules_core extends Core_Classes_Module{
         $objTPL->assign_block_vars('register', array());
 
         if( $checkUserStatus === true ){
-            $objTPL->assign_block_vars('register.errors', array(
+            $objTPL->assign_block_vars('errors', array(
                 'CLASS' => 'warning',
                 'ERROR' => 'There seems to be something wrong with the username choice, it could possibly be taken',
             ));
@@ -311,7 +311,7 @@ class Modules_core extends Core_Classes_Module{
 
         // Check passwords match
         if( ( $password !== $password_confirm ) ){
-            $objTPL->assign_block_vars('register.errors', array(
+            $objTPL->assign_block_vars('errors', array(
                 'CLASS' => 'warning',
                 'ERROR' => 'Passwords don\'t match or invalid complexity',
             ));
@@ -327,7 +327,7 @@ class Modules_core extends Core_Classes_Module{
         if( (preg_match( '/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/', $email ) === false)
             || ( $email !== $email_confirm ) ){
 
-            $objTPL->assign_block_vars('register.errors', array(
+            $objTPL->assign_block_vars('errors', array(
                 'CLASS' => 'warning',
                 'ERROR' => 'Email addresses did not match or they were invalid',
             ));
@@ -342,7 +342,7 @@ class Modules_core extends Core_Classes_Module{
         if( $userRegister ){
 
             // Message thanks for registering
-            $objTPL->assign_block_vars('register.errors', array(
+            $objTPL->assign_block_vars('errors', array(
                 'CLASS' => 'success',
                 'ERROR' => 'Successfully registered, Redirecting you back now',
             ));
