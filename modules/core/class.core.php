@@ -437,10 +437,14 @@ class Modules_core extends Core_Classes_Module{
                 ->limit(1);
 
             $uid = $objSQL->fetchLine($uid->build());
-            $uid = (is_array( $uid ) && !is_empty( $uid ) : array_shift( $uid ));
+            $uid = (is_array( $uid ) && !is_empty( $uid ) ? array_shift( $uid ) : 0);
         } else {
             Core_Classes_coreObj::getUser();
             $uid = $objUser->getIDByUsername( $username );
+        }
+
+        if( $uid === 0 ){
+            return false;
         }
 
         $updatePasswordFlag = $objSQL->queryBuilder()
