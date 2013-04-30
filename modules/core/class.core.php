@@ -420,7 +420,7 @@ class Modules_core extends Core_Classes_Module{
         // Grab the username from the post vars
         $username = doArgs('username', null, $_POST);
 
-        if( is_null( $username ) ){
+        if( is_empty( $username ) ){
             trigger_error('No username given');
             return false;
         }
@@ -443,8 +443,6 @@ class Modules_core extends Core_Classes_Module{
             $uid = $objUser->getIDByUsername( $username );
         }
 
-        echo dump( $uid, intval($isEmail) );
-
         if( $uid === 0 ){
             return false;
         }
@@ -458,15 +456,17 @@ class Modules_core extends Core_Classes_Module{
             ->limit(1);
 
         $updatePasswordFlag = $objSQL->query( $updatePasswordFlag->build() );
+
         if($updatePasswordFlag){
-            $email = '';
+
+            // Defaults to the passed in param
+            $email = $username;
+
             if( !$isEmail ){
                 $email = $objUser->get('email', $uid);
-                $email = (isset( $email['email'] ) ? $email['email'] : '');
-                // Grab email
-                // Send user email containing reset link
-                // Point to new forgot password form
             }
+            // Send user email containing reset link
+            // Point to new forgot password form
         }
 
     }
