@@ -426,8 +426,8 @@ class Modules_core extends Core_Classes_Module{
         }
 
         $objSQL  = Core_Classes_coreObj::getDBO();
-        $isEmail = preg_match( '/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/', $username );
-        $uid     = null;
+        $isEmail = preg_match( '/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', $username );
+        $uid = 0;
 
         if( $isEmail ){
             $uid = $objSQL->queryBuilder()
@@ -439,9 +439,11 @@ class Modules_core extends Core_Classes_Module{
             $uid = $objSQL->fetchLine($uid->build());
             $uid = (is_array( $uid ) && !is_empty( $uid ) ? array_shift( $uid ) : 0);
         } else {
-            Core_Classes_coreObj::getUser();
+            $objUser = Core_Classes_coreObj::getUser();
             $uid = $objUser->getIDByUsername( $username );
         }
+
+        echo dump( $uid, intval($isEmail) );
 
         if( $uid === 0 ){
             return false;
