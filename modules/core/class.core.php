@@ -468,7 +468,6 @@ class Modules_core extends Core_Classes_Module{
             // Send user email containing reset link
             // Point to new forgot password form
         }
-
     }
 }
 ?>
