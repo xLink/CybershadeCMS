@@ -426,7 +426,7 @@ class Modules_core extends Core_Classes_Module{
         }
 
         $objSQL  = Core_Classes_coreObj::getDBO();
-        $isEmail = preg_match( '/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/', $username )
+        $isEmail = preg_match( '/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/', $username );
         $uid     = null;
 
         if( $isEmail ){
