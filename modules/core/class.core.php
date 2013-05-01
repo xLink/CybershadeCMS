@@ -308,7 +308,7 @@ class Modules_core extends Core_Classes_Module{
             trigger_error('There seems to be something wrong with the username choice, it could possibly be taken');
 
             // Redirect back
-            $objPage->redirect($_SERVER['HTTP_REFERER'], 3, 2);
+            $objPage->redirect($_SERVER['HTTP_REFERER'], 5, 2);
             return false;
         }
 
@@ -322,7 +322,7 @@ class Modules_core extends Core_Classes_Module{
             trigger_error('Passwords don\'t match or invalid complexity');
 
             // Redirect back
-            $objPage->redirect($_SERVER['HTTP_REFERER'], 2, 3);
+            $objPage->redirect($_SERVER['HTTP_REFERER'], 5, 3);
             return false;
         }
 
@@ -337,7 +337,7 @@ class Modules_core extends Core_Classes_Module{
 
             trigger_error('Email addresses did not match or they were invalid');
 
-            $objPage->redirect($_SERVER['HTTP_REFERER'], 2, 3);
+            $objPage->redirect($_SERVER['HTTP_REFERER'], 5, 3);
             return false;
         }
 

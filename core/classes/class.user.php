@@ -478,8 +478,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
             trigger_error('Username dosen\'t validate. Please ensure that you are using no special characters etc.');
             return false;
         }
-
-        if( $exists === true && $this->get('username', $username) === false ){
+        if( $exists === true && $this->get('username', $username) ){
             trigger_error('Username already exists. Please make sure your username is unique.');
             return false;
         }
