@@ -19,8 +19,9 @@ class Core_Classes_Page extends Core_Classes_coreObj {
             $acpMode     = false;
 
     public function __construct() {
-        $this->options['simpleTPL'] = false;
-        $this->options['columns']   = 1;
+        $this->options['simpleTPL']   = false;
+        $this->options['simpleDebug'] = false;
+        $this->options['columns']     = 1;
     }
 
 /**
@@ -87,10 +88,12 @@ class Core_Classes_Page extends Core_Classes_coreObj {
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param bool $simple If true, then page is in simple mode, else FULL BLOWN!
+     * @param   bool $simple If true, then page is in simple mode, else FULL BLOWN!
+     * @param   bool $debug  True will allow the debug toolbar in the simple theme output
      */
-    public function setSimpleMode($simple) {
-        $this->setOptions('mode', ((bool) $simple===true ? true : false));
+    public function setSimpleMode($simple, $debug=false) {
+        $this->setOptions('mode',           ((bool) $simple===true ? true : false));
+        $this->setOptions('simpleDebug',    ((bool) $debug ===true ? true : false));
     }
 
     /**
@@ -100,8 +103,8 @@ class Core_Classes_Page extends Core_Classes_coreObj {
      * @since   1.0
      * @author  Dan Aldridge
      *
-     * @param string $moduleName Name of the module
-     * @param string $page_id    Page ID
+     * @param   string $moduleName Name of the module
+     * @param   string $page_id    Page ID
      *
      */
     public function setMenu($moduleName, $page_id='default') {
@@ -963,12 +966,21 @@ class Core_Classes_Page extends Core_Classes_coreObj {
 
         (cmsDEBUG ? memoryUsage('System: Finished Loading.') : '');
 
-        if ( defined('cmsDEBUG') && cmsDEBUG === true && (LOCALHOST || Core_Classes_User::$IS_ADMIN) ) {
+        // if debug is defined & we have it set to true, great!
+        if ( defined('cmsDEBUG') && cmsDEBUG === true ) {
 
-            $objDebug = Core_Classes_coreObj::getDebug();
-            $objTPL->assign_block_vars('debug', array(
-                'DEBUG' => $objDebug->output(),
-            ));
+            // being on localhost or an admin, gets us a step further!
+            if( LOCALHOST || Core_Classes_User::$IS_ADMIN ){
+
+                // doesn't matter what $simple is set to, if its true though, we need simpleDebug to be true to show it
+                if( $simple === false || ($simple === true && $this->getOptions('simpleDebug') === true) ){
+                    $objDebug = Core_Classes_coreObj::getDebug();
+                    $objTPL->assign_block_vars('debug', array(
+                        'DEBUG' => $objDebug->output(),
+                    ));
+                }
+
+            }
 
         }
 
