@@ -13,27 +13,59 @@ window.addEvent('domready', function() {
         })(window.jQuery);
     }
 
+    // submit forms that are loaded into a modal via ajax
     if( $$('form[data-async]').length ){
-        (function($) {
-            /** https://gist.github.com/havvg/3226804 **/
-            $('form[data-async]').live('submit', function(event) {
-                var $form = $(this);
-                var $target = $($form.attr('data-target'));
+        $$('form[data-async]').each(function(form){
+            form.addEvent('submit', function(e){
+                e.stop();
+                var target = form.get('data-target');
 
-                $.ajax({
-                    type: $form.attr('method'),
-                    url: $form.attr('action'),
-                    data: $form.serialize(),
+                var asyncForm = new Request({
+                    url: form.get('action'),
+                    method: form.get('method'),
 
-                    success: function(data, status) {
-                        $target.html(data);
+                    onRequest: function(){
+                        target.set('text', 'loading...');
+                    },
+                    onSuccess: function(responseText){
+                        target.set('html', responseText);
+                    },
+                    onFailure: function(){
+                        target.set('text', 'Sorry, your request failed.');
                     }
                 });
 
-                event.preventDefault();
+                asyncForm.send();
+                return;
             });
-
-        })(window.jQuery);
+        });
     }
 
+    // if we have any forms that are being loaded via ajax into a modal, then we need to load em here
+    if( $$('a[data-async][data-toggle="modal"]').length ){
+        $$('a[data-async][data-toggle="modal"]').each(function(ele){
+            ele.addEvent('click', function(e){
+                //e.preventDefault();
+                var target = $$(ele.get('href'))[0];
+
+                var asyncForm = new Request({
+                    url: ele.get('data-load'),
+                    method: 'get',
+
+                    onRequest: function(){
+                        target.set('text', 'loading...');
+                    },
+                    onSuccess: function(responseText){
+                        target.set('html', responseText);
+                    },
+                    onFailure: function(){
+                        target.set('text', 'Sorry, your request failed.');
+                    }
+                });
+
+                asyncForm.send();
+                return;
+            });
+        });
+    }
 });
