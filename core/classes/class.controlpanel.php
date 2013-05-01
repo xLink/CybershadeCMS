@@ -100,14 +100,15 @@ class Core_Classes_ControlPanel extends Core_Classes_Module{
             $path = sprintf($panels, $module).'panel.'.$args['method'].'.php';
                 if( file_exists($path) && is_readable($path) ){
                     require_once($path);
-                    (DEBUG ? debugLog($path, 'invokeRoute(): Loaded sub panel... ') : '');
+                    (DEBUG ? debugLog($args, 'invokeRoute(): Loaded sub panel... '.$path) : '');
                 }else{
                     trigger_error('Error: Could not load ACP Panel: '.$path);
                 }
 
             // then call to it like normal :D
             ob_start();
-                $method = reflectMethod($this->module.'_'.$args['method'], $args['args'][0], $args);
+                $method = array_shift($args['args']);
+                $method = reflectMethod($this->module.'_'.$args['method'], $method, $args['args']);
             Core_Classes_coreObj::getPage()->setVar('contents', ob_get_clean() );
 
         }else{
