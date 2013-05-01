@@ -5,9 +5,8 @@
 <title>{PAGE_TITLE} || {SITE_TITLE}</title>
 {_CSS}
 {_JS_HEADER}
-<link rel="stylesheet" href="/{THEME_ROOT}style.css" type="text/css" />
-
 </head>
 
 <body class="{PAGE_CLASS}">
 
+{CONTENT_BEFORE}

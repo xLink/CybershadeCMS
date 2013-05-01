@@ -100,3 +100,5 @@
             </ul><hr />
         </nav>
         <!-- END breadcrumbs -->
+
+        {CONTENT_BEFORE}

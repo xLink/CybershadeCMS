@@ -1,3 +1,4 @@
+{CONTENT_AFTER}
 </section>
 
 <footer>

@@ -15,6 +15,7 @@
             <a href="#" class="btn btn-primary">Save changes</a>
         </div>
     </div>
+    {CONTENT_AFTER}
 
     <div class="clearfix"></div>
 
