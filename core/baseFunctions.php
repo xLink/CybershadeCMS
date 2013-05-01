@@ -339,7 +339,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         if(strpos($useragent, 'Googlebot') !== false){              return 'Google Bot'; }
         if(strpos($useragent, 'msnbot') !== false){                 return 'MSN Bot'; }
         if(strpos($useragent, 'ia_archiver') !== false){            return 'Alexa Bot'; }
-        if(strpos($useragent, 'Bai§spider') !== false){            return 'Baidu Spider'; }
+        if(strpos($useragent, 'Baiduspider') !== false){            return 'Baidu Spider'; }
         if(strpos($useragent, 'curl') !== false){                   return 'cURL Bot'; }
         if(strpos($useragent, 'GameSpy') !== false){                return 'GameSpy HTTP'; }
         if(strpos($useragent, 'Gigabot') !== false){                return 'Giga Bot'; }
