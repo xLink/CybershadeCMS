@@ -67,10 +67,29 @@ var JSCMS = new Class({
         if (this.options.settings.debug) {
             console.log(what);
         }
+    },
+
+    notify: function(msg, options){
+        options = options || {
+            sticky:         false,
+            customClass:    null,
+            visibleTime:    2500,
+            title:          'Notification'
+        };
+
+        options.message = msg || '';
+
+        notifications.show(options);
     }
 });
 
 // MKAY GO
 window.addEvent('domready', function(){
     cscms = new JSCMS();
+
+    notifications = new Notimoo({
+        locationVtype: 'top',
+        locationHType: 'right'
+    });
+
 });

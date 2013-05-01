@@ -1,16 +1,17 @@
 <?php
 $styles = array();
 $styles['framework'] = array(
-    'cscms/debug.css', 
+    'cscms/debug.css',
     'famfam.css'
 );
 $styles['bootstrap'] = array(
-    'bootstrap/bootstrap.min.css', 
-    'bootstrap/bootstrap-responsive.min.css', 
+    'bootstrap/bootstrap.min.css',
+    'bootstrap/bootstrap-responsive.min.css',
     'cscms/default.css'
 );
 $styles['extras'] = array(
-    'fontawesome/font-awesome.css'
+    'fontawesome/font-awesome.css',
+    'notimoo.css',
 );
 
 $styles['codemirror'] = array(

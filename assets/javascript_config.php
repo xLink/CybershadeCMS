@@ -14,9 +14,8 @@ $scripts['framework'] = array(
 $scripts['extras'] = array(
     'jquery/jquery.bootstrap.js',
     'php.min.js',
-    // 'mootools/mootools.bootstrap.js',
 
-    //'growl.js',
+    'notimoo.js',
 
     'cscms/core.js',
     'cscms/cscms.js',

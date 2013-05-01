@@ -1,0 +1,30 @@
+.notimoo {
+
+    /* Don't touch here */
+    position: absolute;
+    z-index: 999; /* There are some cases where you'll need to change this if you're currently using a greater one in your project*/
+    cursor: pointer;
+    border-radius: 10px;
+
+    /* Change this to fit your needs*/
+    padding: 10px 10px 20px;
+    border: 1px;
+    border-style: solid;
+    border-color: #B2B2B2;
+    background: #474747;
+    background: rgba(71, 71, 71, 0.95);
+    color: #FFFFFF;
+}
+
+.notimoo .title {
+    font-weight: bold;
+    border-bottom: 1px solid;
+}
+
+.notimoo .message {
+    margin-top: 2px;
+}
+
+.notimoo a {
+    color: #FFFFFF;
+}
