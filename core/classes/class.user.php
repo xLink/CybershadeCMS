@@ -225,48 +225,6 @@ class Core_Classes_User extends Core_Classes_coreObj {
         return $info;
     }
 
-
-    /**
-     * Retrieves a Username by the given ID.
-     *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Dan Aldridge
-     *
-     * @param   int   $uid
-     *
-     * @return  string
-     */
-    public function getUsernameByID( $uid=0 ){
-        if( is_empty($uid) || !is_number($uid) || $uid == 0){
-            return false;
-        }
-
-        $return = $this->get('username', $uid);
-        return ($return === false ? 'Guest' : $return);
-    }
-
-
-    /**
-     * Retrieves a ID by the given username.
-     *
-     * @version 1.0
-     * @since   1.0.0
-     * @author  Dan Aldridge
-     *
-     * @param   string   $username
-     *
-     * @return  int
-     */
-    public function getIDByUsername( $username ){
-        if( is_empty($username) || !$this->validateUsername($username, true) ){
-            return 0;
-        }
-
-        $return = $this->get('id', $username);
-        return ($return === false ? 0 : $return);
-    }
-
     /**
      * Makes a Username up from the ident, optionally links it to profile
      *
@@ -474,7 +432,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
             return false;
         }
 
-        if( preg_match('~[^a-z0-9_\-@^]~i', $username, $matches) ){
+        if( preg_match('~[^a-z0-9_\-@^]~i', $username) ){
             trigger_error('Username dosen\'t validate. Please ensure that you are using no special characters etc.');
             return false;
         }
@@ -867,7 +825,7 @@ class Core_Classes_User extends Core_Classes_coreObj {
         $objSQL = Core_Classes_coreObj::getDBO();
 
         // Grab the user's id
-        $uid = $this->getIDByUsername( $username );
+        $uid = $this->get('id', $username );
 
         // if the username doesn't exist, return false;
         if( $uid === 0 ) {

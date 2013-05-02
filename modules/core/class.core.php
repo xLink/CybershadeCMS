@@ -440,7 +440,7 @@ class Modules_core extends Core_Classes_Module{
             $uid = (is_array( $uid ) && !is_empty( $uid ) ? array_shift( $uid ) : 0);
         } else {
             $objUser = Core_Classes_coreObj::getUser();
-            $uid = $objUser->getIDByUsername( $username );
+            $uid = $objUser->get( 'id', $username );
         }
 
         if( $uid === 0 ){
