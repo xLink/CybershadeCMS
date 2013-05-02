@@ -188,7 +188,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
             return false;
         }
 
-        // IP lock active, does the IP match what we have on file? 
+        // IP lock active, does the IP match what we have on file?
         if( $this->config('login', 'ip_lock', false) && $cookie['uIP'] !== Core_Classes_User::getIP() ){
             return false;
         }
@@ -308,7 +308,7 @@ class Core_Classes_Login extends Core_Classes_coreObj {
             ->set(array(
                 'login_attempts' => '(login_attempts + 1)'
             ))
-            ->where('sid', '=', $objUser->grab('userkey'))
+            ->where('sid', '=', md5( session_id() ))
             ->build();
         $objSQL->query( $query );
     }
