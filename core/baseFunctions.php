@@ -105,17 +105,57 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @param  string   $from
      * @param  string   $subject
      * @param  string   $message
-     * @param  bool     $isHtml
+     * @param  array    $extras
      *
      * @return bool
      */
-    function _mailer($to, $from, $subject, $message,  $isHtml = false){
+    function _mailer($to, $from, $subject, $message, $extras = array()){
         $objMailer = Core_Classes_coreObj::getLib( 'phpmailer' );
+
+        $isHTML   = doArgs('isHTML', false, $extras);
+        $charset  = doArgs('charset', 'iso-8859-1', $extras);
+        $encoding = doArgs('encoding', '8bit', $extras);
+        $cc       = doArgs('cc', array(), $extras);
+        $bcc      = doArgs('bcc', array(), $extras);
+        $replyTo  = doArgs('replyTo', array(), $extras);
+        $wordWrap = doArgs('wordwrap', false, $extras);
+
+        $objMailer->CharSet = $charset;
+        $objMailer->Encoding = $encoding;
+        $objMailer->WordWrap = $wordWrap;
+
+        // Add the cc recipients
+        if( is_array( $cc ) && !is_empty( $cc ) ){
+            foreach( $cc as $name => $ccRecipient ){
+                $name = ( !is_empty( $name ) && !is_number( $name ) ? $name : '' );
+                $objMailer->AddCC($ccRecipient, $name);
+            }
+        }
+
+        // Add the bcc Recipients
+        if( is_array( $bcc ) && !is_empty( $bcc ) ){
+            foreach( $bcc as $name => $bccRecipient ){
+                $name = ( !is_empty( $name ) && !is_number( $name ) ? $name : '' );
+                $objMailer->AddBCC($bccRecipient, $name);
+            }
+        }
+
+        // Add the Reply To
+        if( is_array( $replyTo ) && !is_empty( $replyTo ) ){
+            foreach( $replyTo as $name => $replyToRecipient ){
+                $name = ( !is_empty( $name ) && !is_number( $name ) ? $name : '' );
+                $objMailer->AddReplyTo($bccRecipient, $name);
+            }
+        }
+
         $objMailer->AddAddress($to);
         $objMailer->IsHTML($isHtml);
-        $objMailer->From = $from;
+        $objMailer->From    = $from;
         $objMailer->Subject = $subject;
-        $objMailer->Body = $message;
+        $objMailer->Body    = $message;
+
+        $objMailer->IsSendmail(true);
+
         if(!$objMailer->Send()){
             trigger_error('Could not send email, please check all settings are correct and try again');
             return false;
