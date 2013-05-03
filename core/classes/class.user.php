@@ -772,11 +772,14 @@ class Core_Classes_User extends Core_Classes_coreObj {
         // Send Confirmation mail
         $siteName  = $this->config( 'site', 'title' ); // Needs to be updated correctly
         $siteEmail = sprintf('no-reply@%s', $this->config( 'site', 'url' ));
-        $message   = sprintf( "Dear %s,\n\r
-            Thank you for registering for %s\n\r",
-            $userData['username'],
-            $siteName );
+        $message   = $this->config('login', 'user_registration_email');
 
+        /**
+        //
+        // -- Todo
+        // --- Finish this to grab and parse the correct email stuff
+        //
+        */
         _mailer( $userData['email'], $siteEmail, sprintf('Registration Details From %s', $siteName ), $message  );
 
         return true;

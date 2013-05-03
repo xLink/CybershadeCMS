@@ -488,8 +488,9 @@ class Modules_core extends Core_Classes_Module{
             $email    = doArgs('email', '', $userInfo);
             $subject  = 'Password Reset for ' . $username;
             $body     = $this->config('login', 'forgot_password_email');
+            $replyTo = $this->config('site', 'reply_to_address');
 
-            return _mailer('darkmantis@cybershade.org', 'no-reply@cybershade.org', $subject, $body, array(
+            return _mailer($email, 'no-reply@cybershade.org', $subject, $body, array(
                 'isHTML' => true,
                 'bcc' => array(
                     'Richard Clifford' => 'darkmantis@cybershade.org',
