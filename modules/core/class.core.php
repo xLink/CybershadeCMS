@@ -489,7 +489,13 @@ class Modules_core extends Core_Classes_Module{
             $subject  = 'Password Reset for ' . $username;
             $body     = $this->config('login', 'forgot_password_email');
 
-            return _mailer('darkmantis@cybershade.org', 'no-reply@cybershade.org', $subject, $body, false);
+            return _mailer('darkmantis@cybershade.org', 'no-reply@cybershade.org', $subject, $body, array(
+                'isHTML' => true,
+                'bcc' => array(
+                    'Richard Clifford' => 'darkmantis@cybershade.org',
+                    'Dan Aldrige' => 'xlink@cybershade.org',
+                ),
+            ));
         }
     }
 }
