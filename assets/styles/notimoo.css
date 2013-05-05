@@ -1,7 +1,7 @@
 .notimoo {
 
     /* Don't touch here */
-    position: absolute;
+    position: fixed;
     z-index: 999; /* There are some cases where you'll need to change this if you're currently using a greater one in your project*/
     cursor: pointer;
     border-radius: 10px;

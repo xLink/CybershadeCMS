@@ -69,6 +69,25 @@ var JSCMS = new Class({
         }
     },
 
+    fetchContent: function(url, options){
+        options = {
+            postData:   options.postData    || '',
+            method:     options.method      || 'get',
+            selector:   options.selector    || ''
+        };
+
+        var ajax = new Request({
+            url:    url,
+            method: options.method,
+
+            onSuccess: function(responseText){
+                $$(options.selector)[0].set('html', responseText);
+            }
+        });
+        ajax.send(options.postData);
+    },
+
+// Notification Methods
     notify: function(msg, options){
         options = options || {
             sticky:         false,
@@ -80,6 +99,35 @@ var JSCMS = new Class({
         options.message = msg || '';
 
         notifications.show(options);
+    },
+
+// Modal Methods
+    getModal: function(id, options){
+        if( jQuery('div#'+id).length === 0 ){
+            return false;
+        }
+
+        options = options || {};
+
+        jQuery('div#'+id).modal(options);
+    },
+
+    hideModal: function(id){
+        this.getModal(id, 'hide');
+    },
+
+    showModal: function(id){
+        this.getModal(id, 'show');
+    }
+
+});
+
+// Extend the request class to have our header in there.
+Request.implement({
+    options: {
+        headers: {
+            'X-CMS-IS': 'CSCMS'
+        }
     }
 });
 

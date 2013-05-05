@@ -2,15 +2,11 @@ window.addEvent('domready', function() {
 
     // Bootstrap stuff
     if( $$('[data-toggle="tooltip"]').length ){
-        (function($) {
-            $('[data-toggle="tooltip"]').tooltip();
-        })(window.jQuery);
+        jQuery('[data-toggle="tooltip"]').tooltip();
     }
 
     if( $$('[data-toggle="popover"]').length ){
-        (function($) {
-            $('[data-toggle="popover"]').popover();
-        })(window.jQuery);
+        jQuery('[data-toggle="popover"]').popover();
     }
 
     // if we have any forms that are being loaded via ajax into a modal, then we need to load em here
@@ -23,11 +19,7 @@ window.addEvent('domready', function() {
                 var asyncForm = new Request({
                     url: ele.get('data-load'),
                     method: 'get',
-                    headers: {'X-CMS-IS': 'CSCMS'},
 
-                    onRequest: function(){
-                        target.set('text', 'loading...');
-                    },
                     onSuccess: function(responseText){
                         target.set('html', responseText);
 
