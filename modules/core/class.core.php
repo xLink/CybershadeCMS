@@ -193,7 +193,7 @@ class Modules_core extends Core_Classes_Module{
         $objRoute   = Core_Classes_coreObj::getRoute();
 
         if( Core_Classes_User::$IS_ONLINE ){
-            $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
+            // $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
         }
 
         $form = $objForm->outputForm(
@@ -270,7 +270,12 @@ class Modules_core extends Core_Classes_Module{
      * @return bool
      */
     public function registerUserProcess(){
-        $objTPL = $this->setView('module/register_form/default.tpl');
+        $objTPL = Core_Classes_coreobj::getTPL();
+
+        $objTPL->set_filenames(array(
+            'body'  => '/'.cmsROOT.'module/register_form/default.tpl'
+        ));
+
         $objTPL->assign_block_vars('register.errors', array());
 
         $requiredFields = array(
@@ -288,6 +293,8 @@ class Modules_core extends Core_Classes_Module{
                     'ERROR' => 'There seems to be something wrong with the form, one or more fields were not filled in',
                 ));
                 trigger_error('Missing required field, please go back and try again');
+
+                $objTPL->parse('body', true);
                 return false;
             }
             ${$requiredKey} = $_POST[$requiredKey];
@@ -308,7 +315,8 @@ class Modules_core extends Core_Classes_Module{
             trigger_error('There seems to be something wrong with the username choice, it could possibly be taken');
 
             // Redirect back
-            $objPage->redirect($_SERVER['HTTP_REFERER'], 5, 2);
+            $objTPL->parse('body', true);
+            // $objPage->redirect($_SERVER['HTTP_REFERER'], 5, 2);
             return false;
         }
 
@@ -322,7 +330,8 @@ class Modules_core extends Core_Classes_Module{
             trigger_error('Passwords don\'t match or invalid complexity');
 
             // Redirect back
-            $objPage->redirect($_SERVER['HTTP_REFERER'], 5, 3);
+            $objTPL->parse('body', true);
+            // $objPage->redirect($_SERVER['HTTP_REFERER'], 5, 3);
             return false;
         }
 
@@ -337,7 +346,8 @@ class Modules_core extends Core_Classes_Module{
 
             trigger_error('Email addresses did not match or they were invalid');
 
-            $objPage->redirect($_SERVER['HTTP_REFERER'], 5, 3);
+            $objTPL->parse('body', true);
+            // $objPage->redirect($_SERVER['HTTP_REFERER'], 5, 3);
             return false;
         }
 
@@ -363,9 +373,12 @@ class Modules_core extends Core_Classes_Module{
              //
              */
 
-            $objPage->redirect($redirectSuccess, 5, 3);
+            $objTPL->parse('body', true);
+            // $objPage->redirect($redirectSuccess, 5, 3);
             return true;
         }
+
+        $objTPL->parse('body', true);
         return false;
     }
 
@@ -428,7 +441,6 @@ class Modules_core extends Core_Classes_Module{
         $objSQL  = Core_Classes_coreObj::getDBO();
         $isEmail = preg_match( '/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', $username );
         $uid = 0;
-
         if( $isEmail ){
             $uid = $objSQL->queryBuilder()
                 ->select('id')
@@ -458,15 +470,33 @@ class Modules_core extends Core_Classes_Module{
         $updatePasswordFlag = $objSQL->query( $updatePasswordFlag->build() );
 
         if($updatePasswordFlag){
-
             // Defaults to the passed in param
-            $email = $username;
+            $userInfo = array();
 
+            // Will make this more sexified
             if( !$isEmail ){
-                $email = $objUser->get('email', $uid);
+                $userInfo = $objUser->get('*', $uid);
+            } else {
+                $userInfo = $objUser->get('*', $username);
             }
-            // Send user email containing reset link
-            // Point to new forgot password form
+
+            if( is_empty( $userInfo ) ){
+                return false;
+            }
+
+            $username = doArgs('username', '', $userInfo);
+            $email    = doArgs('email', '', $userInfo);
+            $subject  = 'Password Reset for ' . $username;
+            $body     = $this->config('login', 'forgot_password_email');
+            $replyTo = $this->config('site', 'reply_to_address');
+
+            return _mailer($email, 'no-reply@cybershade.org', $subject, $body, array(
+                'isHTML' => true,
+                'bcc' => array(
+                    'Richard Clifford' => 'darkmantis@cybershade.org',
+                    'Dan Aldrige' => 'xlink@cybershade.org',
+                ),
+            ));
         }
     }
 }

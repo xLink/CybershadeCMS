@@ -119,8 +119,9 @@ class phpmailer
 
 	// Create message and assign to mailer
 	function Send() {
-		if(count($this->to) < 1)
-			$this->error_handler("You must provide at least one recipient email address");
+		if(count($this->to) < 1){
+			trigger_error("You must provide at least one recipient email address");
+		}
 
 		$header = $this->create_header();
 		$body = $this->create_body();
