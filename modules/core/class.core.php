@@ -273,7 +273,7 @@ class Modules_core extends Core_Classes_Module{
         $objTPL = Core_Classes_coreobj::getTPL();
 
         $objTPL->set_filenames(array(
-            'body'  => '/'.cmsROOT.'module/register_form/default.tpl'
+            'body'  => '/'.root().'modules/core/views/register_form/default.tpl'
         ));
 
         $objTPL->assign_block_vars('register.errors', array());
