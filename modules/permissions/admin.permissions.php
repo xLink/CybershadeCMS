@@ -27,6 +27,11 @@ class Admin_Modules_Permissions extends Core_Classes_Module{
         ));
     }
 
+/**
+  //
+  //-- User Perms
+  //
+**/
     /**
      *
      *
@@ -267,12 +272,12 @@ class Admin_Modules_Permissions extends Core_Classes_Module{
             ->orderBy('`order`', 'DESC')
             ->build();
 
-        $menus = $objSQL->fetchAll( $query, 'id' );
+        $groups = $objSQL->fetchAll( $query, 'id' );
 
-        foreach( $menus as $menu ) {
+        foreach( $groups as $group ) {
             $objTPL->assign_block_vars( 'list', array(
-                'URL'  => '/' . root() . 'admin/permissions/group/'.$menu['id'],
-                'NAME' => secureMe($menu['name'])
+                'URL'  => '/' . root() . 'admin/permissions/group/'.$group['id'],
+                'NAME' => secureMe($group['name'])
             ));
         }
 
@@ -457,5 +462,202 @@ class Admin_Modules_Permissions extends Core_Classes_Module{
             }
         }
     }
+
+/**
+  //
+  //-- [Group] Content ID Perms
+  //
+**/
+
+    public function getContentPerms($content_id, $permissions){
+        if( !is_number($content_id) || $content_id <= 0 ){
+            return false;
+        }
+
+        $objPerms = Core_Classes_coreObj::getPermissions();
+        $objTPL   = Core_Classes_coreObj::getTPL();
+        $objPage  = Core_Classes_coreObj::getPage();
+        $objForm  = Core_Classes_coreObj::getForm();
+        $objSQL   = Core_Classes_coreObj::getDBO();
+
+        if( HTTP_POST ){
+            $this->saveContentPerms();
+        }
+
+        $objPage->addJSFile('/'.root().'modules/permissions/assets/javascript/admin/permissions.js');
+        $objTPL->set_filenames(array(
+            'panel'  => cmsROOT. 'modules/permissions/views/admin/perms.content.tpl',
+        ));
+
+
+        // List the different types of groups
+        $query = $objSQL->queryBuilder()
+            ->select('id', 'name', 'order')
+            ->from('#__groups')
+            ->orderBy('`order`', 'DESC')
+            ->build();
+
+        $groups = $objSQL->fetchAll( $query, 'id' );
+
+        // grab a list of the perms we wanted
+        $permSet = $objPerms->getAll();
+
+        $perms = array();
+        foreach($permSet as $key => $perm){
+            // if we got an array, then we want to check if the perm is in there, else preg match on the keys to see if we got a match
+            if( ( is_array($permissions) && in_array($key, $permissions) ) ||
+                    ( !is_array($permissions) && preg_match('/'.$permissions.'/u', $key) ) ){
+
+                $perms[$key] = $perm;
+            }
+        }
+
+        // reset the blocks everytime this func is run, stops any bleed through
+        $objTPL->reset_block_vars( 'columns' );
+        $objTPL->reset_block_vars( 'row' );
+
+        // set this one so we have an offset
+        $objTPL->assign_block_vars( 'columns', array(
+            'NAME' => '&nbsp;',
+        ));
+
+
+        $columns = 1; $groupPerms = array();
+        // loop through the groups
+        foreach( $groups as $group ) {
+            $objTPL->assign_block_vars( 'columns', array(
+                'NAME' => secureMe($group['name']),
+            )); $columns++;
+            $groupPerms[ seo($group['name']) ] = $objPerms->getGroupPerms( array($group['id'] => $group['name']) );
+        }
+
+        // loop though the permissions
+        foreach($perms as $key => $perm){
+            $objTPL->assign_block_vars( 'row', array(
+                'KEY'   => $perm['key'],
+                'NAME'  => secureMe($perm['name']),
+            ));
+
+            foreach($groups as $group){
+                $objTPL->assign_block_vars( 'row.group', array(
+                    'NAME' => strtolower($group['name']),
+                ));
+                $permKey = strtolower($perm['key']);
+
+                if( !isset($groupPerms[ seo($group['name']) ][ $permKey ][ $content_id ]) ){
+                    $selected = 'x';
+                }else{
+                    if( $groupPerms[ seo($group['name']) ][ $permKey ][ $content_id ]['value'] === true ){
+                        $selected = '1';
+                    }else{
+                        $selected = '0';
+                    }
+                }
+
+                $selectBox = array(
+                    '1' => '<i class="' .
+                                ((string)$selected === '1' ? 'icon-check' : 'icon-check-empty') .
+                            '"></i> Allow',
+
+                    '0' => '<i class="' .
+                                ((string)$selected === '0' ? 'icon-check' : 'icon-check-empty') .
+                            '"></i> Deny',
+
+                    'x' => '<i class="' .
+                                ((string)$selected === 'x' ? 'icon-check' : 'icon-check-empty') .
+                            '"></i> Inherit ('.($groupPerms[ seo($group['name']) ][ $permKey ][0]['value'] ? 'Allow' : 'Deny').')',
+                );
+
+
+                $count = 0;
+                foreach($selectBox as $v => $name){
+                    $objTPL->assign_block_vars('row.group.values', array(
+                        'VALUE_KEY'  => $v,
+                        'VALUE_NAME' => $name,
+                        'COUNT'      => $count++,
+                        'SELECTED'   => ( (string)$selected === (string)$v ? 'active' : 'muted' ),
+                    ));
+                }
+            }
+
+        }
+
+        $formToken = $objForm->inputbox('form_token', 'hidden', Core_Classes_coreObj::getSession()->getFormToken(true));
+        $objTPL->assign_vars(array(
+            'FORM_START'  => $objForm->start('content_permissions', array('method'=>'POST', 'action' => $this->config('global', 'fullPath'), 'class'=>'form-horizontal')),
+            'FORM_END'    => $objForm->finish(),
+            'FORM_HIDDEN'  => $formToken . $objForm->inputbox('cid', 'hidden', $content_id),
+
+            'FORM_SUBMIT' => $objForm->button('submit', 'Save Permissions', array('class' => 'btn btn-info')),
+            'FORM_RESET'  => $objForm->button('reset', 'Reset'),
+        ));
+
+        return $objTPL->get_html('panel', false);
+    }
+
+    public function saveContentPerms(){
+        if( !HTTP_POST ){ return false; }
+        if( !isset($_POST['cid']) ){ return false; }
+
+        $objSQL     = Core_Classes_coreObj::getDBO();
+        $objSession = Core_Classes_coreObj::getSession();
+
+        if( $objSession->checkToken('form_token') === false ){
+            //die(sprintf($msg, 'Error: Token Mismatch. Send form from correct location.', 'error'));
+            return false;
+        }
+
+        // List the different types of groups
+        $query = $objSQL->queryBuilder()
+            ->select('id', 'name', 'order')
+            ->from('#__groups')
+            ->orderBy('`order`', 'DESC')
+            ->build();
+
+        $groups = $objSQL->fetchAll( $query, 'id' );
+        $content_id = doArgs('cid', '0', $_POST);
+        // loop though the groups see if we have any in the post
+        foreach( $groups as $group ){
+            if( !isset($_POST[ strtolower($group['name']) ]) ){
+                continue;
+            }
+
+            // loop thru all the perms in this group, taking appropriate action
+            // whilst i realize it may not be the best way, its the most solid way
+            foreach( $_POST[ strtolower($group['name']) ] as $perm => $value){
+                switch( $value ){
+                    // update the database with the allow/deny keys
+                    case '1':
+                    case '0':
+                        $query = $objSQL->queryBuilder()
+                            ->replaceInto('#__groups_perms')
+                            ->set(array(
+                                'permission_key'   => strtoupper($perm),
+                                'permission_value' => $value,
+                                'content_id'       => $content_id,
+                                'group_id'         => $group['id'],
+                            ));
+
+                        $results = $objSQL->query( $query->build() );
+                    break;
+
+                    // remove the permission from the table
+                    case 'x':
+                        $query = $objSQL->queryBuilder()
+                            ->deleteFrom('#__groups_perms')
+                            ->where( 'permission_key', '=', strtoupper($perm) )
+                                ->andWhere( 'group_id', '=', $group['id'] )
+                                ->andWhere( 'content_id', '=', $content_id)
+                            ->limit(1);
+
+                        $results = $objSQL->query( $query->build() );
+                    break;
+                }
+            }
+        }
+
+        return true;
+    }
+
 }
 ?>
