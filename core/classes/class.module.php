@@ -177,7 +177,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
      * @param   string $module
      * @param   array  $args
      *
-     * @return  mixed  
+     * @return  mixed
      */
     public static function getModule( $module, $args=array() ){
 
@@ -192,7 +192,7 @@ class Core_Classes_Module extends Core_Classes_coreObj{
 
                 // if we havent already got an instance, then create one
                 if( !isset(Core_Classes_coreObj::$_classes[$module]) ){
-                    $module::getInstance($module, $args); 
+                    $module::getInstance($module, $args);
                 }
 
                 return Core_Classes_coreObj::$_classes[$module];
@@ -206,6 +206,90 @@ class Core_Classes_Module extends Core_Classes_coreObj{
             'Method Args'   => $args,
         );
         trigger_error('Error: Module dosen\'t exist.'.dump($debug));
+        return false;
+    }
+
+    /**
+     * Returns new instance of a module
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $module
+     * @param   array  $args
+     *
+     * @return  mixed
+     */
+    public static function getAdminModule( $module, $args=array() ){
+
+        // check to see if we have called a get*() method
+        $module = strtolower($module);
+
+        // check to see if the module they are after is installed
+        if(true || self::moduleExists($module) && self::moduleInstalled($module) ){
+            // check class exists
+            $module = 'Admin_Modules_'.$module;
+            if( class_exists($module) ){
+
+                // if we havent already got an instance, then create one
+                if( !isset(Core_Classes_coreObj::$_classes[$module]) ){
+                    $module::getInstance($module, $args);
+                }
+
+                return Core_Classes_coreObj::$_classes[$module];
+            }
+        }
+
+        $debug = array(
+            'Class Name'    => self::getStaticClassName(),
+            'Method Called' => $module,
+            'Method Args'   => $args,
+        );
+        trigger_error('Error: Module dosen\'t exist.'.dump($debug));
+        return false;
+    }
+
+    /**
+     * Returns new instance of a module
+     *
+     * @version 1.0
+     * @since   1.0.0
+     * @author  Dan Aldridge
+     *
+     * @param   string $module
+     * @param   array  $args
+     *
+     * @return  mixed
+     */
+    public static function getUserModule( $module, $args=array() ){
+
+        // check to see if we have called a get*() method
+        $module = strtolower($module);
+
+        // check to see if the module they are after is installed
+        if(true || self::moduleExists($module) && self::moduleInstalled($module) ){
+            // check class exists
+            $module = 'User_Modules_'.$module;
+            if( class_exists($module) ){
+
+                // if we havent already got an instance, then create one
+                if( !isset(Core_Classes_coreObj::$_classes[$module]) ){
+                    $module::getInstance($module, $args);
+                }
+
+                return Core_Classes_coreObj::$_classes[$module];
+            }
+
+        }
+
+        $debug = array(
+            'Class Name'    => self::getStaticClassName(),
+            'Method Called' => $module,
+            'Method Args'   => $args,
+        );
+        trigger_error('Error: Module dosen\'t exist.'.dump($debug));
+        return false;
     }
 
 
