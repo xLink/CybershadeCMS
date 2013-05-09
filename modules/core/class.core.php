@@ -485,16 +485,25 @@ class Modules_core extends Core_Classes_Module{
             }
 
             $username = doArgs('username', '', $userInfo);
-            $email    = doArgs('email', '', $userInfo);
-            $subject  = 'Password Reset for ' . $username;
-            $body     = $this->config('login', 'forgot_password_email');
-            $replyTo = $this->config('site', 'reply_to_address');
+            $email    = doArgs('email',    '', $userInfo);
+            $subject  = 'Password Reset Request for ' . $username;
+            $emailBody = $this->config('email', 'forgot_password_email');
+            $objTPL   = Core_Classes_coreObj::getTPL();
 
-            return _mailer($email, 'no-reply@cybershade.org', $subject, $body, array(
+            $objTPL->assign_vars(array(
+                'USERNAME'   => $username,
+                'RESET_LINK' => 'http://'.$_SERVER['SERVER_NAME'].'/'.root().'forgotpass/'. $userInfo['usercode']
+            ));
+
+            $objTPL->parseString('emailBody', $emailBody, false);
+            $emailBody = $objTPL->get_html('emailBody');
+            $replyTo   = $this->config('site', 'reply_to_address');
+
+            return _mailer($email, 'no-reply@cybershade.org', $subject, $emailBody, array(
                 'isHTML' => true,
                 'bcc' => array(
                     'Richard Clifford' => 'darkmantis@cybershade.org',
-                    'Dan Aldrige' => 'xlink@cybershade.org',
+                    // 'Dan Aldrige'      => 'xlink@cybershade.org',
                 ),
             ));
         }
