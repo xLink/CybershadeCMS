@@ -78,6 +78,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
      */
     public function setTitle($title) {
         $objTPL = self::getTPL();
+        $this->setOptions('TITLE', secureMe($title));
         $objTPL->assign_var('PAGE_TITLE', secureMe($title));
     }
 
@@ -456,12 +457,14 @@ class Core_Classes_Page extends Core_Classes_coreObj {
                 'src'      => doArgs('src', false, $args),
                 'type'     => doArgs('type', 'text/javascript', $args),
                 'priority' => doArgs('priority', MED, $args),
+                'async'    => doArgs('async', 'async', $args),
             );
         } else {
             $js = array(
                 'src'      => doArgs(0, false, $args),
                 'type'     => doArgs(1, 'text/javascript', $args),
                 'priority' => doArgs(2, MED, $args),
+                'async'    => doArgs('async', 'async', $args),
             );
         }
 
@@ -879,6 +882,16 @@ class Core_Classes_Page extends Core_Classes_coreObj {
   //
   //-- Template Stuff
   //
+        $pageClass = array();
+
+        // grab the current path & normalize it
+            $path = $this->config('global', 'fullPath');
+            $path = str_replace('/'.root(), '', $path);
+            $path = substr($path, -1) == '/' ? substr($path, 0, -1) : $path;
+            $path = current( explode('?', $path) );
+            $path = preg_replace('/[^a-zA-Z0-9]/', '_', $path);
+        $pageClass[] = $path;
+
         $objTPL->assign_vars(array(
             'BREADCRUMBS'       => $this->buildBreadcrumbs(),
             '_CSS_SELECTORS'    => $this->getCSSSelectors(),
@@ -886,6 +899,7 @@ class Core_Classes_Page extends Core_Classes_coreObj {
             '_CSS'              => $this->buildCSS(),
             '_JS_HEADER'        => $this->buildJS('header'),
             '_JS_FOOTER'        => $this->buildJS('footer'),
+            'PAGE_CLASS'        => strtolower( trim( implode(' ', $pageClass) ) ),
         ));
     }
 
