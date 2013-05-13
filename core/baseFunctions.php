@@ -166,7 +166,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
 
     /**
-     * Run a function recursivly through an array
+     * Run a function recursively through an array
      * http://www.php.net/manual/en/function.array-walk-recursive.php#99639
      *
      * @author  bradbeattie [at] gmail [dot] com
