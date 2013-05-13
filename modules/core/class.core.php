@@ -484,11 +484,11 @@ class Modules_core extends Core_Classes_Module{
                 return false;
             }
 
-            $username = doArgs('username', '', $userInfo);
-            $email    = doArgs('email',    '', $userInfo);
-            $subject  = 'Password Reset Request for ' . $username;
+            $username  = doArgs('username', '', $userInfo);
+            $email     = doArgs('email',    '', $userInfo);
+            $subject   = 'Password Reset Request for ' . $username;
             $emailBody = $this->config('email', 'forgot_password_email');
-            $objTPL   = Core_Classes_coreObj::getTPL();
+            $objTPL    = Core_Classes_coreObj::getTPL();
 
             $objTPL->assign_vars(array(
                 'USERNAME'   => $username,
@@ -507,6 +507,43 @@ class Modules_core extends Core_Classes_Module{
                 ),
             ));
         }
+    }
+
+    public function forgotPasswordReset($usercode){
+        if( is_empty( $usercode ) ){
+            return false;
+        }
+        $objSQL = Core_Classes_coreobj::getDBO();
+        $query = $objSQL->queryBuilder()
+            ->select('password_update')
+            ->from('#__users')
+            ->where('usercode', '=', $usercode)
+            ->limit(1)
+            ->build();
+
+        $result = $objSQL->fetchLine( $query );
+
+        // User is good to reset their pass
+        if( !is_empty( $result ) ){
+            $objUser = Core_Classes_coreobj::getUser();
+            $newPassword = randCode(12);
+
+            $updateUserPass = $objSQL->queryBuilder()
+                ->update('#__users')
+                ->set(array(
+                    'password_update'  => '0',
+                    'password' => $objUser->mkPassword( $newPassword ),
+                ))
+                ->where('usercode', '=', $usercode)
+                ->limit(1)
+                ->build();
+
+            $updateResult = $objSQL->query( $updateUserPass );
+            if( $updateResult ){
+                // Email user with new password ( $newPassword )
+            }
+        }
+        return false;
     }
 }
 ?>
