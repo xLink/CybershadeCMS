@@ -20,8 +20,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      */
     function dump($var, $info = false, $color='', $specialFX=true) {
         if (file_exists('debug')) { return; }
-
-        $objPage   = Core_Classes_coreObj::getPage();
+        $objPage   = CSCMS\Core\Classes\coreObj::getPage();
         $scope     = false;
         $prefix    = 'unique';
         $suffix    = 'value';
@@ -321,7 +320,7 @@ defined('INDEX_CHECK') or die('Error: Cannot access directly.');
      * @return   mixed
      */
     function debugLog( $var, $message = '', $type = 'info' ){
-        $objDebug = Core_Classes_coreObj::getDebug();
+        $objDebug = CSCMS\Core\Classes\coreObj::getDebug();
         return $objDebug->log( $var, $message, $type );
     }
 

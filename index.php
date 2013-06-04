@@ -2,15 +2,16 @@
 /*======================================================================*\
 ||                 Cybershade CMS - Your CMS, Your Way                  ||
 \*======================================================================*/
+use CSCMS\Core\Classes as CoreClasses;
 define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 set_time_limit(0);
 require_once 'core/core.php';
 
-$objRoute = Core_Classes_coreObj::getRoute();
-$objPage  = Core_Classes_coreObj::getPage();
-$objTPL   = Core_Classes_coreObj::getTPL();
-$objDebug = Core_Classes_coreObj::getDebug();
+$objRoute = CoreClasses\coreObj::getRoute();
+$objPage  = CoreClasses\coreObj::getPage();
+$objTPL   = CoreClasses\coreObj::getTPL();
+$objDebug = CoreClasses\coreObj::getDebug();
 
 $objPage->setTheme();
 

@@ -2,7 +2,7 @@
 @import "bootstrap/mixins.less";
 @import "bootstrap/utilities.less";
 @import url('http://fonts.googleapis.com/css?family=Muli');
- 
+
 body{
     margin: 0;
     font-family: "Muli","Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -93,9 +93,9 @@ body{
                         border-right: 1px solid #41C9FF;
 
                         // each link
-                        li{
-                            //style the links
-                            a{
+                        > li{
+                            // style the links
+                            > a{
                                 color: white;
                                 text-shadow: 0 1px 0 #1d87ff;
 
@@ -106,10 +106,11 @@ body{
                                 .transition(box-shadow .25s linear);
                             }
 
-                            //add hovers, active class & the sub menus support
+                            // add hovers, active class & the sub menus support
                             &:hover, &.active, &.open{
                                 background: darken(#1eb2fc, 5%);
-                                a{
+
+                                > a{
                                     text-shadow: 0 1px 0 #000000;
                                     background: transparent;
                                     .box-shadow(0 3px 8px rgba(0, 0, 0, 0.5) inset);
@@ -120,43 +121,26 @@ body{
                             //sub menus
                             &.dropdown{
                                 ul.dropdown-menu{
-                                    padding: 0;
-                                    .box-shadow(0);
-                                    .border-radius(4px);
+
 
                                     li{
-                                        background: white;
-                                        padding: 3px;
-                                        .border-radius(4px);
-
-                                        a{
-                                            color: black;
-                                            padding: 5px;
-                                            .box-shadow(none);
-                                            .border-radius(4px);
-                                            border-left: 0;
-                                            border-right: 0;
-                                        }
-
                                         &:hover, &.active{
                                             a{
-                                                color: white;
-                                                background: darken(#1eb2fc, 5%);
-                                                .box-shadow(0 3px 8px rgba(0, 0, 0, 0.5) inset);
+                                                .navGradient();
                                             }
                                         }
                                     }
 
-                                    .divider{
-                                        height: 0;
-                                        padding: 0;
-                                        width: 80%;
-                                        margin: 0 auto;
-                                    }
+                            //         .divider{
+                            //             height: 0;
+                            //             padding: 0;
+                            //             width: 80%;
+                            //             margin: 0 auto;
+                            //         }
 
-                                    .nav-header{
-                                        padding-left: 10px;
-                                    }
+                            //         .nav-header{
+                            //             padding-left: 10px;
+                            //         }
 
                                 }
                             }
@@ -186,7 +170,7 @@ body{
                 #gradient > .vertical(#212121, #191919);
 
                 > div{
-                    display: inline-block; 
+                    display: inline-block;
                     width: 100%;
 
                     .pull-left{
@@ -275,16 +259,16 @@ body{
                 text-align: right;
 
                 a{
-                    display: inline-block; 
-                    width: 24px; 
-                    height: 24px; 
-                    margin: 0 0 0 8px; 
+                    display: inline-block;
+                    width: 24px;
+                    height: 24px;
+                    margin: 0 0 0 8px;
                     vertical-align: middle;
 
                     &:hover { background-position: left top; }
                 }
             }
-            
+
         }
     }
 
@@ -312,7 +296,9 @@ body{
 }
 
 .navGradient(){
-    #gradient > .vertical(#39b9ff, #2ba1ff);
+    //#gradient > .vertical(#39b9ff, #2ba1ff);
+    background-color: #00A6FF;
+    background-image: none;
 }
 
 

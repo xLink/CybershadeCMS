@@ -8,3 +8,5 @@ sublime.*
 cscms.sublime-*
 assets/images/avatars/*
 control.php
+vendor
+composer.lock

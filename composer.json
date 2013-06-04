@@ -1,0 +1,48 @@
+{
+
+    "name": "cybershade/cms",
+    "description": "Cybershade CMS.",
+    "keywords": ["cybershade", "cscms"],
+    "license": "GPL-3.0",
+    "authors": [
+        {
+            "name":                         "Dan Aldridge",
+            "email":                        "xlink@cybershade.org",
+            "homepage":                     "http://cysha.co.uk",
+            "role":                         "Developer"
+        },
+        {
+            "name":                         "Daniel Noel-Davies",
+            "email":                        "jesus@cybershade.org",
+            "homepage":                     "http://cysha.co.uk",
+            "role":                         "Developer"
+        },
+        {
+            "name":                         "Richard Clifford",
+            "email":                        "darkmantis@cybershade.org",
+            "homepage":                     "http://cysha.co.uk",
+            "role":                         "Developer"
+        }
+    ],
+    "support": {
+        "irc":                              "irc://irc.darchoods.net/cybershade",
+        "forums":                           "http://cybershade.org/community",
+        "source":                           "http://github.com/cybershade/cscms/"
+    },
+
+    "require": {
+        "php": ">=5.3.0",
+        "hautelook/phpass":                 "dev-master",
+        "phpmailer/phpmailer":              "dev-master",
+        "easybook/geshi":                   "dev-master",
+        "dflydev/markdown":                 "1.0.*@dev",
+        "mrclay/minify":                    "dev-master",
+        "rogeriopradoj/zero-clipboard":     "dev-master"
+
+    },
+
+    "autoload": {
+        "classmap": ["core/classes/", "core/drivers/"]
+    }
+
+}

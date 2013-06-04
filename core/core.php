@@ -94,42 +94,33 @@ if(function_exists('date_default_timezone_set')){
 //-- Classes Setup
 //
 **/
-require_once(cmsROOT.'core/classes/class.coreobj.php');
+$loader = require_once(cmsROOT.'vendor/autoload.php');
+//require_once(cmsROOT.'core/classes/coreobj.php');
 
 // AUTOLOADER, I Choose You!
-    // directories to use for the autoloading, these get glob'd over after
-    // $dirs = Core_Classes_coreObj::addClassDirs(array(
-    //     'classes'          => cmsROOT.'core/classes/*.php',
-    //     'libs'             => cmsROOT.'core/libs/*/class.*.php',
-    //     'drivers'          => cmsROOT.'core/drivers/driver.*.php',
-    //     'admin_panels'     => cmsROOT.'modules/*/admin.*.php',
-    //     'modules'          => cmsROOT.'modules/*/class.*.php',
-    //     'module_overrides' => cmsROOT.'themes/*/override/*/*.php',
-    // ));
-
-
 spl_autoload_extensions('.php');
-spl_autoload_register(array('Core_Classes_coreObj', 'loadClass'));
+spl_autoload_register(array($loader, 'loadClass'));
+//spl_autoload_register(array('coreObj', 'loadClass'));
+
+    $objCore    = new CSCMS\Core\Classes\coreObj;
+        $objCore->addConfig($config);
 // echo dump($dirs, 'Loading Classes From', 'orange');exit;
 
-    $objCore    = new Core_Classes_coreObj;
-    $objCore->addConfig($config);
-
     // Instance plugins so we can add hooks as early as possible.
-    $objPlugin  = Core_Classes_coreObj::getPlugins();
+    $objPlugin  = $objCore::getPlugins();
 
 $objPlugin->hook('CMS_PRE_SETUP_COMPLETE');
 
-    $objCache   = Core_Classes_coreObj::getCache();
+    $objCache   = $objCore::getCache();
 
-    $confCache = $objCache->load( 'config' );
-    $objCore->addConfig($confCache);
+    $confCache  = $objCache->load( 'config' );
+        $objCore->addConfig($confCache);
 
-    $objSession = Core_Classes_coreObj::getSession();
+    $objSession = $objCore::getSession();
         $objSession->trackerInit();
 
-    $objDebug   = Core_Classes_coreObj::getDebug();
-    $objRoute   = Core_Classes_coreObj::getRoute();
+    $objDebug   = $objCore::getDebug();
+    $objRoute   = $objCore::getRoute();
         $objRoute->modifyGET();
 
         if( is_object($objDebug) ){

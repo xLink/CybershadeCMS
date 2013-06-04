@@ -5,7 +5,6 @@
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 // Misc
-
     define('CSCMS', true);
     define('CMS_VERSION', '1.0.0');
     define('CMS_VERSION_ID', '10000');
