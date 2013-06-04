@@ -100,7 +100,7 @@ $loader = require_once(cmsROOT.'vendor/autoload.php');
 // AUTOLOADER, I Choose You!
 spl_autoload_extensions('.php');
 spl_autoload_register(array($loader, 'loadClass'));
-//spl_autoload_register(array('coreObj', 'loadClass'));
+spl_autoload_register(array('CSCMS\Core\Classes\coreObj', 'loadClass'));
 
     $objCore    = new CSCMS\Core\Classes\coreObj;
         $objCore->addConfig($config);

@@ -323,7 +323,7 @@ class Route extends coreObj{
 
         if( is_readable( sprintf($path, $objUser->grab('theme'), $_module, $method) ) === true ){
 
-            $overrideClass = '\Override_Modules_'.$_module.'_'.$method;
+            $overrideClass = 'Override_Modules_'.$_module.'_'.$method;
             $getMethod = new \ReflectionMethod( $overrideClass, $method );
 
             // test to see if its callable, & declared in the right bloody class >.<
@@ -337,7 +337,7 @@ class Route extends coreObj{
         }
 
         // Retrieve the info we need about the class and method
-        $refMethod = new \ReflectionMethod( '\\'.$module, $method );
+        $refMethod = new \ReflectionMethod( $module, $method );
         $params    = $refMethod->getParameters( );
         $args      = array( );
 
@@ -371,6 +371,7 @@ class Route extends coreObj{
         // start output buffering just incase we need to echo it out
         ob_start();
 
+        $module = '\\'.$module;
         $objModule = new $module;
         $objModule->setVars(array(
             '_method' => $method,
