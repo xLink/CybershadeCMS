@@ -3,6 +3,7 @@
 ||                 Cybershade CMS - Your CMS, Your Way                  ||
 \*======================================================================*/
 namespace CSCMS\Core\Classes;
+use Hautelook\Phpass\PasswordHash;
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
 
@@ -800,7 +801,7 @@ class User extends coreObj {
      * @return string
      */
     public function mkPassword( $password, $salt='' ) {
-        $objPass = coreObj::getLib('phpass', array( 8, true ));
+        $objPass = new PasswordHash( 8, true );
 
         $hashed = $objPass->hashPassword( $salt . $password );
 
@@ -837,10 +838,11 @@ class User extends coreObj {
         }
 
         // Grab the phpass library
-        $objPass = coreObj::getLib('phpass', array( 8, true ));
+        $objPass = new PasswordHash( 8, true );
 
         // Fetch the hashed password from the database
         $hash = $this->get( 'password', $uid );
+
         if( $objPass->CheckPassword( $password, $hash ) ) {
             return true;
         }

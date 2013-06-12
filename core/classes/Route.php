@@ -306,7 +306,7 @@ class Route extends coreObj{
         }
 
         // We assume the invoke is a module call, Let's go!
-        $module = $route['arguments']['module'];
+        $module = 'CSCMS\\Modules\\'.$route['arguments']['module'];
         $method = $route['arguments']['method'];
 
         // Check the class and subsequent method are callable, else trigger an error
@@ -371,7 +371,6 @@ class Route extends coreObj{
         // start output buffering just incase we need to echo it out
         ob_start();
 
-        $module = '\\'.$module;
         $objModule = new $module;
         $objModule->setVars(array(
             '_method' => $method,

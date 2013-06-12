@@ -35,7 +35,8 @@ class Module extends coreObj{
         $objUser = coreObj::getUser();
 
         $classPrefixes = array('Modules_', 'Admin_', 'User_');
-        $module = $this->getVar('_module');
+        $module = explode('\\', $this->getVar('_module'));
+        $module = strtolower( end($module) );
         $method = $this->getVar('_method');
         $view   = str_replace('.tpl', '', $view);
 
@@ -43,19 +44,8 @@ class Module extends coreObj{
 
         if( is_empty($view) ){
             trigger_error('You did not set a view for this method.');
-            return false;
+            return $objTPL;
         }
-
-        // Allow Developers to test custom views
-        /*if( !empty( $_GET['view'] ) ) { // @TODO Add && IS_ADMIN
-            $tempPath = sprintf('modules/%s/views/%s.tpl', $module, $_GET['view']);
-            if( is_readable( $tempPath ) ) {
-                $view = $_GET['view'];
-            } else {
-                trigger_error('The view overide you attempted to use dow work');
-                return false;
-            }
-        }*/
 
         // define a path for the views, & check for an override within there too
         $path = sprintf('modules/%s/views/%s.tpl', str_replace( $classPrefixes, '', $module), $view);
@@ -70,7 +60,7 @@ class Module extends coreObj{
 
         if( !is_file($path) ){
             trigger_error($path.' is not a valid path');
-            return false;
+            return $objTPL;
         }
 
         $objTPL->set_filenames(array(

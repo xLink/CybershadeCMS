@@ -59,61 +59,34 @@ class coreObj {
      * @return  bool
      */
     public static function loadClass($class) {
+//echo dump($class, 'init');
+        if ( class_exists($class) || interface_exists($class) ){ return; }
 
-        if ( !class_exists($class) && !interface_exists($class) ){
+        $_class = $class;
+        $fp = explode('\\', $class);
+        array_shift($fp);
+        $fp = array_map('strtolower', $fp);
 
-            // explode the classname by _'s
-            $fp = explode('_', $class);
 
-            // grab the class name, and sprintf it into a filename
-            $fn = array_pop($fp);
-            $file = sprintf('class.%s.php', $fn);
-            $fp = array_map('strtolower', $fp);
+        switch( strtolower($fp[0]) ){
 
-            // handle the modules, their dir structure is a little off
-            switch( $fp[0] ){
-                // modules just need the module adding to the path
-                case 'modules':
-                    $fp[] = $fn;
-                break;
+            case 'modules':
+                $module = end($fp);
+                $file = sprintf('class.%s.php', $module );
+                $file = strtolower($file);
 
-                case 'admin':
-                case 'user':
-                    $acp = array();
-                    if( $fp[1] == 'modules' ){
-                        $acp[] = 'modules';
-                    }
-                    $acp[] = $fn;
+                $fp[] = $file;
+            break;
 
-                    $fp = $acp;
-                break;
 
-                // override means they are doing something from the themes folder, so we need to account for that by
-                // throwing in the theme name and making sure the directory route is right
-                case 'override':
-                    $fp = array_reverse($fp);
-                    $fp[] = self::config('site', 'theme');
-                    $fp[] = 'themes';
-                    $fp = array_reverse($fp);
-                    $fp[] = $fn;
+        }
 
-                break;
-            }
+//echo dump($fp, $file);
+        $fp = implode('/', $fp);
 
-            // re-add the filename into the mix and implode it to make the filepath
-            if( $fp[0] == 'core' ){
-                $fp[] = strtolower($file);
-            }else{
-                $fp[] = ( isset($acp) ? str_replace('class.', 'admin.', $file) : $file );
-            }
-
-            $fp = implode('/', $fp);
-
-            if( file_exists($fp) && !is_dir($fp) ){
-                include_once($fp);
-                return true;
-            }
-
+        if( file_exists($fp) && !is_dir($fp) ){
+            include_once($fp);
+            return true;
         }
 
         trigger_error('No File found for this Class. '.$class.'. Tried File: '.$fp, E_USER_ERROR);
