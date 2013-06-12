@@ -2,12 +2,16 @@
 /*======================================================================*\
 ||                 Cybershade CMS - Your CMS, Your Way                  ||
 \*======================================================================*/
+namespace CSCMS\Modules;
+use CSCMS\Core\Classes as CoreClasses;
+use CSCMS\Core\Classes\coreObj as coreObj;
+
 defined('INDEX_CHECK') or die('Error: Cannot access directly.');
 
-class Modules_core extends Core_Classes_Module{
+class Core extends CoreClasses\Module{
 
     public function __construct(){
-        $objPage = Core_Classes_coreobj::getPage();
+        $objPage = coreobj::getPage();
         $objPage->setMenu('core');
 
     }
@@ -24,14 +28,14 @@ class Modules_core extends Core_Classes_Module{
 **/
 
     public function loginForm(){
-        $objForm    = Core_Classes_coreObj::getForm();
-        $objSession = Core_Classes_coreObj::getSession();
-        $objPage    = Core_Classes_coreObj::getPage();
-        $objLogin   = Core_Classes_coreObj::getLogin();
-        $objRoute   = Core_Classes_coreObj::getRoute();
+        $objForm    = coreObj::getForm();
+        $objSession = coreObj::getSession();
+        $objPage    = coreObj::getPage();
+        $objLogin   = coreObj::getLogin();
+        $objRoute   = coreObj::getRoute();
         $objTPL     = $this->setView('module/login_form/default.tpl');
 
-        if( Core_Classes_User::$IS_ONLINE ){
+        if( CoreClasses\User::$IS_ONLINE ){
             $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
         }
 
@@ -85,17 +89,17 @@ class Modules_core extends Core_Classes_Module{
     }
 
     public function blockLogin( $block ){
-        $objTPL     = Core_Classes_coreObj::getTPL();
-        $objForm    = Core_Classes_coreObj::getForm();
-        $objSession = Core_Classes_coreObj::getSession();
-        $objPage    = Core_Classes_coreObj::getPage();
-        $objRoute   = Core_Classes_coreObj::getRoute();
+        $objTPL     = coreObj::getTPL();
+        $objForm    = coreObj::getForm();
+        $objSession = coreObj::getSession();
+        $objPage    = coreObj::getPage();
+        $objRoute   = coreObj::getRoute();
 
         return '<div class="progress progress-success progress-striped active" style="margin: 0;">
         <div class="bar" style="width: 45%"></div>
       </div>';
 
-        if( Core_Classes_User::$IS_ONLINE ){
+        if( User::$IS_ONLINE ){
             $objPage->redirect($objRoute->generateUrl('core_viewIndex'));
         }
 
@@ -152,9 +156,9 @@ class Modules_core extends Core_Classes_Module{
     }
 
     public function loginForm_process(){
-        $objLogin = Core_Classes_coreObj::getLogin();
-        $objPage  = Core_Classes_coreObj::getPage();
-        $objRoute = Core_Classes_coreObj::getRoute();
+        $objLogin = coreObj::getLogin();
+        $objPage  = coreObj::getPage();
+        $objRoute = coreObj::getRoute();
 
         if( $objLogin->process() !== true ){
             $this->loginForm();
@@ -165,7 +169,7 @@ class Modules_core extends Core_Classes_Module{
     }
 
     public function logout(){
-        $objLogin = Core_Classes_coreObj::getLogin();
+        $objLogin = coreObj::getLogin();
         $objLogin->logout($_GET['check']);
     }
 
@@ -187,12 +191,12 @@ class Modules_core extends Core_Classes_Module{
      * @return void
      */
     public function registerUser(){
-        $objForm    = Core_Classes_coreObj::getForm();
-        $objSession = Core_Classes_coreObj::getSession();
-        $objPage    = Core_Classes_coreObj::getPage();
-        $objRoute   = Core_Classes_coreObj::getRoute();
+        $objForm    = coreObj::getForm();
+        $objSession = coreObj::getSession();
+        $objPage    = coreObj::getPage();
+        $objRoute   = coreObj::getRoute();
 
-        if( Core_Classes_User::$IS_ONLINE ){
+        if( User::$IS_ONLINE ){
             // $objPage->redirect( $objRoute->generateUrl('core_viewIndex') );
         }
 
@@ -270,7 +274,7 @@ class Modules_core extends Core_Classes_Module{
      * @return bool
      */
     public function registerUserProcess(){
-        $objTPL = Core_Classes_coreobj::getTPL();
+        $objTPL = coreobj::getTPL();
 
         $objTPL->set_filenames(array(
             'body'  => '/'.root().'modules/core/views/register_form/default.tpl'
@@ -300,9 +304,9 @@ class Modules_core extends Core_Classes_Module{
             ${$requiredKey} = $_POST[$requiredKey];
         }
 
-        $objSQL  = Core_Classes_coreobj::getDBO();
-        $objUser = Core_Classes_coreobj::getUser();
-        $objPage = Core_Classes_coreObj::getPage();
+        $objSQL  = coreobj::getDBO();
+        $objUser = coreobj::getUser();
+        $objPage = coreObj::getPage();
 
         $checkUserStatus = $objUser->validateUsername( $username, true );
 
@@ -392,10 +396,10 @@ class Modules_core extends Core_Classes_Module{
      * @return void
      */
     public function forgotPasswordForm(){
-        $objForm    = Core_Classes_coreObj::getForm();
-        $objSession = Core_Classes_coreObj::getSession();
-        $objPage    = Core_Classes_coreObj::getPage();
-        $objRoute   = Core_Classes_coreObj::getRoute();
+        $objForm    = coreObj::getForm();
+        $objSession = coreObj::getSession();
+        $objPage    = coreObj::getPage();
+        $objRoute   = coreObj::getRoute();
 
         $form = $objForm->outputForm(
             array(
@@ -438,7 +442,7 @@ class Modules_core extends Core_Classes_Module{
             return false;
         }
 
-        $objSQL  = Core_Classes_coreObj::getDBO();
+        $objSQL  = coreObj::getDBO();
         $isEmail = preg_match( '/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', $username );
         $uid = 0;
         if( $isEmail ){
@@ -451,7 +455,7 @@ class Modules_core extends Core_Classes_Module{
             $uid = $objSQL->fetchLine($uid->build());
             $uid = (is_array( $uid ) && !is_empty( $uid ) ? array_shift( $uid ) : 0);
         } else {
-            $objUser = Core_Classes_coreObj::getUser();
+            $objUser = coreObj::getUser();
             $uid = $objUser->get( 'id', $username );
         }
 
@@ -488,7 +492,7 @@ class Modules_core extends Core_Classes_Module{
             $email     = doArgs('email',    '', $userInfo);
             $subject   = 'Password Reset Request for ' . $username;
             $emailBody = $this->config('email', 'forgot_password_email');
-            $objTPL    = Core_Classes_coreObj::getTPL();
+            $objTPL    = coreObj::getTPL();
 
             $objTPL->assign_vars(array(
                 'USERNAME'   => $username,
@@ -513,7 +517,7 @@ class Modules_core extends Core_Classes_Module{
         if( is_empty( $usercode ) ){
             return false;
         }
-        $objSQL = Core_Classes_coreobj::getDBO();
+        $objSQL = coreobj::getDBO();
         $query = $objSQL->queryBuilder()
             ->select('password_update')
             ->from('#__users')
@@ -525,7 +529,7 @@ class Modules_core extends Core_Classes_Module{
 
         // User is good to reset their pass
         if( !is_empty( $result ) ){
-            $objUser = Core_Classes_coreobj::getUser();
+            $objUser = coreobj::getUser();
             $newPassword = randCode(12);
 
             $updateUserPass = $objSQL->queryBuilder()
