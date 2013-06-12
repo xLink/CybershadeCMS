@@ -114,6 +114,10 @@ ul, ul ul {
         color: white;
     }
 
+    div#debug-tabs div.tab-pane table{
+        color: white;
+    }
+
     div#debug-tabs div.tab-pane.queries table{
         border: 1px solid #343434;
         padding: 3px;

@@ -2,6 +2,8 @@
 /*======================================================================*\
 ||              Cybershade CMS - Your CMS, Your Way                     ||
 \*======================================================================*/
+use CSCMS\Core\Classes as CoreClasses;
+use CSCMS\Core\Classes\coreObj;
 if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
 /**
@@ -110,7 +112,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @return bool
      */
     function _mailer($to, $from, $subject, $message, $extras = array()){
-        $objMailer = CSCMS\Core\Classes\coreObj::getLib( 'phpmailer' );
+        $objMailer = coreObj::getLib( 'phpmailer' );
 
         $isHTML   = doArgs('isHTML', false, $extras);
         $charset  = doArgs('charset', 'iso-8859-1', $extras);
@@ -438,7 +440,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @return  string
      */
     function langVar(){
-        $_lang = CSCMS\Core\Classes\coreObj::$_lang;
+        $_lang = coreObj::$_lang;
 
         //get how many arguments the function received
         $args = func_get_args();
@@ -480,14 +482,14 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
         $return = false;
         if( is_file($file) && is_readable($file) ){
-            $objPage = CSCMS\Core\Classes\coreObj::getPage();
+            $objPage = coreObj::getPage();
             $objPage->langFiles = array_merge($objPage->langFiles, array($file));
 
             $_lang = array();
             include_once($file);
 
             if( is_array($_lang) && count($_lang)>1 ){
-                CSCMS\Core\Classes\coreObj::$_lang = array_merge(CSCMS\Core\Classes\coreObj::$_lang, $_lang);
+                coreObj::$_lang = array_merge(coreObj::$_lang, $_lang);
             }
 
             $return = true;
@@ -596,7 +598,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @return  string
      */
     function secureMe($string, $mode='html'){
-        $objSQL = CSCMS\Core\Classes\coreObj::getDBO();
+        $objSQL = coreObj::getDBO();
 
         switch(strtolower($mode)){
             case 'html':
@@ -797,7 +799,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @since   1.0.0
      */
     function doImage($content) {
-        $objBBCode = CSCMS\Core\Classes\coreObj::getLib('BBCode');
+        $objBBCode = coreObj::getLib('BBCode');
 
         $content = trim($objBBCode->UnHTMLEncode(strip_tags($content)));
         if (preg_match("/\\.(?:gif|jpeg|jpg|jpe|png)$/", $content)) {
@@ -847,7 +849,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
             case 'markdown':
             case 'gh_markdown':
-                $objMarkdown = CSCMS\Core\Classes\coreObj::getLib( $args['type'].'_parser' );
+                $objMarkdown = $args['type'].'_parser';
 
                 if( $args['return'] === true ){
                     return $objMarkdown->transform( $content );
@@ -857,7 +859,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
 
             case 'bbcode':
                 //load a new instance up
-                $objBBCode = CSCMS\Core\Classes\coreObj::getLib('BBCode');
+                $objBBCode = coreObj::getLib('BBCode');
 
                 //load in the smilies
                 $objBBCode->SetSmileyDir('/'.root().'assets/images/smilies');
@@ -924,9 +926,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @since   1.0.0
      */
     function msg($msg_type, $message, $tplVar=NULL, $title=NULL){
-        $objPage = CSCMS\Core\Classes\coreObj::getPage();
-        $objTPL = CSCMS\Core\Classes\coreObj::getTPL();
-        $objModule = CSCMS\Core\Classes\coreObj::getModule();
+        $objPage = coreObj::getPage();
+        $objTPL = coreObj::getTPL();
+        $objModule = coreObj::getModule();
 
         if(!is_object($objTPL) || !is_object($objPage)){ echo $message; exit; }
 
@@ -978,9 +980,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @return  bool
      */
     function confirmMsg($type, $msg, $title=NULL, $tplVar=NULL){
-        $objPage = CSCMS\Core\Classes\coreObj::getPage();
-        $objForm = CSCMS\Core\Classes\coreObj::getForm();
-        $objUser = CSCMS\Core\Classes\coreObj::getUser();
+        $objPage = coreObj::getPage();
+        $objForm = coreObj::getForm();
+        $objUser = coreObj::getUser();
 
         //check if we have confirmed either way yet
         if(!HTTP_POST){
@@ -1035,8 +1037,8 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @since   0.6.0
      */
     function msgDie($msg_type, $message, $line=null, $file=null, $query=null, $footer=true){
-        $objTPL = CSCMS\Core\Classes\coreObj::getTPL();
-        $objPage = CSCMS\Core\Classes\coreObj::getPage();
+        $objTPL = coreObj::getTPL();
+        $objPage = coreObj::getPage();
 
         //if(!is_object($objTPL) || !is_object($objPage)){ echo $message; exit; }
 
@@ -1083,7 +1085,7 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
      * @since    0.8.0
      */
     function hmsgDie($type, $msg){
-        $objPage = CSCMS\Core\Classes\coreObj::getPage();
+        $objPage = coreObj::getPage();
 
         // $doSimple = false;
         // if(HTTP_AJAX || isset($_GET['ajax']) || $objPage->getVar('simpleTpl')){
@@ -1217,7 +1219,7 @@ function doCode($content, $name=NULL, $lineNumbers=false, $killWS=true){
 
     if(!$lineNumbers){
         if($ext!='php'){
-            $geshi = CSCMS\Core\Classes\coreObj::getLib('GeSHi', array($content, $geshiExt));
+            $geshi = coreObj::getLib('GeSHi', array($content, $geshiExt));
 
             $geshi->set_header_type(GESHI_HEADER_PRE);
             $content = $geshi->parse_code();
@@ -1235,7 +1237,7 @@ function doCode($content, $name=NULL, $lineNumbers=false, $killWS=true){
 
         */}
     }else{
-        $geshi = CSCMS\Core\Classes\coreObj::getLib('GeSHi', array($content, $geshiExt));
+        $geshi = coreObj::getLib('GeSHi', array($content, $geshiExt));
         $geshi->set_header_type(GESHI_HEADER_PRE);
         $geshi->enable_line_numbers(GESHI_FANCY_LINE_NUMBERS, 5);
         $content = $geshi->parse_code();

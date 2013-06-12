@@ -2,21 +2,22 @@
 /*======================================================================*\
 ||                 Cybershade CMS - Your CMS, Your Way                  ||
 \*======================================================================*/
+use CSCMS\Core\Classes as CoreClasses;
 define('INDEX_CHECK', true);
 define('cmsDEBUG', true);
 $GET = $_GET;
 require_once 'core/core.php';
 
-$objRoute  = Core_Classes_coreObj::getRoute();
-$objPage   = Core_Classes_coreObj::getPage();
-$objTPL    = Core_Classes_coreObj::getTPL();
-$objUser   = Core_Classes_coreObj::getUser();
+$objRoute  = CoreClasses\coreObj::getRoute();
+$objPage   = CoreClasses\coreObj::getPage();
+$objTPL    = CoreClasses\coreObj::getTPL();
+$objUser   = CoreClasses\coreObj::getUser();
 
 $objRoute->modifyGET($GET);
 $mode = doArgs('__mode', false, $GET);
 
 // regardless of control panel the user needs to be online.
-if ( !Core_Classes_User::$IS_ONLINE || !in_array($mode, array('admin', 'user')) ) {
+if ( !CoreClasses\User::$IS_ONLINE || !in_array($mode, array('admin', 'user')) ) {
 
     // Need to sort out login
     $objRoute->throwHTTP(404);
@@ -29,8 +30,8 @@ $objPage->addBreadcrumbs(array(
     array('url' => '/'. root() . $mode .'/', 'name' => ucwords($mode).' Control Panel' )
 ));
 if( $mode == 'admin' ){
-    $objCPanel = Core_Classes_coreObj::getAdminCP('', $GET);
-    if ( !Core_Classes_User::$IS_ADMIN ) {
+    $objCPanel = CoreClasses\coreObj::getAdminCP('', $GET);
+    if ( !CoreClasses\User::$IS_ADMIN ) {
 
         // Need to sort out login
         $objRoute->throwHTTP(404);
@@ -40,7 +41,7 @@ if( $mode == 'admin' ){
 
     $objPage->setTheme('perfectum-mootools');
 }else{
-    $objCPanel = Core_Classes_coreObj::getUserCP('', $GET);
+    $objCPanel = CoreClasses\coreObj::getUserCP('', $GET);
 
     $objPage->setOptions('columns', 2);
     $objPage->setTheme();
