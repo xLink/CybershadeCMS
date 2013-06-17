@@ -835,10 +835,9 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
         $args['type']   = doArgs('type', 'html', $args);
         $args['return'] = doArgs('return', true, $args);
 
-
-
         $content = htmlspecialchars_decode($content);
-        switch( $args['type'] ){
+        $switch = strtolower($args['type']);
+        switch( $switch ){
             default:
             case 'html':
                 if( $args['return'] === true ){
@@ -848,8 +847,11 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
             break;
 
             case 'markdown':
-            case 'gh_markdown':
-                $objMarkdown = $args['type'].'_parser';
+            case 'githubmarkdown':
+                $markdown = 'dflydev\\markdown\\markdown';
+                $githubmarkdown = 'CSCMS\\PKG\\MarkdownGithub';
+
+                $objMarkdown = new $$switch;
 
                 if( $args['return'] === true ){
                     return $objMarkdown->transform( $content );
@@ -881,7 +883,6 @@ if(!defined('INDEX_CHECK')){ die('Error: Cannot access directly.'); }
             break;
 
         }
-
 
     }
 

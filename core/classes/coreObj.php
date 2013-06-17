@@ -385,17 +385,9 @@ class coreObj {
     public static function getLib( $name, $args = array() ){
         $dir = cmsROOT.'libaries/';
 
-        // if the class dosent exist, then we'll load it
-        // if( !class_exists($name, false) ){
-        //     $path = strtolower($dir.$name.'/class.'.$name.'.php');
-
-        //     if( file_exists($path) ){
-        //         include_once($path);
-        //     }
-        // }
-
         // if it already exists, load it in and throw it the args array
         if( class_exists($name) ){
+            //echo dump($name, 'class exists');
             $obj = new \ReflectionClass($name);
 
             if( count($args) ){
